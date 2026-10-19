@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 /**
  * Internal dependencies
@@ -10,10 +10,16 @@ import {
 	DEFAULT_WORKSPACE,
 	HIDDEN_PARENT,
 	WORKSPACES,
+	getAvailableWorkspaces,
 	getMenuItemChanges,
 	getWorkspace,
 } from '../presets';
+import { settings } from '../../settings';
 import { getStartPlaces } from '../../start-places';
+
+afterEach( () => {
+	delete settings.shop;
+} );
 
 describe( 'getWorkspace', () => {
 	it( 'finds a workspace by its id', () => {
@@ -27,6 +33,26 @@ describe( 'getWorkspace', () => {
 	it( 'falls back to the default for an unknown id', () => {
 		expect( getWorkspace( 'nope' ) ).toBe( DEFAULT_WORKSPACE );
 		expect( getWorkspace( undefined ) ).toBe( DEFAULT_WORKSPACE );
+	} );
+
+	it( 'falls back to the default for a workspace the site can’t use', () => {
+		expect( getWorkspace( 'selling' ) ).toBe( DEFAULT_WORKSPACE );
+
+		settings.shop = {};
+
+		expect( getWorkspace( 'selling' ).id ).toBe( 'selling' );
+	} );
+} );
+
+describe( 'getAvailableWorkspaces', () => {
+	it( 'offers Selling only on a site with a shop', () => {
+		const ids = () => getAvailableWorkspaces().map( ( { id } ) => id );
+
+		expect( ids() ).not.toContain( 'selling' );
+
+		settings.shop = {};
+
+		expect( ids() ).toContain( 'selling' );
 	} );
 } );
 
@@ -48,6 +74,8 @@ describe( 'WORKSPACES', () => {
 	} );
 
 	it( 'offers only places that exist on "Home"', () => {
+		settings.shop = {};
+
 		WORKSPACES.forEach( ( workspace ) => {
 			expect( getStartPlaces( workspace.home ) ).toHaveLength(
 				workspace.home.places.length
@@ -119,6 +147,20 @@ describe( 'getStartPlaces', () => {
 
 		expect( place.description ).toBe( 'Name your blog.' );
 		expect( place.title ).toBeTruthy();
+	} );
+
+	it( 'offers the shop only on a site with one', () => {
+		const ids = () =>
+			getStartPlaces( DEFAULT_WORKSPACE.home ).map( ( { id } ) => id );
+
+		expect( ids() ).not.toContain( 'shop' );
+
+		settings.shop = {};
+
+		expect( ids() ).toContain( 'shop' );
+		expect( getStartPlaces( getWorkspace( 'selling' ).home )[ 0 ].id ).toBe(
+			'shop'
+		);
 	} );
 
 	it( 'leaves out places it doesn’t know', () => {

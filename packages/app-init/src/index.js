@@ -27,6 +27,7 @@ import { registerBlockToolbar } from '../../../src/block-toolbar';
 import { mountChat } from '../../../src/chat';
 import { mountCommands } from '../../../src/commands';
 import { registerBlockBindings } from '../../../src/editor-extensions/block-bindings';
+import { registerProductBlocks } from '../../../src/editor-extensions/product-blocks';
 import { registerSectionMenu } from '../../../src/editor-extensions/section-menu';
 import { registerSectionPatterns } from '../../../src/editor-extensions/section-patterns';
 import { registerTemplatePartEditing } from '../../../src/editor-extensions/template-part-editing';
@@ -43,6 +44,7 @@ export async function init() {
 	registerSectionPatterns();
 	registerSectionMenu();
 	registerBlockToolbar();
+	registerProductBlocks();
 	registerTemplatePartEditing();
 	registerLayoutWireframes();
 	mountEditorLayer();

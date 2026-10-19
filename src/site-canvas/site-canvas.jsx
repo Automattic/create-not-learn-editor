@@ -65,13 +65,18 @@ import { useZoomGestures, ZoomControls } from './zoom-controls';
  * @param {boolean}  props.canCompose     Whether Compose is offered. A canvas
  *                                        about one part of the site, not a
  *                                        page's sections, does without.
+ * @param {boolean}  props.hasSections    Whether what is edited is built from
+ *                                        sections. Without, like a product
+ *                                        in its locked layout, Edit has no
+ *                                        section layer and clicks reach the
+ *                                        blocks, and there is no Compose.
  * @param {Function} props.useComposeSync A hook linking Compose to a list of
  *                                        the same sections elsewhere, while
  *                                        composing. See `SectionModesLayer`.
  * @return {Element} The canvas.
  */
 export function SiteCanvas( {
-	canCompose = true,
+	canCompose: canComposeSections = true,
 	canvas,
 	className = '',
 	document,
@@ -79,8 +84,10 @@ export function SiteCanvas( {
 	editorRef: givenEditorRef,
 	emptyPreview = null,
 	focusId = null,
+	hasSections = true,
 	useComposeSync,
 } ) {
+	const canCompose = canComposeSections && hasSections;
 	const navigate = useNavigate();
 	const ownEditorRef = useRef();
 	const bodyRef = useRef();
@@ -243,7 +250,8 @@ export function SiteCanvas( {
 				between them, so what is picked carries over. Writing is
 				edited without it, and only arranged with it. */ }
 				{ ( ( isEditing && ! isWriting ) || isComposing ) &&
-					editorEntity && (
+					editorEntity &&
+					hasSections && (
 						<SectionModesLayer
 							editorRef={ editorRef }
 							entity={ editorEntity }

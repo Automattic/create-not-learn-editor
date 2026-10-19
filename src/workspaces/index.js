@@ -29,6 +29,7 @@ import {
 	PREFERENCES_SCOPE,
 	WORKSPACES,
 	getActiveWorkspace,
+	getAvailableWorkspaces,
 	getMenuItemChanges,
 	getWorkspace,
 } from './presets';
@@ -39,6 +40,7 @@ export {
 	PREFERENCES_SCOPE,
 	WORKSPACES,
 	getActiveWorkspace,
+	getAvailableWorkspaces,
 	getWorkspace,
 };
 

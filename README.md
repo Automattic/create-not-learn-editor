@@ -162,6 +162,16 @@ Agentic Editor asks before running some of its tools, such as publishing a patte
 
 The editor loads Agentic Editor's tools with `agentic_editor_enqueue_abilities()`, which [wpscholar/agentic-editor#30](https://github.com/wpscholar/agentic-editor/pull/30) adds. Until that is merged, map the PR's branch into `wp-env` as described above.
 
+### Shop
+
+With WooCommerce active, Home offers the shop. Map WooCommerce in the same way, activate it, add its pages, then stock the shop with products that cover the awkward cases, like options, stock counts and drafts:
+
+```sh
+npm run wp-env run cli wp plugin activate woocommerce
+npm run wp-env run cli -- wp wc tool run install_pages --user=1
+npm run wp-env run cli -- --env-cwd=wp-content/plugins/<this folder> wp eval-file scripts/demo-site/seed-shop.php
+```
+
 ### Demo site
 
 The development site (not the tests site) is set up as a demo the first time `wp-env` starts. `scripts/setup-demo-site.mjs` runs after every start and calls `scripts/demo-site/seed.php`, which:
