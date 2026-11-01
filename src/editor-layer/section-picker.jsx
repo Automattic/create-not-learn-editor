@@ -25,7 +25,6 @@ import { store as noticesStore } from '@wordpress/notices';
 /**
  * Internal dependencies
  */
-import { usePreviewBlocks } from '../pickers/preview-blocks';
 import { getPatternTitle } from '../routes/content/page-layouts';
 import { getSectionTitle } from '../routes/content/pages/page-sections';
 import {
@@ -48,13 +47,11 @@ export {
  * A design's preview, rendered by the block editor already on screen, which
  * holds the editor's settings and theme styles.
  *
- * @param {Object} props         Component props.
- * @param {string} props.content Pattern markup.
+ * @param {Object}   props        Component props.
+ * @param {Object[]} props.blocks Blocks to preview, from `usePreviewBlocks()`.
  * @return {Element} The preview.
  */
-export function EditorPreview( { content } ) {
-	const blocks = usePreviewBlocks( content );
-
+export function EditorPreview( { blocks } ) {
 	return (
 		<BlockPreview.Async>
 			<BlockPreview blocks={ blocks } />
