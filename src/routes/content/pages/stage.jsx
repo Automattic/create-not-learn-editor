@@ -244,7 +244,7 @@ export function PageDetailStage( {
 			breadcrumbs={
 				<Breadcrumbs
 					items={ [
-						// Opened from the "My site" screen, a page leads
+						// Opened from the "Home" screen, a page leads
 						// back to it.
 						...siteTrail,
 						{

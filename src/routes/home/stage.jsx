@@ -69,7 +69,7 @@ export default function Stage() {
 					) }
 				</>
 			}
-			title={ __( 'My site' ) }
+			title={ __( 'Home' ) }
 		>
 			<div className="cnl-editor-stage cnl-site-hub">
 				<Stack direction="column" gap="sm">

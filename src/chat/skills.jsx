@@ -1427,7 +1427,7 @@ const PLACE_SUGGESTIONS = {
 };
 
 /*
- * What to ask for, grouped into the same places to start as "My site"
+ * What to ask for, grouped into the same places to start as "Home"
  * offers, so the first thing seen is a short, familiar list. A group with
  * one thing in it is that thing.
  */
@@ -1838,7 +1838,7 @@ export const SKILLS = {
 		reply: () => ( {
 			actions: [ 'close-assistant', 'stay' ],
 			text: __(
-				'Close the assistant and go back to My site? Anything you haven’t kept will be put back.'
+				'Close the assistant and go back to Home? Anything you haven’t kept will be put back.'
 			),
 		} ),
 	},
