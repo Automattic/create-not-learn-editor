@@ -12,12 +12,16 @@
 /**
  * WordPress dependencies
  */
-import { Button } from '@wordpress/components';
+import { Button, DropZone, Tooltip } from '@wordpress/components';
 import { store as coreDataStore } from '@wordpress/core-data';
 import { useDispatch, useSelect } from '@wordpress/data';
+import { forwardRef, useState } from '@wordpress/element';
+import { decodeEntities } from '@wordpress/html-entities';
 import { __ } from '@wordpress/i18n';
-import { MediaUpload } from '@wordpress/media-utils';
-import { InputControl, Spinner, Stack, Text } from '@wordpress/ui';
+import { closeSmall } from '@wordpress/icons';
+import { MediaUpload, uploadMedia } from '@wordpress/media-utils';
+import { store as noticesStore } from '@wordpress/notices';
+import { Fieldset, InputControl, Spinner, Stack, Text } from '@wordpress/ui';
 
 const EMPTY_OBJECT = {};
 const ALL_FIELDS = [ 'title', 'tagline', 'logo', 'icon' ];
@@ -104,69 +108,161 @@ export function useSiteIdentity() {
 	};
 }
 
+/**
+ * The dashed box that opens the media library, and takes an image dropped on
+ * it. A copy of the media field core's Identity screen uses.
+ *
+ * @param {Object}   props             Component props.
+ * @param {Element}  props.children    What the box shows.
+ * @param {boolean}  props.hasMedia    Whether an image is chosen.
+ * @param {boolean}  props.isUploading Whether a dropped image is uploading.
+ * @param {string}   props.label       The box's accessible name.
+ * @param {Function} props.onFilesDrop Called with the files dropped on it.
+ * @param {Function} props.open        Opens the media library.
+ * @param {Object}   ref               The box's ref, for its tooltip.
+ * @return {Element} The box.
+ */
+const MediaPickerButton = forwardRef( function UnforwardedMediaPickerButton(
+	{ children, hasMedia, isUploading, label, onFilesDrop, open, ...props },
+	ref
+) {
+	return (
+		<div
+			{ ...props }
+			ref={ ref }
+			aria-disabled={ isUploading }
+			aria-label={ label }
+			className={
+				hasMedia
+					? 'cnl-editor-media-field__picker has-media'
+					: 'cnl-editor-media-field__picker'
+			}
+			onClick={ () => ! isUploading && open() }
+			onKeyDown={ ( event ) => {
+				if (
+					! isUploading &&
+					( event.key === 'Enter' || event.key === ' ' )
+				) {
+					event.preventDefault();
+					open();
+				}
+			} }
+			role="button"
+			tabIndex={ 0 }
+		>
+			{ children }
+			{ ! isUploading && <DropZone onFilesDrop={ onFilesDrop } /> }
+		</div>
+	);
+} );
+
+/**
+ * One image setting, the logo or the browser icon: a dashed "Choose" box
+ * until an image is chosen, then a row with its thumbnail and file name that
+ * replaces it when clicked, and a button to remove it.
+ *
+ * @param {Object}   props             Component props.
+ * @param {string}   props.chooseLabel What the empty box says.
+ * @param {string}   props.description Help text under the box.
+ * @param {string}   props.label       The setting's name.
+ * @param {Function} props.onChange    Called with the chosen image's ID, or 0.
+ * @param {number}   props.value       The chosen image's ID.
+ * @return {Element} The setting.
+ */
 export function SiteMediaSetting( {
+	chooseLabel,
 	description,
-	imageClassName = '',
 	label,
 	onChange,
 	value,
 } ) {
 	const { isLoading, media } = useMediaRecord( value );
+	const [ isUploading, setIsUploading ] = useState( false );
+	const { createErrorNotice } = useDispatch( noticesStore );
 	const imageUrl = getMediaUrl( media );
+	const fileName = decodeEntities( media?.title?.rendered || '' );
+
+	const onFilesDrop = ( files ) =>
+		uploadMedia( {
+			allowedTypes: [ 'image' ],
+			filesList: files,
+			onFileChange( [ uploaded ] ) {
+				// It calls this first with a preview, which has no ID yet.
+				if ( ! uploaded?.id ) {
+					setIsUploading( true );
+					return;
+				}
+				setIsUploading( false );
+				onChange( uploaded?.id || 0 );
+			},
+			onError( error ) {
+				setIsUploading( false );
+				createErrorNotice( error.message, { type: 'snackbar' } );
+			},
+		} );
 
 	return (
-		<div className="cnl-editor-identity-media">
-			<div className="cnl-editor-identity-media__preview">
-				{ imageUrl ? (
-					<img alt="" className={ imageClassName } src={ imageUrl } />
-				) : (
-					<div
-						aria-hidden
-						className="cnl-editor-identity-media__placeholder"
-					>
-						{ isLoading ? <Spinner /> : label.charAt( 0 ) }
-					</div>
-				) }
-			</div>
-			<div className="cnl-editor-identity-media__details">
-				<Text render={ <h3 /> } variant="heading-sm">
-					{ label }
-				</Text>
-				<Text className="routes-styles__muted" variant="body-sm">
-					{ description }
-				</Text>
-				<div className="cnl-editor-identity-media__actions">
-					<MediaUpload
-						allowedTypes={ [ 'image' ] }
-						multiple={ false }
-						onSelect={ ( nextMedia ) =>
-							onChange( nextMedia?.id || 0 )
-						}
-						render={ ( { open } ) => (
-							<Button
-								__next40pxDefaultSize
-								onClick={ open }
-								variant="secondary"
-							>
-								{ value
-									? __( 'Replace' )
-									: __( 'Choose image' ) }
-							</Button>
-						) }
-						value={ value || undefined }
-					/>
-					{ Boolean( value ) && (
-						<Button
-							__next40pxDefaultSize
-							onClick={ () => onChange( 0 ) }
-							variant="tertiary"
+		<Fieldset.Root className="cnl-editor-media-field">
+			<Fieldset.Legend>{ label }</Fieldset.Legend>
+			<MediaUpload
+				allowedTypes={ [ 'image' ] }
+				multiple={ false }
+				onSelect={ ( nextMedia ) => onChange( nextMedia?.id || 0 ) }
+				render={ ( { open } ) =>
+					value || isUploading ? (
+						<div className="cnl-editor-media-field__item">
+							<Tooltip text={ __( 'Replace' ) }>
+								<MediaPickerButton
+									hasMedia
+									isUploading={ isUploading }
+									label={ __( 'Replace' ) }
+									onFilesDrop={ onFilesDrop }
+									open={ open }
+								>
+									{ isLoading || isUploading ? (
+										<Spinner />
+									) : (
+										<>
+											{ imageUrl && (
+												<img
+													alt=""
+													className="cnl-editor-media-field__thumbnail"
+													src={ imageUrl }
+												/>
+											) }
+											<span className="cnl-editor-media-field__filename">
+												{ fileName }
+											</span>
+										</>
+									) }
+								</MediaPickerButton>
+							</Tooltip>
+							{ ! isUploading && (
+								<Button
+									className="cnl-editor-media-field__remove"
+									icon={ closeSmall }
+									label={ __( 'Remove' ) }
+									onClick={ () => onChange( 0 ) }
+									size="small"
+								/>
+							) }
+						</div>
+					) : (
+						<MediaPickerButton
+							label={ chooseLabel }
+							onFilesDrop={ onFilesDrop }
+							open={ open }
 						>
-							{ __( 'Remove' ) }
-						</Button>
-					) }
-				</div>
-			</div>
-		</div>
+							<span className="cnl-editor-media-field__placeholder">
+								{ chooseLabel }
+							</span>
+						</MediaPickerButton>
+					)
+				}
+				value={ value || undefined }
+			/>
+			<Fieldset.Description>{ description }</Fieldset.Description>
+		</Fieldset.Root>
 	);
 }
 
@@ -243,6 +339,7 @@ export function SiteIdentityFields( {
 				) }
 				{ shows( 'logo' ) && (
 					<SiteMediaSetting
+						chooseLabel={ __( 'Choose logo' ) }
 						description={ __(
 							'Shown in your header. Wide or square images both work.'
 						) }
@@ -253,10 +350,10 @@ export function SiteIdentityFields( {
 				) }
 				{ shows( 'icon' ) && (
 					<SiteMediaSetting
+						chooseLabel={ __( 'Choose icon' ) }
 						description={ __(
 							'The small picture in browser tabs and bookmarks. Use a square image.'
 						) }
-						imageClassName="cnl-editor-identity-media__image--icon"
 						label={ __( 'Browser icon' ) }
 						onChange={ ( id ) => update( { site_icon: id } ) }
 						value={ site.site_icon || 0 }

@@ -132,6 +132,7 @@ $heading-font-family: "EB Garamond", "Georgia", "Times New Roman", serif;
 	 * capitals.
 	 */
 	.cnl-editor-stage label[class*="__label"],
+	.cnl-editor-stage [class*="__legend"][class*="__label"],
 	.components-modal__frame label[class*="__label"],
 	.components-base-control__label,
 	.components-input-control__label {
