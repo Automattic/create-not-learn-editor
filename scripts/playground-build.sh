@@ -13,10 +13,11 @@
 #            it as it is, slashes and all.
 #   out-dir  Where to put the files. It must not exist yet.
 #
-# Trunk uses demos/blueprint.json as it is. A branch or release gets a
-# blueprint.json of its own, rewritten from it to install from <ref>. A release
-# also pins WordPress to the version wp-env runs, so it stays the same while
-# WordPress moves on.
+# There is a blueprint for each demo in demos/: blueprint.json for the
+# Fernhouse demo site and blueprint-blank.json for a blank site on WordPress's
+# default theme. Trunk uses them as they are. A branch or release gets copies of
+# its own, rewritten to install from <ref>. A release also pins WordPress to the
+# version wp-env runs, so it stays the same while WordPress moves on.
 
 set -euo pipefail
 
@@ -50,13 +51,14 @@ wp=''
 case $kind in
 	trunk)
 		about="Do not edit or commit to this branch, it is replaced on every push to trunk."
-		files="[\`demos/blueprint.json\`](https://github.com/$repo/blob/trunk/demos/blueprint.json)"
+		files="[\`demos/blueprint.json\`](https://github.com/$repo/blob/trunk/demos/blueprint.json) and [\`demos/blueprint-blank.json\`](https://github.com/$repo/blob/trunk/demos/blueprint-blank.json)"
 		;;
 	branch)
-		title="Create Not Learn Editor ($name)"
-		description="Create Not Learn Editor from the $name branch, with Gutenberg, the Mainstay theme and the Fernhouse demo site."
+		# Replaces the start of each blueprint's description, "The latest
+		# Create Not Learn Editor from trunk".
+		version="Create Not Learn Editor from the $name branch"
 		about="It is the Playground build of the [\`$name\`](https://github.com/$repo/tree/$name) branch, replaced on every push to it and deleted with it. Do not edit or commit to this ref."
-		files="[\`blueprint.json\`](blueprint.json)"
+		files="[\`blueprint.json\`](blueprint.json) and [\`blueprint-blank.json\`](blueprint-blank.json)"
 		;;
 	release)
 		# Playground takes major versions, such as 7.1, not patch releases.
@@ -65,29 +67,35 @@ case $kind in
 			echo "Could not find the WordPress version in scripts/wp-env.mjs" >&2
 			exit 1
 		fi
-		title="Create Not Learn Editor $name"
-		description="Create Not Learn Editor $name, on WordPress $wp, with Gutenberg, the Mainstay theme and the Fernhouse demo site."
+		version="Create Not Learn Editor $name, on WordPress $wp"
 		about="It is the Playground build of the \`$name\` release. Do not edit or move this tag."
-		files="[\`blueprint.json\`](blueprint.json)"
+		files="[\`blueprint.json\`](blueprint.json) and [\`blueprint-blank.json\`](blueprint-blank.json)"
 		;;
 esac
 
 if [ "$kind" != trunk ]; then
-	jq --tab \
-		--arg ref "$ref" \
-		--arg title "$title" \
-		--arg description "$description" \
-		--arg wp "$wp" '
-			walk(if type == "string" then sub("/playground-build/"; "/\($ref)/") else . end)
-			| .meta.title = $title
-			| .meta.description = $description
-			| if $wp != "" then .preferredVersions.wp = $wp else . end
-		' demos/blueprint.json > "$out/blueprint.json"
+	for blueprint in demos/blueprint.json demos/blueprint-blank.json; do
+		target="$out/$(basename "$blueprint")"
+		jq --tab \
+			--arg ref "$ref" \
+			--arg name "$name" \
+			--arg version "$version" \
+			--arg wp "$wp" '
+				walk(if type == "string" then sub("/playground-build/"; "/\($ref)/") else . end)
+				| .meta.title = "\(.meta.title) (\($name))"
+				| .meta.description |= sub("^The latest Create Not Learn Editor from trunk"; $version)
+				| if $wp != "" then .preferredVersions.wp = $wp else . end
+			' "$blueprint" > "$target"
 
-	if grep -q "/playground-build/" "$out/blueprint.json"; then
-		echo "The blueprint still installs from the playground-build branch." >&2
-		exit 1
-	fi
+		if grep -q "/playground-build/" "$target"; then
+			echo "$target still installs from the playground-build branch." >&2
+			exit 1
+		fi
+		if ! jq -e --arg version "$version" '.meta.description | startswith($version)' "$target" > /dev/null; then
+			echo "The description in $blueprint must start \"The latest Create Not Learn Editor from trunk\"." >&2
+			exit 1
+		fi
+	done
 fi
 
 cat > "$out/README.md" <<EOF
@@ -95,5 +103,5 @@ cat > "$out/README.md" <<EOF
 
 Generated from [\`${sha:0:7}\`](https://github.com/$repo/commit/$sha) by \`.github/workflows/plugin-zip.yml\`. $about
 
-These are the files $files installs.
+These are the files $files install.
 EOF

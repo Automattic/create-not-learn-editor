@@ -5,18 +5,22 @@ name: Plugin zip
 #
 # It also publishes a WordPress Playground demo of the push. The zip, the
 # Mainstay theme, the demo site seed script and the Playground canvas fix go on
-# a ref of their own, which the demo's blueprint installs from.
+# a ref of their own, which the demos' blueprints install from.
 #
-# - trunk goes to the `playground-build` branch, which `demos/blueprint.json`
-#   installs from. That keeps the README's demo on the latest trunk.
-# - Any other branch goes to `refs/playground/<branch>`, with a blueprint of
+# There are two demos, the Fernhouse demo site (`blueprint.json`) and a blank
+# site on WordPress's default theme (`blueprint-blank.json`). Both install from
+# the same ref.
+#
+# - trunk goes to the `playground-build` branch, which the blueprints in
+#   `demos/` install from. That keeps the README's demos on the latest trunk.
+# - Any other branch goes to `refs/playground/<branch>`, with blueprints of
 #   its own, so work in progress can be tried before it merges. The ref is
 #   neither a branch nor a tag, so it stays out of both lists, but
 #   raw.githubusercontent.com serves from it all the same.
 #   `.github/workflows/playground-links.yml` links it from the branch's pull
 #   request and deletes it with the branch.
-# - A `v*` tag, such as `v0.2.0`, goes to a `playground-v0.2.0` tag, with a
-#   blueprint that also pins WordPress to the version wp-env runs. The demo
+# - A `v*` tag, such as `v0.2.0`, goes to a `playground-v0.2.0` tag, with
+#   blueprints that also pin WordPress to the version wp-env runs. The demo
 #   stays the same while trunk moves on, for user tests. The GitHub release
 #   for the tag links to it.
 #
@@ -122,14 +126,15 @@ jobs:
             "HEAD:$PLAYGROUND_REF"
 
           if [ "$PLAYGROUND_KIND" = trunk ]; then
-            blueprint_url="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/trunk/demos/blueprint.json"
+            blueprints="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/trunk/demos"
           else
-            blueprint_url="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${PLAYGROUND_REF}/blueprint.json"
+            blueprints="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${PLAYGROUND_REF}"
           fi
-          echo "PLAYGROUND_URL=https://playground.wordpress.net/?blueprint-url=${blueprint_url}" >> "$GITHUB_ENV"
-          echo "[Try this build in WordPress Playground](https://playground.wordpress.net/?blueprint-url=${blueprint_url})." >> "$GITHUB_STEP_SUMMARY"
+          echo "PLAYGROUND_URL=https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint.json" >> "$GITHUB_ENV"
+          echo "PLAYGROUND_BLANK_URL=https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-blank.json" >> "$GITHUB_ENV"
+          echo "[Try this build in WordPress Playground](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint.json), or [try it on a blank site](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-blank.json)." >> "$GITHUB_STEP_SUMMARY"
 
-      # Leads the release notes with the Playground link and attaches the zip.
+      # Leads the release notes with the Playground links and attaches the zip.
       # Works whether the release was made here or by hand before the tag was
       # pushed.
       - name: Publish GitHub release
@@ -137,7 +142,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          link="[Try ${GITHUB_REF_NAME} in WordPress Playground](${PLAYGROUND_URL}). It stays on this release while trunk moves on."
+          link="[Try ${GITHUB_REF_NAME} in WordPress Playground](${PLAYGROUND_URL}), or [try it on a blank site](${PLAYGROUND_BLANK_URL}). Both stay on this release while trunk moves on."
 
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
             body=$(gh release view "$GITHUB_REF_NAME" --json body --jq .body)
