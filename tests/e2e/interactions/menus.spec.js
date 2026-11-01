@@ -42,7 +42,8 @@ async function openMenu( page, menu ) {
 async function expectUnsavedChanges( page ) {
 	await expect(
 		getSaveControls( page ).getByRole( 'button', {
-			name: 'Review changes',
+			name: 'Save',
+			exact: true,
 		} )
 	).toBeVisible();
 }

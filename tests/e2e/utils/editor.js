@@ -451,7 +451,7 @@ async function expectSnackbar( page, message ) {
 }
 
 /**
- * The unsaved-changes summary and Review changes button in the top bar.
+ * The unsaved-changes summary and Save button in the top bar.
  *
  * @param {import('@playwright/test').Page} page
  * @return {import('@playwright/test').Locator} The controls.
@@ -468,7 +468,7 @@ function getSaveControls( page ) {
  */
 async function openReviewChanges( page ) {
 	await getSaveControls( page )
-		.getByRole( 'button', { name: 'Review changes' } )
+		.getByRole( 'button', { name: 'Save', exact: true } )
 		.click();
 
 	return page.getByRole( 'dialog', { name: 'Review changes' } );
