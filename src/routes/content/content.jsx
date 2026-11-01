@@ -522,7 +522,7 @@ function Stage() {
 
 	const title = type.menuName || type.label;
 	// Opened from a section's Edit posts, the list leads back to its page.
-	// Opened from the "My site" screen, or the Header or Footer screen,
+	// Opened from the "Home" screen, or the Header or Footer screen,
 	// Pages leads back there.
 	let siteCrumbs = isPages ? siteTrail : [];
 

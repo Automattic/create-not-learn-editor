@@ -994,7 +994,7 @@ function cnl_editor_get_menu_items() {
 		array(
 			'id'    => 'home',
 			'icon'  => 'dashicons-admin-home',
-			'label' => __( 'My site', 'create-not-learn-editor' ),
+			'label' => __( 'Home', 'create-not-learn-editor' ),
 			'to'    => '/',
 		),
 		array(
