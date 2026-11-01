@@ -14,28 +14,41 @@ const START_PATTERNS_MODAL = '.editor-start-page-options__modal';
 
 /**
  * Record, from before the editor loads, each time core's modal is added to
- * the page and whether it could be seen then, so a test can tell a modal that
- * was closed from one core never opened.
+ * the page and whether it was ever on screen in a frame the browser painted,
+ * so a test can tell a modal that was closed unseen from one core never
+ * opened. Checked a frame at a time because the layer closes it after it is
+ * added but before it is painted.
  *
  * @param {import('@playwright/test').Page} page
  */
 async function watchStartPatterns( page ) {
 	await page.addInitScript( ( selector ) => {
-		window.__cnlStartPatterns = [];
+		const openings = [];
+		const findOverlay = () =>
+			document
+				.querySelector( selector )
+				?.closest( '.components-modal__screen-overlay' );
+
+		window.__cnlStartPatterns = openings;
 
 		new window.MutationObserver( () => {
-			const modal = document.querySelector( selector );
-			const overlay = modal?.closest(
-				'.components-modal__screen-overlay'
-			);
+			const overlay = findOverlay();
 
 			if ( overlay && ! overlay.dataset.cnlSeen ) {
 				overlay.dataset.cnlSeen = 'true';
-				window.__cnlStartPatterns.push( {
-					visible: overlay.checkVisibility(),
-				} );
+				openings.push( { visible: false } );
 			}
 		} ).observe( document, { childList: true, subtree: true } );
+
+		const onFrame = () => {
+			if ( findOverlay()?.checkVisibility() && openings.length ) {
+				openings[ openings.length - 1 ].visible = true;
+			}
+
+			window.requestAnimationFrame( onFrame );
+		};
+
+		window.requestAnimationFrame( onFrame );
 	}, START_PATTERNS_MODAL );
 }
 

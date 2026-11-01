@@ -19,15 +19,17 @@
 $edit-canvas: '[class*="__has-full-canvas"]';
 
 /**
- * Core's "Choose a pattern" modal, hidden until the layer allows it, which it
- * does only for a new page in the full-screen editor (`start-patterns.js`).
- * The layer closes it anywhere else, and this keeps it from showing first.
+ * Core's "Choose a pattern" modal, which the layer closes as it opens except
+ * for a new page in the full-screen editor (`start-patterns.js`). It is closed
+ * before it is painted, but core then fades it out, so it is hidden for that.
+ * Only once it is closing: a modal the layer fails to close still shows,
+ * rather than locking the page behind a modal no one can see.
  *
  * Outside the edit canvas scope on purpose, as the site canvas mounts core's
  * editor too.
  */
 body:not(:has(.cnl-editor-layer[data-start-patterns="allowed"]))
-.components-modal__screen-overlay:has(.editor-start-page-options__modal) {
+.components-modal__screen-overlay.is-animating-out:has(.editor-start-page-options__modal) {
 	display: none;
 }
 

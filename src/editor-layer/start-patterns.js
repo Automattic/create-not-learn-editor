@@ -10,9 +10,10 @@
  * left to the full-screen editor, and there to pages just made.
  *
  * Turning the preference off would save it for wp-admin's editor too, so the
- * modal is closed instead: hidden by the layer's stylesheet until
- * `data-start-patterns` on `.cnl-editor-layer` allows it, so it never shows,
- * then closed with its own close button, which keeps the preference as it was.
+ * modal is closed instead, with its own close button, which keeps the
+ * preference as it was. It is closed as it is added, before it is painted, and
+ * the layer's stylesheet hides core's fade as it closes, unless
+ * `data-start-patterns` on `.cnl-editor-layer` allows it.
  *
  * DRIFT CANARY. The modal is found by core's class for it and closed through
  * the only button in its header. The stylesheet repeats the class.
