@@ -16,7 +16,7 @@ test.describe( 'Home view', () => {
 
 	test( 'offers places to start working on the site', async ( { page } ) => {
 		await expect(
-			page.getByRole( 'heading', { level: 1, name: 'My site' } )
+			page.getByRole( 'heading', { level: 1, name: 'Home' } )
 		).toBeVisible();
 		await expect(
 			page.getByRole( 'link', { name: /View site/ } )
@@ -46,7 +46,7 @@ test.describe( 'Home view', () => {
 	test( 'keeps the sidebar links the same size when another screen loads', async ( {
 		page,
 	} ) => {
-		const names = [ 'My site', 'Site Overview', 'Pages', 'Design' ];
+		const names = [ 'Home', 'Site Overview', 'Pages', 'Design' ];
 		const getHeights = () =>
 			Promise.all(
 				names.map( async ( name ) => {

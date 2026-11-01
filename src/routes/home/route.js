@@ -4,7 +4,7 @@
 import { __ } from '../../wordpress-packages';
 
 export const route = {
-	title: () => __( 'My site' ),
+	title: () => __( 'Home' ),
 	async canvas() {
 		return null;
 	},

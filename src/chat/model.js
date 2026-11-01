@@ -118,7 +118,7 @@ function getContext( picked ) {
 
 	return {
 		editor: 'create-not-learn-editor',
-		screen: screen ? screen[ 1 ] : 'My site',
+		screen: screen ? screen[ 1 ] : 'Home',
 		notes: [
 			page &&
 				`The page open on the canvas is "${ page.title }" (page ID ${ page.id }).`,
