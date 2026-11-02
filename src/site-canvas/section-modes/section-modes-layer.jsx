@@ -477,6 +477,10 @@ function getBlocksBeside( select, clientId ) {
  *                                place: `{ clientId, isAfter, height }`, the
  *                                section it opens before, or after at the
  *                                page's end, and its height on screen.
+ * @param {string[]} lockedIds    The sections locked to their content,
+ *                                which take no new block but a line of
+ *                                text, unlike a blank section or a run of
+ *                                text.
  * @return {string} CSS.
  */
 function getCanvasCss(
@@ -485,7 +489,8 @@ function getCanvasCss(
 	isEmpty,
 	compose,
 	fadedIds,
-	gap
+	gap,
+	lockedIds
 ) {
 	const outside = openIds
 		.map( ( id ) => `:not(#block-${ id }):not(#block-${ id } *)` )
@@ -501,6 +506,19 @@ function getCanvasCss(
 		`.is-root-container .block-editor-block-list__block${ outside }:hover::before { content: none !important; }`,
 		rootClientId &&
 			`#block-${ rootClientId }.is-hovered::after { display: none !important; }`,
+		/*
+		 * Core prompts an empty line to type "/" for a block, but a section
+		 * locked to its content takes no other block that way, so there the
+		 * prompt points to the section's Add instead.
+		 */
+		lockedIds.length > 0 &&
+			`.is-root-container :is(${ lockedIds
+				.map( ( id ) => `#block-${ id }` )
+				.join( ', ' ) }) [data-rich-text-placeholder=${ JSON.stringify(
+				__( 'Type / to choose a block' )
+			) }]::after { content: ${ JSON.stringify(
+				__( 'Type here, or use Add for a heading, button or image' )
+			) }; }`,
 		// An empty page keeps room for its placeholder, in place of core's
 		// prompt to type, the only thing core draws there.
 		rootClientId &&
@@ -1622,6 +1640,31 @@ export function SectionModesLayer( {
 		}
 	}, [ editorRef, syncedSelectedId ] );
 
+	/*
+	 * The sections locked to their content, which take no new block but a
+	 * line of text: not one core has opened, nor a blank section or a run of
+	 * text, which take any. Joined, so the selector returns a value that only
+	 * changes when they do.
+	 */
+	const lockedKey = useSelect(
+		( select ) => {
+			const { getTemplateLock } = select( blockEditorStore );
+
+			return sectionIds
+				.filter(
+					( clientId ) =>
+						clientId !== editedSection &&
+						getTemplateLock( clientId ) === 'contentOnly'
+				)
+				.join();
+		},
+		[ editedSection, sectionIds ]
+	);
+	const lockedIds = useMemo(
+		() => ( lockedKey ? lockedKey.split( ',' ) : EMPTY_ARRAY ),
+		[ lockedKey ]
+	);
+
 	const openId = active && active.mode !== MODE_DESIGN ? active.id : null;
 	// Joined, so the selector returns a value that only changes when they do.
 	const fadedIds = useSelect(
@@ -1669,9 +1712,27 @@ export function SectionModesLayer( {
 				height:
 					( inlineAddHeight ?? INLINE_ADD_HEIGHT ) +
 					INLINE_ADD_GAP * 2,
-			}
+			},
+			lockedIds
 		)
 	);
+
+	// Working on the words in a section locked to its content, its "+"
+	// beside an empty line is hidden, as it can only add another.
+	const isEditingLockedSection =
+		active?.mode === MODE_CONTENT && lockedIds.includes( active.id );
+
+	useEffect( () => {
+		const editor = editorRef.current;
+
+		if ( ! isEditingLockedSection || ! editor ) {
+			return undefined;
+		}
+
+		editor.classList.add( 'is-editing-locked-section' );
+
+		return () => editor.classList.remove( 'is-editing-locked-section' );
+	}, [ editorRef, isEditingLockedSection ] );
 
 	/*
 	 * A header or footer in a mode is put in the spotlight, the rest of the
@@ -2155,9 +2216,12 @@ export function SectionModesLayer( {
 			leaveCompose( () => startBlank( index ) );
 		},
 		onViewAll: () => {
+			const index = getInsertIndex( inlineAdd.index );
+
 			setInlineAdd( null );
 			openSectionPicker( {
-				index: getInsertIndex( inlineAdd.index ),
+				index,
+				onStartBlank: () => leaveCompose( () => startBlank( index ) ),
 				rootClientId: rootClientId || '',
 			} );
 		},
@@ -2696,6 +2760,7 @@ export function SectionModesLayer( {
 							onAddSection={ () =>
 								openSectionPicker( {
 									index: 0,
+									onStartBlank: () => startBlank(),
 									rootClientId,
 								} )
 							}

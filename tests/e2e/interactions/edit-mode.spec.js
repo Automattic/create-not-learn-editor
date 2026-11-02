@@ -518,6 +518,27 @@ test.describe( 'Edit mode', () => {
 				.contentFrame()
 				.getByText( 'Words on a blank page' )
 		).toBeVisible();
+
+		// It has no design to keep, so it isn't locked to its content: "/"
+		// adds any block, and Enter after a heading starts a new line.
+		await page.keyboard.press( 'Enter' );
+		await page.keyboard.type( '/heading' );
+		await expect(
+			page.getByRole( 'option', { name: 'Heading', exact: true } )
+		).toBeVisible();
+		await page.keyboard.press( 'Enter' );
+		await page.keyboard.type( 'A heading of my own' );
+		await page.keyboard.press( 'Enter' );
+		await page.keyboard.type( 'More words' );
+
+		const canvas = getCanvasEditor( page ).contentFrame();
+
+		await expect(
+			canvas.locator( '[data-type="core/heading"]', {
+				hasText: 'A heading of my own',
+			} )
+		).toBeVisible();
+		await expect( canvas.getByText( 'More words' ) ).toBeVisible();
 	} );
 
 	test( 'leaving Edit puts the sections back as they were', async ( {

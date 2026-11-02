@@ -200,13 +200,34 @@ export function getPatternSectionBlocks( pattern ) {
 /**
  * An empty section to build from scratch: a group holding a blank paragraph.
  *
- * It has no pattern behind it, so it is fully editable rather than
- * content-only.
+ * Its blocks are free, with core's own `templateLock: false`, so in Edit it
+ * isn't locked to its content as a section from a design is: it has no design
+ * to keep, and anything can be added to it, moved in it, or typed after a
+ * heading with Enter. See `use-section-lock.js`.
+ *
+ * Shaped like a theme's own sections, the page's full width with room above
+ * and below, so it reads as a section and has room for the controls laid
+ * over one. The room is from the theme's spacing scale, which WordPress
+ * gives every theme that doesn't replace it.
  *
  * @return {Object} The group block. Its paragraph is `innerBlocks[ 0 ]`.
  */
 export function createBlankSection() {
-	return createBlock( 'core/group', { layout: { type: 'constrained' } }, [
-		createBlock( 'core/paragraph' ),
-	] );
+	return createBlock(
+		'core/group',
+		{
+			align: 'full',
+			layout: { type: 'constrained' },
+			templateLock: false,
+			style: {
+				spacing: {
+					padding: {
+						bottom: 'var:preset|spacing|60',
+						top: 'var:preset|spacing|60',
+					},
+				},
+			},
+		},
+		[ createBlock( 'core/paragraph' ) ]
+	);
 }

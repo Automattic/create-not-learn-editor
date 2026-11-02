@@ -271,6 +271,52 @@ export function getAppendPlace( section ) {
 }
 
 /**
+ * Whether a block is an empty line: a paragraph with nothing typed in it,
+ * like the one a blank section starts with, or one Enter has just made.
+ *
+ * @param {?Object} block The block.
+ * @return {boolean} Whether it is.
+ */
+export function isEmptyLine( block ) {
+	return (
+		block?.name === 'core/paragraph' &&
+		! String( block.attributes?.content ?? '' ).trim()
+	);
+}
+
+/**
+ * Where a new item goes in a section, and whether it takes the place of an
+ * empty line there rather than going after it, as core's inserter does. The
+ * empty line the caret is on, or else the place `getAppendPlace` gives,
+ * taking the empty line last there, if there is one.
+ *
+ * @param {Object}  section    The section's block, with its inner blocks.
+ * @param {?string} selectedId The block selected, if any.
+ * @return {Object} `{ parentId, index, isReplacing }`.
+ */
+export function getAddPlace( section, selectedId = null ) {
+	const selected = selectedId && findBlock( section, selectedId );
+
+	if ( isEmptyLine( selected ) ) {
+		const { index, parentId } = findPlace( section, selectedId );
+
+		return { index, isReplacing: true, parentId };
+	}
+
+	const place = getAppendPlace( section );
+	const parent =
+		place.parentId === section.clientId
+			? section
+			: findBlock( section, place.parentId );
+
+	if ( isEmptyLine( parent.innerBlocks.at( -1 ) ) ) {
+		return { ...place, index: place.index - 1, isReplacing: true };
+	}
+
+	return { ...place, isReplacing: false };
+}
+
+/**
  * Whether a section holds other blocks, so a new item can go in it.
  *
  * @param {Object} section The section's block, with its inner blocks.
