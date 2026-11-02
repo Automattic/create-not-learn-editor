@@ -1,6 +1,6 @@
 @use "@wordpress/base-styles/colors" as wp-colors;
-@use "@wordpress/base-styles/variables" as wp;
 @use "../colors" as *;
+@use "../elevation" as *;
 @use "../editor-layer/edit-original";
 @use "./section-modes/style" as section-modes;
 @use "./browse-hints";
@@ -26,24 +26,16 @@
 }
 
 /*
- * Browse | Edit. Shorter than the toolbar's 40px buttons, so it doesn't
- * dominate the toolbar, always bordered, and the picked mode in the admin
- * colour. Core draws the picked option's backdrop as the control's
- * `::before`.
+ * Browse | Edit, sized as core draws a segmented control, always bordered,
+ * and the picked mode in the admin colour. Core draws the picked option's
+ * backdrop as the control's `::before`.
  */
 .cnl-site-canvas__mode-toggle.components-toggle-group-control {
 	flex-shrink: 0;
 	align-self: center;
 	width: auto;
-	height: 32px;
-	min-height: 32px;
 	border-color: wp-colors.$gray-600;
 	white-space: nowrap;
-
-	.components-toggle-group-control-option-base {
-		height: 30px;
-		min-height: 30px;
-	}
 
 	&::before {
 		border-color: var(--wp-admin-theme-color);
@@ -82,21 +74,21 @@
 }
 
 /*
- * Zoom out and back in from the canvas's corner, as on a map: a white
- * surface like the section bars, over the editor and its section layer.
+ * Zoom out and back in from the canvas's corner, as on a map: drawn as
+ * core's popovers are, over the editor and its section layer.
  */
 .cnl-site-canvas__zoom-controls {
 	position: absolute;
 	z-index: 2;
-	right: 24px;
-	bottom: 24px;
+	right: var(--wpds-dimension-padding-2xl);
+	bottom: var(--wpds-dimension-padding-2xl);
 	display: flex;
 	flex-direction: column;
-	gap: 2px;
-	padding: 4px;
-	border-radius: 10px;
-	background: #fff;
-	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+	gap: var(--wpds-dimension-gap-xs);
+	padding: var(--wpds-dimension-padding-xs);
+	border-radius: var(--wpds-border-radius-md);
+	background: var(--wpds-color-background-surface-neutral);
+	box-shadow: $cnl-popover-shadow;
 }
 
 .cnl-site-canvas__awaiting {
@@ -112,7 +104,7 @@
 	width: 40px;
 	height: 40px;
 	min-width: 40px;
-	color: #1e1e1e;
+	color: var(--wpds-color-foreground-content-neutral);
 }
 
 .cnl-site-canvas__body {
@@ -183,10 +175,10 @@
 	&.is-mobile {
 		align-items: flex-start;
 		padding: 24px;
-		background: #f0f0f1;
+		background: var(--wpds-color-background-surface-neutral-weak);
 
 		.cnl-site-canvas__frame {
-			border: 1px solid #dcdcde;
+			border: 1px solid var(--wpds-color-stroke-surface-neutral);
 			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 		}
 	}

@@ -135,7 +135,9 @@ function MessageBox() {
 					disabled={ ! canSend }
 					icon={ arrowUpIcon }
 					label={ __( 'Send' ) }
+					size="compact"
 					type="submit"
+					variant="primary"
 				/>
 			</div>
 			<p className="cnl-chat-composer__hint">

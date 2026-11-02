@@ -16,6 +16,9 @@
  * `CNL_EDITOR_UI_THEME` is 'modern'.
  */
 
+@use "@wordpress/base-styles/variables" as wp;
+@use "../elevation" as *;
+
 $heading-font-family: "EB Garamond", "Georgia", "Times New Roman", serif;
 
 .cnl-ui-theme-modern {
@@ -49,17 +52,13 @@ $heading-font-family: "EB Garamond", "Georgia", "Times New Roman", serif;
 
 	.components-modal__frame {
 		border-radius: var(--wpds-border-radius-lg);
-		box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.04);
+		box-shadow: wp.$shadow-modal;
 	}
 
 	.components-popover__content,
 	.components-snackbar,
 	.components-notice {
 		border-radius: var(--wpds-border-radius-md);
-	}
-
-	.components-popover__content {
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06);
 	}
 
 	/*
@@ -175,11 +174,11 @@ $heading-font-family: "EB Garamond", "Georgia", "Times New Roman", serif;
 		margin: var(--wpds-dimension-padding-xl);
 		overflow: hidden;
 		border-radius: var(--wpds-border-radius-lg);
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.08);
+		box-shadow: $cnl-popover-shadow;
 	}
 
 	.cnl-editor-site-preview.routes-navigation-canvas {
-		background: #fff;
+		background: var(--wpds-color-background-surface-neutral);
 	}
 
 	.cnl-editor-site-preview .routes-navigation-canvas__preview {
@@ -206,7 +205,7 @@ $heading-font-family: "EB Garamond", "Georgia", "Times New Roman", serif;
 	 */
 	.dataviews-view-grid__media--clickable:hover,
 	.routes-styles__look:hover .routes-styles__look-preview {
-		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+		box-shadow: wp.$elevation-small;
 	}
 
 	@media not (prefers-reduced-motion) {

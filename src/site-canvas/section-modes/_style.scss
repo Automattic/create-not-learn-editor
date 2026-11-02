@@ -1,3 +1,5 @@
+@use "../../elevation" as *;
+
 /*
  * Edit's section layer. See `section-modes-layer.jsx`.
  *
@@ -6,8 +8,8 @@
  * event through to the canvas but those on its own controls.
  */
 
-// The bars are the design system's surfaces: white, edged and lifted, as the
-// editor's other floating panels are, with core's buttons, as the rest of the
+// The bars are the design system's surfaces: white, edged and lifted, as
+// core's popovers are, with core's buttons, as the rest of the
 // editor has. Edit design's bar is the same surface.
 $surface: var(--wpds-color-background-surface-neutral);
 $ink: var(--wpds-color-foreground-content-neutral);
@@ -19,7 +21,7 @@ $stroke-active: var(--wpds-color-stroke-interactive-neutral-active);
 $stroke-brand: var(--wpds-color-stroke-interactive-brand);
 $focus-ring: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
 $edge: var(--wpds-border-width-xs) solid $stroke;
-$lift: 0 2px 4px rgba(0, 0, 0, 0.06), 0 12px 32px rgba(0, 0, 0, 0.1);
+$lift: $cnl-popover-elevation;
 $error-ink: var(--wpds-color-foreground-interactive-error);
 $error-stroke: var(--wpds-color-stroke-interactive-error);
 $error-wash: var(--wpds-color-background-interactive-error-weak-active);
@@ -734,7 +736,7 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	overflow: hidden;
 	border-radius: var(--wpds-border-radius-md);
 	opacity: 0.85;
-	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+	box-shadow: $cnl-drag-shadow;
 	pointer-events: none;
 }
 
@@ -758,7 +760,7 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 /* A new item, highlighted a moment. */
 .cnl-section-modes__fresh {
 	position: absolute;
-	border-radius: 2px;
+	border-radius: var(--wpds-border-radius-sm);
 	animation: cnl-section-modes-fresh 0.9s ease-out forwards;
 }
 
@@ -792,7 +794,7 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	position: absolute;
 	box-sizing: border-box;
 	border: 1px dashed color-mix(in srgb, #{$theme} 80%, transparent);
-	border-radius: 2px;
+	border-radius: var(--wpds-border-radius-sm);
 	pointer-events: none;
 
 	&.is-open {
@@ -805,7 +807,7 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	bottom: 100%;
 	left: -1px;
 	padding: 1px 6px;
-	border-radius: 2px 2px 0 0;
+	border-radius: var(--wpds-border-radius-sm) var(--wpds-border-radius-sm) 0 0;
 	background: $theme;
 	color: #fff;
 	font-size: var(--wpds-typography-font-size-xs);
@@ -822,7 +824,7 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	position: absolute;
 	box-sizing: border-box;
 	border: 1px dashed color-mix(in srgb, #{$theme} 70%, transparent);
-	border-radius: 2px;
+	border-radius: var(--wpds-border-radius-sm);
 	pointer-events: none;
 }
 
@@ -869,7 +871,7 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	box-sizing: border-box;
 	padding: 0;
 	border: 2px dashed color-mix(in srgb, #{$theme} 60%, transparent);
-	border-radius: 4px;
+	border-radius: var(--wpds-border-radius-md);
 	background: color-mix(in srgb, #{$theme} 6%, transparent);
 	color: $theme;
 	font: inherit;

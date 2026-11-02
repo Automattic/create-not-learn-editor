@@ -42,14 +42,12 @@ $cnl-section-picker-accent: var(--wp-admin-theme-color, #3858e9);
 		box-shadow var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
 
 	&:hover {
-		border-color: $cnl-section-picker-accent;
-		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+		border-color: var(--wpds-color-stroke-interactive-neutral-active);
 	}
 
 	&.is-pressed {
 		border-color: $cnl-section-picker-accent;
 		box-shadow: inset 0 0 0 1px $cnl-section-picker-accent;
-		background: color-mix(in srgb, #{$cnl-section-picker-accent} 6%, var(--wpds-color-background-surface-neutral-strong));
 	}
 
 	&:focus-visible {

@@ -69,7 +69,7 @@ function PageOptionsDropdown( {
 					label={ __( 'Page options' ) }
 					onClick={ onToggle }
 					showTooltip
-					variant="tertiary"
+					size="compact"
 				/>
 			) }
 		/>

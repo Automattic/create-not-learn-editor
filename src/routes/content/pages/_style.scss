@@ -2,6 +2,7 @@
 // preview canvas.
 
 @use "../../../colors" as *;
+@use "../../../elevation" as *;
 
 $cnl-accent: var(--wp-admin-theme-color, #3858e9);
 
@@ -145,7 +146,7 @@ $cnl-pages-tree-row-gap: 2px;
 	inset-inline-start: calc(var(--cnl-pages-tree-drop-depth, 0) * 20px + 26px);
 	inset-inline-end: 0;
 	height: 3px;
-	border-radius: 3px;
+	border-radius: var(--wpds-border-radius-md);
 	background: $cnl-accent;
 	pointer-events: none;
 }
@@ -883,7 +884,7 @@ $cnl-pages-tree-row-gap: 2px;
 		top: 50%;
 		height: 2px;
 		margin-top: -1px;
-		border-radius: 2px;
+		border-radius: var(--wpds-border-radius-sm);
 		background: $cnl-accent;
 		opacity: 0;
 		transition: opacity var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
@@ -962,7 +963,7 @@ $cnl-pages-tree-row-gap: 2px;
 	&.is-hovered,
 	&:hover {
 		border-color: var(--wpds-color-stroke-surface-neutral-strong);
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+		box-shadow: $cnl-rest-shadow;
 	}
 
 	&.is-selected {
@@ -985,7 +986,7 @@ $cnl-pages-tree-row-gap: 2px;
 		position: absolute;
 		inset-inline: 8px;
 		height: 3px;
-		border-radius: 3px;
+		border-radius: var(--wpds-border-radius-md);
 		background: $cnl-accent;
 		pointer-events: none;
 	}

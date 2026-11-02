@@ -62,14 +62,14 @@ Home and Content currently include visible placeholder canvases. They are delibe
 
 ## Visual Theme
 
-A small theme layer sits on top of the WordPress Design System. It softens corners, floats the site preview on a quiet backdrop, and tidies a few legacy components, while keeping WordPress's interface font, colors, and dark sidebar.
+The editor uses the WordPress Design System as it ships. Its own surfaces take their colours, corners, spacing and shadows from WPDS tokens and core's elevation scale, so they sit alongside core's components rather than near them.
 
-Headings use EB Garamond, the heading face on [WordPress.org](https://wordpress.org/). The font lives in `assets/fonts/eb-garamond/` under the SIL Open Font License and loads from the plugin, not a third-party CDN.
+An optional "modern" layer sits on top. It softens corners with WPDS's moderate corner preset, floats the site preview on a quiet backdrop, and sets the sidebar's headings in EB Garamond, the heading face on [WordPress.org](https://wordpress.org/). The font lives in `assets/fonts/eb-garamond/` under the SIL Open Font License and loads from the plugin, not a third-party CDN.
 
-It is on by default. Switch it with the `CNL_EDITOR_UI_THEME` constant, either `'modern'` or `'default'` (stock WPDS):
+It is off by default. Switch it with the `CNL_EDITOR_UI_THEME` constant, either `'default'` (stock WPDS) or `'modern'`:
 
 ```sh
-npm run wp-env run cli wp config set CNL_EDITOR_UI_THEME default
+npm run wp-env run cli wp config set CNL_EDITOR_UI_THEME modern
 npm run wp-env run cli wp config delete CNL_EDITOR_UI_THEME
 ```
 
