@@ -9,6 +9,11 @@ import { getBlockType } from '@wordpress/blocks';
 import { decodeEntities } from '@wordpress/html-entities';
 import { __, _n, sprintf } from '@wordpress/i18n';
 
+/**
+ * Internal dependencies
+ */
+import { getWritingSections } from '../../../site-canvas/writing-mode';
+
 const HEADING_BLOCKS = [ 'core/heading', 'core/post-title' ];
 const IMAGE_BLOCKS = [ 'core/image', 'core/cover', 'core/media-text' ];
 const TEXT_BLOCKS = [ 'core/paragraph', 'core/list', 'core/quote' ];
@@ -79,6 +84,40 @@ export function isSingleBlockSection( block ) {
 		! getInnerBlocks( block ).length ||
 		SINGLE_BLOCKS.includes( block?.name )
 	);
+}
+
+/**
+ * A page's sections, as the canvas shows them: each container on its own,
+ * and each run of plain blocks between them, like paragraphs and headings,
+ * together as one section of text. See `writing-mode.js`.
+ *
+ * @param {Object[]} blocks Top-level blocks.
+ * @return {Object[]} `{ blocks, clientId, isText, start }` for each section:
+ *                    its blocks, its first block's client ID, which it is
+ *                    known by, whether it is a run of text, and where its
+ *                    first block is among the blocks.
+ */
+export function groupSections( blocks ) {
+	const byId = new Map(
+		blocks.map( ( block ) => [ block.clientId, block ] )
+	);
+	let start = 0;
+
+	return getWritingSections(
+		blocks.map( ( block ) => block.clientId ),
+		( clientId ) => byId.get( clientId )?.name
+	).map( ( { clientIds, isText } ) => {
+		const section = {
+			blocks: clientIds.map( ( clientId ) => byId.get( clientId ) ),
+			clientId: clientIds[ 0 ],
+			isText,
+			start,
+		};
+
+		start += clientIds.length;
+
+		return section;
+	} );
 }
 
 /**

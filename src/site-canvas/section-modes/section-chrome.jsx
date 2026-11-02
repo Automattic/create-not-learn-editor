@@ -356,6 +356,8 @@ export function HoverBar( {
 	style,
 	title,
 } ) {
+	const modes = getModes( isPart, title, isComposing, isText, isLayoutItem );
+
 	return (
 		<div
 			className={ `cnl-section-modes__bar${
@@ -372,40 +374,38 @@ export function HoverBar( {
 					/>
 				) }
 			</div>
-			<div
-				aria-label={ sprintf(
-					/* translators: %s: section name. */
-					__( 'Edit %s' ),
-					title
-				) }
-				className="cnl-section-modes__group"
-				role="group"
-			>
-				{ getModes(
-					isPart,
-					title,
-					isComposing,
-					isText,
-					isLayoutItem
-				).map( ( { description, icon, label, mode } ) => (
-					<BarButton
-						icon={ icon }
-						key={ mode }
-						label={ isCompact ? label : description }
-						onClick={ () => onMode( mode ) }
-						text={ isCompact ? null : label }
-					/>
-				) ) }
-				{ posts && ! isPart && ! isLayoutItem && (
-					<PostsMenu
-						clientId={ clientId }
-						isCompact={ isCompact }
-						onManageAll={ onManagePosts }
-						onToggle={ onMenuToggle }
-						posts={ posts }
-					/>
-				) }
-			</div>
+			{ /* A run of text has no modes in Edit, nor an empty group. */ }
+			{ ( modes.length > 0 ||
+				( posts && ! isPart && ! isLayoutItem ) ) && (
+				<div
+					aria-label={ sprintf(
+						/* translators: %s: section name. */
+						__( 'Edit %s' ),
+						title
+					) }
+					className="cnl-section-modes__group"
+					role="group"
+				>
+					{ modes.map( ( { description, icon, label, mode } ) => (
+						<BarButton
+							icon={ icon }
+							key={ mode }
+							label={ isCompact ? label : description }
+							onClick={ () => onMode( mode ) }
+							text={ isCompact ? null : label }
+						/>
+					) ) }
+					{ posts && ! isPart && ! isLayoutItem && (
+						<PostsMenu
+							clientId={ clientId }
+							isCompact={ isCompact }
+							onManageAll={ onManagePosts }
+							onToggle={ onMenuToggle }
+							posts={ posts }
+						/>
+					) }
+				</div>
+			) }
 			<div className="cnl-section-modes__bar-end">
 				{ ! isPart && ! isLayoutItem && (
 					<div

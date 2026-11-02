@@ -24,7 +24,7 @@ import {
 } from '../../../section-picker';
 import { getPageTitle, usePages, usePageSections } from './data';
 import { getPageAncestorTitles } from './page-tree';
-import { getSectionTitle, insertItems } from './page-sections';
+import { getSectionTitle, groupSections, insertItems } from './page-sections';
 import { sectionBridge } from './section-bridge';
 import { HOMEPAGE_VIEW } from './homepage-view';
 import { LIST_PATH } from './page-tree-list';
@@ -50,6 +50,7 @@ import {
 	Text,
 	useDispatch,
 	useEffect,
+	useMemo,
 	useSelect,
 	useState,
 } from '../../../wordpress-packages';
@@ -157,6 +158,11 @@ export function PageDetailStage( {
 	const siteTrail = useSiteTrail();
 	const { pages } = usePages();
 	const { blocks, isReady, setBlocks } = usePageSections( pageId );
+	// Each run of text is one section, as on the canvas.
+	const sectionCount = useMemo(
+		() => groupSections( blocks ).length,
+		[ blocks ]
+	);
 	const { createSuccessNotice } = useDispatch( noticesStore );
 	const [ insertAt, setInsertAt ] = useState( null );
 	const isComposing = useCanvasMode() === MODE_COMPOSE;
@@ -288,7 +294,7 @@ export function PageDetailStage( {
 					<MemoizedPageLayouts
 						isFrontPage={ isHomepage }
 						pageId={ pageId }
-						sectionCount={ blocks.length }
+						sectionCount={ sectionCount }
 						slug={ page?.slug }
 						template={ page?.template }
 					/>
@@ -300,7 +306,7 @@ export function PageDetailStage( {
 							{
 								description: getSectionsDescription(
 									isReady,
-									blocks.length
+									sectionCount
 								),
 								icon: sectionsIcon,
 								search: {

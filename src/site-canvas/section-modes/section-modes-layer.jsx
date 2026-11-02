@@ -32,9 +32,11 @@
  * dragged there to reorder them, and their layouts, colours and place on
  * the page change without leaving. Anything else goes back to Edit to do it.
  *
- * Writing, like a post, is edited without the layer, and only arranged with
- * it, in Compose. Each of its containers is a section there, and each run of
- * blocks between them one section of text. See `writing-mode.js`.
+ * Each container on a page is a section, and each run of plain blocks
+ * between them, like paragraphs and headings, one section of text, so a page
+ * that is mostly words isn't a section for every paragraph. Writing, like a
+ * post, is edited without the layer, and only arranged with it, in Compose,
+ * where its text is grouped the same way. See `writing-mode.js`.
  *
  * Drawn inside the editor's content region, as core's own toolbars are, so
  * it sits under core's block toolbars. Changes go to the editor's blocks, so
@@ -97,7 +99,11 @@ import {
 import { useEditorSpotlight } from '../part-spotlight';
 import { useCanvasDocument } from '../use-canvas-document';
 import { useCanvasStyles } from '../use-canvas-styles';
-import { getBlockIndex, getWritingSections } from '../writing-mode';
+import {
+	getBlockIndex,
+	getWritingSections,
+	groupsTextIn,
+} from '../writing-mode';
 import { createBlankSection, InlineSectionPicker } from '../../section-picker';
 import { EmptyPage } from './empty-page';
 import { getLayoutItemTitle, useLayoutName } from './layout-items';
@@ -459,7 +465,8 @@ function getBlocksBeside( select, clientId ) {
  * an empty page, the rest of the page faded around a section core has
  * opened, and, composing, a hand to grab sections with.
  *
- * @param {?string}  openId       The section whose blocks can be clicked.
+ * @param {string[]} openIds      The blocks of the section whose blocks can
+ *                                be clicked: one, but for a run of text.
  * @param {?string}  rootClientId The sections' parent.
  * @param {boolean}  isEmpty      Whether the page has nothing in it.
  * @param {?string}  compose      While composing, `grab`, or `dragging` while
@@ -472,10 +479,17 @@ function getBlocksBeside( select, clientId ) {
  *                                page's end, and its height on screen.
  * @return {string} CSS.
  */
-function getCanvasCss( openId, rootClientId, isEmpty, compose, fadedIds, gap ) {
-	const outside = openId
-		? `:not(#block-${ openId }):not(#block-${ openId } *)`
-		: '';
+function getCanvasCss(
+	openIds,
+	rootClientId,
+	isEmpty,
+	compose,
+	fadedIds,
+	gap
+) {
+	const outside = openIds
+		.map( ( id ) => `:not(#block-${ id }):not(#block-${ id } *)` )
+		.join( '' );
 	const sections = rootClientId
 		? `#block-${ rootClientId } > .block-editor-block-list__block`
 		: null;
@@ -587,9 +601,8 @@ function useNoSync() {
  *                                       colours or place on the page done
  *                                       back in Edit.
  * @param {boolean}  props.isWriting     Whether the canvas is writing, like
- *                                       a post, arranged in Compose only.
- *                                       Its runs of text are sections, and
- *                                       it has no header or footer to open.
+ *                                       a post, arranged in Compose only. It
+ *                                       has no header or footer to open.
  * @param {Function} props.onExitCompose Leaves Compose for Edit.
  * @param {Function} props.useSync       A hook linking Compose to a list of
  *                                       the same sections elsewhere, like the
@@ -618,14 +631,18 @@ export function SectionModesLayer( {
 	const parts = isWriting ? EMPTY_ARRAY : structure.parts;
 	const layoutItems = isWriting ? EMPTY_ARRAY : structure.layoutItems;
 	const layoutName = useLayoutName( layoutItems.length > 0 );
+	// A canvas about one section, like the Header screen's, has nothing to
+	// group.
+	const groupsText =
+		isWriting || ( ! focusId && groupsTextIn( entity?.postType ) );
 	/*
-	 * Writing's sections, its runs of text grouped, each known by its first
+	 * The sections with their runs of text grouped, each known by its first
 	 * block. Kept to a string, so the selector returns the same value until
 	 * they change.
 	 */
-	const writingKey = useSelect(
+	const groupedKey = useSelect(
 		( select ) =>
-			isWriting
+			groupsText
 				? getWritingSections(
 						structure.sectionIds,
 						select( blockEditorStore ).getBlockName
@@ -638,12 +655,12 @@ export function SectionModesLayer( {
 						)
 						.join( ' ' )
 				: '',
-		[ isWriting, structure.sectionIds ]
+		[ groupsText, structure.sectionIds ]
 	);
-	const writingSections = useMemo(
+	const groupedSections = useMemo(
 		() =>
-			writingKey
-				? writingKey.split( ' ' ).map( ( entry ) => {
+			groupedKey
+				? groupedKey.split( ' ' ).map( ( entry ) => {
 						const [ kind, ids ] = entry.split( ':' );
 
 						return {
@@ -652,30 +669,30 @@ export function SectionModesLayer( {
 						};
 					} )
 				: null,
-		[ writingKey ]
+		[ groupedKey ]
 	);
 	const sectionIds = useMemo(
 		() =>
-			writingSections
-				? writingSections.map( ( section ) => section.clientIds[ 0 ] )
+			groupedSections
+				? groupedSections.map( ( section ) => section.clientIds[ 0 ] )
 				: structure.sectionIds,
-		[ structure.sectionIds, writingSections ]
+		[ structure.sectionIds, groupedSections ]
 	);
-	const writingById = useMemo(
+	const groupedById = useMemo(
 		() =>
 			Object.fromEntries(
-				( writingSections || EMPTY_ARRAY ).map( ( section ) => [
+				( groupedSections || EMPTY_ARRAY ).map( ( section ) => [
 					section.clientIds[ 0 ],
 					section,
 				] )
 			),
-		[ writingSections ]
+		[ groupedSections ]
 	);
-	// The blocks a section is made of: one, but for writing's runs of text.
+	// The blocks a section is made of: one, but for a run of text.
 	const getMembers = ( clientId ) =>
-		writingById[ clientId ]?.clientIds || [ clientId ];
+		groupedById[ clientId ]?.clientIds || [ clientId ];
 	const isTextSection = ( clientId ) =>
-		Boolean( writingById[ clientId ]?.isText );
+		Boolean( groupedById[ clientId ]?.isText );
 	const items = useSectionItems();
 	const rowActions = useRowActions();
 	// `{ id, mode, view }` for the section in a mode, `view` being the
@@ -740,18 +757,18 @@ export function SectionModesLayer( {
 			),
 		[ focusId, layoutItems, parts, sectionIds ]
 	);
-	// Every block of writing's runs of text, which stand for their run.
+	// Every block of the runs of text, which stand for their run.
 	const memberTargets = useMemo(
 		() =>
-			writingSections
+			groupedSections
 				? new Set( [
 						...targets,
-						...writingSections.flatMap(
+						...groupedSections.flatMap(
 							( section ) => section.clientIds
 						),
 					] )
 				: targets,
-		[ targets, writingSections ]
+		[ targets, groupedSections ]
 	);
 	const findTarget = useCallback(
 		( clientId ) => {
@@ -762,12 +779,12 @@ export function SectionModesLayer( {
 			);
 
 			return (
-				writingSections?.find( ( section ) =>
+				groupedSections?.find( ( section ) =>
 					section.clientIds.includes( target )
 				)?.clientIds[ 0 ] ?? target
 			);
 		},
-		[ memberTargets, registry, writingSections ]
+		[ memberTargets, registry, groupedSections ]
 	);
 
 	const exitMode = useCallback( () => {
@@ -1155,6 +1172,32 @@ export function SectionModesLayer( {
 		},
 		[ active ]
 	);
+	/*
+	 * A run of text is known by its first block, which changes as blocks are
+	 * typed in or taken out at its start, so the run open or picked follows
+	 * along, before anything reads it. A run open whose first block went
+	 * follows the block being typed in.
+	 */
+	const getRunOf = ( clientId ) =>
+		groupedSections?.find( ( section ) =>
+			section.clientIds.includes( clientId )
+		)?.clientIds[ 0 ];
+	const activeRun =
+		active &&
+		( getRunOf( active.id ) ??
+			( ! exists && active.mode === MODE_CONTENT
+				? getRunOf( selectedId )
+				: null ) );
+	const pickedRun = pickedSection && getRunOf( pickedSection );
+
+	if ( activeRun && activeRun !== active.id ) {
+		setActive( { ...active, id: activeRun } );
+	}
+
+	if ( pickedRun && pickedRun !== pickedSection ) {
+		setPickedSection( pickedRun );
+	}
+
 	const activePart = active ? partsById[ active.id ] : null;
 
 	/*
@@ -1254,6 +1297,7 @@ export function SectionModesLayer( {
 		// edited. A section that is a single block is that block.
 		const isSectionItself =
 			selectedId === target &&
+			! isTextSection( target ) &&
 			registry.select( blockEditorStore ).getBlockOrder( target ).length >
 				0;
 
@@ -1277,13 +1321,17 @@ export function SectionModesLayer( {
 				)
 			);
 		}
-		// `isOpen` reads the latest mode from its ref, set as `active` is.
-	}, [ active, editorRef, findTarget, registry, selectedId ] );
+		// `isOpen` reads the latest mode from its ref, set as `active` is, and
+		// `isTextSection` the sections, as `groupedById` holds them.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ active, editorRef, findTarget, groupedById, registry, selectedId ] );
 
 	// In Edit content, a block of the section selected can be removed from
-	// core's toolbar; Restore on the small bar puts it back.
+	// core's toolbar; Restore on the small bar puts it back. A run of text's
+	// blocks aren't locked, so core's toolbar removes them itself.
 	const canRemoveSelected =
 		active?.mode === MODE_CONTENT &&
+		! isTextSection( active.id ) &&
 		Boolean( selectedId ) &&
 		selectedId !== active.id &&
 		findTarget( selectedId ) === active.id;
@@ -1309,7 +1357,11 @@ export function SectionModesLayer( {
 	}, [ chatSectionId ] );
 	useEffect( () => () => setSharedPickedSection( null ), [] );
 
-	const pointedId = hoveredId || sync?.hoveredId || null;
+	// The list elsewhere knows a run of text by any of its blocks.
+	const pointedId =
+		hoveredId ||
+		( sync?.hoveredId && findTarget( sync.hoveredId ) ) ||
+		null;
 	const shownHoverId =
 		menuOpenFor ||
 		( pointedId && pointedId !== active?.id ? pointedId : null ) ||
@@ -1468,13 +1520,13 @@ export function SectionModesLayer( {
 	} );
 	// A run of text is drawn round all of its blocks, under its first's ID.
 	const rects = useMemo( () => {
-		if ( ! writingSections ) {
+		if ( ! groupedSections ) {
 			return blockRects;
 		}
 
 		const next = { ...blockRects };
 
-		writingSections.forEach( ( { clientIds } ) => {
+		groupedSections.forEach( ( { clientIds } ) => {
 			const boxes = clientIds
 				.map( ( clientId ) => blockRects[ clientId ] )
 				.filter( Boolean );
@@ -1501,7 +1553,7 @@ export function SectionModesLayer( {
 		} );
 
 		return next;
-	}, [ blockRects, writingSections ] );
+	}, [ blockRects, groupedSections ] );
 
 	const { moveBlocksToPosition } = useDispatch( blockEditorStore );
 
@@ -1513,14 +1565,14 @@ export function SectionModesLayer( {
 			getMembers( clientId ),
 			rootClientId || '',
 			rootClientId || '',
-			writingSections ? getBlockIndex( writingSections, from, to ) : to
+			groupedSections ? getBlockIndex( groupedSections, from, to ) : to
 		);
 	};
 
 	// Where a section added at a place among the sections goes among the
 	// blocks.
 	const getInsertIndex = ( index ) =>
-		writingSections ? getBlockIndex( writingSections, -1, index ) : index;
+		groupedSections ? getBlockIndex( groupedSections, -1, index ) : index;
 
 	const drag = useSectionDrag( {
 		canvasDocument,
@@ -1536,9 +1588,9 @@ export function SectionModesLayer( {
 						.getBlocksByClientId( getMembers( drag.clientId ) )
 						.filter( Boolean )
 				: null,
-		// `getMembers` reads the sections, as `writingById` holds them.
+		// `getMembers` reads the sections, as `groupedById` holds them.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[ drag?.clientId, writingById ]
+		[ drag?.clientId, groupedById ]
 	);
 	const draggedBlock = draggedBlocks?.length ? draggedBlocks : null;
 
@@ -1559,7 +1611,9 @@ export function SectionModesLayer( {
 		}
 	}, [ pickedSection ] );
 
-	const syncedSelectedId = sync?.selectedId ?? null;
+	const syncedSelectedId = sync?.selectedId
+		? findTarget( sync.selectedId )
+		: null;
 
 	useEffect( () => {
 		if ( syncedSelectedId ) {
@@ -1596,16 +1650,16 @@ export function SectionModesLayer( {
 		return previous
 			? { clientId: getMembers( previous ).at( -1 ), isAfter: true }
 			: null;
-		// `getMembers` reads the sections, as `writingById` holds them.
+		// `getMembers` reads the sections, as `groupedById` holds them.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ drag, inlineAdd, sectionIds, writingById ] );
+	}, [ drag, inlineAdd, sectionIds, groupedById ] );
 
 	useCanvasStyles(
 		true,
 		editorRef,
 		STYLE_ID,
 		getCanvasCss(
-			openId,
+			openId ? getMembers( openId ) : EMPTY_ARRAY,
 			rootClientId,
 			isEmpty,
 			isComposing && ( drag ? 'dragging' : 'grab' ),
@@ -1961,16 +2015,22 @@ export function SectionModesLayer( {
 	};
 
 	// Add a block to the end of a section, and open it in Edit content with
-	// the caret in the new block, or the new picture selected.
+	// the caret in the new block, or the new picture selected. A run of text
+	// takes it after its last block, as one more of its own.
 	const addItem = ( ownerId, type, media ) => {
-		const added = items.add( ownerId, type, media );
+		const isText = isTextSection( ownerId );
+		const added = items.add(
+			isText ? getMembers( ownerId ).at( -1 ) : ownerId,
+			type,
+			media
+		);
 
 		if ( ! added ) {
 			return;
 		}
 
 		setFreshId( added.blockId );
-		enterMode( added.sectionId, MODE_CONTENT );
+		enterMode( isText ? ownerId : added.sectionId, MODE_CONTENT );
 
 		if ( type === 'image' ) {
 			registry.dispatch( blockEditorStore ).selectBlock( added.blockId );
@@ -2029,7 +2089,7 @@ export function SectionModesLayer( {
 		const actions = registry.dispatch( blockEditorStore );
 
 		// Past a whole run of text, or a whole run past a section.
-		if ( writingSections ) {
+		if ( groupedSections ) {
 			moveSectionTo(
 				clientId,
 				sectionIds.indexOf( clientId ) + direction

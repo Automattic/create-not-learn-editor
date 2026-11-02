@@ -8,6 +8,8 @@ The canvas beside Home, Pages and Design. A Browse | Edit toggle at the left of 
 
 Posts are written rather than designed, so they are in writing mode (`writing-mode.js`). Edit has no section layer for them: a click reaches the words, with core's full block tools. Zoom out is only offered once a post has a container block, like a group or a cover, as there is nothing to arrange without one. Zoomed out, each container is a section, and each run of other blocks between them is one "Text" section, with no Edit design. The layer groups them, never the saved content. For now the content types in writing mode are listed in that file. Later, a type should say so itself when it is registered.
 
+Pages keep the section layer in Edit, but their runs of plain blocks are grouped the same way, so a page that is mostly words, like a privacy policy, is one "Text" section rather than a section for every paragraph. The first click picks it and the next reaches the words, as for any section. It has Add and its moves, but no Edit design. The Pages sidebar's list of sections groups them too. A layout's blocks aren't grouped, as they are mostly a post's title, image and content.
+
 The mode is shared by every canvas, so it carries over from page to page and screen to screen. It lives in a small data store (`mode.js`), because app init and each route are built separately. Nothing is saved, so every visit starts in Browse.
 
 Moving to Browse with unsaved changes asks to save or discard them, because the preview only shows what is saved. Moving between Edit and Compose never asks: they are the same editor.
@@ -19,7 +21,7 @@ Moving to Browse with unsaved changes asks to save or discard them, because the 
 | `site-canvas.js` | `SiteCanvas`: the toolbar, the editor, the preview laid over it, Edit's section layer and the Compose layer. |
 | `use-site-canvas.js` | `useSiteCanvas()`: the canvas's state and the rules for moving between modes. |
 | `mode.js` | The shared mode: `useCanvasMode()`, `getCanvasMode()`, `setCanvasMode()`. |
-| `writing-mode.js` | Which content types are in writing mode, which blocks are containers in it, and how its runs of text are grouped into sections when zoomed out. |
+| `writing-mode.js` | Which content types are in writing mode, which blocks are containers, and how runs of text between them are grouped into sections: for writing when zoomed out, and for pages always. |
 | `toolbar.js` | The Browse \| Edit toggle, the Compose button (labelled "Zoom out"), undo and redo, the preview's history and device, and the More options menu, with the way to the full-screen editor. |
 | `zoom-controls.jsx` | Compose from the canvas itself: a zoom in and zoom out pair in its corner, as on a map, and a pinch on a trackpad, or Ctrl or ⌘ with the scroll wheel. One gesture moves one step. |
 | `browse-hints.jsx` | Browse's hints that the page is changed in Edit, laid over the preview. |

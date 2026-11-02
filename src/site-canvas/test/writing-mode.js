@@ -9,6 +9,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	getBlockIndex,
 	getWritingSections,
+	groupsTextIn,
 	isWritingType,
 } from '../writing-mode';
 
@@ -30,6 +31,16 @@ describe( 'isWritingType', () => {
 		expect( isWritingType( 'post' ) ).toBe( true );
 		expect( isWritingType( 'page' ) ).toBe( false );
 		expect( isWritingType( 'wp_template' ) ).toBe( false );
+	} );
+} );
+
+describe( 'groupsTextIn', () => {
+	it( 'groups the text of posts and pages but not of layouts', () => {
+		expect( groupsTextIn( 'post' ) ).toBe( true );
+		expect( groupsTextIn( 'page' ) ).toBe( true );
+		expect( groupsTextIn( 'wp_template' ) ).toBe( false );
+		expect( groupsTextIn( 'wp_template_part' ) ).toBe( false );
+		expect( groupsTextIn( undefined ) ).toBe( false );
 	} );
 } );
 

@@ -218,7 +218,9 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 		justify-self: start;
 	}
 
+	// In the last column, even with no modes before it, as on a run of text.
 	> .cnl-section-modes__bar-end {
+		grid-column: -2;
 		justify-self: end;
 	}
 

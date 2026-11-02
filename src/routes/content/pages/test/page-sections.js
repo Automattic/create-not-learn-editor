@@ -23,6 +23,7 @@ import {
 	getSectionTitle,
 	getTemplateElementKey,
 	getTemplateElementLabel,
+	groupSections,
 	insertItems,
 	isSingleBlockSection,
 	moveItem,
@@ -208,5 +209,34 @@ describe( 'page sections', () => {
 		// Dropping an item next to itself leaves it in place.
 		expect( getDropIndex( 1, 1, 'after' ) ).toBe( 1 );
 		expect( getDropIndex( 1, 2, 'before' ) ).toBe( 1 );
+	} );
+} );
+
+describe( 'groupSections', () => {
+	const block = ( clientId, name ) => ( {
+		attributes: {},
+		clientId,
+		innerBlocks: [],
+		name,
+	} );
+
+	test( 'groups runs of text between containers', () => {
+		const blocks = [
+			block( 'a', 'core/heading' ),
+			block( 'b', 'core/paragraph' ),
+			block( 'c', 'core/cover' ),
+			block( 'd', 'core/paragraph' ),
+		];
+
+		expect( groupSections( blocks ) ).toEqual( [
+			{
+				blocks: [ blocks[ 0 ], blocks[ 1 ] ],
+				clientId: 'a',
+				isText: true,
+				start: 0,
+			},
+			{ blocks: [ blocks[ 2 ] ], clientId: 'c', isText: false, start: 2 },
+			{ blocks: [ blocks[ 3 ] ], clientId: 'd', isText: true, start: 3 },
+		] );
 	} );
 } );

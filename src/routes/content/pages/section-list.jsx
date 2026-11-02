@@ -1,5 +1,7 @@
 /**
- * The sections an opened page is made of, to reorder, add to and edit.
+ * The sections an opened page is made of, to reorder, add to and edit. A run
+ * of plain blocks between containers, like paragraphs and headings, is one
+ * section of text, as on the canvas.
  */
 
 /**
@@ -12,6 +14,7 @@ import {
 	getSectionTitle,
 	getTemplateElementKey,
 	getTemplateElementLabel,
+	groupSections,
 	insertItems,
 	isSingleBlockSection,
 	moveItem,
@@ -82,6 +85,7 @@ function SectionCard( {
 	isLast,
 	isNew,
 	isSelected,
+	isText,
 	onDuplicate,
 	onEdit,
 	onMove,
@@ -90,8 +94,11 @@ function SectionCard( {
 	onSelect,
 	shouldReveal,
 } ) {
-	const title = getSectionTitle( block );
-	const summary = getSectionSummary( block );
+	// A run of text is named as on the canvas, its first words beneath.
+	const title = isText ? __( 'Text' ) : getSectionTitle( block );
+	const summary = isText
+		? getSectionTitle( block )
+		: getSectionSummary( block );
 	const ref = useRef();
 
 	/*
@@ -163,13 +170,17 @@ function SectionCard( {
 					onKeyDown={ onKeyDown }
 					type="button"
 				>
-					{ isSingleBlockSection( block ) ? (
+					{ isText || isSingleBlockSection( block ) ? (
 						<span
 							aria-hidden
 							className="cnl-page-section__part-icon"
 						>
 							<BlockIcon
-								icon={ getBlockType( block.name )?.icon }
+								icon={
+									getBlockType(
+										isText ? 'core/paragraph' : block.name
+									)?.icon
+								}
 							/>
 						</span>
 					) : (
@@ -395,6 +406,11 @@ export function SectionList( {
 	const listRef = useRef();
 	const latestRef = useRef();
 	const dragRef = useRef( null );
+	// The list is of sections, each run of text one of them; the page and
+	// the canvas count blocks, so a section's place among them is its start.
+	const sections = useMemo( () => groupSections( blocks ), [ blocks ] );
+	const getStart = ( index ) =>
+		index < sections.length ? sections[ index ].start : blocks.length;
 
 	// Stop a drag that is still going if the list goes away.
 	useEffect( () => () => dragRef.current?.stop(), [] );
@@ -410,21 +426,32 @@ export function SectionList( {
 	}, [ newId ] );
 
 	const move = ( from, to ) => {
-		const block = blocks[ from ];
-		setBlocks( moveItem( blocks, from, to ) );
-		sectionBridge.select( block.clientId, 'stage' );
+		const { clientId } = sections[ from ];
+		setBlocks(
+			moveItem( sections, from, to ).flatMap(
+				( section ) => section.blocks
+			)
+		);
+		sectionBridge.select( clientId, 'stage' );
 	};
 	const duplicate = ( index ) => {
-		const copy = cloneBlock( blocks[ index ] );
-		setBlocks( insertItems( blocks, index + 1, [ copy ] ) );
-		setNewId( copy.clientId );
-		sectionBridge.select( copy.clientId, 'stage' );
+		const copies = sections[ index ].blocks.map( ( block ) =>
+			cloneBlock( block )
+		);
+		setBlocks( insertItems( blocks, getStart( index + 1 ), copies ) );
+		setNewId( copies[ 0 ].clientId );
+		sectionBridge.select( copies[ 0 ].clientId, 'stage' );
 	};
 	const remove = ( index ) => {
 		const previous = blocks;
-		const title = getSectionTitle( blocks[ index ] );
+		const section = sections[ index ];
+		const title = section.isText
+			? __( 'Text' )
+			: getSectionTitle( section.blocks[ 0 ] );
 
-		setBlocks( removeItem( blocks, index ) );
+		setBlocks(
+			removeItem( sections, index ).flatMap( ( item ) => item.blocks )
+		);
 		sectionBridge.select( null, 'stage' );
 		sectionBridge.hover( null );
 		createSuccessNotice(
@@ -454,7 +481,7 @@ export function SectionList( {
 	 * hand the whole time. The list scrolls when dragged near its edges, and
 	 * Escape puts the section back.
 	 */
-	latestRef.current = { blocks, move };
+	latestRef.current = { getStart, move, sections };
 
 	const onPointerDown = ( event, index ) => {
 		if (
@@ -501,7 +528,9 @@ export function SectionList( {
 				drag.target = target;
 				setDropTarget( target );
 				sectionBridge.setInsertionIndex(
-					target.index + ( target.position === 'after' ? 1 : 0 )
+					latestRef.current.getStart(
+						target.index + ( target.position === 'after' ? 1 : 0 )
+					)
 				);
 			}
 		};
@@ -555,7 +584,7 @@ export function SectionList( {
 				setDragIndex( index );
 				document.body.classList.add( 'cnl-is-dragging-section' );
 				sectionBridge.select(
-					latestRef.current.blocks[ index ].clientId,
+					latestRef.current.sections[ index ].clientId,
 					'stage'
 				);
 				drag.frame = window.requestAnimationFrame( autoScroll );
@@ -616,7 +645,8 @@ export function SectionList( {
 	handlersRef.current = {
 		duplicate,
 		move,
-		onEdit,
+		// The editor opens on the section's first block.
+		onEdit: ( index ) => onEdit( getStart( index ) ),
 		onPointerDown,
 		remove,
 		selectSection,
@@ -653,11 +683,11 @@ export function SectionList( {
 
 	const items = [];
 
-	blocks.forEach( ( block, index ) => {
+	sections.forEach( ( { blocks: [ block ], isText, start }, index ) => {
 		items.push(
 			<SectionGap
-				index={ index }
-				isActive={ insertionIndex === index && dragIndex === null }
+				index={ start }
+				isActive={ insertionIndex === start && dragIndex === null }
 				key={ `gap-${ block.clientId }` }
 				onAdd={ onAdd }
 			/>,
@@ -672,9 +702,10 @@ export function SectionList( {
 				index={ index }
 				isDragging={ dragIndex === index }
 				isHovered={ hoveredId === block.clientId }
-				isLast={ index === blocks.length - 1 }
+				isLast={ index === sections.length - 1 }
 				isNew={ newId === block.clientId }
 				isSelected={ selectedId === block.clientId }
+				isText={ isText }
 				shouldReveal={
 					selectedId === block.clientId && selectedFrom === 'canvas'
 				}
