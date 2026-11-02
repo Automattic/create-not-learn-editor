@@ -10,10 +10,12 @@ import {
 	canHoldItems,
 	findPlace,
 	followPath,
+	getAddPlace,
 	getAppendPlace,
 	getEditableId,
 	getItems,
 	getRemovalTarget,
+	isEmptyLine,
 } from '../items';
 
 vi.mock( '@wordpress/blocks', () => ( { createBlock: vi.fn() } ) );
@@ -177,6 +179,74 @@ describe( 'getAppendPlace', () => {
 
 		expect( getAppendPlace( section ) ).toEqual( {
 			index: 2,
+			parentId: section.clientId,
+		} );
+	} );
+} );
+
+function line( content = '' ) {
+	return { ...block( 'core/paragraph' ), attributes: { content } };
+}
+
+describe( 'isEmptyLine', () => {
+	it( 'is a paragraph with nothing typed in it', () => {
+		expect( isEmptyLine( line() ) ).toBe( true );
+		expect( isEmptyLine( line( '  ' ) ) ).toBe( true );
+		expect( isEmptyLine( line( 'Words' ) ) ).toBe( false );
+		expect(
+			isEmptyLine( { ...block( 'core/heading' ), attributes: {} } )
+		).toBe( false );
+		expect( isEmptyLine( null ) ).toBe( false );
+	} );
+} );
+
+describe( 'getAddPlace', () => {
+	it( 'takes the place of the empty line the caret is on', () => {
+		const empty = line();
+		const inner = block( 'core/group', [
+			block( 'core/heading' ),
+			line( 'Intro' ),
+			empty,
+		] );
+		const section = block( 'core/group', [
+			inner,
+			block( 'core/columns', [ card(), card() ] ),
+		] );
+
+		expect( getAddPlace( section, empty.clientId ) ).toEqual( {
+			index: 2,
+			isReplacing: true,
+			parentId: inner.clientId,
+		} );
+	} );
+
+	it( 'takes the place of a blank section’s empty line', () => {
+		const section = block( 'core/group', [ line() ] );
+
+		expect( getAddPlace( section ) ).toEqual( {
+			index: 0,
+			isReplacing: true,
+			parentId: section.clientId,
+		} );
+	} );
+
+	it( 'goes last when the caret is on words', () => {
+		const words = line( 'Words' );
+		const section = block( 'core/group', [ words ] );
+
+		expect( getAddPlace( section, words.clientId ) ).toEqual( {
+			index: 1,
+			isReplacing: false,
+			parentId: section.clientId,
+		} );
+	} );
+
+	it( 'ignores an empty line outside the section', () => {
+		const section = block( 'core/group', [ line( 'Words' ) ] );
+
+		expect( getAddPlace( section, line().clientId ) ).toEqual( {
+			index: 1,
+			isReplacing: false,
 			parentId: section.clientId,
 		} );
 	} );

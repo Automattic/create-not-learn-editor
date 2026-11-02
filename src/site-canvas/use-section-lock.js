@@ -48,8 +48,11 @@ export function useSectionLock( isActive ) {
 		/*
 		 * Sections made of other blocks. A section that is a single block,
 		 * like a paragraph, has nothing inside to unlock, and locking it would
-		 * only take away its text tools, such as bold and links. Without a
-		 * section root, as on a template, there is no page to lock.
+		 * only take away its text tools, such as bold and links. Nor is a
+		 * section that says its blocks are free, with core's own
+		 * `templateLock: false`, like a blank section: it has no design to
+		 * keep, only what is typed and added to it. Without a section root,
+		 * as on a template, there is no page to lock.
 		 */
 		const getSectionIds = () => {
 			const root = selectors.getSectionRootClientId();
@@ -59,7 +62,10 @@ export function useSectionLock( isActive ) {
 						.getBlockOrder( root )
 						.filter(
 							( clientId ) =>
-								selectors.getBlockOrder( clientId ).length > 0
+								selectors.getBlockOrder( clientId ).length >
+									0 &&
+								selectors.getBlockAttributes( clientId )
+									?.templateLock !== false
 						)
 				: [];
 		};

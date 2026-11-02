@@ -74,10 +74,13 @@ const BLANK_PAGE_PATTERN = { content: '' };
  * A page that is mostly words, like a privacy policy. It keeps the theme's
  * standard layout, which puts the title and featured image at the top, and
  * starts with one section of text, so it is written rather than designed.
+ * Its blocks are free, as a blank section's are, so headings, lists and
+ * pictures can go in it as it is written. See `use-section-lock.js`.
  */
 function getTextPageContent( paragraph ) {
 	return `<!-- wp:group ${ JSON.stringify( {
 		metadata: { name: __( 'Page text' ) },
+		templateLock: false,
 		layout: { type: 'constrained' },
 	} ) } -->
 <div class="wp-block-group">${ paragraph }</div>

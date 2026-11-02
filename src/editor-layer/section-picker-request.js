@@ -46,12 +46,15 @@ if ( ! select( STORE_NAME ) ) {
 /**
  * Open the section picker to add a section at a place in the editor.
  *
- * @param {Object}  place              Where the section goes.
- * @param {?string} place.rootClientId Parent block's client ID.
- * @param {number}  place.index        Index among the parent's blocks.
+ * @param {Object}    place              Where the section goes.
+ * @param {?string}   place.rootClientId Parent block's client ID.
+ * @param {number}    place.index        Index among the parent's blocks.
+ * @param {?Function} place.onStartBlank Adds the blank section in place of
+ *                                       the picker, as the site canvas does,
+ *                                       to open it ready to type in.
  */
-export function openSectionPicker( { rootClientId, index } ) {
-	dispatch( STORE_NAME ).setRequest( { index, rootClientId } );
+export function openSectionPicker( { rootClientId, index, onStartBlank } ) {
+	dispatch( STORE_NAME ).setRequest( { index, onStartBlank, rootClientId } );
 }
 
 /**

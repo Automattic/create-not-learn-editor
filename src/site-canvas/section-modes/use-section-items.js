@@ -22,7 +22,7 @@ import {
 	createItem,
 	findPlace,
 	followPath,
-	getAppendPlace,
+	getAddPlace,
 	getEditableId,
 	getRemovalTarget,
 } from './items';
@@ -129,7 +129,8 @@ export function useSectionItems() {
 	);
 
 	/**
-	 * Add an item of a type to the end of a section, or, for a section that
+	 * Add an item of a type to the end of a section, or in place of the empty
+	 * line the caret is on or the section ends with, or, for a section that
 	 * is a single block, straight after it, as a section of its own.
 	 *
 	 * @param {string}  ownerId The section.
@@ -166,13 +167,16 @@ export function useSectionItems() {
 				return { ...result, sectionId: block.clientId };
 			}
 
-			const place = getAppendPlace( owner );
-			const parent = getOwnerBlock( store, place.parentId );
+			const place = getAddPlace(
+				owner,
+				store.getSelectedBlockClientId()
+			);
+			const blocks = [
+				...getOwnerBlock( store, place.parentId ).innerBlocks,
+			];
 
-			actions.replaceInnerBlocks( place.parentId, [
-				...parent.innerBlocks,
-				block,
-			] );
+			blocks.splice( place.index, place.isReplacing ? 1 : 0, block );
+			actions.replaceInnerBlocks( place.parentId, blocks );
 
 			return result;
 		},

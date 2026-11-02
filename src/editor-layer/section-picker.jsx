@@ -131,10 +131,17 @@ export function EditorSectionPicker() {
 		closeSectionPicker();
 		addPatternSection( registry, pattern, place );
 	};
+	// The site canvas adds it itself, to open it ready to type in.
 	const startFromScratch = () => {
+		closeSectionPicker();
+
+		if ( place.onStartBlank ) {
+			place.onStartBlank();
+			return;
+		}
+
 		const section = createBlankSection();
 
-		closeSectionPicker();
 		insertBlocks( [ section ], place.index, place.rootClientId );
 		selectBlock( section.innerBlocks[ 0 ].clientId, 0 );
 	};
