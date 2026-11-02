@@ -6,6 +6,10 @@
  * treats as sections: the Post Content block when a page is shown in its
  * template, or a template's `main` group. Without one, the template's own
  * top-level blocks are taken, less its header and footer.
+ *
+ * A page shown in its template can change some of what the template puts
+ * around its sections, like its title and featured image: core leaves those
+ * blocks editable, for their content only. They are the layout's items.
  */
 
 /**
@@ -20,6 +24,8 @@ import {
 } from '../../wordpress-packages';
 
 const SITE_PART_AREAS = [ 'header', 'footer' ];
+
+const EDITOR_STORE = 'core/editor';
 
 const EMPTY_ARRAY = [];
 
@@ -81,19 +87,49 @@ function describeTemplateElement( clientId, store, entities, theme, position ) {
 }
 
 /**
- * @return {Object} `{ parts, rootClientId, sectionIds, templateElements }`.
+ * The blocks of a template element a page can change, like its title or
+ * featured image: the outermost ones core hasn't disabled. Not in a header
+ * or footer, which are opened on purpose.
+ *
+ * @param {string}   clientId A block the template puts around the sections.
+ * @param {Object}   store    `blockEditorStore` selectors.
+ * @param {string[]} found    Collects the client IDs.
+ * @return {string[]} `found`.
+ */
+function collectLayoutItems( clientId, store, found = [] ) {
+	if ( store.getBlockName( clientId ) === 'core/template-part' ) {
+		return found;
+	}
+
+	if ( store.getBlockEditingMode( clientId ) !== 'disabled' ) {
+		found.push( clientId );
+		return found;
+	}
+
+	store
+		.getBlockOrder( clientId )
+		.forEach( ( childId ) => collectLayoutItems( childId, store, found ) );
+
+	return found;
+}
+
+/**
+ * @return {Object} `{ layoutItems, parts, rootClientId, sectionIds,
+ *                  templateElements }`.
  *                  `templateElements` are the blocks the template puts
  *                  around the sections, top to bottom, each `{ area,
  *                  clientId, id, name, position }`. `parts` are those that
  *                  are the header or footer, `id` being the template part's
- *                  record ID.
+ *                  record ID. `layoutItems` are the blocks in the
+ *                  others that the page can change, each `{ clientId, name
+ *                  }`, only while a page is shown in its template.
  */
 export function useComposeStructure() {
 	/*
 	 * Kept to strings and the store's own arrays, so the selector returns the
 	 * same value until something Compose shows has changed.
 	 */
-	const { elementsKey, rootClientId, sectionsKey } = useSelect(
+	const { elementsKey, itemsKey, rootClientId, sectionsKey } = useSelect(
 		( select ) => {
 			const store = unlock( select( blockEditorStore ) );
 			const entities = select( coreDataStore );
@@ -101,6 +137,7 @@ export function useComposeStructure() {
 			const root = store.getSectionRootClientId() || '';
 			const before = [];
 			const after = [];
+			const aroundIds = [];
 			let sections;
 
 			if ( root ) {
@@ -115,6 +152,10 @@ export function useComposeStructure() {
 					const siblings = store.getBlockOrder( parentId );
 					const index = siblings.indexOf( pathId );
 
+					aroundIds.push(
+						...siblings.slice( 0, index ),
+						...siblings.slice( index + 1 )
+					);
 					before.unshift(
 						...siblings
 							.slice( 0, index )
@@ -177,8 +218,24 @@ export function useComposeStructure() {
 				} );
 			}
 
+			// Only a page in its template: editing the template itself, every
+			// block of it is the template's own.
+			const layoutItems =
+				select( EDITOR_STORE )?.getRenderingMode?.() ===
+				'template-locked'
+					? aroundIds.flatMap( ( clientId ) =>
+							collectLayoutItems( clientId, store ).map(
+								( itemId ) =>
+									`${ itemId }|${ store.getBlockName(
+										itemId
+									) }`
+							)
+						)
+					: [];
+
 			return {
 				elementsKey: [ ...before, ...after ].join( '\n' ),
+				itemsKey: layoutItems.join( '\n' ),
 				rootClientId: root,
 				sectionsKey: sections.join( ' ' ),
 			};
@@ -203,11 +260,20 @@ export function useComposeStructure() {
 			: EMPTY_ARRAY;
 		const parts = templateElements.filter( ( element ) => element.area );
 
+		const layoutItems = itemsKey
+			? itemsKey.split( '\n' ).map( ( line ) => {
+					const [ clientId, name ] = line.split( '|' );
+
+					return { clientId, name };
+				} )
+			: EMPTY_ARRAY;
+
 		return {
+			layoutItems,
 			parts: parts.length ? parts : EMPTY_ARRAY,
 			rootClientId,
 			sectionIds: sectionsKey ? sectionsKey.split( ' ' ) : EMPTY_ARRAY,
 			templateElements,
 		};
-	}, [ elementsKey, rootClientId, sectionsKey ] );
+	}, [ elementsKey, itemsKey, rootClientId, sectionsKey ] );
 }

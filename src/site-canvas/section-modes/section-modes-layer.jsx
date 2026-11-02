@@ -21,6 +21,10 @@
  * - A header or footer shows on every page, so its words aren't reached by
  *   clicking: Edit header or Edit footer opens it, in the spotlight, left
  *   with Done.
+ * - What the page's layout puts around its sections that the page can
+ *   change, like its title and featured image, is picked and clicked into
+ *   as a section is, dashed and named as part of the layout, with no bar.
+ *   See `layout-items.js`.
  *
  * Internally, a section whose blocks are reached is in "Edit content".
  *
@@ -60,6 +64,7 @@ import { getSectionTitle } from '../../routes/content/pages/page-sections';
 import {
 	__,
 	blockEditorStore,
+	blocksStore,
 	Button,
 	coreDataStore,
 	noticesStore,
@@ -95,11 +100,13 @@ import { useCanvasStyles } from '../use-canvas-styles';
 import { getBlockIndex, getWritingSections } from '../writing-mode';
 import { createBlankSection, InlineSectionPicker } from '../../section-picker';
 import { EmptyPage } from './empty-page';
+import { getLayoutItemTitle, useLayoutName } from './layout-items';
 import { RemoveControl } from './remove-control';
 import DesignBar, { getParentView, MAX_PER_SLIDE } from './design-bar';
 import {
 	getSitewideText,
 	HoverBar,
+	LayoutScope,
 	MODE_CONTENT,
 	MODE_FREEFORM,
 	MODE_DESIGN,
@@ -609,6 +616,8 @@ export function SectionModesLayer( {
 	const structure = useComposeStructure();
 	const { rootClientId } = structure;
 	const parts = isWriting ? EMPTY_ARRAY : structure.parts;
+	const layoutItems = isWriting ? EMPTY_ARRAY : structure.layoutItems;
+	const layoutName = useLayoutName( layoutItems.length > 0 );
 	/*
 	 * Writing's sections, its runs of text grouped, each known by its first
 	 * block. Kept to a string, so the selector returns the same value until
@@ -703,6 +712,13 @@ export function SectionModesLayer( {
 			),
 		[ parts ]
 	);
+	const layoutItemsById = useMemo(
+		() =>
+			Object.fromEntries(
+				layoutItems.map( ( item ) => [ item.clientId, item ] )
+			),
+		[ layoutItems ]
+	);
 	// The section at the very top of the page, whose name goes under it.
 	const pageTopId = useSelect(
 		( select ) =>
@@ -719,9 +735,10 @@ export function SectionModesLayer( {
 					: [
 							...sectionIds,
 							...parts.map( ( part ) => part.clientId ),
+							...layoutItems.map( ( item ) => item.clientId ),
 						]
 			),
-		[ focusId, parts, sectionIds ]
+		[ focusId, layoutItems, parts, sectionIds ]
 	);
 	// Every block of writing's runs of text, which stand for their run.
 	const memberTargets = useMemo(
@@ -1298,7 +1315,11 @@ export function SectionModesLayer( {
 		( pointedId && pointedId !== active?.id ? pointedId : null ) ||
 		pickedId;
 	const hoverPosts = usePostsSection(
-		shownHoverId && ! partsById[ shownHoverId ] ? shownHoverId : null
+		shownHoverId &&
+			! partsById[ shownHoverId ] &&
+			! layoutItemsById[ shownHoverId ]
+			? shownHoverId
+			: null
 	);
 
 	/*
@@ -1397,7 +1418,12 @@ export function SectionModesLayer( {
 	 * Freeform, which have their own tools, nor while composing.
 	 */
 	const rowsSectionId =
-		! isComposing && pickedId && ! partsById[ pickedId ] ? pickedId : null;
+		! isComposing &&
+		pickedId &&
+		! partsById[ pickedId ] &&
+		! layoutItemsById[ pickedId ]
+			? pickedId
+			: null;
 
 	const rows = useSectionRows( rowsSectionId );
 	rowsRef.current = rows;
@@ -1886,6 +1912,13 @@ export function SectionModesLayer( {
 			return __( 'Text' );
 		}
 
+		if ( layoutItemsById[ clientId ] ) {
+			return getLayoutItemTitle(
+				layoutItemsById[ clientId ].name,
+				registry.select( blocksStore ).getBlockType
+			);
+		}
+
 		const block = registry.select( blockEditorStore ).getBlock( clientId );
 
 		return block ? getCachedSectionTitle( block ) : __( 'Section' );
@@ -2137,6 +2170,29 @@ export function SectionModesLayer( {
 		return null;
 	}
 
+	/*
+	 * Purple for a header or footer, which every page shares. Grey and dashed
+	 * for a layout item, which the page's layout places.
+	 */
+	const getScope = ( clientId ) => {
+		if ( partsById[ clientId ] ) {
+			return GlobalScope;
+		}
+
+		return layoutItemsById[ clientId ] ? LayoutScope : Fragment;
+	};
+
+	/*
+	 * A tab hangs under the section at the page's top, with nothing above to
+	 * sit on, and under a layout item while its block is reached, as core's
+	 * toolbar for the block sits over its top edge.
+	 */
+	const hangsTabBelow = ( clientId ) =>
+		clientId === pageTopId ||
+		( isWorkedOn &&
+			clientId === active.id &&
+			Boolean( layoutItemsById[ clientId ] ) );
+
 	const renderHover = () => {
 		const rect = ! drag && shownHoverId && rects[ shownHoverId ];
 
@@ -2146,6 +2202,7 @@ export function SectionModesLayer( {
 
 		const box = local( rect, frame );
 		const isPart = Boolean( partsById[ shownHoverId ] );
+		const isLayoutItem = Boolean( layoutItemsById[ shownHoverId ] );
 		const isText = isTextSection( shownHoverId );
 		const index = sectionIds.indexOf( shownHoverId );
 		const title = getTitle( shownHoverId );
@@ -2157,7 +2214,11 @@ export function SectionModesLayer( {
 		 * what would be clicked.
 		 */
 		const isNarrow = box.width < NARROW_WIDTH;
-		const showsAddSection = ! isPart && ! active && ! inlineAdd;
+		const showsAddSection =
+			! isPart && ! isLayoutItem && ! active && ! inlineAdd;
+		// A layout item has nothing to change but its words or picture,
+		// reached by clicking, so it has a bar only zoomed out, to zoom in.
+		const showsBar = ! isLayoutItem || isComposing;
 		// Clear of the "Add section" buttons on its edges, where they show.
 		const barInset = showsAddSection
 			? ADD_SECTION_HEIGHT / 2 + BAR_GAP
@@ -2178,8 +2239,7 @@ export function SectionModesLayer( {
 			onPointerLeave: release,
 		};
 
-		// Purple for a header or footer, which every page shares.
-		const Scope = isPart ? GlobalScope : Fragment;
+		const Scope = getScope( shownHoverId );
 
 		// Remade for each section pointed at, so it fades in afresh.
 		return (
@@ -2199,10 +2259,11 @@ export function SectionModesLayer( {
 					<SectionTab
 						{ ...placeTab(
 							box,
-							shownHoverId === pageTopId,
+							hangsTabBelow( shownHoverId ),
 							frame.height
 						) }
 						isPart={ isPart }
+						layout={ isLayoutItem ? layoutName : null }
 						title={ title }
 					/>
 					<div { ...holdHover }>
@@ -2226,59 +2287,62 @@ export function SectionModesLayer( {
 									{ __( 'Add section' ) }
 								</Button>
 							) ) }
-						<HoverBar
-							canMoveDown={ index < sectionIds.length - 1 }
-							canMoveUp={ index > 0 }
-							isCompact={ isCompact }
-							isComposing={ isComposing }
-							isNarrow={ isNarrow && ! isCompact }
-							isPart={ isPart }
-							isText={ isText }
-							onAdd={ ( type ) =>
-								leaveCompose( () =>
-									addItem( shownHoverId, type )
-								)
-							}
-							onDelete={ () => deleteSection( shownHoverId ) }
-							onDuplicate={ () =>
-								registry
-									.dispatch( blockEditorStore )
-									.duplicateBlocks(
-										getMembers( shownHoverId ),
-										false
-									)
-							}
-							onMenuToggle={ ( isMenuOpen ) =>
-								setMenuOpenFor(
-									isMenuOpen ? shownHoverId : null
-								)
-							}
-							onMode={ ( mode ) => {
-								if ( mode === MODE_ZOOM_IN ) {
-									zoomInTo( shownHoverId );
-								} else if ( mode === MODE_CONTENT ) {
+						{ showsBar && (
+							<HoverBar
+								canMoveDown={ index < sectionIds.length - 1 }
+								canMoveUp={ index > 0 }
+								isCompact={ isCompact }
+								isComposing={ isComposing }
+								isLayoutItem={ isLayoutItem }
+								isNarrow={ isNarrow && ! isCompact }
+								isPart={ isPart }
+								isText={ isText }
+								onAdd={ ( type ) =>
 									leaveCompose( () =>
-										enterMode( shownHoverId, mode )
-									);
-								} else {
-									enterMode( shownHoverId, mode );
+										addItem( shownHoverId, type )
+									)
 								}
-							} }
-							onMove={ ( direction ) =>
-								moveSection( shownHoverId, direction )
-							}
-							clientId={ shownHoverId }
-							onManagePosts={ () =>
-								editPosts( shownHoverId, hoverPosts )
-							}
-							posts={ hoverPosts }
-							style={ {
-								left: box.left + INSET,
-								top: barTop,
-								width: box.width - INSET * 2,
-							} }
-							title={ title }
-						/>
+								onDelete={ () => deleteSection( shownHoverId ) }
+								onDuplicate={ () =>
+									registry
+										.dispatch( blockEditorStore )
+										.duplicateBlocks(
+											getMembers( shownHoverId ),
+											false
+										)
+								}
+								onMenuToggle={ ( isMenuOpen ) =>
+									setMenuOpenFor(
+										isMenuOpen ? shownHoverId : null
+									)
+								}
+								onMode={ ( mode ) => {
+									if ( mode === MODE_ZOOM_IN ) {
+										zoomInTo( shownHoverId );
+									} else if ( mode === MODE_CONTENT ) {
+										leaveCompose( () =>
+											enterMode( shownHoverId, mode )
+										);
+									} else {
+										enterMode( shownHoverId, mode );
+									}
+								} }
+								onMove={ ( direction ) =>
+									moveSection( shownHoverId, direction )
+								}
+								clientId={ shownHoverId }
+								onManagePosts={ () =>
+									editPosts( shownHoverId, hoverPosts )
+								}
+								posts={ hoverPosts }
+								style={ {
+									left: box.left + INSET,
+									top: barTop,
+									width: box.width - INSET * 2,
+								} }
+								title={ title }
+							/>
+						) }
 					</div>
 				</Scope>
 			</div>
@@ -2300,14 +2364,19 @@ export function SectionModesLayer( {
 
 		const box = local( rect, frame );
 		const isPart = Boolean( partsById[ pickedId ] );
-		const Scope = isPart ? GlobalScope : Fragment;
+		const Scope = getScope( pickedId );
 
 		return (
 			<Scope>
 				<div className="cnl-section-modes__outline" style={ box } />
 				<SectionTab
-					{ ...placeTab( box, pickedId === pageTopId, frame.height ) }
+					{ ...placeTab(
+						box,
+						hangsTabBelow( pickedId ),
+						frame.height
+					) }
 					isPart={ isPart }
+					layout={ layoutItemsById[ pickedId ] ? layoutName : null }
 					title={ getTitle( pickedId ) }
 				/>
 			</Scope>

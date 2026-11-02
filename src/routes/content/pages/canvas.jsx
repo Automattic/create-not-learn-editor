@@ -50,6 +50,7 @@ import {
 	getTemplateElementKey,
 	getTemplateElementLabel,
 } from './page-sections';
+import { RenamePageModal } from './page-options';
 import { getPagePreviewUrl } from './preview-url';
 import { sectionBridge, useSectionBridge } from './section-bridge';
 import { SECTIONS_VIEW } from './sections-view';
@@ -68,12 +69,14 @@ import {
 	MenuItem,
 	noticesStore,
 	pageIcon,
+	pencilIcon,
 	useCallback,
 	useDispatch,
 	useEffect,
 	useMemo,
 	useRef,
 	useSelect,
+	useState,
 } from '../../../wordpress-packages';
 
 const LIST_PATH = '/types/page/list/all';
@@ -418,59 +421,95 @@ function getPagePath( link ) {
 	}
 }
 
-function PageOptions( { link } ) {
+/**
+ * The menu on the page's name: Rename for any page, as its title isn't on
+ * every layout, and its address once it has one.
+ *
+ * @param {Object}  props        Component props.
+ * @param {string}  props.link   The page's address, when it has one to show.
+ * @param {?number} props.pageId The page, when there is one to rename.
+ * @return {?Element} The menu.
+ */
+function PageOptions( { link, pageId } ) {
 	const { createSuccessNotice } = useDispatch( noticesStore );
+	const [ isRenaming, setIsRenaming ] = useState( false );
+	const canRename = Boolean( pageId );
 
-	if ( ! link ) {
+	if ( ! link && ! canRename ) {
 		return null;
 	}
 
 	return (
-		<Dropdown
-			className="cnl-editor-homepage-options"
-			contentClassName="cnl-editor-homepage-options__content"
-			popoverProps={ { placement: 'bottom' } }
-			renderContent={ ( { onClose } ) => (
-				<MenuGroup className="cnl-editor-homepage-options__menu">
-					<MenuItem
-						icon={ externalIcon }
-						onClick={ () => {
-							onClose();
-							window.open(
-								link,
-								'_blank',
-								'noopener,noreferrer'
-							);
-						} }
-					>
-						{ __( 'View on your site' ) }
-					</MenuItem>
-					<MenuItem
-						icon={ linkIcon }
-						onClick={ async () => {
-							onClose();
-							await window.navigator.clipboard?.writeText( link );
-							createSuccessNotice( __( 'Link copied.' ), {
-								type: 'snackbar',
-							} );
-						} }
-					>
-						{ __( 'Copy link' ) }
-					</MenuItem>
-				</MenuGroup>
-			) }
-			renderToggle={ ( { isOpen, onToggle } ) => (
-				<Button
-					aria-expanded={ isOpen }
-					className="cnl-editor-homepage-options__toggle"
-					icon={ chevronDownIcon }
-					label={ __( 'Page options' ) }
-					onClick={ onToggle }
-					showTooltip
-					variant="tertiary"
+		<>
+			<Dropdown
+				className="cnl-editor-homepage-options"
+				contentClassName="cnl-editor-homepage-options__content"
+				popoverProps={ { placement: 'bottom' } }
+				renderContent={ ( { onClose } ) => (
+					<MenuGroup className="cnl-editor-homepage-options__menu">
+						{ canRename && (
+							<MenuItem
+								icon={ pencilIcon }
+								onClick={ () => {
+									onClose();
+									setIsRenaming( true );
+								} }
+							>
+								{ __( 'Rename' ) }
+							</MenuItem>
+						) }
+						{ link && (
+							<MenuItem
+								icon={ externalIcon }
+								onClick={ () => {
+									onClose();
+									window.open(
+										link,
+										'_blank',
+										'noopener,noreferrer'
+									);
+								} }
+							>
+								{ __( 'View on your site' ) }
+							</MenuItem>
+						) }
+						{ link && (
+							<MenuItem
+								icon={ linkIcon }
+								onClick={ async () => {
+									onClose();
+									await window.navigator.clipboard?.writeText(
+										link
+									);
+									createSuccessNotice( __( 'Link copied.' ), {
+										type: 'snackbar',
+									} );
+								} }
+							>
+								{ __( 'Copy link' ) }
+							</MenuItem>
+						) }
+					</MenuGroup>
+				) }
+				renderToggle={ ( { isOpen, onToggle } ) => (
+					<Button
+						aria-expanded={ isOpen }
+						className="cnl-editor-homepage-options__toggle"
+						icon={ chevronDownIcon }
+						label={ __( 'Page options' ) }
+						onClick={ onToggle }
+						showTooltip
+						variant="tertiary"
+					/>
+				) }
+			/>
+			{ isRenaming && (
+				<RenamePageModal
+					onClose={ () => setIsRenaming( false ) }
+					pageId={ pageId }
 				/>
 			) }
-		/>
+		</>
 	);
 }
 
@@ -573,7 +612,7 @@ function PageDocument( { homepage, page } ) {
 				</div>
 				<p className="cnl-editor-homepage-document__meta">{ meta }</p>
 			</div>
-			<PageOptions link={ path ? link : '' } />
+			<PageOptions link={ path ? link : '' } pageId={ page?.id } />
 		</div>
 	);
 }

@@ -3,7 +3,8 @@
  * is pointed at or picked, with Add, Edit design (and Edit header or Edit
  * footer, or Edit content in Compose, and Manage posts on a section listing
  * posts) and its own moves, and the small bar
- * on a header or footer being edited, or a section in Freeform.
+ * on a header or footer being edited, or a section in Freeform. A layout
+ * item, like the page's title, is named as part of its layout.
  */
 
 /**
@@ -19,6 +20,7 @@ import {
 	globe as globeIcon,
 	heading as headingIcon,
 	image as imageIcon,
+	layout as layoutIcon,
 	paragraph as paragraphIcon,
 	pencil as pencilIcon,
 	plus as plusIcon,
@@ -63,30 +65,38 @@ const ADD_ICONS = {
  * Edit header or Edit footer. Zoomed out in Compose, a section's words and
  * pictures are too small to click into, so it has Edit content too, which
  * zooms back into Edit with the section picked. A run of text in writing,
- * like a post, has no design of its own, so it has Edit content only.
+ * like a post, has no design of its own, so it has Edit content only, and
+ * neither has what the page's layout places, like its title, whose words are
+ * clicked into in Edit.
  *
- * @param {boolean} isPart      Whether it is the header or footer.
- * @param {string}  title       Its name, like Header.
- * @param {boolean} isComposing Whether the canvas is in Compose.
- * @param {boolean} isText      Whether it is a run of text in writing.
+ * @param {boolean} isPart       Whether it is the header or footer.
+ * @param {string}  title        Its name, like Header.
+ * @param {boolean} isComposing  Whether the canvas is in Compose.
+ * @param {boolean} isText       Whether it is a run of text in writing.
+ * @param {boolean} isLayoutItem Whether it is placed by the page's layout,
+ *                               like its title, which has no design here.
  * @return {Object[]} `{ mode, label, description, icon }` for each.
  */
 export function getModes(
 	isPart = false,
 	title = '',
 	isComposing = false,
-	isText = false
+	isText = false,
+	isLayoutItem = false
 ) {
-	const modes = isText
-		? []
-		: [
-				{
-					description: __( 'Change the layout, colour and width' ),
-					icon: designIcon,
-					label: __( 'Edit design' ),
-					mode: MODE_DESIGN,
-				},
-			];
+	const modes =
+		isText || isLayoutItem
+			? []
+			: [
+					{
+						description: __(
+							'Change the layout, colour and width'
+						),
+						icon: designIcon,
+						label: __( 'Edit design' ),
+						mode: MODE_DESIGN,
+					},
+				];
 
 	if ( isPart ) {
 		modes.push( {
@@ -125,11 +135,25 @@ export function getSitewideText( title ) {
 }
 
 /**
+ * Turns the outline and name grey and dashed for what it wraps: a layout
+ * item, which the page's layout places, rather than the page.
+ *
+ * @param {Object}  props
+ * @param {Element} props.children The outline and name.
+ * @return {Element} The children, marked as the layout's.
+ */
+export function LayoutScope( { children } ) {
+	return <div className="cnl-section-modes__layout-scope">{ children }</div>;
+}
+
+/**
  * The section's name, in a tab on its outline.
  *
  * @param {Object}  props
  * @param {string}  props.title    The name.
  * @param {boolean} props.isPart   Whether it is the header or footer.
+ * @param {?string} props.layout   The name of the layout it is part of, for
+ *                                 a layout item, like the page's title.
  * @param {boolean} props.isInside Whether the tab sits inside the top edge,
  *                                 when there is no room above it.
  * @param {boolean} props.isBelow  Whether the tab hangs under the bottom
@@ -137,7 +161,14 @@ export function getSitewideText( title ) {
  * @param {Object}  props.style    Where it sits.
  * @return {Element} The tab.
  */
-export function SectionTab( { isBelow, isInside, isPart, style, title } ) {
+export function SectionTab( {
+	isBelow,
+	isInside,
+	isPart,
+	layout = null,
+	style,
+	title,
+} ) {
 	return (
 		<span
 			aria-hidden
@@ -148,10 +179,20 @@ export function SectionTab( { isBelow, isInside, isPart, style, title } ) {
 			style={ style }
 		>
 			{ isPart && <LegacyIcon icon={ globeIcon } size={ 14 } /> }
+			{ layout && <LegacyIcon icon={ layoutIcon } size={ 14 } /> }
 			<span className="cnl-section-modes__tab-title">{ title }</span>
 			{ isPart && (
 				<span className="cnl-section-modes__tab-note">
 					{ __( 'shown on every page' ) }
+				</span>
+			) }
+			{ layout && (
+				<span className="cnl-section-modes__tab-note">
+					{ sprintf(
+						/* translators: %s: layout name, like Standard. */
+						__( 'part of the %s layout' ),
+						layout
+					) }
 				</span>
 			) }
 		</span>
@@ -268,6 +309,9 @@ function AddMenu( { onAdd, onToggle, title } ) {
  *                                       which stay where they are.
  * @param {boolean}  props.isText        Whether it is a run of text in
  *                                       writing, which has no design.
+ * @param {boolean}  props.isLayoutItem  Whether it is placed by the page's
+ *                                       layout, like its title, which has
+ *                                       no design and stays where it is.
  * @param {boolean}  props.isComposing   Whether the canvas is in Compose,
  *                                       which has Edit content in place of
  *                                       Add.
@@ -297,6 +341,7 @@ export function HoverBar( {
 	clientId,
 	isCompact,
 	isComposing,
+	isLayoutItem = false,
 	isNarrow,
 	isPart,
 	isText = false,
@@ -319,7 +364,7 @@ export function HoverBar( {
 			style={ style }
 		>
 			<div className="cnl-section-modes__bar-start">
-				{ ! isPart && ! isComposing && (
+				{ ! isPart && ! isLayoutItem && ! isComposing && (
 					<AddMenu
 						onAdd={ onAdd }
 						onToggle={ onMenuToggle }
@@ -336,18 +381,22 @@ export function HoverBar( {
 				className="cnl-section-modes__group"
 				role="group"
 			>
-				{ getModes( isPart, title, isComposing, isText ).map(
-					( { description, icon, label, mode } ) => (
-						<BarButton
-							icon={ icon }
-							key={ mode }
-							label={ isCompact ? label : description }
-							onClick={ () => onMode( mode ) }
-							text={ isCompact ? null : label }
-						/>
-					)
-				) }
-				{ posts && ! isPart && (
+				{ getModes(
+					isPart,
+					title,
+					isComposing,
+					isText,
+					isLayoutItem
+				).map( ( { description, icon, label, mode } ) => (
+					<BarButton
+						icon={ icon }
+						key={ mode }
+						label={ isCompact ? label : description }
+						onClick={ () => onMode( mode ) }
+						text={ isCompact ? null : label }
+					/>
+				) ) }
+				{ posts && ! isPart && ! isLayoutItem && (
 					<PostsMenu
 						clientId={ clientId }
 						isCompact={ isCompact }
@@ -358,7 +407,7 @@ export function HoverBar( {
 				) }
 			</div>
 			<div className="cnl-section-modes__bar-end">
-				{ ! isPart && (
+				{ ! isPart && ! isLayoutItem && (
 					<div
 						aria-label={ __( 'Section' ) }
 						className="cnl-section-modes__group"
