@@ -63,6 +63,17 @@ $heading-font-family: "EB Garamond", "Georgia", "Times New Roman", serif;
 	}
 
 	/*
+	 * Core's block popovers, like the block toolbar and the inserter between
+	 * blocks, are unstyled: what they hold draws its own edges. Edit hides
+	 * the inserter's line and button, so a frame here would be an empty
+	 * rounded box between blocks.
+	 */
+	.components-popover.is-unstyled .components-popover__content {
+		border-radius: 0;
+		box-shadow: none;
+	}
+
+	/*
 	 * The black sidebar keeps a distinct identity: WordPress.org's EB
 	 * Garamond serif, larger than WordPress's interface font, for the
 	 * greeting and the drilldown section titles (Content, Design,
