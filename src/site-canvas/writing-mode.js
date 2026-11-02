@@ -11,9 +11,17 @@
  *
  * For now the content types in writing mode are listed here. Later, a type
  * should say so itself when it is registered.
+ *
+ * Pages keep their sections, but their runs of text are grouped the same
+ * way, in Edit too, so a page that is mostly words, like a privacy policy,
+ * is one section of text rather than a section for every paragraph. A
+ * layout isn't: its blocks are mostly a post's title, image and content.
  */
 
 const WRITING_POST_TYPES = [ 'post' ];
+
+// Content whose blocks are a layout's rather than its own words.
+const LAYOUT_POST_TYPES = [ 'wp_template', 'wp_template_part' ];
 
 /*
  * Blocks that hold a section of their own in writing. Anything else is part
@@ -39,6 +47,14 @@ export function isWritingType( postType ) {
 }
 
 /**
+ * @param {?string} postType A content type.
+ * @return {boolean} Whether its runs of text are grouped into sections.
+ */
+export function groupsTextIn( postType ) {
+	return Boolean( postType ) && ! LAYOUT_POST_TYPES.includes( postType );
+}
+
+/**
  * @param {?string} name A block's name.
  * @return {boolean} Whether it is a section of its own in writing.
  */
@@ -47,8 +63,8 @@ export function isContainerBlock( name ) {
 }
 
 /**
- * Writing's sections: each container on its own, and each run of other
- * blocks between them together, in order.
+ * Sections with their runs of text grouped: each container on its own, and
+ * each run of other blocks between them together, in order.
  *
  * @param {string[]} clientIds The blocks, in order.
  * @param {Function} getName   Returns a block's name from its client ID.
