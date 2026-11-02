@@ -147,6 +147,23 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 }
 
 /*
+ * A layout item, like the page's title, which the page's layout places:
+ * grey rather than the admin colour, and dashed, as it isn't the page's to
+ * move or restyle. Lays out as nothing, as the hover does.
+ */
+.cnl-section-modes__layout-scope {
+	display: contents;
+	--wp-admin-theme-color: #{$ink-weak};
+
+	.cnl-section-modes__tint,
+	.cnl-section-modes__outline {
+		box-shadow: none;
+		outline: 2px dashed $theme;
+		outline-offset: -2px;
+	}
+}
+
+/*
  * Its name, in a tab above its top edge, inside it at the canvas's top, or
  * under its bottom edge at the page's top.
  */

@@ -52,6 +52,8 @@ Escape steps back a level at a time: from the block to the row, to the section, 
 
 The header and footer show on every page, so their words aren't reached by clicking. **Edit header** or **Edit footer**, on the bar, opens one with core's own unlock, its blocks locked to their content, the same on any page as on the Header and Footer screens, and Done editing leaves it.
 
+What the page's layout puts around its sections that the page can change, like its title and featured image, is picked and clicked into as a section is: the first click picks it, the next puts the caret in the title or selects the picture, with core's Replace. Its words and picture are the page's, but where it sits and how it looks are the layout's, shared with every page that uses it. So it is outlined grey and dashed rather than in the admin colour, its tab names the layout ("Title, part of the Standard layout", the layout named as the Pages screen's layout picker names it), and it has no bar in Edit: no Add, Edit design or moves. Its tab hangs under it while its block is reached, as core's toolbar sits over its top edge, and the block toolbar's options menu offers none of its look (see `src/block-toolbar/`). Zoomed out, its bar has Edit content only. Only a page shown in its layout has these, from the blocks core leaves editable there (`useComposeStructure()`'s `layoutItems`).
+
 A header or footer in a mode, Edit design, Edit header or footer, or Freeform, is put in the spotlight, the rest of the page faded and dimmed behind a dark backdrop, as on the Header and Footer screens (`part-spotlight.js`), so it looks the same however it is reached.
 
 A canvas about one part of the site, like the Header and Footer screens', passes it as `focusId`. The layer then offers only that part, picked from the start so its bar shows straight away, and the rest of the page can't be pointed at or clicked.
@@ -92,6 +94,7 @@ Changes rewrite the blocks around an item with core's `replaceInnerBlocks`, whic
 | `use-variations.js` | A section's layouts and colours, or a header's or footer's designs and colours, for Edit design's bar. |
 | `remove-control.jsx` | Remove on core's block toolbar, for a block reached in a section. |
 | `items.js` | A section's items, and where a new one goes. Pure functions. |
+| `layout-items.js` | What the page's layout places that the page can change, like its title: their names, and the layout's. |
 | `rows.js` | A section's rows of cards, and adding to, taking from and flowing them. Pure functions. |
 | `use-section-rows.js` | A section's rows, and the changes to them, made through core's `replaceInnerBlocks`. |
 | `row-handles.jsx` | The rows of cards on the page: the outline on one pointed at, and the open row's tools, the placeholder in a gap or the + strip, a card's remove button, and Per row. |
@@ -103,7 +106,7 @@ Core's zoom-out is used for its zoom alone. Core can't scale the canvas without 
 | File | What it does |
 | --- | --- |
 | `use-compose-zoom.js` | Zooms the editor out and back in. Widens the editor to a desktop's width while core measures it, so the page is laid out as on a desktop and shrinks to fit. Waits for core's zoom animation to end, for a scroll that would otherwise be lost. |
-| `use-compose-structure.js` | The page's sections, the blocks of core's section root, and what the template adds around them, like the header, title and footer. |
+| `use-compose-structure.js` | The page's sections, the blocks of core's section root, and what the template adds around them, like the header, title and footer, and which of those the page can change. |
 | `use-block-rects.js` | Where those blocks are on screen, measured every frame, and scrolling the canvas to one. |
 | `section-styles.js` | The theme's section styles, as a section's colours. |
 | `palette-colors.js` | Colour sets made from the theme's palette, for themes without section styles. |

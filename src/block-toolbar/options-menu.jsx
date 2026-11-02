@@ -57,6 +57,7 @@ import {
 	getStyleChoices,
 	getStyleClassName,
 } from '../editor-extensions/block-style-details';
+import { useIsPlacedByLayout } from './layout-placed';
 import {
 	getActiveFontSizeSlug,
 	getFontSizeAttributes,
@@ -683,6 +684,13 @@ export function OptionsMenu( {
 	const shortcuts = useBlockShortcuts();
 	const editingMode = useBlockEditingMode();
 	const isDefaultEditingMode = editingMode === 'default';
+	/*
+	 * How the block looks, where the page's layout places it, like the page's
+	 * title, is the layout's: its words or picture can change, its look
+	 * can't, so the menu offers none of it.
+	 */
+	const isPlacedByLayout = useIsPlacedByLayout( clientId );
+	const lookEditingMode = isPlacedByLayout ? 'disabled' : editingMode;
 	const colors = useBlockColors( name );
 	const [ coreItems, setCoreItems ] = useState( {
 		first: [],
@@ -759,10 +767,10 @@ export function OptionsMenu( {
 		( item ) => ! TOP_LEVEL_CORE_ITEMS.has( item.label )
 	);
 
-	const styleChoices = useStyleChoices( name, editingMode );
+	const styleChoices = useStyleChoices( name, lookEditingMode );
 	// Wherever its look can be changed, in a locked section too.
 	const canCopyStyles =
-		editingMode === 'default' || editingMode === 'contentOnly';
+		lookEditingMode === 'default' || lookEditingMode === 'contentOnly';
 	const hasStyles = styleChoices.length > 0 || canCopyStyles;
 
 	const [ alignSection, textSection ] = useStyleSections( {
@@ -771,7 +779,7 @@ export function OptionsMenu( {
 		attributes,
 		setAttributes,
 		isContainer,
-		editingMode,
+		editingMode: lookEditingMode,
 		colors,
 		onCustomColor: setPickingColor,
 		isSearching,

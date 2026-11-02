@@ -29,8 +29,33 @@ import {
 	useState,
 } from '../../../wordpress-packages';
 
-function RenamePageModal( { onClose, pageId, title } ) {
+/**
+ * Renaming a page, from its options here or on the canvas.
+ *
+ * @param {Object}   props         Component props.
+ * @param {Function} props.onClose Closes the modal.
+ * @param {number}   props.pageId  Page ID.
+ * @return {Element} The modal.
+ */
+export function RenamePageModal( { onClose, pageId } ) {
 	const { editEntityRecord } = useDispatch( coreDataStore );
+	const savedTitle = useSelect(
+		( selectStore ) => {
+			const { getEditedEntityRecord, getEntityRecord } =
+				selectStore( coreDataStore );
+
+			// Edited records aren't fetched on their own. Opened from a link,
+			// nothing else may have asked for the page yet, and Rename would
+			// open empty.
+			getEntityRecord( 'postType', 'page', pageId );
+
+			return (
+				getEditedEntityRecord( 'postType', 'page', pageId )?.title ?? ''
+			);
+		},
+		[ pageId ]
+	);
+	const title = typeof savedTitle === 'string' ? savedTitle : '';
 	// Unset until typed in, so a title that loads after opening still shows.
 	const [ typed, setTyped ] = useState();
 	const value = typed ?? title;
@@ -102,22 +127,6 @@ export function PageOptions( { isHomepage, page, pageId, onEdit } ) {
 		homepage.shows !== 'theme' &&
 		Boolean( page?.status ) &&
 		page.status !== 'trash';
-	const title = useSelect(
-		( selectStore ) => {
-			const { getEditedEntityRecord, getEntityRecord } =
-				selectStore( coreDataStore );
-
-			// Edited records aren't fetched on their own. Opened from a link,
-			// nothing else may have asked for the page yet, and Rename would
-			// open empty.
-			getEntityRecord( 'postType', 'page', pageId );
-
-			return (
-				getEditedEntityRecord( 'postType', 'page', pageId )?.title ?? ''
-			);
-		},
-		[ pageId ]
-	);
 	// A draft can go in the menu too; it shows there once published. The
 	// homepage goes in as a Home link, from its row.
 	const canAddToMenu =
@@ -219,7 +228,6 @@ export function PageOptions( { isHomepage, page, pageId, onEdit } ) {
 				<RenamePageModal
 					onClose={ () => setIsRenaming( false ) }
 					pageId={ pageId }
-					title={ typeof title === 'string' ? title : '' }
 				/>
 			) }
 			{ useAsHomepage.modal }
