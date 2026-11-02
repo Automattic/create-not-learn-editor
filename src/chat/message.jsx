@@ -34,7 +34,7 @@ import {
 	typography as typographyIcon,
 	undo as undoIcon,
 } from '@wordpress/icons';
-import { Icon, Spinner } from '@wordpress/ui';
+import { Icon, Spinner, Text } from '@wordpress/ui';
 
 /**
  * Internal dependencies
@@ -212,9 +212,13 @@ export function Suggestions( { isLarge = false } ) {
 		<div className={ className }>
 			{ pageId && (
 				<section className="cnl-chat-suggestions__section">
-					<h3 className="cnl-chat-suggestions__heading">
+					<Text
+						className="cnl-chat-suggestions__heading"
+						render={ <h3 /> }
+						variant="heading-sm"
+					>
 						{ __( 'On this page' ) }
-					</h3>
+					</Text>
 					<div className="cnl-chat-suggestions__options">
 						{ PAGE_SUGGESTIONS.map( ( suggestion ) => (
 							<SuggestionButton
@@ -227,9 +231,13 @@ export function Suggestions( { isLarge = false } ) {
 			) }
 			<section className="cnl-chat-suggestions__section">
 				{ pageId && (
-					<h3 className="cnl-chat-suggestions__heading">
+					<Text
+						className="cnl-chat-suggestions__heading"
+						render={ <h3 /> }
+						variant="heading-sm"
+					>
 						{ __( 'Across your site' ) }
-					</h3>
+					</Text>
 				) }
 				<div className="cnl-chat-suggestions__groups">
 					{ SUGGESTION_GROUPS.map( ( group ) => (

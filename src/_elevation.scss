@@ -1,0 +1,15 @@
+@use "@wordpress/base-styles/variables" as wp;
+
+// Floating surfaces, like the canvas's zoom controls and Edit's section
+// bars, lifted the way core's popovers are: a hairline edge and the design
+// system's medium elevation. Use these rather than a shadow of our own, so
+// everything that floats over the canvas reads as one family with core's.
+// Surfaces that draw their own border take the elevation alone.
+$cnl-popover-elevation: wp.$elevation-medium;
+$cnl-popover-shadow: 0 0 0 var(--wpds-border-width-xs) var(--wpds-color-stroke-surface-neutral), $cnl-popover-elevation;
+
+// Something picked up and carried, like a section dragged in Compose.
+$cnl-drag-shadow: wp.$elevation-large;
+
+// Small markers resting on the page, like Browse's section tags.
+$cnl-rest-shadow: wp.$elevation-x-small;

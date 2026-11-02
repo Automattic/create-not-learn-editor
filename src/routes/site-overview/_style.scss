@@ -1,8 +1,10 @@
+@use "../../elevation" as *;
+
 // The Site Overview: every page of the site on a pan and zoom canvas, with the
 // sidebar outline that mirrors it.
 
 $cnl-site-overview-accent: var(--wp-admin-theme-color, #3858e9);
-$cnl-site-overview-line: #a7aaad;
+$cnl-site-overview-line: var(--wpds-color-stroke-surface-neutral-strong);
 
 // ---------------------------------------------------------------------------
 // Canvas.
@@ -11,7 +13,7 @@ $cnl-site-overview-line: #a7aaad;
 .cnl-site-overview-canvas {
 	overflow: hidden;
 	height: 100%;
-	background: #f6f7f7;
+	background: var(--wpds-color-background-surface-neutral-weak);
 }
 
 // Holds the canvas, with the selected page's popover floating over it.
@@ -63,7 +65,7 @@ $cnl-site-overview-line: #a7aaad;
 	position: relative;
 	overflow: hidden;
 	min-height: 0;
-	background-color: #f6f7f7;
+	background-color: var(--wpds-color-background-surface-neutral-weak);
 	background-image: radial-gradient(circle, #c3c4c7 1px, transparent 1.2px);
 	cursor: grab;
 	touch-action: none;
@@ -118,13 +120,13 @@ $cnl-site-overview-line: #a7aaad;
 .cnl-site-overview__lane {
 	position: absolute;
 	box-sizing: border-box;
-	border: 1px solid #e0e0e0;
-	border-radius: 16px;
+	border: 1px solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-lg);
 	background: rgba(255, 255, 255, 0.6);
 
 	&.is-dynamic {
 		border-style: dashed;
-		border-color: #c3c4c7;
+		border-color: var(--wpds-color-stroke-surface-neutral);
 		background: color-mix(in srgb, #{$cnl-site-overview-accent} 4%, transparent);
 	}
 }
@@ -160,7 +162,7 @@ $cnl-site-overview-line: #a7aaad;
 	box-sizing: border-box;
 	min-width: 0;
 	padding: 0 2px 0 0;
-	background: #f6f7f7;
+	background: var(--wpds-color-background-surface-neutral-weak);
 	white-space: nowrap;
 	transform: translateY(calc(-100% - 6px));
 }
@@ -168,13 +170,13 @@ $cnl-site-overview-line: #a7aaad;
 .cnl-site-overview__lane-icon {
 	flex: none;
 	margin-inline-end: 4px;
-	fill: #1e1e1e;
+	fill: var(--wpds-color-foreground-content-neutral);
 }
 
 .cnl-site-overview__lane-label {
 	overflow: hidden;
 	min-width: 0;
-	color: #1e1e1e;
+	color: var(--wpds-color-foreground-content-neutral);
 	font-size: 15px;
 	font-weight: var(--wpds-typography-font-weight-emphasis);
 	line-height: 20px;
@@ -198,7 +200,7 @@ $cnl-site-overview-line: #a7aaad;
 	pointer-events: auto;
 
 	&:hover {
-		color: #1e1e1e;
+		color: var(--wpds-color-foreground-content-neutral);
 	}
 
 	&:focus-visible {
@@ -242,9 +244,9 @@ $cnl-site-overview-line: #a7aaad;
 .cnl-site-overview__edge-label {
 	position: absolute;
 	padding: 3px 10px;
-	border: 1px solid #dcdcde;
-	border-radius: 999px;
-	background: #fff;
+	border: 1px solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-sm);
+	background: var(--wpds-color-background-surface-neutral);
 	color: var(--wpds-color-foreground-content-neutral-weak);
 	font-size: 12px;
 	line-height: 1.4;
@@ -267,25 +269,23 @@ $cnl-site-overview-line: #a7aaad;
 	display: flex;
 	flex-direction: column;
 	box-sizing: border-box;
-	border: 1px solid #dcdcde;
-	border-radius: 10px;
-	background: #fff;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.04);
+	border: 1px solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-lg);
+	background: var(--wpds-color-background-surface-neutral);
+	box-shadow: $cnl-rest-shadow;
 	cursor: pointer;
-	transition: box-shadow 0.12s ease, border-color 0.12s ease;
+	transition:
+		box-shadow var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
+		border-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
 
 	&:hover,
 	&.is-related {
-		border-color: color-mix(in srgb, #{$cnl-site-overview-accent} 50%, #dcdcde);
-	}
-
-	&:hover {
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 10px 24px rgba(0, 0, 0, 0.08);
+		border-color: var(--wpds-color-stroke-interactive-neutral-active);
 	}
 
 	&.is-selected {
 		border-color: $cnl-site-overview-accent;
-		box-shadow: 0 0 0 2px $cnl-site-overview-accent, 0 10px 24px rgba(0, 0, 0, 0.08);
+		box-shadow: 0 0 0 var(--wpds-border-width-xs) $cnl-site-overview-accent;
 	}
 
 	&:focus-within {
@@ -298,7 +298,7 @@ $cnl-site-overview-line: #a7aaad;
 
 	&.is-home {
 		border-width: 2px;
-		border-color: #1e1e1e;
+		border-color: var(--wpds-color-stroke-interactive-neutral-strong);
 	}
 
 	&.is-home.is-selected {
@@ -310,10 +310,10 @@ $cnl-site-overview-line: #a7aaad;
 .cnl-site-overview__stack-sheet {
 	position: absolute;
 	box-sizing: border-box;
-	border: 1px solid #c3c4c7;
-	border-radius: 10px;
-	background: #fff;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+	border: 1px solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-lg);
+	background: var(--wpds-color-background-surface-neutral);
+	box-shadow: $cnl-rest-shadow;
 	pointer-events: none;
 }
 
@@ -322,9 +322,9 @@ $cnl-site-overview-line: #a7aaad;
 	overflow: hidden;
 	flex: none;
 	height: 150px;
-	border-bottom: 1px solid #f0f0f0;
-	border-radius: 9px 9px 0 0;
-	background: #f6f7f7;
+	border-bottom: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
+	border-radius: var(--wpds-border-radius-lg) var(--wpds-border-radius-lg) 0 0;
+	background: var(--wpds-color-background-surface-neutral-weak);
 }
 
 .cnl-site-overview-card__placeholder {
@@ -335,7 +335,7 @@ $cnl-site-overview-line: #a7aaad;
 	gap: 6px;
 	align-items: center;
 	justify-content: center;
-	color: #a7aaad;
+	color: var(--wpds-color-foreground-content-neutral-weak);
 	font-size: 12px;
 	fill: currentcolor;
 }
@@ -371,7 +371,7 @@ $cnl-site-overview-line: #a7aaad;
 	padding: 0;
 	border: 0;
 	background: none;
-	color: #1e1e1e;
+	color: var(--wpds-color-foreground-content-neutral);
 	font: inherit;
 	font-size: 14px;
 	font-weight: var(--wpds-typography-font-weight-emphasis);
@@ -430,8 +430,8 @@ $cnl-site-overview-line: #a7aaad;
 	box-sizing: border-box;
 	margin: 0;
 	padding: 8px 12px;
-	border: 1px solid #e0e0e0;
-	border-radius: 8px;
+	border: 1px solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-lg);
 	background: rgba(255, 255, 255, 0.92);
 	color: var(--wpds-color-foreground-content-neutral-weak);
 	font-size: 12px;
@@ -457,7 +457,7 @@ $cnl-site-overview-line: #a7aaad;
 	border: 1px solid var(--wpds-color-stroke-surface-neutral);
 	border-radius: var(--wpds-border-radius-lg);
 	background: var(--wpds-color-background-surface-neutral);
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 12px 32px rgba(0, 0, 0, 0.1);
+	box-shadow: $cnl-popover-elevation;
 	animation: cnl-pages-fade-up 0.18s ease;
 
 	svg {

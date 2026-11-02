@@ -13,8 +13,9 @@ $top-bar-height: 56px;
 $gap: 8px;
 $accent: var(--wp-admin-theme-color, #3858e9);
 // WordPress's success green, as core's notices use.
-$saved-green: #008a20;
-$assistant-gradient: linear-gradient(135deg, $accent 0%, #8a4fff 100%);
+// The assistant's mark: the design system's brand fill, as a primary button.
+$assistant-fill: var(--wpds-color-background-interactive-brand-strong);
+$assistant-ink: var(--wpds-color-foreground-interactive-brand-strong);
 $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"])';
 
 .cnl-chat-host {
@@ -124,8 +125,8 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	width: 24px;
 	height: 24px;
 	border-radius: 50%;
-	background: $assistant-gradient;
-	color: #fff;
+	background: $assistant-fill;
+	color: $assistant-ink;
 }
 
 // Starting up: the sparkle turns and glows while the chat opens.
@@ -172,17 +173,18 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
  * The button in the top bar, light on its dark frame.
  */
 .cnl-top-bar .components-button.cnl-chat-toggle {
-	color: var(--wpds-color-foreground-content-neutral);
+	color: var(--wpds-color-foreground-interactive-neutral);
 
 	&:hover:not(:disabled) {
-		background: rgba(255, 255, 255, 0.12);
-		color: var(--wpds-color-foreground-content-neutral);
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+		color: var(--wpds-color-foreground-interactive-neutral-active);
 	}
 
+	// Open: core's pressed toggle, in the top bar's dark theme.
 	&.is-pressed,
 	&.is-pressed:hover:not(:disabled) {
-		background: $assistant-gradient;
-		color: #fff;
+		background: var(--wpds-color-background-interactive-neutral-strong);
+		color: var(--wpds-color-foreground-interactive-neutral-strong);
 	}
 }
 
@@ -284,8 +286,8 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: var(--wpds-dimension-gap-md);
-	padding: 40px var(--wpds-dimension-padding-xs) var(--wpds-dimension-padding-lg);
+	gap: var(--wpds-dimension-gap-xl);
+	padding: var(--wpds-dimension-padding-3xl) var(--wpds-dimension-padding-xs) var(--wpds-dimension-padding-lg);
 	text-align: center;
 }
 
@@ -293,7 +295,7 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
  * The greeting arrives in steps as the chat opens: the sparkle, then the
  * words, then each suggestion.
  */
-.cnl-chat-empty > *,
+.cnl-chat-empty__state > *,
 .cnl-chat-suggestions.is-large .cnl-chat-suggestions__heading,
 .cnl-chat-suggestions.is-large .cnl-chat-suggestions__options,
 .cnl-chat-suggestions.is-large .cnl-chat-suggestions__group {
@@ -304,16 +306,12 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	}
 }
 
-.cnl-chat-empty > :nth-child(2) {
+.cnl-chat-empty__state > :nth-child(2) {
 	animation-delay: 0.08s;
 }
 
-.cnl-chat-empty > :nth-child(3) {
+.cnl-chat-empty__state > :nth-child(3) {
 	animation-delay: 0.14s;
-}
-
-.cnl-chat-empty > :nth-child(4) {
-	animation-delay: 0.2s;
 }
 
 @for $i from 1 through 6 {
@@ -343,29 +341,6 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	}
 }
 
-.cnl-chat-empty__icon {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 48px;
-	height: 48px;
-	margin-block-end: var(--wpds-dimension-gap-sm);
-	border-radius: 16px;
-	background: $assistant-gradient;
-	box-shadow: 0 8px 24px color-mix(in srgb, #{$accent} 30%, transparent);
-	color: #fff;
-}
-
-.cnl-chat-empty__title {
-	margin: 0;
-}
-
-.cnl-chat-empty__description {
-	max-width: 280px;
-	margin-block-end: var(--wpds-dimension-gap-md);
-	color: var(--wpds-color-foreground-content-neutral-weak);
-}
-
 /*
  * Things to ask for: about the page being worked on, then across the site in
  * groups by the kind of task. Picking a kind shows what is in it, in place
@@ -388,10 +363,6 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 .cnl-chat-suggestions__heading {
 	margin: 0;
 	color: var(--wpds-color-foreground-content-neutral-weak);
-	font-size: var(--wpds-typography-font-size-xs);
-	font-weight: var(--wpds-typography-font-weight-emphasis);
-	letter-spacing: 0.04em;
-	text-transform: uppercase;
 }
 
 .cnl-chat-suggestions__groups {
@@ -407,7 +378,7 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	width: 100%;
 	padding: 10px 12px;
 	border: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
-	border-radius: 12px;
+	border-radius: var(--wpds-border-radius-lg);
 	background: var(--wpds-color-background-surface-neutral-strong);
 	color: inherit;
 	cursor: pointer;
@@ -436,9 +407,9 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	justify-content: center;
 	width: 32px;
 	height: 32px;
-	border-radius: 8px;
-	background: color-mix(in srgb, #{$accent} 8%, var(--wpds-color-background-surface-neutral-strong));
-	color: $accent;
+	border-radius: var(--wpds-border-radius-sm);
+	background: var(--wpds-color-background-surface-neutral-weak);
+	color: var(--wpds-color-foreground-content-neutral);
 
 	svg {
 		fill: currentcolor;
@@ -521,7 +492,7 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 
 	.cnl-chat-suggestions__item {
 		padding: 10px 14px 10px 12px;
-		border-radius: 12px;
+		border-radius: var(--wpds-border-radius-lg);
 		font-size: var(--wpds-typography-font-size-md);
 		text-align: start;
 	}
@@ -541,7 +512,7 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	gap: var(--wpds-dimension-gap-sm);
 	padding: 6px 12px 6px 8px;
 	border: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
-	border-radius: 999px;
+	border-radius: var(--wpds-border-radius-sm);
 	background: var(--wpds-color-background-surface-neutral-strong);
 	color: inherit;
 	cursor: pointer;
@@ -557,8 +528,8 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	}
 
 	&:hover {
-		border-color: $accent;
-		background: color-mix(in srgb, #{$accent} 4%, var(--wpds-color-background-surface-neutral-strong));
+		border-color: var(--wpds-color-stroke-interactive-neutral-active);
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
 	}
 
 	&:focus-visible {
@@ -612,7 +583,7 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	gap: 6px;
 	max-width: 85%;
 	padding: 10px 14px;
-	border-radius: 18px 18px 4px 18px;
+	border-radius: var(--wpds-border-radius-lg);
 	background: var(--wpds-color-background-surface-neutral-weak);
 	line-height: 1.5;
 	overflow-wrap: anywhere;
@@ -626,8 +597,8 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	width: 28px;
 	height: 28px;
 	border-radius: 50%;
-	background: $assistant-gradient;
-	color: #fff;
+	background: $assistant-fill;
+	color: $assistant-ink;
 }
 
 .cnl-chat-message__body {
@@ -657,7 +628,7 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	width: 7px;
 	height: 1.1em;
 	margin-inline-start: 2px;
-	border-radius: 2px;
+	border-radius: var(--wpds-border-radius-sm);
 	background: currentcolor;
 	vertical-align: text-bottom;
 	animation: cnl-chat-blink 0.9s steps(2, start) infinite;
@@ -685,7 +656,7 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	font-size: var(--wpds-typography-font-size-sm);
 
 	svg {
-		color: #00a32a;
+		color: var(--wpds-color-foreground-content-success);
 	}
 }
 
@@ -784,7 +755,7 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	min-width: 0;
 	overflow: hidden;
 	border: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
-	border-radius: 14px;
+	border-radius: var(--wpds-border-radius-lg);
 	background: var(--wpds-color-background-surface-neutral-strong);
 	animation: cnl-chat-message-in var(--wpds-motion-duration-md) var(--wpds-motion-easing-balanced);
 
@@ -886,7 +857,7 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 
 	.cnl-chat-widget__footer.is-saved &,
 	.cnl-chat-widget__footer.is-closing & {
-		background: $saved-green;
+		background: var(--wpds-color-foreground-content-success);
 		color: #fff;
 		opacity: 1;
 
@@ -1099,19 +1070,19 @@ $ring-room: 6px;
 
 .cnl-chat-composer__box {
 	position: relative;
-	border: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
-	border-radius: 20px;
-	background: var(--wpds-color-background-surface-neutral-strong);
-	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-	transition:
-		border-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
-		box-shadow var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-interactive-neutral);
+	border-radius: var(--wpds-border-radius-sm);
+	background: var(--wpds-color-background-interactive-neutral);
+	transition: border-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
 
+	&:hover {
+		border-color: var(--wpds-color-stroke-interactive-neutral-active);
+	}
+
+	// Ringed when focused, as the design system's inputs are.
 	&:focus-within {
-		border-color: $accent;
-		box-shadow:
-			0 0 0 1px $accent,
-			0 2px 12px rgba(0, 0, 0, 0.06);
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+		outline-offset: calc(var(--wpds-border-width-xs) * -1);
 	}
 }
 
@@ -1125,7 +1096,7 @@ $ring-room: 6px;
 	// With the line height, makes the box's 48px, so one line sits centred.
 	padding: 14px 52px 14px 16px;
 	border: 0;
-	border-radius: 20px;
+	border-radius: var(--wpds-border-radius-sm);
 	background: transparent;
 	color: inherit;
 	font: inherit;
@@ -1145,27 +1116,8 @@ $ring-room: 6px;
 
 .components-button.cnl-chat-composer__send {
 	position: absolute;
-	inset-block-end: 8px;
-	inset-inline-end: 8px;
-	justify-content: center;
-	width: 32px;
-	min-width: 32px;
-	height: 32px;
-	padding: 0;
-	border-radius: 50%;
-	background: var(--wpds-color-foreground-content-neutral);
-	color: #fff;
-
-	&:hover:not(:disabled, [aria-disabled="true"]) {
-		background: $accent;
-		color: #fff;
-	}
-
-	&:disabled,
-	&[aria-disabled="true"] {
-		background: var(--wpds-color-background-surface-neutral-weak);
-		color: var(--wpds-color-foreground-content-neutral-weak);
-	}
+	inset-block-end: var(--wpds-dimension-padding-sm);
+	inset-inline-end: var(--wpds-dimension-padding-sm);
 }
 
 .cnl-chat-composer__hint {
@@ -1184,9 +1136,9 @@ $ring-room: 6px;
 	gap: 4px;
 	max-width: 100%;
 	padding: 4px 6px 4px 8px;
-	border-radius: 999px;
-	background: color-mix(in srgb, #{$accent} 10%, var(--wpds-color-background-surface-neutral-strong));
-	color: $accent;
+	border-radius: var(--wpds-border-radius-sm);
+	background: var(--wpds-color-background-interactive-brand-weak);
+	color: var(--wpds-color-foreground-interactive-brand);
 	font-size: var(--wpds-typography-font-size-sm);
 	font-weight: var(--wpds-typography-font-weight-emphasis);
 	line-height: 1.4;

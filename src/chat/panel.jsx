@@ -12,7 +12,7 @@
  */
 import { useEffect, useLayoutEffect, useRef } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
-import { Icon, Text } from '@wordpress/ui';
+import { EmptyState } from '@wordpress/ui';
 
 /**
  * Internal dependencies
@@ -25,25 +25,24 @@ import { useChat } from './store';
 function EmptyConversation() {
 	return (
 		<div className="cnl-chat-empty">
-			<span aria-hidden className="cnl-chat-empty__icon">
-				<Icon icon={ sparkleIcon } size={ 24 } />
-			</span>
-			<Text
-				className="cnl-chat-empty__title"
-				render={ <h2 /> }
-				variant="heading-lg"
-			>
-				{ __( 'What would you like to change?' ) }
-			</Text>
-			<Text className="cnl-chat-empty__description" variant="body-md">
-				{ canType()
-					? __(
-							'Ask in your own words. I’ll show you the options, and you’ll see each one on your site before you keep it.'
-						)
-					: __(
-							'Pick something to change. I’ll show you the options, and you’ll see each one on your site before you keep it.'
-						) }
-			</Text>
+			<EmptyState.Root className="cnl-chat-empty__state">
+				<EmptyState.Icon
+					className="cnl-chat-empty__icon"
+					icon={ sparkleIcon }
+				/>
+				<EmptyState.Title>
+					{ __( 'What would you like to change?' ) }
+				</EmptyState.Title>
+				<EmptyState.Description>
+					{ canType()
+						? __(
+								'Ask in your own words. I’ll show you the options, and you’ll see each one on your site before you keep it.'
+							)
+						: __(
+								'Pick something to change. I’ll show you the options, and you’ll see each one on your site before you keep it.'
+							) }
+				</EmptyState.Description>
+			</EmptyState.Root>
 			<Suggestions isLarge />
 		</div>
 	);
