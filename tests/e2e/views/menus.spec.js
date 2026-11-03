@@ -53,10 +53,10 @@ test.describe( 'Menus views', () => {
 		).toBeVisible( { timeout: 15000 } );
 
 		await expect(
-			canvas.locator( '.routes-navigation-canvas-toolbar__meta' )
+			canvas.locator( '.cnl-editor-homepage-document__meta' )
 		).toHaveText( /^Shown in \d+ locations?$/, { timeout: 15000 } );
 		await expect(
-			canvas.getByRole( 'checkbox', { name: 'Preview site' } )
+			canvas.getByRole( 'radio', { name: 'Preview', exact: true } )
 		).toBeChecked();
 		await expect(
 			canvas.getByRole( 'radio', { name: 'Desktop view' } )
@@ -108,7 +108,7 @@ test.describe( 'Menus views', () => {
 		const canvas = page.locator( '.routes-navigation-canvas' );
 
 		await expect(
-			canvas.locator( '.routes-navigation-canvas-toolbar__meta' )
+			canvas.locator( '.cnl-editor-homepage-document__meta' )
 		).toHaveText( 'Not shown on your site', { timeout: 15000 } );
 		await expect(
 			canvas.getByText(
@@ -116,10 +116,10 @@ test.describe( 'Menus views', () => {
 			)
 		).toBeVisible();
 
-		// With the preview off, the canvas offers to place the menu.
+		// With Locations picked, the canvas offers to place the menu.
 		await canvas
-			.getByRole( 'checkbox', { name: 'Preview site' } )
-			.uncheck();
+			.getByRole( 'radio', { name: 'Locations', exact: true } )
+			.click();
 
 		const emptyState = canvas.locator(
 			'.routes-navigation-locations-canvas__empty-state'
@@ -158,8 +158,8 @@ test.describe( 'Menus views', () => {
 
 		const canvas = page.locator( '.routes-navigation-canvas' );
 		await canvas
-			.getByRole( 'checkbox', { name: 'Preview site' } )
-			.uncheck();
+			.getByRole( 'radio', { name: 'Locations', exact: true } )
+			.click();
 
 		const card = canvas
 			.locator( '.routes-navigation-locations-canvas__card' )
@@ -171,6 +171,16 @@ test.describe( 'Menus views', () => {
 		await expect( card ).toBeVisible( { timeout: 15000 } );
 		await expect(
 			card.getByRole( 'button', { name: 'Edit' } )
+		).toBeVisible();
+
+		// A notice says what the cards are, and links to change them.
+		const notice = canvas.locator( '.routes-navigation-locations-notice' );
+		await expect( notice ).toContainText(
+			/^This menu appears in (one place|\d+ places) on your site/
+		);
+		await notice.getByRole( 'button' ).click();
+		await expect(
+			page.getByRole( 'dialog', { name: /locations?$/ } )
 		).toBeVisible();
 		await expect
 			.poll(
@@ -192,5 +202,45 @@ test.describe( 'Menus views', () => {
 				{ timeout: 15000 }
 			)
 			.toBe( true );
+	} );
+
+	test( 'the phone preview opens the menu, and a switch closes it', async ( {
+		page,
+		rest,
+	} ) => {
+		await visitEditor(
+			page,
+			`/navigation/edit/${ await rest.getMainMenuId() }`
+		);
+
+		const canvas = page.locator( '.routes-navigation-canvas' );
+		const menuOpen = canvas.getByRole( 'checkbox', { name: 'Menu open' } );
+		const overlay = page
+			.frameLocator( '.routes-navigation-canvas__preview iframe' )
+			.locator( '.wp-block-navigation__responsive-container' )
+			.first();
+
+		// The menu shows in full on a desktop, so there is nothing to open.
+		await expect(
+			canvas.getByRole( 'radio', { name: 'Desktop view' } )
+		).toBeChecked( { timeout: 15000 } );
+		await expect( menuOpen ).toHaveCount( 0 );
+
+		await canvas.getByRole( 'radio', { name: 'Mobile view' } ).click();
+		await expect( menuOpen ).toBeChecked( { timeout: 15000 } );
+		await expect( overlay ).toHaveClass( /is-menu-open/, {
+			timeout: 15000,
+		} );
+
+		await menuOpen.uncheck();
+		await expect( overlay ).not.toHaveClass( /is-menu-open/ );
+
+		await menuOpen.check();
+		await expect( overlay ).toHaveClass( /is-menu-open/ );
+
+		// Back on a desktop the menu closes, as it would on the site.
+		await canvas.getByRole( 'radio', { name: 'Desktop view' } ).click();
+		await expect( menuOpen ).toHaveCount( 0 );
+		await expect( overlay ).not.toHaveClass( /is-menu-open/ );
 	} );
 } );

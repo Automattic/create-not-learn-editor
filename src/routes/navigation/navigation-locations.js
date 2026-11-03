@@ -8,6 +8,12 @@ import { __, _n, sprintf } from '@wordpress/i18n';
 const EXPLICITLY_UNASSIGNED_NAVIGATION_LOCATION = 'rsm-unassigned';
 const EMPTY_ARRAY = [];
 
+/**
+ * The template part area core gives a Navigation block's custom overlay, from
+ * WordPress 7.0.
+ */
+export const NAVIGATION_OVERLAY_AREA = 'navigation-overlay';
+
 function getTemplatePartAreaPriority( part ) {
 	switch ( part.area ) {
 		case 'header':

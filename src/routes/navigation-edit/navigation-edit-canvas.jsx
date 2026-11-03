@@ -1,6 +1,7 @@
 /**
  * WordPress dependencies
  */
+import { Tooltip as ComponentsTooltip } from '@wordpress/components';
 import { useNavigate, useParams } from '@wordpress/route';
 import {
 	Preview as LazyEditorPreview,
@@ -10,29 +11,34 @@ import {
 /**
  * Internal dependencies
  */
+import { requestBlockSelection } from '../../editor-layer/block-request';
 import { getErrorMessage } from '../../records';
+import { DocumentTitle } from '../../site-canvas/document-title';
 import {
 	Button,
+	chevronDownIcon,
+	compassIcon,
 	coreDataStore,
 	desktopIcon,
 	dispatch,
-	DropdownMenu,
+	Dropdown,
 	Icon,
 	layoutIcon,
+	MenuGroup,
 	MenuItem,
 	mobileIcon,
-	moreVerticalIcon,
 	noticesStore,
-	parseBlocks,
 	Spinner,
 	sprintf,
 	tabletIcon,
 	ToggleControl,
 	ToggleGroupControl,
+	ToggleGroupControlOption,
 	ToggleGroupControlOptionIcon,
 	useDispatch,
 	useEffect,
 	useMemo,
+	useRef,
 	useState,
 	__,
 } from '../../wordpress-packages';
@@ -47,8 +53,9 @@ import {
 } from './navigation-blocks';
 import {
 	assignNavigationMenuToFirstBlock,
-	getTemplatePartRawContent,
+	NAVIGATION_OVERLAY_AREA,
 	removeNavigationMenuFromFirstBlock,
+	templatePartHasNavigationBlock,
 } from '../navigation/navigation-locations';
 import {
 	NavigationSitePreview,
@@ -59,62 +66,14 @@ import {
 	NavigationLocationsEmptyState,
 	NavigationNoMenuSelectedEmptyState,
 } from './empty-states';
+import { LocationsNotice } from './locations-notice';
+import { PreviewOverlay, usePreviewMobileMenu } from './mobile-menu';
+import {
+	findOverlayPart,
+	getTemplatePartPreviewBlocks,
+} from './preview-blocks';
 import { useNavigationLocations } from './use-navigation-locations';
 import { EMPTY_ARRAY, getMenuTitle } from './shared';
-
-function getBlockName( block ) {
-	return block?.name || block?.blockName;
-}
-
-function getBlockAttributes( block ) {
-	return block?.attributes || block?.attrs || {};
-}
-
-function injectNavigationMenuPreviewBlocks( blocks, navigationId, menuBlocks ) {
-	return ( blocks || EMPTY_ARRAY ).map( ( block ) => {
-		const innerBlocks = injectNavigationMenuPreviewBlocks(
-			block.innerBlocks,
-			navigationId,
-			menuBlocks
-		);
-
-		if ( getBlockName( block ) !== 'core/navigation' ) {
-			return {
-				...block,
-				innerBlocks,
-			};
-		}
-
-		const attributes = { ...getBlockAttributes( block ) };
-		const hasExplicitRef =
-			attributes.ref !== undefined && attributes.ref !== null;
-
-		if ( hasExplicitRef && Number( attributes.ref ) !== navigationId ) {
-			return {
-				...block,
-				innerBlocks,
-			};
-		}
-
-		delete attributes.ref;
-
-		return {
-			...block,
-			attributes,
-			innerBlocks: menuBlocks,
-		};
-	} );
-}
-
-function getTemplatePartPreviewBlocks( part, navigationId, menuBlocks ) {
-	return injectNavigationMenuPreviewBlocks(
-		parseBlocks( getTemplatePartRawContent( part ), {
-			__unstableSkipMigrationLogs: true,
-		} ),
-		navigationId,
-		menuBlocks
-	);
-}
 
 function getCanvasViewDeviceOptions() {
 	return [
@@ -147,42 +106,196 @@ function CanvasDeviceSwitcher( { device, onChange } ) {
 	);
 }
 
-function NavigationCanvasHeader( {
-	device,
-	isPreviewVisible,
-	locationActions,
+const VIEW_PREVIEW = 'preview';
+const VIEW_LOCATIONS = 'locations';
+
+/**
+ * See the menu on the site, or in each place it is shown: Preview or
+ * Locations. Drawn as the site canvas's Browse | Edit toggle is, at the left of
+ * the toolbar, as it switches the whole canvas rather than acting on what is in
+ * it.
+ *
+ * @param {Object}   props
+ * @param {boolean}  props.isPreviewVisible Whether the site preview is on show.
+ * @param {Function} props.onChange         Called with whether to show it.
+ * @return {Element} The toggle.
+ */
+function CanvasViewToggle( { isPreviewVisible, onChange } ) {
+	return (
+		<ToggleGroupControl
+			__nextHasNoMarginBottom
+			className="cnl-site-canvas__mode-toggle"
+			hideLabelFromVision
+			// Each option as wide as its own label, so Locations isn't squeezed
+			// to Preview's width.
+			isAdaptiveWidth
+			label={ __( 'View' ) }
+			onChange={ ( value ) => onChange( value === VIEW_PREVIEW ) }
+			value={ isPreviewVisible ? VIEW_PREVIEW : VIEW_LOCATIONS }
+		>
+			{ /* A word or two on what each shows, beyond its name. */ }
+			<ComponentsTooltip
+				placement="bottom"
+				text={ __( 'See your site with this menu' ) }
+			>
+				<ToggleGroupControlOption
+					label={ __( 'Preview' ) }
+					value={ VIEW_PREVIEW }
+				/>
+			</ComponentsTooltip>
+			<ComponentsTooltip
+				placement="bottom"
+				text={ __( 'See each place this menu is shown' ) }
+			>
+				<ToggleGroupControlOption
+					label={ __( 'Locations' ) }
+					value={ VIEW_LOCATIONS }
+				/>
+			</ComponentsTooltip>
+		</ToggleGroupControl>
+	);
+}
+
+/**
+ * The menu's name and where it is shown, in the middle of the toolbar, as
+ * every other canvas names what it shows. Its chevron offers where to show it.
+ *
+ * @param {Object}   props
+ * @param {boolean}  props.hasLocations     Whether the menu is shown anywhere.
+ * @param {string}   props.locationsSummary Where it is shown.
+ * @param {string}   props.menuTitle        The menu's name.
+ * @param {Function} props.onChooseLocation Opens the locations dialog.
+ * @return {Element} The document title.
+ */
+function NavigationDocument( {
+	hasLocations,
 	locationsSummary,
 	menuTitle,
-	onChangeDevice,
-	onTogglePreview,
+	onChooseLocation,
 } ) {
 	return (
-		<header className="cnl-editor-canvas__toolbar routes-navigation-canvas-toolbar">
-			<div className="routes-navigation-canvas-toolbar__document">
-				<h2 className="routes-navigation-canvas-toolbar__title">
-					{ menuTitle }
-				</h2>
-				<p className="routes-navigation-canvas-toolbar__meta">
+		<div className="cnl-editor-homepage-document">
+			<div className="cnl-editor-homepage-document__text">
+				<div className="cnl-editor-homepage-document__heading">
+					<Icon
+						className="cnl-editor-homepage-document__icon"
+						icon={ compassIcon }
+					/>
+					<DocumentTitle title={ menuTitle } />
+				</div>
+				<p className="cnl-editor-homepage-document__meta">
 					{ locationsSummary }
 				</p>
 			</div>
-			<div className="routes-navigation-canvas-toolbar__actions">
+			<Dropdown
+				className="cnl-editor-homepage-options"
+				contentClassName="cnl-editor-homepage-options__content"
+				popoverProps={ { placement: 'bottom' } }
+				renderContent={ ( { onClose } ) => (
+					<MenuGroup className="cnl-editor-homepage-options__menu">
+						<MenuItem
+							icon={ layoutIcon }
+							onClick={ () => {
+								onClose();
+								onChooseLocation();
+							} }
+						>
+							{ hasLocations
+								? __( 'Update locations' )
+								: __( 'Choose location' ) }
+						</MenuItem>
+					</MenuGroup>
+				) }
+				renderToggle={ ( { isOpen, onToggle } ) => (
+					<Button
+						aria-expanded={ isOpen }
+						className="cnl-editor-homepage-options__toggle"
+						icon={ chevronDownIcon }
+						label={ __( 'Menu options' ) }
+						onClick={ onToggle }
+						showTooltip
+						size="compact"
+					/>
+				) }
+			/>
+		</div>
+	);
+}
+
+function NavigationCanvasHeader( {
+	canOpenMenu,
+	device,
+	document,
+	isMenuOpen,
+	isPreviewVisible,
+	onChangeDevice,
+	onToggleMenu,
+	onTogglePreview,
+} ) {
+	return (
+		<header className="cnl-editor-canvas__toolbar cnl-editor-homepage-toolbar">
+			<div className="cnl-editor-homepage-toolbar__left">
+				<CanvasViewToggle
+					isPreviewVisible={ isPreviewVisible }
+					onChange={ onTogglePreview }
+				/>
+			</div>
+			<div className="cnl-editor-homepage-toolbar__center">
+				{ document }
+			</div>
+			<div className="cnl-editor-homepage-toolbar__right">
+				{ isPreviewVisible && canOpenMenu && (
+					<ToggleControl
+						__nextHasNoMarginBottom
+						checked={ isMenuOpen }
+						className="routes-navigation-canvas-toolbar__menu-toggle"
+						label={ __( 'Menu open' ) }
+						onChange={ onToggleMenu }
+					/>
+				) }
 				{ isPreviewVisible && (
 					<CanvasDeviceSwitcher
 						device={ device }
 						onChange={ onChangeDevice }
 					/>
 				) }
-				{ locationActions }
-				<ToggleControl
-					__nextHasNoMarginBottom
-					checked={ isPreviewVisible }
-					className="routes-navigation-canvas-toolbar__preview-toggle"
-					label={ __( 'Preview site' ) }
-					onChange={ onTogglePreview }
-				/>
 			</div>
 		</header>
+	);
+}
+
+/**
+ * A place the menu is shown, previewed with the menu in it.
+ *
+ * @param {Object}   props
+ * @param {Object[]} props.blocks The place's blocks, with the menu in.
+ * @param {Object}   props.icon   Icon for the place.
+ * @param {string}   props.label  The place's name.
+ * @param {Function} props.onEdit Opens the place to edit it.
+ * @return {Element} The card.
+ */
+function LocationCard( { blocks, icon = layoutIcon, label, onEdit } ) {
+	return (
+		<section className="routes-navigation-locations-canvas__card">
+			<div className="routes-navigation-locations-canvas__card-header">
+				<div className="routes-navigation-locations-canvas__card-title">
+					<Icon
+						className="routes-navigation-locations-canvas__card-icon"
+						icon={ icon }
+					/>
+					<span>{ label }</span>
+				</div>
+				<Button onClick={ onEdit } variant="link">
+					{ __( 'Edit' ) }
+				</Button>
+			</div>
+			<div className="routes-navigation-locations-canvas__preview">
+				<LazyEditorPreview
+					blocks={ blocks || EMPTY_ARRAY }
+					description={ label }
+				/>
+			</div>
+		</section>
 	);
 }
 
@@ -199,11 +312,23 @@ export default function NavigationEditCanvas() {
 	const [ isSavingLocations, setIsSavingLocations ] = useState( false );
 	const [ isPreviewVisible, setIsPreviewVisible ] = useState( true );
 	const [ device, setDevice ] = useState( DEFAULT_CANVAS_VIEW_DEVICE );
+	// Open on a phone, where a menu is hidden behind its button until it is.
+	const [ isMenuOpen, setIsMenuOpen ] = useState(
+		DEFAULT_CANVAS_VIEW_DEVICE === 'Mobile'
+	);
+	const bodyRef = useRef();
 	const selectedLocationIds = useMemo(
 		() => locations.map( ( location ) => location.id ),
 		[ locations ]
 	);
 	const menuTitle = menu ? getMenuTitle( menu ) : __( 'Navigation' );
+	const mobileMenu = usePreviewMobileMenu( {
+		bodyRef,
+		device,
+		isEnabled: isPreviewVisible,
+		isOpen: isMenuOpen,
+		navigationId,
+	} );
 
 	/*
 	 * The editor store registers with the editor's own assets, which the preview
@@ -219,20 +344,38 @@ export default function NavigationEditCanvas() {
 		dispatch( 'core/editor' )?.setDeviceType?.( device );
 	}, [ device, isPreviewVisible ] );
 	/*
-	 * The menu's blocks, for the location previews: built only while those
-	 * are on show, and once the editor's assets have registered WordPress's
-	 * blocks, which building them needs.
+	 * The menu's blocks, for the location previews and a custom overlay open
+	 * over the site preview: built only while one of those is on show, and once
+	 * the editor's assets have registered WordPress's blocks, which building
+	 * them needs.
 	 */
 	const { isReady: hasBlockTypes } = useEditorAssets();
 	const showsLocations = ! isPreviewVisible && hasBlockTypes;
+	const openOverlayPart =
+		isPreviewVisible &&
+		isMenuOpen &&
+		mobileMenu.overlay &&
+		findOverlayPart( templateParts, mobileMenu.overlay );
+	const showsOverlay = Boolean( openOverlayPart ) && hasBlockTypes;
 	const menuBlocks = useMemo(
 		() =>
-			showsLocations
+			showsLocations || showsOverlay
 				? createEditorBlocksFromNavigationBlocks(
 						getNavigationBlocksFromEditedRecord( menu )
 					)
 				: EMPTY_ARRAY,
-		[ menu, showsLocations ]
+		[ menu, showsLocations, showsOverlay ]
+	);
+	const overlayPreviewBlocks = useMemo(
+		() =>
+			showsOverlay
+				? getTemplatePartPreviewBlocks(
+						openOverlayPart,
+						navigationId,
+						menuBlocks
+					)
+				: EMPTY_ARRAY,
+		[ menuBlocks, navigationId, openOverlayPart, showsOverlay ]
 	);
 
 	// Each location's part, with this menu in it. Parsed only while the
@@ -349,32 +492,18 @@ export default function NavigationEditCanvas() {
 		);
 	}
 
-	const menuLocationActions = (
-		<DropdownMenu
-			icon={ moreVerticalIcon }
-			label={ __( 'Menu location options' ) }
-			popoverProps={ { placement: 'bottom-end' } }
-			toggleProps={ {
-				__next40pxDefaultSize: true,
-				variant: 'tertiary',
-			} }
-		>
-			{ ( { onClose } ) => (
-				<MenuItem
-					onClick={ () => {
-						setLocationModalMode(
-							locations.length > 0 ? 'update' : 'choose'
-						);
-						onClose();
-					} }
-				>
-					{ locations.length > 0
-						? __( 'Update locations' )
-						: __( 'Choose location' ) }
-				</MenuItem>
-			) }
-		</DropdownMenu>
-	);
+	// Opens a place the menu is shown, with its Navigation block picked.
+	const editTemplatePart = ( part ) => {
+		requestBlockSelection( {
+			attributes: { ref: navigationId },
+			blockName: 'core/navigation',
+			postId: part.id,
+			postType: 'wp_template_part',
+		} );
+		navigate( {
+			to: `/wp_template_part?postId=${ encodeURIComponent( part.id ) }`,
+		} );
+	};
 
 	const locationsView = ! isPreviewVisible && (
 		<div className="routes-navigation-locations-canvas__content">
@@ -391,43 +520,31 @@ export default function NavigationEditCanvas() {
 			) }
 			{ ! isResolvingTemplateParts && locations.length > 0 && (
 				<div className="routes-navigation-locations-canvas__previews">
+					<LocationsNotice
+						canAddLocation={
+							templateParts.filter( ( part ) =>
+								templatePartHasNavigationBlock( part )
+							).length > locations.length
+						}
+						locations={ locations }
+						onChangeLocation={ () =>
+							setLocationModalMode( 'update' )
+						}
+					/>
 					{ locations.map( ( location ) => (
-						<section
-							className="routes-navigation-locations-canvas__card"
+						<LocationCard
+							blocks={ locationPreviewBlocks.get( location.id ) }
+							// An overlay opens from a menu button, mostly on
+							// phones.
+							icon={
+								location.area === NAVIGATION_OVERLAY_AREA
+									? mobileIcon
+									: layoutIcon
+							}
 							key={ location.id }
-						>
-							<div className="routes-navigation-locations-canvas__card-header">
-								<div className="routes-navigation-locations-canvas__card-title">
-									<Icon
-										className="routes-navigation-locations-canvas__card-icon"
-										icon={ layoutIcon }
-									/>
-									<span>{ location.label }</span>
-								</div>
-								<Button
-									onClick={ () =>
-										navigate( {
-											to: `/wp_template_part?postId=${ encodeURIComponent(
-												location.part.id
-											) }`,
-										} )
-									}
-									variant="link"
-								>
-									{ __( 'Edit' ) }
-								</Button>
-							</div>
-							<div className="routes-navigation-locations-canvas__preview">
-								<LazyEditorPreview
-									blocks={
-										locationPreviewBlocks.get(
-											location.id
-										) || EMPTY_ARRAY
-									}
-									description={ location.label }
-								/>
-							</div>
-						</section>
+							label={ location.label }
+							onEdit={ () => editTemplatePart( location.part ) }
+						/>
 					) ) }
 				</div>
 			) }
@@ -437,14 +554,31 @@ export default function NavigationEditCanvas() {
 	return (
 		<section className="cnl-editor-canvas routes-navigation-canvas">
 			<NavigationCanvasHeader
+				canOpenMenu={ mobileMenu.canOpen }
 				device={ device }
-				isPreviewVisible={ isPreviewVisible }
-				locationActions={ menuLocationActions }
-				locationsSummary={ getMenuLocationsSummary( locations.length ) }
-				menuTitle={ menuTitle }
-				onChangeDevice={ ( value ) =>
-					setDevice( getCanvasViewDevice( value ) )
+				document={
+					<NavigationDocument
+						hasLocations={ locations.length > 0 }
+						locationsSummary={ getMenuLocationsSummary(
+							locations.length
+						) }
+						menuTitle={ menuTitle }
+						onChooseLocation={ () =>
+							setLocationModalMode(
+								locations.length > 0 ? 'update' : 'choose'
+							)
+						}
+					/>
 				}
+				isMenuOpen={ isMenuOpen }
+				isPreviewVisible={ isPreviewVisible }
+				onChangeDevice={ ( value ) => {
+					const next = getCanvasViewDevice( value );
+
+					setDevice( next );
+					setIsMenuOpen( next === 'Mobile' );
+				} }
+				onToggleMenu={ setIsMenuOpen }
 				onTogglePreview={ setIsPreviewVisible }
 			/>
 			{ isPreviewVisible &&
@@ -456,13 +590,21 @@ export default function NavigationEditCanvas() {
 						}
 					/>
 				) }
-			<div className="routes-navigation-canvas__body">
+			<div className="routes-navigation-canvas__body" ref={ bodyRef }>
 				{ isPreviewVisible ? (
 					<NavigationSitePreview device={ device } />
 				) : (
 					locationsView
 				) }
 			</div>
+			{ showsOverlay && (
+				<PreviewOverlay
+					blocks={ overlayPreviewBlocks }
+					frameBody={ mobileMenu.frameBody }
+					height={ mobileMenu.height }
+					width={ mobileMenu.width }
+				/>
+			) }
 			{ locationModalMode && (
 				<ChooseLocationModal
 					/*

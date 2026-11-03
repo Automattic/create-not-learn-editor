@@ -1857,19 +1857,10 @@
 	align-items: center;
 }
 
-/*
- * Separated from the controls to its left because it switches the whole canvas
- * rather than acting on what is in it, and anchored last so it stays put when
- * the device switcher comes and goes.
- */
-.routes-navigation-canvas-toolbar__preview-toggle.components-base-control {
+// Opens the menu in the site preview, where it collapses into a button.
+.routes-navigation-canvas-toolbar__menu-toggle.components-base-control {
+	flex: 0 0 auto;
 	margin-bottom: 0;
-	padding-left: 16px;
-	border-left: 1px solid var(--wpds-color-stroke-surface-neutral);
-
-	.components-base-control__field {
-		margin-bottom: 0;
-	}
 
 	.components-toggle-control__label {
 		white-space: nowrap;
@@ -1947,6 +1938,12 @@
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
 	gap: 32px;
+}
+
+// Inline in the notice's sentence, as a link in running text.
+.routes-navigation-locations-notice__link.components-button.is-link {
+	vertical-align: baseline;
+	font-size: inherit;
 }
 
 .routes-navigation-locations-canvas__card {

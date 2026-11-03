@@ -77,6 +77,23 @@ describe( 'navigation location helpers', () => {
 		).toEqual( [] );
 	} );
 
+	test( 'counts a navigation overlay as a location', () => {
+		const overlayPart = {
+			area: 'navigation-overlay',
+			content: { raw: '<!-- wp:navigation {"ref":10} /-->' },
+			id: 'theme//navigation-overlay',
+			title: { rendered: 'Navigation Overlay' },
+		};
+
+		expect(
+			buildNavigationLocationsMap( [
+				overlayPart,
+				headerPart,
+			] )[ 10 ].map( ( location ) => location.id )
+		).toEqual( [ 'theme//header', 'theme//navigation-overlay' ] );
+		expect( templatePartHasNavigationBlock( overlayPart ) ).toBe( true );
+	} );
+
 	test( 'builds a menu-to-locations map sorted by template part area', () => {
 		const map = buildNavigationLocationsMap( [ footerPart, headerPart ] );
 

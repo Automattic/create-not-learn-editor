@@ -83,4 +83,5 @@ function cnl_editor_bootstrap() {
 	cnl_editor_register_layout_hooks();
 	cnl_editor_register_plugin_compat_hooks();
 	cnl_editor_register_assistant_router_hooks();
+	cnl_editor_register_setup_default_hooks();
 }
