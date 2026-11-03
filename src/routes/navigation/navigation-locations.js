@@ -8,6 +8,12 @@ import { __, _n, sprintf } from '@wordpress/i18n';
 const EXPLICITLY_UNASSIGNED_NAVIGATION_LOCATION = 'rsm-unassigned';
 const EMPTY_ARRAY = [];
 
+/**
+ * The template part area core gives a Navigation block's custom overlay, from
+ * WordPress 7.0.
+ */
+export const NAVIGATION_OVERLAY_AREA = 'navigation-overlay';
+
 function getTemplatePartAreaPriority( part ) {
 	switch ( part.area ) {
 		case 'header':
@@ -108,6 +114,24 @@ export function getTemplatePartRawContent( part ) {
 	return part?.content?.raw || '';
 }
 
+/**
+ * The part's content with its edits. Once the editor has changed a part's
+ * blocks, core keeps its edited content as a function that serialises them,
+ * not a string, so it is called here. Read as it is, the part would look
+ * empty, and the menus in it would seem to have gone.
+ *
+ * @param {Object} part       Template part record.
+ * @param {Object} editedPart The part's edited record.
+ * @return {*} Its content, as the record keeps it.
+ */
+function getEditedContent( part, editedPart ) {
+	if ( typeof editedPart.content === 'function' ) {
+		return editedPart.content( editedPart );
+	}
+
+	return editedPart.content === undefined ? part.content : editedPart.content;
+}
+
 export function mergeTemplatePartWithEditedRecord( part, editedPart ) {
 	if ( ! editedPart ) {
 		return part;
@@ -116,10 +140,7 @@ export function mergeTemplatePartWithEditedRecord( part, editedPart ) {
 	return {
 		...part,
 		...editedPart,
-		content:
-			editedPart.content === undefined
-				? part.content
-				: editedPart.content,
+		content: getEditedContent( part, editedPart ),
 		id: part.id,
 	};
 }

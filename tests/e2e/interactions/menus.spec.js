@@ -244,6 +244,45 @@ test.describe( 'Menus interactions', () => {
 		).rejects.toThrow( /404/ );
 	} );
 
+	test( 'opens a location to edit with the menu picked', async ( {
+		page,
+		rest,
+	} ) => {
+		await visitEditor(
+			page,
+			`/navigation/edit/${ await rest.getMainMenuId() }`
+		);
+
+		const canvas = page.locator( '.routes-navigation-canvas' );
+		await canvas
+			.getByRole( 'radio', { name: 'Locations', exact: true } )
+			.click();
+		await canvas
+			.locator( '.routes-navigation-locations-canvas__card' )
+			.first()
+			.getByRole( 'button', { name: 'Edit' } )
+			.click( { timeout: 15000 } );
+
+		await expect
+			.poll( () => getRoute( page ), { timeout: 15000 } )
+			.toMatch( /^\/wp_template_part\?postId=/ );
+		await expectBlockEditor( page );
+		await expect
+			.poll(
+				() =>
+					page.evaluate( () => {
+						const blockEditor =
+							window.wp.data.select( 'core/block-editor' );
+
+						return blockEditor.getBlockName(
+							blockEditor.getSelectedBlockClientId()
+						);
+					} ),
+				{ timeout: 15000 }
+			)
+			.toBe( 'core/navigation' );
+	} );
+
 	test( 'opens a menu in the block editor', async ( { page, rest } ) => {
 		const menu = await rest.createNavigationMenu();
 
@@ -275,16 +314,14 @@ test.describe( 'Menus interactions', () => {
 		await openMenu( page, menu );
 
 		const canvas = page.locator( '.routes-navigation-canvas' );
-		const meta = canvas.locator(
-			'.routes-navigation-canvas-toolbar__meta'
-		);
+		const meta = canvas.locator( '.cnl-editor-homepage-document__meta' );
 
 		await expect( meta ).toHaveText( 'Not shown on your site', {
 			timeout: 15000,
 		} );
 		await canvas
-			.getByRole( 'checkbox', { name: 'Preview site' } )
-			.uncheck();
+			.getByRole( 'radio', { name: 'Locations', exact: true } )
+			.click();
 		await canvas.getByRole( 'button', { name: 'Choose location' } ).click();
 
 		const dialog = page.getByRole( 'dialog', { name: 'Choose location' } );
@@ -345,8 +382,8 @@ test.describe( 'Menus interactions', () => {
 			).join( '\n' );
 
 		await canvas
-			.getByRole( 'checkbox', { name: 'Preview site' } )
-			.uncheck();
+			.getByRole( 'radio', { name: 'Locations', exact: true } )
+			.click();
 		await canvas.getByRole( 'button', { name: 'Choose location' } ).click();
 
 		const dialog = page.getByRole( 'dialog', { name: 'Choose location' } );

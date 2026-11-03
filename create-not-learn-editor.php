@@ -25,9 +25,8 @@ define( 'CNL_EDITOR_REST_NAMESPACE', 'create-not-learn-editor/v1' );
 /*
  * Visual theme layered on top of the WordPress Design System.
  *
- * 'default' is stock WPDS; 'modern' softens corners and surfaces and sets
- * headings in EB Garamond. Override it in wp-config.php, or with the
- * `create-not-learn-editor_ui_theme` filter.
+ * 'default' is stock WPDS; 'modern' softens corners and surfaces. Override
+ * it in wp-config.php, or with the `create-not-learn-editor_ui_theme` filter.
  */
 if ( ! defined( 'CNL_EDITOR_UI_THEME' ) ) {
 	define( 'CNL_EDITOR_UI_THEME', 'default' );
@@ -85,4 +84,5 @@ function cnl_editor_bootstrap() {
 	cnl_editor_register_plugin_compat_hooks();
 	cnl_editor_register_assistant_router_hooks();
 	cnl_editor_register_post_kind_hooks();
+	cnl_editor_register_setup_default_hooks();
 }
