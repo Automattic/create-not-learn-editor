@@ -14,7 +14,8 @@
 #   out-dir  Where to put the files. It must not exist yet.
 #
 # There is a blueprint for each demo in demos/: blueprint.json for the
-# Fernhouse demo site and blueprint-blank.json for a blank site on WordPress's
+# Fernhouse demo site, blueprint-shop.json for the same site with WooCommerce
+# and a demo shop, and blueprint-blank.json for a blank site on WordPress's
 # default theme. Trunk uses them as they are. A branch or release gets copies of
 # its own, rewritten to install from <ref>. A release also pins WordPress to the
 # version wp-env runs, so it stays the same while WordPress moves on.
@@ -44,21 +45,21 @@ esac
 mkdir "$out"
 out=$(cd "$out" && pwd)
 cp "${ZIP_NAME:-create-not-learn-editor.zip}" "$out/create-not-learn-editor.zip"
-cp scripts/demo-site/seed.php demos/playground-canvas-fix.php "$out/"
+cp scripts/demo-site/seed.php scripts/demo-site/seed-shop.php demos/playground-canvas-fix.php "$out/"
 (cd themes && zip -qr "$out/mainstay.zip" mainstay)
 
 wp=''
 case $kind in
 	trunk)
 		about="Do not edit or commit to this branch, it is replaced on every push to trunk."
-		files="[\`demos/blueprint.json\`](https://github.com/$repo/blob/trunk/demos/blueprint.json) and [\`demos/blueprint-blank.json\`](https://github.com/$repo/blob/trunk/demos/blueprint-blank.json)"
+		files="[\`demos/blueprint.json\`](https://github.com/$repo/blob/trunk/demos/blueprint.json), [\`demos/blueprint-shop.json\`](https://github.com/$repo/blob/trunk/demos/blueprint-shop.json) and [\`demos/blueprint-blank.json\`](https://github.com/$repo/blob/trunk/demos/blueprint-blank.json)"
 		;;
 	branch)
 		# Replaces the start of each blueprint's description, "The latest
 		# Create Not Learn Editor from trunk".
 		version="Create Not Learn Editor from the $name branch"
 		about="It is the Playground build of the [\`$name\`](https://github.com/$repo/tree/$name) branch, replaced on every push to it and deleted with it. Do not edit or commit to this ref."
-		files="[\`blueprint.json\`](blueprint.json) and [\`blueprint-blank.json\`](blueprint-blank.json)"
+		files="[\`blueprint.json\`](blueprint.json), [\`blueprint-shop.json\`](blueprint-shop.json) and [\`blueprint-blank.json\`](blueprint-blank.json)"
 		;;
 	release)
 		# Playground takes major versions, such as 7.1, not patch releases.
@@ -69,12 +70,12 @@ case $kind in
 		fi
 		version="Create Not Learn Editor $name, on WordPress $wp"
 		about="It is the Playground build of the \`$name\` release. Do not edit or move this tag."
-		files="[\`blueprint.json\`](blueprint.json) and [\`blueprint-blank.json\`](blueprint-blank.json)"
+		files="[\`blueprint.json\`](blueprint.json), [\`blueprint-shop.json\`](blueprint-shop.json) and [\`blueprint-blank.json\`](blueprint-blank.json)"
 		;;
 esac
 
 if [ "$kind" != trunk ]; then
-	for blueprint in demos/blueprint.json demos/blueprint-blank.json; do
+	for blueprint in demos/blueprint.json demos/blueprint-shop.json demos/blueprint-blank.json; do
 		target="$out/$(basename "$blueprint")"
 		jq --tab \
 			--arg ref "$ref" \

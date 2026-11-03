@@ -7,8 +7,9 @@ name: Plugin zip
 # Mainstay theme, the demo site seed script and the Playground canvas fix go on
 # a ref of their own, which the demos' blueprints install from.
 #
-# There are two demos, the Fernhouse demo site (`blueprint.json`) and a blank
-# site on WordPress's default theme (`blueprint-blank.json`). Both install from
+# There are three demos: the Fernhouse demo site (`blueprint.json`), the same
+# site with WooCommerce and a demo shop (`blueprint-shop.json`), and a blank
+# site on WordPress's default theme (`blueprint-blank.json`). All install from
 # the same ref.
 #
 # - trunk goes to the `playground-build` branch, which the blueprints in
@@ -132,7 +133,8 @@ jobs:
           fi
           echo "PLAYGROUND_URL=https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint.json" >> "$GITHUB_ENV"
           echo "PLAYGROUND_BLANK_URL=https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-blank.json" >> "$GITHUB_ENV"
-          echo "[Try this build in WordPress Playground](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint.json), or [try it on a blank site](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-blank.json)." >> "$GITHUB_STEP_SUMMARY"
+          echo "PLAYGROUND_SHOP_URL=https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-shop.json" >> "$GITHUB_ENV"
+          echo "[Try this build in WordPress Playground](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint.json), [with a WooCommerce shop](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-shop.json), or [on a blank site](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-blank.json)." >> "$GITHUB_STEP_SUMMARY"
 
       # Leads the release notes with the Playground links and attaches the zip.
       # Works whether the release was made here or by hand before the tag was
@@ -142,7 +144,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          link="[Try ${GITHUB_REF_NAME} in WordPress Playground](${PLAYGROUND_URL}), or [try it on a blank site](${PLAYGROUND_BLANK_URL}). Both stay on this release while trunk moves on."
+          link="[Try ${GITHUB_REF_NAME} in WordPress Playground](${PLAYGROUND_URL}), [with a WooCommerce shop](${PLAYGROUND_SHOP_URL}), or [on a blank site](${PLAYGROUND_BLANK_URL}). All stay on this release while trunk moves on."
 
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
             body=$(gh release view "$GITHUB_REF_NAME" --json body --jq .body)
