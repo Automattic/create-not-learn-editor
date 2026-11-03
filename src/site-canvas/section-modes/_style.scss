@@ -8,9 +8,10 @@
  * event through to the canvas but those on its own controls.
  */
 
-// The bars are the design system's surfaces: white, edged and lifted, as
-// core's popovers are, with core's buttons, as the rest of the
-// editor has. Edit design's bar is the same surface.
+// The bars are the design system's overlays (`cnl-overlay-surface`): white,
+// edged and lifted, as its popovers and menus are and as the block toolbar
+// is, with core's buttons, as the rest of the editor has. Edit design's bar
+// is the same surface.
 $surface: var(--wpds-color-background-surface-neutral);
 $ink: var(--wpds-color-foreground-content-neutral);
 $ink-weak: var(--wpds-color-foreground-content-neutral-weak);
@@ -33,10 +34,9 @@ $theme: var(--wp-admin-theme-color);
 // A bar's room around its compact buttons.
 $bar-padding: var(--wpds-dimension-padding-xs);
 // Corners that nest: a bar's buttons are rounded by the bar's radius less
-// its padding, so their curves follow the bar's. Softer than the 2px the
-// theme pins other buttons to (see `src/theme/modern.scss`), which looks
-// harsh floating over a page, but never round around square.
-$bar-radius: var(--wpds-border-radius-sm);
+// its padding, so their curves follow the bar's, but never round around
+// square.
+$bar-radius: var(--wpds-border-radius-md);
 $button-radius: max(2px, calc(#{$bar-radius} - #{$bar-padding}));
 
 // WPDS motion: subtle for hover and colour, expressive for things entering.
@@ -250,11 +250,9 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	gap: var(--wpds-dimension-gap-xs);
 	box-sizing: border-box;
 	padding: $bar-padding;
-	border: $edge;
-	border-radius: $bar-radius;
-	background: $surface;
-	box-shadow: $lift;
 	pointer-events: auto;
+
+	@include cnl-overlay-surface;
 }
 
 .cnl-section-modes .cnl-section-modes__bar-button {
@@ -306,13 +304,11 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	box-sizing: border-box;
 	padding: $bar-padding;
 	transform: translateX(-50%);
-	border: $edge;
-	border-radius: $bar-radius;
-	background: $surface;
 	color: $ink;
 	white-space: nowrap;
-	box-shadow: $lift;
 	pointer-events: auto;
+
+	@include cnl-overlay-surface;
 }
 
 // A header or footer's note that every page has it, on a bar.
@@ -335,12 +331,10 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	overflow-y: auto;
 	padding: $bar-padding;
 	transform: translateX(-50%);
-	border: $edge;
-	border-radius: $bar-radius;
-	background: $surface;
 	color: $ink;
-	box-shadow: $lift;
 	pointer-events: auto;
+
+	@include cnl-overlay-surface;
 
 	.cnl-section-modes__sitewide {
 		margin: var(--wpds-dimension-gap-xs) auto 0;
@@ -892,7 +886,7 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 
 .cnl-section-modes__row-cell-label {
 	padding: 6px 12px;
-	border-radius: $bar-radius;
+	border-radius: var(--wpds-border-radius-sm);
 	background: $theme;
 	color: #fff;
 	font-weight: 500;
@@ -929,11 +923,9 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	gap: 2px;
 	padding: 2px 2px 2px 10px;
 	transform: translateX(-100%);
-	border: $edge;
-	border-radius: $bar-radius;
-	background: $surface;
 	color: $ink;
-	box-shadow: $lift;
+
+	@include cnl-overlay-surface;
 	font-size: var(--wpds-typography-font-size-sm);
 	white-space: nowrap;
 	pointer-events: auto;
