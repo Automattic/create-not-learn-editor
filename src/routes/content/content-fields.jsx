@@ -199,9 +199,12 @@ export function getContentFields( siteRoles = {}, authors = NO_AUTHORS ) {
 		{
 			elements: STATUS_OPTIONS,
 			enableSorting: false,
-			filterBy: {
-				operators: [ 'isAny' ],
-			},
+			// Listed by status, buttons above the list pick the status.
+			filterBy: siteRoles.isListedByStatus
+				? false
+				: {
+						operators: [ 'isAny' ],
+					},
 			getValue: ( { item } ) => getStatusLabel( item.status ),
 			id: 'status',
 			label: __( 'Status' ),

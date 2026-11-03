@@ -1,8 +1,8 @@
 /**
- * The views a list of posts offers as tabs, one per status, as core's own
- * post lists do. Each tab is an address of its own,
- * `/types/post/list/<slug>`, and locks its status filter, so the rest of
- * DataViews' filters still work inside it.
+ * The statuses a list of posts can be narrowed to, as core's own post lists
+ * offer them. Each is an address of its own, `/types/post/list/<slug>`,
+ * picked with the buttons above the list. The rest of DataViews' filters
+ * still work inside it.
  *
  * Kept free of packages other than i18n so it can be tested on its own.
  */
@@ -20,7 +20,7 @@ const LISTED_STATUSES = [ 'publish', 'future', 'draft', 'pending', 'private' ];
  */
 export function getPostViews() {
 	return [
-		{ slug: 'all', statuses: LISTED_STATUSES, title: __( 'All posts' ) },
+		{ slug: 'all', statuses: LISTED_STATUSES, title: __( 'All' ) },
 		{
 			slug: 'published',
 			statuses: [ 'publish' ],
@@ -44,48 +44,6 @@ export function getPostView( slug ) {
 	const views = getPostViews();
 
 	return views.find( ( view ) => view.slug === slug ) || views[ 0 ];
-}
-
-/**
- * The filters a tab starts with: its status, locked, except on "All", where
- * status is a filter like any other.
- *
- * @param {Object} view A tab, from `getPostView`.
- * @return {Object[]} DataViews filters.
- */
-export function getPostViewFilters( view ) {
-	if ( view.slug === 'all' ) {
-		return [];
-	}
-
-	return [
-		{
-			field: 'status',
-			isLocked: true,
-			operator: 'isAny',
-			value: view.statuses,
-		},
-	];
-}
-
-/**
- * The statuses to ask the server for: the tab's, narrowed on "All" by any
- * status filter picked there.
- *
- * @param {Object}   view    A tab, from `getPostView`.
- * @param {Object[]} filters The list's DataViews filters.
- * @return {string[]} Post statuses.
- */
-export function getPostViewStatuses( view, filters = [] ) {
-	const picked = filters.find(
-		( filter ) =>
-			filter.field === 'status' &&
-			! filter.isLocked &&
-			Array.isArray( filter.value ) &&
-			filter.value.length
-	);
-
-	return picked ? picked.value : view.statuses;
 }
 
 /**

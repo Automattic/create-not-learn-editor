@@ -3307,3 +3307,16 @@ $sidebar-strip-width: 64px;
 	flex: 0 0 auto;
 	color: var(--wpds-color-foreground-content-neutral-weak);
 }
+
+/*
+ * The statuses a writer's posts can be narrowed to, as a row of buttons under
+ * the Posts tab, set in from the list's edges as the list is.
+ */
+.routes-post-list__statuses {
+	padding: var(--wpds-dimension-padding-lg) 24px var(--wpds-dimension-padding-xs);
+
+	// Each status reads on one line, however narrow the row.
+	.components-toggle-group-control-option-base {
+		white-space: nowrap;
+	}
+}

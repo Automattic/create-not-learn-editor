@@ -6,12 +6,7 @@ import { describe, expect, it } from 'vitest';
 /**
  * Internal dependencies
  */
-import {
-	getPostView,
-	getPostViewEmpty,
-	getPostViewFilters,
-	getPostViewStatuses,
-} from '../post-views';
+import { getPostView, getPostViewEmpty } from '../post-views';
 
 describe( 'getPostView', () => {
 	it( 'finds a tab by its slug', () => {
@@ -21,47 +16,6 @@ describe( 'getPostView', () => {
 	it( 'falls back to "All" for an unknown slug', () => {
 		expect( getPostView( 'default' ).slug ).toBe( 'all' );
 		expect( getPostView( undefined ).slug ).toBe( 'all' );
-	} );
-} );
-
-describe( 'getPostViewFilters', () => {
-	it( 'locks a tab to its status', () => {
-		expect( getPostViewFilters( getPostView( 'trash' ) ) ).toEqual( [
-			{
-				field: 'status',
-				isLocked: true,
-				operator: 'isAny',
-				value: [ 'trash' ],
-			},
-		] );
-	} );
-
-	it( 'leaves "All" unfiltered', () => {
-		expect( getPostViewFilters( getPostView( 'all' ) ) ).toEqual( [] );
-	} );
-} );
-
-describe( 'getPostViewStatuses', () => {
-	it( 'asks for the tab’s statuses', () => {
-		expect( getPostViewStatuses( getPostView( 'future' ) ) ).toEqual( [
-			'future',
-		] );
-	} );
-
-	it( 'narrows "All" to a status filter picked there', () => {
-		expect(
-			getPostViewStatuses( getPostView( 'all' ), [
-				{ field: 'status', operator: 'isAny', value: [ 'draft' ] },
-			] )
-		).toEqual( [ 'draft' ] );
-	} );
-
-	it( 'ignores an empty status filter', () => {
-		expect(
-			getPostViewStatuses( getPostView( 'all' ), [
-				{ field: 'status', operator: 'isAny', value: [] },
-			] )
-		).toEqual( getPostView( 'all' ).statuses );
 	} );
 } );
 

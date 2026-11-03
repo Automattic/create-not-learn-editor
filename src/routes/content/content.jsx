@@ -55,6 +55,8 @@ import {
 	MenuItem,
 	Spinner,
 	Tabs,
+	ToggleGroupControl,
+	ToggleGroupControlOption,
 	__,
 	layoutIcon,
 	LegacyIcon,
@@ -116,7 +118,7 @@ function Stage() {
 	const [ isPickingPostKind, setIsPickingPostKind ] = useState( false );
 	const {
 		activeTab,
-		statusTab,
+		statusView,
 		contentView,
 		error,
 		isLoading,
@@ -150,9 +152,9 @@ function Stage() {
 	// Posts are listed, worded and written as the workspace says.
 	const workspace = useSelect( getActiveWorkspace, [] );
 	const postsSettings = type?.name === 'post' ? workspace.posts : null;
-	// Lists split into status tabs move posts to and from the trash with
-	// core's own actions.
-	const trashActions = useCoreTrashActions( statusTab ? type?.name : null );
+	// Lists by status move posts to and from the trash with core's own
+	// actions.
+	const trashActions = useCoreTrashActions( statusView ? type?.name : null );
 	// Pages lists its pages in menu groups; every other type in DataViews.
 	const dataViews = useDataViews( !! type && ! isPages );
 	const authors = usePostAuthors( isPages ? EMPTY_ARRAY : posts );
@@ -161,13 +163,21 @@ function Stage() {
 			getContentFields(
 				{
 					frontPageId,
+					isListedByStatus: !! statusView,
 					isPages,
 					menuPages: mainMenu.menuPages,
 					postsPageId,
 				},
 				authors
 			),
-		[ authors, frontPageId, isPages, mainMenu.menuPages, postsPageId ]
+		[
+			authors,
+			frontPageId,
+			isPages,
+			mainMenu.menuPages,
+			postsPageId,
+			statusView,
+		]
 	);
 	const contentActions = useMemo( () => {
 		if ( ! type ) {
@@ -176,7 +186,7 @@ function Stage() {
 
 		const actions = getContentActions( navigate, type );
 
-		if ( ! statusTab ) {
+		if ( ! statusView ) {
 			return actions;
 		}
 
@@ -190,7 +200,7 @@ function Stage() {
 			} ) ),
 			...trashActions,
 		];
-	}, [ navigate, statusTab, trashActions, type ] );
+	}, [ navigate, statusView, trashActions, type ] );
 	const previewTemplatesKey = useMemo(
 		() =>
 			previewTemplates
@@ -203,7 +213,7 @@ function Stage() {
 		return null;
 	}
 
-	const listPath = `/types/${ type.name }/list/${ statusTab?.slug || 'all' }`;
+	const listPath = `/types/${ type.name }/list/${ statusView?.slug || 'all' }`;
 	const showTemplates = activeTab === 'templates';
 	const drilled =
 		isPages && ! showTemplates ? parseTarget( searchParams.postId ) : 0;
@@ -391,15 +401,15 @@ function Stage() {
 			) }
 		</div>
 	);
-	// A status tab says what it would hold, not to write a first post.
+	// A status says what it would hold, not to write a first post.
 	const tabEmpty =
-		statusTab && getPostViewEmpty( statusTab, contentView.search );
+		statusView && getPostViewEmpty( statusView, contentView.search );
 	let emptyIcon = type.name === 'page' ? pageIcon : postListIcon;
 
 	if ( tabEmpty ) {
 		emptyIcon = contentView.search
 			? searchIcon
-			: EMPTY_TAB_ICONS[ statusTab.slug ] || emptyIcon;
+			: EMPTY_TAB_ICONS[ statusView.slug ] || emptyIcon;
 	}
 
 	const contentEmpty = tabEmpty ? (
@@ -540,9 +550,8 @@ function Stage() {
 	}
 
 	// Pages has no tabs: its layouts open from the options menu, as a step
-	// down from Pages with a way back. So do the layouts of posts split into
-	// status tabs, which have no Layouts tab of their own.
-	const isLayoutsStep = showTemplates && ( isPages || !! statusTab );
+	// down from Pages with a way back.
+	const isLayoutsStep = showTemplates && isPages;
 	// Layouts and the table of all pages are steps down from Pages.
 	let subScreenLabel = null;
 
@@ -611,10 +620,37 @@ function Stage() {
 
 	return (
 		<Page { ...pageHeader } hasPadding={ false } headingLevel={ 2 }>
-			{ statusTab && ! showTemplates && (
+			{ ! isPages && (
 				<div className="routes-post-list__tabs-wrapper">
 					<Tabs.Root
-						onValueChange={ ( slug ) =>
+						onValueChange={ handleContentTabChange }
+						value={ showTemplates ? 'templates' : 'content' }
+					>
+						<Tabs.List>
+							<Tabs.Tab value="content">
+								<TabLabel
+									icon={ type.menuIcon }
+									label={ type.menuName || type.label }
+								/>
+							</Tabs.Tab>
+							<Tabs.Tab value="templates">
+								<TabLabel
+									icon="dashicons-layout"
+									label={ __( 'Layouts' ) }
+								/>
+							</Tabs.Tab>
+						</Tabs.List>
+					</Tabs.Root>
+				</div>
+			) }
+			{ statusView && ! showTemplates && (
+				<div className="routes-post-list__statuses">
+					<ToggleGroupControl
+						__next40pxDefaultSize
+						hideLabelFromVision
+						isBlock
+						label={ __( 'Show posts' ) }
+						onChange={ ( slug ) =>
 							navigate( {
 								// Keeps the way back to where the visit began.
 								search: searchParams.from
@@ -623,43 +659,18 @@ function Stage() {
 								to: `/types/${ type.name }/list/${ slug }`,
 							} )
 						}
-						value={ statusTab.slug }
+						value={ statusView.slug }
 					>
-						<Tabs.List>
-							{ getPostViews().map( ( view ) => (
-								<Tabs.Tab key={ view.slug } value={ view.slug }>
-									{ view.title }
-								</Tabs.Tab>
-							) ) }
-						</Tabs.List>
-					</Tabs.Root>
+						{ getPostViews().map( ( view ) => (
+							<ToggleGroupControlOption
+								key={ view.slug }
+								label={ view.title }
+								value={ view.slug }
+							/>
+						) ) }
+					</ToggleGroupControl>
 				</div>
 			) }
-			{ ! isPages &&
-				! statusTab &&
-				postsSettings?.showLayouts !== false && (
-					<div className="routes-post-list__tabs-wrapper">
-						<Tabs.Root
-							onValueChange={ handleContentTabChange }
-							value={ showTemplates ? 'templates' : 'content' }
-						>
-							<Tabs.List>
-								<Tabs.Tab value="content">
-									<TabLabel
-										icon={ type.menuIcon }
-										label={ type.menuName || type.label }
-									/>
-								</Tabs.Tab>
-								<Tabs.Tab value="templates">
-									<TabLabel
-										icon="dashicons-layout"
-										label={ __( 'Layouts' ) }
-									/>
-								</Tabs.Tab>
-							</Tabs.List>
-						</Tabs.Root>
-					</div>
-				) }
 			{ showTemplates && (
 				<p className="cnl-editor-stage__description">
 					{ sprintf(

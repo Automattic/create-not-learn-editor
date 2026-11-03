@@ -8,11 +8,7 @@ import { useParams, useSearch } from '@wordpress/route';
  */
 import { getPostType } from '../../settings';
 import { getActiveWorkspace } from '../../workspaces/presets';
-import {
-	getPostView,
-	getPostViewFilters,
-	getPostViewStatuses,
-} from './post-views';
+import { getPostView } from './post-views';
 import { getErrorMessage } from '../../records';
 import { EMPTY_ARRAY } from './page-layouts';
 import {
@@ -34,7 +30,7 @@ const POST_QUERY_FIELDS =
 	'id,author,link,title,status,type,date,modified,date_gmt,modified_gmt,template,slug,parent,comment_count,excerpt';
 
 /*
- * Lists split into status tabs also ask for each post's links, which say
+ * Lists by status also ask for each post's links, which say
  * what the user may do with it, as core's trash actions need to know.
  */
 const POST_QUERY_FIELDS_WITH_LINKS = `${ POST_QUERY_FIELDS },_links`;
@@ -59,14 +55,14 @@ function getPostQuery( search, statuses = LISTED_STATUSES, withLinks ) {
 }
 
 /**
- * The status tab a list is on, when its workspace splits it into tabs.
+ * The status a list is showing, when its workspace lists posts by status.
  *
  * @param {?Object} type Post type.
  * @param {string}  slug The address's view slug.
  * @return {?Object} The tab, from `getPostView`, or null.
  */
-function getStatusTab( type, slug ) {
-	return type?.name === 'post' && getActiveWorkspace().posts.statusTabs
+function getStatusView( type, slug ) {
+	return type?.name === 'post' && getActiveWorkspace().posts.statusFilter
 		? getPostView( slug )
 		: null;
 }
@@ -106,11 +102,10 @@ function getDefaultContentLayout( type ) {
 	return { fields: DEFAULT_CONTENT_VIEW.fields, type: 'table' };
 }
 
-function getInitialContentView( searchParams, type, statusTab ) {
+function getInitialContentView( searchParams, type ) {
 	return {
 		...DEFAULT_CONTENT_VIEW,
 		...getDefaultContentLayout( type ),
-		filters: statusTab ? getPostViewFilters( statusTab ) : [],
 		page: searchParams.page ? Number( searchParams.page ) || 1 : 1,
 		search: searchParams.search || '',
 	};
@@ -120,44 +115,38 @@ export default function useContentRecords() {
 	const params = useParams( { strict: false } );
 	const searchParams = useSearch( { strict: false } );
 	const type = getPostType( params.type );
-	const statusTab = getStatusTab( type, params.view );
+	const statusView = getStatusView( type, params.view );
 	const [ contentView, setContentView ] = useState( () =>
-		getInitialContentView( searchParams, type, statusTab )
+		getInitialContentView( searchParams, type )
 	);
 	const previousTypeNameRef = useRef( type?.name );
 	const activeTab = getActiveTab( searchParams );
-	const statuses = statusTab
-		? getPostViewStatuses( statusTab, contentView.filters )
-		: LISTED_STATUSES;
+	// Listed by status, the status buttons pick which, so status is not one
+	// of the list's filters too.
+	const statuses = statusView ? statusView.statuses : LISTED_STATUSES;
 	const statusesKey = statuses.join( ',' );
-	const hasStatusTabs = !! statusTab;
+	const hasStatusFilter = !! statusView;
 	const postQuery = useMemo(
 		() =>
 			getPostQuery(
 				contentView.search,
 				statusesKey.split( ',' ),
-				hasStatusTabs
+				hasStatusFilter
 			),
-		[ contentView.search, hasStatusTabs, statusesKey ]
+		[ contentView.search, hasStatusFilter, statusesKey ]
 	);
 
-	// Moving to another status tab starts its list afresh, locked to it.
-	const statusTabSlug = statusTab?.slug;
-	const previousStatusTabRef = useRef( statusTabSlug );
+	// Moving to another status starts its list afresh.
+	const statusViewSlug = statusView?.slug;
+	const previousStatusViewRef = useRef( statusViewSlug );
 	useEffect( () => {
-		if ( previousStatusTabRef.current === statusTabSlug ) {
+		if ( previousStatusViewRef.current === statusViewSlug ) {
 			return;
 		}
 
-		previousStatusTabRef.current = statusTabSlug;
-		setContentView( ( currentView ) => ( {
-			...currentView,
-			filters: statusTabSlug
-				? getPostViewFilters( getPostView( statusTabSlug ) )
-				: [],
-			page: 1,
-		} ) );
-	}, [ statusTabSlug ] );
+		previousStatusViewRef.current = statusViewSlug;
+		setContentView( ( currentView ) => ( { ...currentView, page: 1 } ) );
+	}, [ statusViewSlug ] );
 
 	useEffect( () => {
 		setContentView( ( currentView ) => ( {
@@ -248,7 +237,7 @@ export default function useContentRecords() {
 	 */
 	const permissionsKey = useSelect(
 		( select ) => {
-			if ( ! hasStatusTabs || ! type ) {
+			if ( ! hasStatusFilter || ! type ) {
 				return '';
 			}
 
@@ -270,7 +259,7 @@ export default function useContentRecords() {
 				} )
 				.join( ',' );
 		},
-		[ hasStatusTabs, posts, type ]
+		[ hasStatusFilter, posts, type ]
 	);
 	const postsWithPermissions = useMemo( () => {
 		if ( ! permissionsKey ) {
@@ -331,7 +320,7 @@ export default function useContentRecords() {
 
 	return {
 		activeTab,
-		statusTab,
+		statusView,
 		contentView,
 		error,
 		isLoading,
