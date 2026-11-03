@@ -52,9 +52,7 @@ A section is worked on a level at a time, a click at a time:
 
 Escape steps back a level at a time: from the block to the row, to the section, then un-picks it. A double click goes straight to the block, with the caret where it landed. A click on another section picks it instead. Internally, a section whose blocks are reached is in "Edit content", though nothing on screen names it, and there is nothing to leave.
 
-The header and footer show on every page, so their words aren't reached by clicking. **Edit header** or **Edit footer**, on the bar, opens one with core's own unlock, its blocks locked to their content, the same on any page as on the Header and Footer screens, and Done editing leaves it.
-
-What the page's layout puts around its sections that the page can change, like its title and featured image, is picked and clicked into as a section is: the first click picks it, the next puts the caret in the title or selects the picture, with core's Replace. Its words and picture are the page's, but where it sits and how it looks are the layout's, shared with every page that uses it. So it is outlined grey and dashed rather than in the admin colour, its tab names the layout ("Title, part of the Standard layout", the layout named as the Pages screen's layout picker names it), and it has no bar in Edit: no Add, Edit design or moves. Its tab hangs under it while its block is reached, as core's toolbar sits over its top edge, and the block toolbar's options menu offers none of its look (see `src/block-toolbar/`). Zoomed out, its bar has Edit content only. Only a page shown in its layout has these, from the blocks core leaves editable there (`useComposeStructure()`'s `layoutItems`).
+The header and footer show on every page, so their words aren't reached by clicking. **Edit header** or **Edit footer**, alone on its bar, opens one with core's own unlock. Until then it is locked, and darkened as a section pointed at is, the same on any page as on the Header and Footer screens. Open, only its content can be selected and changed, its words, pictures, links and buttons, as core's own content-only lock opens a pattern: the groups, rows and columns that lay it out are disabled. So is a Page List, so a click on a menu listing the pages picks its Navigation block, the menu. Edit design's bar opens with it, under it so it never covers what is being changed, with Done editing at the end of its choices in place of Back, which locks it again. A choice drilled into, like Colour, has Back only. A design choice lets go of any block selected in it, and Escape steps back from a choice to the choices first.
 
 A header or footer in a mode, Edit design, Edit header or footer, or Freeform, is put in the spotlight, the rest of the page faded and dimmed behind a dark backdrop, as on the Header and Footer screens (`part-spotlight.js`), so it looks the same however it is reached.
 
@@ -77,14 +75,14 @@ A section added from the section picker is picked and brought into view. Pointin
 
 Only one section is worked on at a time. Leaving Edit design, Freeform or an open header or footer, with Done editing or Escape, leaves the section picked. From a design choice, Escape steps back to the choices first. The bars follow a tall section as it scrolls.
 
-In Freeform, and in an open header or footer, the section has a bar with Done editing, and Restore when something was removed. Its mode is named for assistive technology only. In a big section the bar is the size of the bar over a section pointed at, in the middle of whichever of its top and bottom edges is in view. A small section has a smaller bar outside it, under its bottom edge or over its top, so it never covers what is being edited.
+In Freeform the section has a bar with Done editing, and Restore when something was removed. Its mode is named for assistive technology only. In a big section the bar is the size of the bar over a section pointed at, in the middle of whichever of its top and bottom edges is in view. A small section has a smaller bar outside it, under its bottom edge or over its top, so it never covers what is being edited.
 
 Changes rewrite the blocks around an item with core's `replaceInnerBlocks`, which a content-only section doesn't turn down, so they are undone like any other edit. A double click in Compose zooms back into Edit with the block there selected.
 
 | File | What it does |
 | --- | --- |
 | `section-modes-layer.jsx` | The layer: what is pointed at, the mode, and everything drawn over the canvas. |
-| `section-chrome.jsx` | The tab, the bar with Add, Edit design (and Edit header or Edit footer, or Edit content in Compose, and Manage posts) and the section's moves, and the small bar naming the mode. |
+| `section-chrome.jsx` | The tab, the bar with Add, Edit design (or Edit content in Compose, and Manage posts) and the section's moves, or Edit header or Edit footer alone, and the small bar naming the mode, with Done editing. |
 | `design-bar.jsx` | Edit design's bar: the design choices, and each one's options. |
 | `posts-section.js` | A section's query loop: the posts it lists, how it lists them, and Manage posts' changes. |
 | `posts-menu.jsx` | Manage posts: its menu of how many, which category and the order, and Manage all posts. |

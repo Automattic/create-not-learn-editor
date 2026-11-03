@@ -56,9 +56,7 @@ import {
 	useDispatch,
 	useSelect,
 } from '../../wordpress-packages';
-import { GlobalNote } from '../../global-scope';
 import ColorWell from '../../pickers/color-well';
-import { getSitewideText } from './section-chrome';
 import {
 	usePartColors,
 	usePartDesigns,
@@ -612,24 +610,27 @@ function useWidthChoice( clientId ) {
 /**
  * The bar itself, once its choices are known.
  *
- * @param {Object}   props
- * @param {Object}   props.choices    `{ colors, layouts, width }`, each
- *                                    `{ current, options, onSelect }`, or
- *                                    null when there is nothing to choose.
- * @param {boolean}  props.isPart     Whether it is a header or footer.
- * @param {string}   props.title      The section's name.
- * @param {?string}  props.view       The choice drilled into, if any.
- * @param {Function} props.onView     Called with the choice to drill into,
- *                                    or null to step back out.
- * @param {Function} props.onClose    Leaves Edit design.
- * @param {Function} props.onFreeform Hands the section to core's own block
- *                                    tools.
- * @param {Object}   props.style      Where the bar sits.
- * @param {Object}   ref              Ref to the bar.
+ * @param {Object}    props
+ * @param {Object}    props.choices    `{ colors, layouts, width }`, each
+ *                                     `{ current, options, onSelect }`, or
+ *                                     null when there is nothing to choose.
+ * @param {string}    props.title      The section's name.
+ * @param {?string}   props.view       The choice drilled into, if any.
+ * @param {Function}  props.onView     Called with the choice to drill into,
+ *                                     or null to step back out.
+ * @param {?Function} props.onClose    Leaves Edit design. Left out for an
+ *                                     open header or footer, left with `end`.
+ * @param {Function}  props.onFreeform Hands the section to core's own block
+ *                                     tools.
+ * @param {?Element}  props.end        What goes at the end of the choices,
+ *                                     like an open header's Done editing. A
+ *                                     choice drilled into has Back only.
+ * @param {Object}    props.style      Where the bar sits.
+ * @param {Object}    ref              Ref to the bar.
  * @return {Element} The bar.
  */
 const DesignBarView = forwardRef( function UnforwardedDesignBarView(
-	{ choices, isPart, onClose, onFreeform, onView, style, title, view },
+	{ choices, end, onClose, onFreeform, onView, style, title, view },
 	ref
 ) {
 	const labels = getViewLabels();
@@ -668,17 +669,19 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 					</Button>
 				) : (
 					<>
-						<Button
-							className="cnl-section-modes__bar-button"
-							icon={
-								isRTL() ? chevronRightIcon : chevronLeftIcon
-							}
-							label={ __( 'Back' ) }
-							onClick={ onClose }
-							showTooltip
-							size="compact"
-							tooltipPosition="bottom"
-						/>
+						{ onClose && (
+							<Button
+								className="cnl-section-modes__bar-button"
+								icon={
+									isRTL() ? chevronRightIcon : chevronLeftIcon
+								}
+								label={ __( 'Back' ) }
+								onClick={ onClose }
+								showTooltip
+								size="compact"
+								tooltipPosition="bottom"
+							/>
+						) }
 						{ views.map( ( name ) => (
 							<Button
 								className="cnl-section-modes__bar-button"
@@ -728,6 +731,9 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 				{ view === VIEW_WIDTH && choices.width && (
 					<WidthOptions width={ choices.width } />
 				) }
+				{ end && ! view && (
+					<div className="cnl-section-modes__design-end">{ end }</div>
+				) }
 			</div>
 			{ view === VIEW_LAYOUT && choices.layouts && (
 				<div className="cnl-section-modes__design-tray">
@@ -738,11 +744,6 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 				<div className="cnl-section-modes__design-tray">
 					<CustomColors colors={ choices.colors.custom } />
 				</div>
-			) }
-			{ isPart && (
-				<GlobalNote className="cnl-section-modes__sitewide">
-					{ getSitewideText( title ) }
-				</GlobalNote>
 			) }
 		</div>
 	);
@@ -873,7 +874,6 @@ const PartDesignBar = forwardRef( function UnforwardedPartDesignBar(
 						: null,
 				width,
 			} }
-			isPart
 			ref={ ref }
 		/>
 	);

@@ -13,6 +13,7 @@ import {
 	privateApis as blockEditorPrivateApis,
 	store as blockEditorStore,
 } from '@wordpress/block-editor';
+import { privateApis as blocksPrivateApis } from '@wordpress/blocks';
 import { ToolbarButton, ToolbarGroup } from '@wordpress/components';
 import { store as coreDataStore } from '@wordpress/core-data';
 import { useRegistry, useSelect } from '@wordpress/data';
@@ -33,10 +34,17 @@ import {
 } from './template-part-details';
 
 const { useBlockElement } = unlock( blockEditorPrivateApis );
+const { isContentBlock } = unlock( blocksPrivateApis );
 
 const TEMPLATE_PART_BLOCK_NAME = 'core/template-part';
 
 const EMPTY_ARRAY = [];
+
+/*
+ * Content blocks a menu is made of, rather than changed on their own. Its
+ * Navigation block is picked in their place, as the menu to change.
+ */
+const MENU_PARTS = [ 'core/page-list' ];
 
 const NOT_EDITABLE = {
 	areaLabel: undefined,
@@ -51,17 +59,27 @@ const NOT_EDITABLE = {
  * Opened by the site canvas's section layer, the part's own block stays
  * content-only, as the editor left it. The layer never selects it, and an
  * unlocked part that isn't selected gets core's block overlay, which keeps
- * every click off its blocks. Its blocks open for their words and images
- * only in Edit content, and completely in Freeform.
+ * every click off its blocks. Its blocks open completely in Freeform. In
+ * Edit content, only its content opens, for its words, images and links,
+ * as core's own content-only lock opens a pattern: what only arranges
+ * them, like groups, rows and columns, can't be selected at all. Nor can a
+ * Page List: a click on it picks its Navigation block, the menu.
  *
  * @param {string}  partId   The part's client ID.
  * @param {string}  clientId One of its blocks, or the part itself.
  * @param {?string} openPart How the section layer opened the part, if it did.
+ * @param {?string} name     The block's name.
  * @return {string} The editing mode.
  */
-function getOpenEditingMode( partId, clientId, openPart ) {
-	if ( openPart === PART_CONTENT || ( openPart && clientId === partId ) ) {
+function getOpenEditingMode( partId, clientId, openPart, name ) {
+	if ( openPart && clientId === partId ) {
 		return 'contentOnly';
+	}
+
+	if ( openPart === PART_CONTENT ) {
+		return isContentBlock( name ) && ! MENU_PARTS.includes( name )
+			? 'contentOnly'
+			: 'disabled';
 	}
 
 	return 'default';
@@ -79,9 +97,10 @@ function getOpenEditingMode( partId, clientId, openPart ) {
  * whenever a block is added to or removed from the part, which would otherwise
  * strand the author mid-edit.
  *
- * In Edit content on the site canvas, every block in the part is locked to
- * its content instead, as Edit content is for changing the part's words and
- * images, and an entered section otherwise opens its blocks up completely.
+ * In Edit content on the site canvas, the part's content blocks are locked
+ * to their content instead, and the blocks that only lay them out are
+ * disabled, as Edit content is for changing the part's words and images,
+ * and an entered section otherwise opens its blocks up completely.
  *
  * @param {string}           clientId The template part's client ID.
  * @param {HTMLElement|null} element  The part's DOM element.
@@ -128,16 +147,16 @@ function useUnlockedTemplatePart( clientId, element ) {
 			return;
 		}
 
+		const { getBlockName } = registry.select( blockEditorStore );
+		const getMode = ( id ) =>
+			getOpenEditingMode( clientId, id, openPart, getBlockName( id ) );
 		const locked = lockedModes
 			.map( ( entry ) => {
 				const at = entry.lastIndexOf( ':' );
 
 				return [ entry.slice( 0, at ), entry.slice( at + 1 ) ];
 			} )
-			.filter(
-				( [ id, mode ] ) =>
-					mode !== getOpenEditingMode( clientId, id, openPart )
-			)
+			.filter( ( [ id, mode ] ) => mode !== getMode( id ) )
 			.map( ( [ id ] ) => id );
 
 		if ( ! locked.length ) {
@@ -152,10 +171,7 @@ function useUnlockedTemplatePart( clientId, element ) {
 		registry.batch( () => {
 			for ( const id of locked ) {
 				__unstableMarkNextChangeAsNotPersistent();
-				setBlockEditingMode(
-					id,
-					getOpenEditingMode( clientId, id, openPart )
-				);
+				setBlockEditingMode( id, getMode( id ) );
 			}
 		} );
 	}, [ clientId, isEditing, lockedModes, openPart, registry ] );
