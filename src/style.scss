@@ -1858,19 +1858,10 @@
 	align-items: center;
 }
 
-/*
- * Separated from the controls to its left because it switches the whole canvas
- * rather than acting on what is in it, and anchored last so it stays put when
- * the device switcher comes and goes.
- */
-.routes-navigation-canvas-toolbar__preview-toggle.components-base-control {
+// Opens the menu in the site preview, where it collapses into a button.
+.routes-navigation-canvas-toolbar__menu-toggle.components-base-control {
+	flex: 0 0 auto;
 	margin-bottom: 0;
-	padding-left: 16px;
-	border-left: 1px solid var(--wpds-color-stroke-surface-neutral);
-
-	.components-base-control__field {
-		margin-bottom: 0;
-	}
 
 	.components-toggle-control__label {
 		white-space: nowrap;
@@ -1884,12 +1875,25 @@
 	min-height: 0;
 }
 
+/*
+ * The site preview can't be clicked or edited, so the pointer says so. It is
+ * inert, which passes the pointer through to the body under it, so the body
+ * shows the cursor, and the preview's frame is kept from showing its own.
+ */
+.routes-navigation-canvas__body:has(> .routes-navigation-canvas__preview) {
+	cursor: not-allowed;
+}
+
 .routes-navigation-canvas__preview {
 	position: relative;
 	flex: 1;
 	min-height: 0;
 	overflow: hidden;
 	background: #fff;
+
+	iframe {
+		pointer-events: none;
+	}
 
 	/*
 	 * The editor's own loading state is sized for the full window, which
@@ -1950,6 +1954,18 @@
 	gap: 32px;
 }
 
+// Inline in the notice's sentence, as a link in running text.
+// Above the preview, inset as the Locations notice is.
+.routes-navigation-canvas__notice {
+	flex: 0 0 auto;
+	padding: 12px 14px 0;
+}
+
+.routes-navigation-locations-notice__link.components-button.is-link {
+	vertical-align: baseline;
+	font-size: inherit;
+}
+
 .routes-navigation-locations-canvas__card {
 	overflow: hidden;
 	border: 1px solid var(--wpds-color-stroke-surface-neutral);
@@ -1986,11 +2002,13 @@
 	flex: 0 0 auto;
 }
 
+// Like the site preview, the location previews can't be clicked.
 .routes-navigation-locations-canvas__preview {
 	max-height: 420px;
 	min-height: 96px;
 	overflow: hidden;
 	background: #fff;
+	cursor: not-allowed;
 
 	.block-editor-block-preview__container,
 	.lazy-editor-block-preview__container {

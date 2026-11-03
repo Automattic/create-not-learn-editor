@@ -8,6 +8,63 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Register hooks for the defaults WordPress makes by itself.
+ */
+function cnl_editor_register_setup_default_hooks() {
+	add_filter( 'wp_navigation_should_create_fallback', 'cnl_editor_watch_for_fallback_navigation_menu', PHP_INT_MAX );
+}
+
+/**
+ * Name the menu WordPress makes for a site with none "Main menu".
+ *
+ * When a Navigation block has no menu and the site has none, WordPress makes
+ * one listing the pages, titled "Navigation". That reads as the block's name,
+ * not a menu's, so it is named as the setup action and the demo site name
+ * theirs. WordPress asks this filter just before it decides whether to make
+ * the menu, and has no hook after, so the rename waits for the next menu
+ * inserted with the title and slug WordPress gives it.
+ *
+ * @param bool $should_create Whether WordPress may make a menu.
+ * @return bool Whether WordPress may make a menu, untouched.
+ */
+function cnl_editor_watch_for_fallback_navigation_menu( $should_create ) {
+	if ( $should_create ) {
+		add_filter( 'wp_insert_post_data', 'cnl_editor_name_fallback_navigation_menu', 10, 4 );
+	}
+
+	return $should_create;
+}
+
+/**
+ * Rename WordPress's fallback menu as it is inserted. Menus made any other
+ * way, and changes to existing ones, are left as they are.
+ *
+ * @param array $data                Slashed post data to insert.
+ * @param array $postarr             Sanitised post data passed in.
+ * @param array $unsanitized_postarr Post data passed in.
+ * @param bool  $update              Whether an existing post is being updated.
+ * @return array Post data to insert.
+ */
+function cnl_editor_name_fallback_navigation_menu( $data, $postarr, $unsanitized_postarr, $update ) {
+	if (
+		$update ||
+		'wp_navigation' !== $data['post_type'] ||
+		// The slug WordPress asks for, before it is made unique.
+		'navigation' !== ( $unsanitized_postarr['post_name'] ?? '' ) ||
+		wp_slash( _x( 'Navigation', 'Title of a Navigation menu' ) ) !== $data['post_title'] // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- WordPress's own title, to match it.
+	) {
+		return $data;
+	}
+
+	remove_filter( 'wp_insert_post_data', 'cnl_editor_name_fallback_navigation_menu', 10 );
+
+	$data['post_title'] = wp_slash( __( 'Main menu', 'create-not-learn-editor' ) );
+	$data['post_name']  = wp_unique_post_slug( 'main-menu', 0, $data['post_status'], 'wp_navigation', 0 );
+
+	return $data;
+}
+
+/**
  * Get or create the page used by the explicit setup flow as the static homepage.
  *
  * @return int Home page ID, or 0 if it could not be created.

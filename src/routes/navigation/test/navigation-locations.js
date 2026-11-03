@@ -14,6 +14,7 @@ import {
 	getMainMenu,
 	getReferencedMenuIdsFromContent,
 	getTemplatePartMenuRefs,
+	mergeTemplatePartWithEditedRecord,
 	removeNavigationMenuFromFirstBlock,
 	templatePartHasNavigationBlock,
 } from '../navigation-locations';
@@ -75,6 +76,23 @@ describe( 'navigation location helpers', () => {
 				456
 			)
 		).toEqual( [] );
+	} );
+
+	test( 'counts a navigation overlay as a location', () => {
+		const overlayPart = {
+			area: 'navigation-overlay',
+			content: { raw: '<!-- wp:navigation {"ref":10} /-->' },
+			id: 'theme//navigation-overlay',
+			title: { rendered: 'Navigation Overlay' },
+		};
+
+		expect(
+			buildNavigationLocationsMap( [
+				overlayPart,
+				headerPart,
+			] )[ 10 ].map( ( location ) => location.id )
+		).toEqual( [ 'theme//header', 'theme//navigation-overlay' ] );
+		expect( templatePartHasNavigationBlock( overlayPart ) ).toBe( true );
 	} );
 
 	test( 'builds a menu-to-locations map sorted by template part area', () => {
@@ -183,6 +201,24 @@ describe( 'navigation location helpers', () => {
 
 		expect( getReferencedMenuIdsFromContent( content, 55 ) ).toEqual( [] );
 		expect( content ).toContain( 'rsm-unassigned' );
+	} );
+} );
+
+describe( 'mergeTemplatePartWithEditedRecord', () => {
+	it( 'serialises content the editor keeps as a function', () => {
+		const blocks = [ { name: 'core/navigation' } ];
+		const merged = mergeTemplatePartWithEditedRecord( headerPart, {
+			blocks,
+			content: ( record ) =>
+				record.blocks === blocks
+					? '<!-- wp:navigation {"ref":10} /-->'
+					: '',
+		} );
+
+		expect( merged.content ).toBe( '<!-- wp:navigation {"ref":10} /-->' );
+		expect( buildNavigationLocationsMap( [ merged ] )[ 10 ] ).toHaveLength(
+			1
+		);
 	} );
 } );
 

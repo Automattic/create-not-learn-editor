@@ -12,6 +12,7 @@ import { store as noticesStore } from '@wordpress/notices';
  */
 import { useDeferred } from '../app-init-deferred';
 import { MODE_BROWSE, useCanvasMode } from '../site-canvas/mode';
+import { useRequestedBlockSelection } from './block-request';
 import { useIsEditCanvas } from './canvas-mode';
 import { useDistractionFreeEntry } from './distraction-free';
 import {
@@ -102,6 +103,7 @@ export function EditorLayer() {
 		isEditCanvas ? FORCED_BLOCK_EDITOR_SETTINGS : null
 	);
 	useDistractionFreeEntry( isEditCanvas );
+	useRequestedBlockSelection( isEditCanvas );
 	useSectionWording( postType === 'page' );
 	const canStartFromPattern = useStartPatternsGate( isEditCanvas );
 
