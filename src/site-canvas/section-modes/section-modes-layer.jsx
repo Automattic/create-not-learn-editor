@@ -19,8 +19,9 @@
  *   applied as soon as it is picked. More control is Freeform: core's own
  *   unlock, for core's full block tools, left with Done.
  * - A header or footer shows on every page, so its words aren't reached by
- *   clicking: Edit header or Edit footer opens it, in the spotlight, left
- *   with Done.
+ *   clicking: until it is opened it is veiled, locked. Edit header or Edit
+ *   footer, alone on its bar, opens it, in the spotlight, for its words and
+ *   pictures only, with Edit design's bar under it, left with Done.
  * - What the page's layout puts around its sections that the page can
  *   change, like its title and featured image, is picked and clicked into
  *   as a section is, dashed and named as part of the layout, with no bar.
@@ -110,13 +111,13 @@ import { getLayoutItemTitle, useLayoutName } from './layout-items';
 import { RemoveControl } from './remove-control';
 import DesignBar, { getParentView, MAX_PER_SLIDE } from './design-bar';
 import {
-	getSitewideText,
 	HoverBar,
 	LayoutScope,
 	MODE_CONTENT,
 	MODE_FREEFORM,
 	MODE_DESIGN,
 	MODE_ZOOM_IN,
+	DoneButton,
 	ModeBar,
 	SectionTab,
 } from './section-chrome';
@@ -819,28 +820,31 @@ export function SectionModesLayer( {
 		setActive( null );
 	}, [ registry ] );
 
-	const enterMode = ( clientId, mode ) => {
-		const store = unlock( registry.select( blockEditorStore ) );
-		const actions = unlock( registry.dispatch( blockEditorStore ) );
-		const part = partsById[ clientId ];
+	const enterMode = useCallback(
+		( clientId, mode ) => {
+			const store = unlock( registry.select( blockEditorStore ) );
+			const actions = unlock( registry.dispatch( blockEditorStore ) );
+			const part = partsById[ clientId ];
 
-		if ( store.getEditedContentOnlySection() ) {
-			actions.stopEditingContentOnlySection();
-		}
+			if ( store.getEditedContentOnlySection() ) {
+				actions.stopEditingContentOnlySection();
+			}
 
-		actions.clearSelectedBlock();
+			actions.clearSelectedBlock();
 
-		// A header's or footer's blocks can't be changed until core opens it,
-		// for their words and images only.
-		if ( part && mode === MODE_CONTENT ) {
-			setOpenPart( clientId, PART_CONTENT );
-			actions.editContentOnlySection( clientId );
-		}
+			// A header's or footer's blocks can't be changed until core opens
+			// it, for their words and images only.
+			if ( part && mode === MODE_CONTENT ) {
+				setOpenPart( clientId, PART_CONTENT );
+				actions.editContentOnlySection( clientId );
+			}
 
-		setMenuOpenFor( null );
-		setInlineAdd( null );
-		setActive( { id: clientId, mode, view: null } );
-	};
+			setMenuOpenFor( null );
+			setInlineAdd( null );
+			setActive( { id: clientId, mode, view: null } );
+		},
+		[ partsById, registry ]
+	);
 
 	// Composing, anything but a section's layout, colours or place on the
 	// page is done in Edit: Compose zooms back in first, then does it.
@@ -890,18 +894,23 @@ export function SectionModesLayer( {
 	}, [ partsById, registry ] );
 
 	// The design choice drilled into in Edit design's bar, or null for the
-	// choices.
-	const setDesignView = useCallback( ( view ) => {
-		setActive( ( current ) => current && { ...current, view } );
-	}, [] );
+	// choices. In an open header or footer, a block picked in it lets go,
+	// so its own tools, like a link's, don't sit over the choice.
+	const setDesignView = useCallback(
+		( view ) => {
+			if ( view && partsById[ activeRef.current?.id ] ) {
+				registry.dispatch( blockEditorStore ).clearSelectedBlock();
+			}
+
+			setActive( ( current ) => current && { ...current, view } );
+		},
+		[ partsById, registry ]
+	);
 
 	// Escape leaves the mode, or steps back from a design choice to the
-	// choices.
+	// choices, in Edit design or an open header or footer.
 	const escapeMode = useCallback( () => {
-		if (
-			activeRef.current?.mode === MODE_DESIGN &&
-			activeRef.current.view
-		) {
+		if ( activeRef.current?.view ) {
 			setDesignView( getParentView( activeRef.current.view ) );
 		} else {
 			exitMode();
@@ -2337,7 +2346,8 @@ export function SectionModesLayer( {
 		 * edge: a click goes into the section, so the bar mustn't cover
 		 * what would be clicked.
 		 */
-		const isNarrow = box.width < NARROW_WIDTH;
+		// A header's or footer's bar is one button, a row however narrow.
+		const isNarrow = ! isPart && box.width < NARROW_WIDTH;
 		const showsAddSection =
 			! isPart && ! isLayoutItem && ! active && ! inlineAdd;
 		// A layout item has nothing to change but its words or picture,
@@ -2347,15 +2357,28 @@ export function SectionModesLayer( {
 		const barInset = showsAddSection
 			? ADD_SECTION_HEIGHT / 2 + BAR_GAP
 			: INSET;
+		/*
+		 * A header or footer has Edit header or Edit footer alone, in the
+		 * middle of the part in view, as nothing in it is reached by a
+		 * click.
+		 */
 		const isCompact =
+			! isPart &&
 			box.height <
-			( isNarrow ? BAR_HEIGHT * 2 + BAR_ROW_GAP : BAR_HEIGHT ) +
-				barInset * 2;
+				( isNarrow ? BAR_HEIGHT * 2 + BAR_ROW_GAP : BAR_HEIGHT ) +
+					barInset * 2;
 		const barHeight =
 			isNarrow && ! isCompact ? BAR_HEIGHT * 2 + BAR_ROW_GAP : BAR_HEIGHT;
-		const barTop = isCompact
+		let barTop = isCompact
 			? box.top + box.height + SHORT_BAR_GAP
 			: stickyTop( box, barHeight, barInset );
+
+		if ( isPart ) {
+			const shownTop = Math.max( box.top, 0 );
+			const shownBottom = Math.min( box.top + box.height, frame.height );
+
+			barTop = ( shownTop + shownBottom - barHeight ) / 2;
+		}
 		const holdHover = {
 			onBlur: release,
 			onFocus: () => hold( shownHoverId ),
@@ -2583,8 +2606,12 @@ export function SectionModesLayer( {
 		).length;
 		const restore = () => items.restore( active.id );
 		let chrome = null;
+		// An open header or footer has Edit design's bar, for its words and
+		// pictures and its design together.
+		const isPartOpen =
+			Boolean( activePart ) && active.mode === MODE_CONTENT;
 
-		if ( active.mode === MODE_DESIGN ) {
+		if ( active.mode === MODE_DESIGN || isPartOpen ) {
 			const height = chromeSize?.height || BAR_HEIGHT;
 			/*
 			 * Where the bar over the section was, its modes giving way to
@@ -2592,11 +2619,12 @@ export function SectionModesLayer( {
 			 * section in view, a tray opened under it kept on the canvas,
 			 * moving the bar up if it has to. A section too short to hold
 			 * it, with its tray, has it outside, under it or over it, so
-			 * what is picked can be seen.
+			 * what is picked can be seen. So does an open header or footer,
+			 * so the bar never covers the words being changed.
 			 */
 			let top;
 
-			if ( box.height >= height + INSET * 2 ) {
+			if ( ! isPartOpen && box.height >= height + INSET * 2 ) {
 				top = stickyTop( box, height );
 
 				if (
@@ -2617,7 +2645,8 @@ export function SectionModesLayer( {
 			chrome = (
 				<DesignBar
 					clientId={ active.id }
-					onClose={ exitMode }
+					end={ isPartOpen && <DoneButton onDone={ exitMode } /> }
+					onClose={ isPartOpen ? undefined : exitMode }
 					onFreeform={ () => {
 						const { id } = active;
 
@@ -2657,8 +2686,7 @@ export function SectionModesLayer( {
 			 * bottom edges is in view, so it is easy to find. In a small
 			 * one, smaller and outside it, so it never covers what is being
 			 * edited: under its bottom edge while there is room on the
-			 * canvas, else over its top edge, at the right, clear of its
-			 * name.
+			 * canvas, else over its top edge. Either way, in the middle.
 			 */
 			const isSmall =
 				box.height < MODE_BAR_ROOM_HEIGHT ||
@@ -2676,14 +2704,13 @@ export function SectionModesLayer( {
 
 			if ( isSmall ) {
 				place = {
-					left: box.left + box.width - INSET,
+					...place,
 					top:
 						isHeader ||
 						below + SMALL_MODE_BAR_HEIGHT <= frame.height ||
 						above < 0
 							? below
 							: above,
-					transform: 'translateX(-100%)',
 				};
 			}
 			chrome = (
@@ -2698,7 +2725,6 @@ export function SectionModesLayer( {
 					onRestore={ restore }
 					ref={ setChromeNode }
 					removedCount={ removedCount }
-					sitewide={ activePart ? getSitewideText( title ) : null }
 					style={ place }
 				/>
 			);
@@ -2716,6 +2742,30 @@ export function SectionModesLayer( {
 			</Scope>
 		);
 	};
+
+	/*
+	 * A header or footer is locked until Edit header or Edit footer opens
+	 * it, so it is darkened, as a section pointed at is, while it is: it
+	 * can't be clicked into as a section can. Zoomed out in Compose, nothing is clicked into.
+	 */
+	const renderLocked = () =>
+		! isComposing &&
+		parts.map( ( { clientId } ) => {
+			const rect = rects[ clientId ];
+
+			if ( ! rect || clientId === openId ) {
+				return null;
+			}
+
+			return (
+				<div
+					aria-hidden
+					className="cnl-section-modes__locked"
+					key={ clientId }
+					style={ local( rect, frame ) }
+				/>
+			);
+		} );
 
 	const freshRect = freshId && frame && rects[ freshId ];
 	const getLevel = () => {
@@ -2779,6 +2829,7 @@ export function SectionModesLayer( {
 							} }
 						/>
 					) }
+					{ renderLocked() }
 					{ renderPicked() }
 					{ /* Under the section being edited, so another section
 					pointed at never covers its Done. */ }

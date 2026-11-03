@@ -1,10 +1,10 @@
 /**
  * The controls Edit lays over a section: its name, the bar over it while it
- * is pointed at or picked, with Add, Edit design (and Edit header or Edit
- * footer, or Edit content in Compose, and Manage posts on a section listing
- * posts) and its own moves, and the small bar
- * on a header or footer being edited, or a section in Freeform. A layout
- * item, like the page's title, is named as part of its layout.
+ * is pointed at or picked, with Add, Edit design (or Edit content in
+ * Compose, and Manage posts on a section listing posts) and its own moves,
+ * or Edit header or Edit footer alone on a header or footer, and the small
+ * bar on a section in Freeform. A layout item, like the page's title, is named
+ * as part of its layout.
  */
 
 /**
@@ -31,7 +31,6 @@ import {
 /**
  * Internal dependencies
  */
-import { GlobalNote } from '../../global-scope';
 import {
 	__,
 	Button,
@@ -62,12 +61,13 @@ const ADD_ICONS = {
  * The ways to edit a section, on the bar over it. A section's words and
  * pictures are changed by clicking into it, so it has Edit design only. A
  * header or footer shows on every page, so it is opened on purpose, with
- * Edit header or Edit footer. Zoomed out in Compose, a section's words and
- * pictures are too small to click into, so it has Edit content too, which
- * zooms back into Edit with the section picked. A run of text in writing,
- * like a post, has no design of its own, so it has Edit content only, and
- * neither has what the page's layout places, like its title, whose words are
- * clicked into in Edit.
+ * Edit header or Edit footer alone, which opens its words and pictures and
+ * its design together. Zoomed out in Compose, a section's words and pictures are too small
+ * to click into, so it has Edit content too, which zooms back into Edit
+ * with the section picked. A run of text in writing, like a post, has no
+ * design of its own, so it has Edit content only, and neither has what the
+ * page's layout places, like its title, whose words are clicked into in
+ * Edit.
  *
  * @param {boolean} isPart       Whether it is the header or footer.
  * @param {string}  title        Its name, like Header.
@@ -84,6 +84,17 @@ export function getModes(
 	isText = false,
 	isLayoutItem = false
 ) {
+	if ( isPart ) {
+		return [
+			{
+				description: getSitewideText( title ),
+				icon: pencilIcon,
+				label: getPartModeLabel( title ),
+				mode: MODE_CONTENT,
+			},
+		];
+	}
+
 	const modes =
 		isText || isLayoutItem
 			? []
@@ -98,17 +109,7 @@ export function getModes(
 					},
 				];
 
-	if ( isPart ) {
-		modes.push( {
-			description: getSitewideText( title ),
-			icon: pencilIcon,
-			label:
-				title === __( 'Footer' )
-					? __( 'Edit footer' )
-					: __( 'Edit header' ),
-			mode: MODE_CONTENT,
-		} );
-	} else if ( isComposing ) {
+	if ( isComposing ) {
 		modes.push( {
 			description: __( 'Zoom in to change its words and pictures' ),
 			icon: pencilIcon,
@@ -118,6 +119,16 @@ export function getModes(
 	}
 
 	return modes;
+}
+
+/**
+ * What opening a header or footer is called: Edit header or Edit footer.
+ *
+ * @param {string} title The part's name, like Header.
+ * @return {string} The words.
+ */
+export function getPartModeLabel( title ) {
+	return title === __( 'Footer' ) ? __( 'Edit footer' ) : __( 'Edit header' );
 }
 
 /**
@@ -444,15 +455,35 @@ export function HoverBar( {
 }
 
 /**
+ * Done editing, which leaves the mode.
+ *
+ * @param {Object}   props
+ * @param {Function} props.onDone Leaves the mode.
+ * @return {Element} The button.
+ */
+export function DoneButton( { onDone } ) {
+	return (
+		<Button
+			className="cnl-section-modes__done"
+			onClick={ onDone }
+			size="compact"
+			variant="primary"
+		>
+			{ __( 'Done editing' ) }
+		</Button>
+	);
+}
+
+/**
  * The bar on a section in Edit content or Freeform: Done, and Restore when
  * there is something to restore. The mode is its name for assistive
- * technology only; the section's outline and name say enough on screen. The size of the bar over a section pointed at, or
- * smaller, for a small section, where it sits outside it.
+ * technology only; the section's outline and name say enough on
+ * screen. The size of the bar over a section pointed at, or smaller, for a
+ * small section, where it sits outside it.
  *
  * @param {Object}   props
  * @param {boolean}  props.isSmall      Whether it is the smaller bar.
  * @param {string}   props.label        The mode's name.
- * @param {?string}  props.sitewide     Words for a header or footer.
  * @param {number}   props.removedCount How many items were taken out.
  * @param {Object}   props.style        Where it sits.
  * @param {Function} props.onRestore    Puts back what was taken out.
@@ -461,7 +492,7 @@ export function HoverBar( {
  * @return {Element} The bar.
  */
 export const ModeBar = forwardRef( function UnforwardedModeBar(
-	{ isSmall, label, onDone, onRestore, removedCount, sitewide, style },
+	{ isSmall, label, onDone, onRestore, removedCount, style },
 	ref
 ) {
 	return (
@@ -474,11 +505,6 @@ export const ModeBar = forwardRef( function UnforwardedModeBar(
 			role="group"
 			style={ style }
 		>
-			{ sitewide && (
-				<GlobalNote className="cnl-section-modes__sitewide">
-					{ sitewide }
-				</GlobalNote>
-			) }
 			{ removedCount > 0 && (
 				<Button
 					className="cnl-section-modes__text-button"
@@ -494,14 +520,7 @@ export const ModeBar = forwardRef( function UnforwardedModeBar(
 					) }
 				</Button>
 			) }
-			<Button
-				className="cnl-section-modes__done"
-				onClick={ onDone }
-				size="compact"
-				variant="primary"
-			>
-				{ __( 'Done editing' ) }
-			</Button>
+			<DoneButton onDone={ onDone } />
 		</div>
 	);
 } );

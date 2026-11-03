@@ -15,6 +15,8 @@
 $surface: var(--wpds-color-background-surface-neutral);
 $ink: var(--wpds-color-foreground-content-neutral);
 $ink-weak: var(--wpds-color-foreground-content-neutral-weak);
+// What darkens a section pointed at, and a locked header or footer.
+$tint: rgba(17, 17, 17, 0.4);
 $stroke: var(--wpds-color-stroke-surface-neutral);
 $stroke-weak: var(--wpds-color-stroke-surface-neutral-weak);
 $stroke-control: var(--wpds-color-stroke-interactive-neutral);
@@ -127,11 +129,21 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	fill: currentcolor;
 }
 
+/*
+ * A header or footer, locked until Edit header or Edit footer opens it:
+ * darkened as a section pointed at is.
+ */
+.cnl-section-modes__locked {
+	position: absolute;
+	box-sizing: border-box;
+	background: $tint;
+}
+
 /* The section pointed at: tinted, with its outline drawn inside its edges. */
 .cnl-section-modes__tint {
 	position: absolute;
 	box-sizing: border-box;
-	background: rgba(17, 17, 17, 0.4);
+	background: $tint;
 	box-shadow: inset 0 0 0 2px $theme;
 	transition: background-color $duration-sm $easing-subtle;
 
@@ -311,12 +323,6 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	@include cnl-overlay-surface;
 }
 
-// A header or footer's note that every page has it, on a bar.
-.cnl-section-modes .cnl-section-modes__sitewide {
-	align-self: center;
-	white-space: nowrap;
-}
-
 /*
  * Edit design's bar, where the bar over the section was: a row of the
  * design choices, or of the one drilled into, with its options, and the
@@ -335,10 +341,6 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	pointer-events: auto;
 
 	@include cnl-overlay-surface;
-
-	.cnl-section-modes__sitewide {
-		margin: var(--wpds-dimension-gap-xs) auto 0;
-	}
 }
 
 .cnl-section-modes__design-row {
@@ -348,6 +350,13 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	// Back always at the far left, whatever follows it.
 	justify-content: flex-start;
 	gap: var(--wpds-dimension-gap-xs);
+
+	// An open header's Done editing, at the far end.
+	> .cnl-section-modes__design-end {
+		display: flex;
+		margin-inline-start: auto;
+		padding-inline-start: var(--wpds-dimension-gap-sm);
+	}
 
 	// A choice's options, set apart from the way back.
 	> .cnl-section-modes__swatches {
@@ -647,6 +656,7 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
  * Manage posts' menu: its labelled dropdowns one above the other, then the
  * way to every post, across the menu's width.
  */
+
 .cnl-section-modes__posts-popover .components-popover__content {
 	width: 280px;
 }

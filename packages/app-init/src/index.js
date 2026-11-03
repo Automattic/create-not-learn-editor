@@ -22,6 +22,7 @@ import { preloadDeferredWhenIdle } from '../../../src/app-init-deferred';
 import { registerBlockToolbar } from '../../../src/block-toolbar';
 import { mountChat } from '../../../src/chat';
 import { mountCommands } from '../../../src/commands';
+import { registerBlockBindings } from '../../../src/editor-extensions/block-bindings';
 import { registerSectionMenu } from '../../../src/editor-extensions/section-menu';
 import { registerSectionPatterns } from '../../../src/editor-extensions/section-patterns';
 import { registerTemplatePartEditing } from '../../../src/editor-extensions/template-part-editing';
@@ -33,6 +34,7 @@ import { mountPreferences } from '../../../src/preferences';
 import { enhanceSidebar } from './sidebar';
 
 export async function init() {
+	registerBlockBindings();
 	registerSectionPatterns();
 	registerSectionMenu();
 	registerBlockToolbar();

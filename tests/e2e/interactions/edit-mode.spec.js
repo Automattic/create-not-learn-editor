@@ -12,6 +12,7 @@ const {
 	getCanvasEditor,
 	pickSectionMode,
 	pickSectionTemplate,
+	pointAtSection,
 	setCanvasMode,
 	test,
 	visitEditor,
@@ -479,6 +480,142 @@ test.describe( 'Edit mode', () => {
 		await modeBar.getByRole( 'button', { name: 'Done editing' } ).click();
 		await expect( modeBar ).toHaveCount( 0 );
 		await expect( designBar ).toHaveCount( 0 );
+	} );
+
+	test( 'Edit header unlocks the header, for its content and design', async ( {
+		page,
+		rest,
+	} ) => {
+		await openPage( page, rest );
+		await setCanvasMode( page, 'Edit' );
+
+		const header = getCanvasEditor( page )
+			.contentFrame()
+			.locator( 'header.wp-block-template-part' )
+			.first();
+		const bar = page.locator( '.cnl-section-modes__bar' );
+		const designBar = page.locator( '.cnl-section-modes__design' );
+		const locked = page.locator( '.cnl-section-modes__locked' );
+
+		// Locked, and veiled, until it is opened: its bar has Edit header
+		// alone.
+		await expect( locked.first() ).toBeVisible( { timeout: 15000 } );
+		await expect( async () => {
+			await pointAtSection( page, header, { timeout: 1000 } );
+			await expect(
+				bar.getByRole( 'button', { name: 'Edit header' } )
+			).toBeVisible( { timeout: 1000 } );
+		} ).toPass( { timeout: 20000 } );
+		await expect(
+			bar.getByRole( 'button', { name: 'Edit design' } )
+		).toHaveCount( 0 );
+		const lockedCount = await locked.count();
+
+		// Edit header opens Edit design's bar, with Done editing at its end,
+		// and lifts the veil.
+		await pickSectionMode( page, header, 'Edit header' );
+		await expect(
+			designBar.getByRole( 'button', { name: 'Layout', exact: true } )
+		).toBeVisible();
+		await expect(
+			designBar.getByRole( 'button', { name: 'Done editing' } )
+		).toBeVisible();
+		await expect( locked ).toHaveCount( lockedCount - 1 );
+
+		// Only its content can be picked, not the groups laying it out.
+		await expect
+			.poll( () =>
+				page.evaluate( () => {
+					const store = window.wp.data.select( 'core/block-editor' );
+					const part = store
+						.getBlocksByName( 'core/template-part' )
+						.find( ( clientId ) =>
+							store
+								.getBlockAttributes( clientId )
+								.slug?.includes( 'header' )
+						);
+
+					return [
+						...new Set(
+							store
+								.getClientIdsOfDescendants( part )
+								.filter(
+									( clientId ) =>
+										store.getBlockName( clientId ) ===
+										'core/group'
+								)
+								.map( ( clientId ) =>
+									store.getBlockEditingMode( clientId )
+								)
+						),
+					];
+				} )
+			)
+			.toEqual( [ 'disabled' ] );
+		await header.locator( '.wp-block-site-title' ).click();
+		await expect
+			.poll( () => getSelection( page ) )
+			.toBe( 'core/site-title contentOnly' );
+
+		// A menu listing the pages is picked as the menu, its Navigation
+		// block, not the Page List in it.
+		// Clicked where it is, as it can't take a click of its own.
+		const item = await header
+			.locator( '.wp-block-pages-list__item' )
+			.first()
+			.boundingBox();
+
+		await page.mouse.click( item.x + 4, item.y + item.height / 2 );
+		await expect
+			.poll( () => getSelection( page ) )
+			.toBe( 'core/navigation contentOnly' );
+
+		// A design choice lets go of the block, and Escape steps back to
+		// the choices, the header still open.
+		await designBar
+			.getByRole( 'button', { name: 'Layout', exact: true } )
+			.click();
+		await expect.poll( () => getSelection( page ) ).toBe( '' );
+		await page.keyboard.press( 'Escape' );
+		await expect(
+			designBar.getByRole( 'button', { name: 'Layout', exact: true } )
+		).toBeVisible();
+
+		// Done editing locks it again.
+		await designBar.getByRole( 'button', { name: 'Done editing' } ).click();
+		await expect( designBar ).toHaveCount( 0 );
+		await expect( locked ).toHaveCount( lockedCount );
+	} );
+
+	test( 'bound values, like a menu link address, can be read', async ( {
+		page,
+		rest,
+	} ) => {
+		await openPage( page, rest );
+		await setCanvasMode( page, 'Edit' );
+
+		/*
+		 * Core's editors register what reads a bound value as they start,
+		 * and the lazy editor's scripts replace it as they load. Without it
+		 * a menu link added from a page search reads "Link is empty".
+		 */
+		await expect
+			.poll( () =>
+				page.evaluate( () =>
+					Object.entries( window.wp.blocks.getBlockBindingsSources() )
+						.filter( ( [ name ] ) => name.startsWith( 'core/' ) )
+						.map(
+							( [ name, source ] ) =>
+								`${ name }: ${ typeof source.getValues }`
+						)
+				)
+			)
+			.toEqual( [
+				'core/pattern-overrides: function',
+				'core/post-data: function',
+				'core/post-meta: function',
+				'core/term-data: function',
+			] );
 	} );
 
 	test( 'an empty page offers a section or a blank start', async ( {
