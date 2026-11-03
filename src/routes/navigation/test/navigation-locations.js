@@ -14,6 +14,7 @@ import {
 	getMainMenu,
 	getReferencedMenuIdsFromContent,
 	getTemplatePartMenuRefs,
+	mergeTemplatePartWithEditedRecord,
 	removeNavigationMenuFromFirstBlock,
 	templatePartHasNavigationBlock,
 } from '../navigation-locations';
@@ -200,6 +201,24 @@ describe( 'navigation location helpers', () => {
 
 		expect( getReferencedMenuIdsFromContent( content, 55 ) ).toEqual( [] );
 		expect( content ).toContain( 'rsm-unassigned' );
+	} );
+} );
+
+describe( 'mergeTemplatePartWithEditedRecord', () => {
+	it( 'serialises content the editor keeps as a function', () => {
+		const blocks = [ { name: 'core/navigation' } ];
+		const merged = mergeTemplatePartWithEditedRecord( headerPart, {
+			blocks,
+			content: ( record ) =>
+				record.blocks === blocks
+					? '<!-- wp:navigation {"ref":10} /-->'
+					: '',
+		} );
+
+		expect( merged.content ).toBe( '<!-- wp:navigation {"ref":10} /-->' );
+		expect( buildNavigationLocationsMap( [ merged ] )[ 10 ] ).toHaveLength(
+			1
+		);
 	} );
 } );
 
