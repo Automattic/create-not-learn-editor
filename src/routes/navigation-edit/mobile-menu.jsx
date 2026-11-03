@@ -25,6 +25,7 @@ import {
 	useEditorSettings,
 	useEffect,
 	useMemo,
+	useRegistry,
 	useState,
 } from '../../wordpress-packages';
 import { showsNavigationMenu } from './preview-blocks';
@@ -198,9 +199,73 @@ export function usePreviewMobileMenu( {
 	return state;
 }
 
+// How long the preview's blocks must go unchanged to count as settled.
+const QUIET_TIME = 1000;
+
+// How long to wait for that before drawing an overlay anyway.
+const SETTLE_TIMEOUT = 5000;
+
+/**
+ * Whether the site preview has finished loading: its template parts have
+ * their blocks, and nothing has changed them for a moment.
+ *
+ * As the preview loads, core swaps the patterns in its parts for their
+ * blocks, and points Navigation blocks with no menu at the site's, with
+ * changes it marks as not ones to save. A block preview starting up while it
+ * does can make one count as an edit, so the part shows as changed. An
+ * overlay waits until the preview is done.
+ *
+ * @param {boolean} isEnabled Whether the preview is on show.
+ * @return {boolean} Whether the preview has settled.
+ */
+export function usePreviewSettled( isEnabled ) {
+	const registry = useRegistry();
+	const [ isSettled, setIsSettled ] = useState( false );
+
+	useEffect( () => {
+		setIsSettled( false );
+
+		if ( ! isEnabled ) {
+			return;
+		}
+
+		let quiet;
+		const settle = () => setIsSettled( true );
+		const deadline = window.setTimeout( settle, SETTLE_TIMEOUT );
+		const check = () => {
+			const { getBlockCount, getBlocksByName } =
+				registry.select( blockEditorStore );
+
+			if (
+				getBlocksByName( 'core/template-part' ).every(
+					( clientId ) => getBlockCount( clientId ) > 0
+				)
+			) {
+				settle();
+			}
+		};
+		const wait = () => {
+			window.clearTimeout( quiet );
+			quiet = window.setTimeout( check, QUIET_TIME );
+		};
+		const unsubscribe = registry.subscribe( wait, blockEditorStore );
+
+		wait();
+
+		return () => {
+			unsubscribe();
+			window.clearTimeout( quiet );
+			window.clearTimeout( deadline );
+		};
+	}, [ isEnabled, registry ] );
+
+	return isSettled;
+}
+
 /**
  * A custom overlay, drawn over the whole of the preview's screen as the site
- * draws it, at the preview's width.
+ * draws it, at the preview's width. Draw it once `usePreviewSettled()` says
+ * the preview has loaded.
  *
  * @param {Object}      props
  * @param {Object[]}    props.blocks    The overlay's blocks, with the menu in.

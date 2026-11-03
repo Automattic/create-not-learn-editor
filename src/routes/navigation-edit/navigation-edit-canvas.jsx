@@ -66,10 +66,15 @@ import {
 	NavigationLocationsEmptyState,
 	NavigationNoMenuSelectedEmptyState,
 } from './empty-states';
-import { LocationsNotice } from './locations-notice';
-import { PreviewOverlay, usePreviewMobileMenu } from './mobile-menu';
+import { LocationsNotice, OverlayDesignNotice } from './locations-notice';
+import {
+	PreviewOverlay,
+	usePreviewMobileMenu,
+	usePreviewSettled,
+} from './mobile-menu';
 import {
 	findOverlayPart,
+	getMobileMenuLocation,
 	getTemplatePartPreviewBlocks,
 } from './preview-blocks';
 import { useNavigationLocations } from './use-navigation-locations';
@@ -160,11 +165,13 @@ function CanvasViewToggle( { isPreviewVisible, onChange } ) {
  * The menu's name and where it is shown, in the middle of the toolbar, as
  * every other canvas names what it shows. Its chevron offers where to show it.
  *
- * @param {Object}   props
- * @param {boolean}  props.hasLocations     Whether the menu is shown anywhere.
- * @param {string}   props.locationsSummary Where it is shown.
- * @param {string}   props.menuTitle        The menu's name.
- * @param {Function} props.onChooseLocation Opens the locations dialog.
+ * @param {Object}    props
+ * @param {boolean}   props.hasLocations     Whether the menu is shown anywhere.
+ * @param {string}    props.locationsSummary Where it is shown.
+ * @param {string}    props.menuTitle        The menu's name.
+ * @param {Function}  props.onChooseLocation Opens the locations dialog.
+ * @param {?Function} props.onEditMobileMenu Opens where the mobile menu is
+ *                                           edited, if the menu has one.
  * @return {Element} The document title.
  */
 function NavigationDocument( {
@@ -172,6 +179,7 @@ function NavigationDocument( {
 	locationsSummary,
 	menuTitle,
 	onChooseLocation,
+	onEditMobileMenu,
 } ) {
 	return (
 		<div className="cnl-editor-homepage-document">
@@ -204,6 +212,17 @@ function NavigationDocument( {
 								? __( 'Update locations' )
 								: __( 'Choose location' ) }
 						</MenuItem>
+						{ onEditMobileMenu && (
+							<MenuItem
+								icon={ mobileIcon }
+								onClick={ () => {
+									onClose();
+									onEditMobileMenu();
+								} }
+							>
+								{ __( 'Edit mobile menu' ) }
+							</MenuItem>
+						) }
 					</MenuGroup>
 				) }
 				renderToggle={ ( { isOpen, onToggle } ) => (
@@ -356,6 +375,7 @@ export default function NavigationEditCanvas() {
 		isMenuOpen &&
 		mobileMenu.overlay &&
 		findOverlayPart( templateParts, mobileMenu.overlay );
+	const isPreviewSettled = usePreviewSettled( isPreviewVisible );
 	const showsOverlay = Boolean( openOverlayPart ) && hasBlockTypes;
 	const menuBlocks = useMemo(
 		() =>
@@ -396,6 +416,12 @@ export default function NavigationEditCanvas() {
 						] )
 			),
 		[ locations, menuBlocks, navigationId, showsLocations ]
+	);
+
+	// Where the mobile menu is edited, for the document's options.
+	const mobileMenuLocation = useMemo(
+		() => getMobileMenuLocation( locations, navigationId ),
+		[ locations, navigationId ]
 	);
 
 	const editTemplatePartContent = ( part, content ) =>
@@ -492,6 +518,18 @@ export default function NavigationEditCanvas() {
 		);
 	}
 
+	// A custom overlay opens to edit its design. Otherwise the place the menu
+	// collapses in opens with its Navigation block picked, as core's own
+	// overlay is set up in its settings.
+	const editMobileMenu = ( { isOverlay, location } ) =>
+		isOverlay
+			? navigate( {
+					to: `/wp_template_part?postId=${ encodeURIComponent(
+						location.part.id
+					) }`,
+				} )
+			: editTemplatePart( location.part );
+
 	// Opens a place the menu is shown, with its Navigation block picked.
 	const editTemplatePart = ( part ) => {
 		requestBlockSelection( {
@@ -568,6 +606,11 @@ export default function NavigationEditCanvas() {
 								locations.length > 0 ? 'update' : 'choose'
 							)
 						}
+						onEditMobileMenu={
+							mobileMenuLocation
+								? () => editMobileMenu( mobileMenuLocation )
+								: null
+						}
 					/>
 				}
 				isMenuOpen={ isMenuOpen }
@@ -590,6 +633,19 @@ export default function NavigationEditCanvas() {
 						}
 					/>
 				) }
+			{ showsOverlay && isPreviewSettled && (
+				<div className="routes-navigation-canvas__notice">
+					<OverlayDesignNotice
+						onEditDesign={ () =>
+							navigate( {
+								to: `/wp_template_part?postId=${ encodeURIComponent(
+									openOverlayPart.id
+								) }`,
+							} )
+						}
+					/>
+				</div>
+			) }
 			<div className="routes-navigation-canvas__body" ref={ bodyRef }>
 				{ isPreviewVisible ? (
 					<NavigationSitePreview device={ device } />
@@ -597,7 +653,7 @@ export default function NavigationEditCanvas() {
 					locationsView
 				) }
 			</div>
-			{ showsOverlay && (
+			{ showsOverlay && isPreviewSettled && (
 				<PreviewOverlay
 					blocks={ overlayPreviewBlocks }
 					frameBody={ mobileMenu.frameBody }

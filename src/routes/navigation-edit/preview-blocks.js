@@ -113,3 +113,43 @@ export function findOverlayPart( templateParts, slug ) {
 		( part ) => part.slug === slug && part.area === NAVIGATION_OVERLAY_AREA
 	);
 }
+
+function hasCollapsingNavigation( blocks, navigationId ) {
+	return ( blocks || EMPTY_ARRAY ).some(
+		( block ) =>
+			( getBlockName( block ) === 'core/navigation' &&
+				getBlockAttributes( block ).overlayMenu !== 'never' &&
+				showsNavigationMenu( block, navigationId ) ) ||
+			hasCollapsingNavigation( block.innerBlocks, navigationId )
+	);
+}
+
+/**
+ * Where the menu's mobile menu is edited: its custom overlay, if one of its
+ * locations is one, or else the first place it collapses into a menu button,
+ * whose Navigation block has core's own overlay settings.
+ *
+ * @param {Object[]} locations    The menu's locations.
+ * @param {number}   navigationId The menu's ID.
+ * @return {?Object} The location, and whether it is a custom overlay.
+ */
+export function getMobileMenuLocation( locations, navigationId ) {
+	const overlay = locations.find(
+		( location ) => location.area === NAVIGATION_OVERLAY_AREA
+	);
+
+	if ( overlay ) {
+		return { isOverlay: true, location: overlay };
+	}
+
+	const location = locations.find( ( { part } ) =>
+		hasCollapsingNavigation(
+			parseBlocks( getTemplatePartRawContent( part ), {
+				__unstableSkipMigrationLogs: true,
+			} ),
+			navigationId
+		)
+	);
+
+	return location ? { isOverlay: false, location } : null;
+}

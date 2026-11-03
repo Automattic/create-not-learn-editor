@@ -77,3 +77,30 @@ export function LocationsNotice( {
 		</UiNotice.Root>
 	);
 }
+
+/**
+ * Says, while a custom mobile menu is open over the preview, that only its
+ * links change here, and links to where its design does: the overlay
+ * template part, in the full editor.
+ *
+ * @param {Object}   props
+ * @param {Function} props.onEditDesign Opens the overlay to edit its design.
+ * @return {Element} The notice.
+ */
+export function OverlayDesignNotice( { onEditDesign } ) {
+	return (
+		<UiNotice.Root
+			className="routes-navigation-overlay-notice"
+			intent="info"
+		>
+			<UiNotice.Description>
+				{ createInterpolateElement(
+					__(
+						'This is how your mobile menu opens. Its links change here, but its design is changed on its own. <a>Edit the mobile menu’s design</a>.'
+					),
+					{ a: <LinkButton onClick={ onEditDesign } /> }
+				) }
+			</UiNotice.Description>
+		</UiNotice.Root>
+	);
+}

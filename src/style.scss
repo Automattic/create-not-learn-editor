@@ -1941,6 +1941,12 @@
 }
 
 // Inline in the notice's sentence, as a link in running text.
+// Above the preview, inset as the Locations notice is.
+.routes-navigation-canvas__notice {
+	flex: 0 0 auto;
+	padding: 12px 14px 0;
+}
+
 .routes-navigation-locations-notice__link.components-button.is-link {
 	vertical-align: baseline;
 	font-size: inherit;
