@@ -4,27 +4,74 @@
  *
  * Discarding everything is asked about first, in the same dialog, because it
  * cannot be undone.
+ *
+ * A change that shows on every page, like the header, has its name in purple
+ * with a globe and a purple Discard, as the editor marks anything shared, and
+ * says so in a tooltip. See `src/global-scope`.
  */
 
 /**
  * WordPress dependencies
  */
-import { Button, Modal } from '@wordpress/components';
+import { Button, Modal, VisuallyHidden } from '@wordpress/components';
 import { useDispatch } from '@wordpress/data';
 import {
+	Fragment,
 	useEffect,
 	useLayoutEffect,
 	useRef,
 	useState,
 } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
+import { globe as globeIcon } from '@wordpress/icons';
 import { store as noticesStore } from '@wordpress/notices';
-import { Stack, Text } from '@wordpress/ui';
+import { Icon, Stack, Text, Tooltip } from '@wordpress/ui';
 
 /**
  * Internal dependencies
  */
+import { GlobalScope } from '../global-scope';
 import { useChanges } from './use-changes';
+
+// Quicker than the usual pause, as the tooltip explains the purple.
+const SITE_WIDE_TOOLTIP_DELAY_MS = 150;
+
+/*
+ * A change's name. One that shows on every page has a globe after it, and
+ * hovering or focusing either says what saving it does, as does a screen
+ * reader.
+ */
+function ChangeName( { change } ) {
+	const name = (
+		<Text className="cnl-review-changes__label">{ change.label }</Text>
+	);
+
+	if ( ! change.isSiteWide ) {
+		return name;
+	}
+
+	const note = __( 'This change shows on every page of your site.' );
+
+	return (
+		<Tooltip.Root>
+			<Tooltip.Trigger
+				className="cnl-review-changes__site-wide"
+				delay={ SITE_WIDE_TOOLTIP_DELAY_MS }
+				render={ <span /> }
+				tabIndex={ 0 }
+			>
+				{ name }
+				<Icon
+					className="cnl-review-changes__globe"
+					icon={ globeIcon }
+					size={ 16 }
+				/>
+				<VisuallyHidden> { note }</VisuallyHidden>
+			</Tooltip.Trigger>
+			<Tooltip.Popup>{ note }</Tooltip.Popup>
+		</Tooltip.Root>
+	);
+}
 
 /*
  * A discarded change's row goes, and its button with it, so focus moves to
@@ -48,36 +95,41 @@ function ChangeList( { changes, onDiscard } ) {
 
 	return (
 		<ul className="cnl-review-changes__list" ref={ listRef }>
-			{ changes.map( ( change, index ) => (
-				<li key={ change.id } className="cnl-review-changes__item">
-					<div className="cnl-review-changes__text">
-						<Text className="cnl-review-changes__label">
-							{ change.label }
-						</Text>
-						<Text
-							className="cnl-review-changes__detail"
-							variant="body-sm"
-						>
-							{ change.detail }
-						</Text>
-					</div>
-					<Button
-						variant="tertiary"
-						size="compact"
-						onClick={ () => {
-							discardedIndex.current = index;
-							onDiscard( change );
-						} }
-						aria-label={ sprintf(
-							/* translators: %s: What was changed, like "Site name". */
-							__( 'Discard change to %s' ),
-							change.label
-						) }
-					>
-						{ __( 'Discard' ) }
-					</Button>
-				</li>
-			) ) }
+			{ changes.map( ( change, index ) => {
+				// Purple Discard for a change that shows on every page.
+				const Scope = change.isSiteWide ? GlobalScope : Fragment;
+
+				return (
+					<li key={ change.id } className="cnl-review-changes__item">
+						<div className="cnl-review-changes__text">
+							<ChangeName change={ change } />
+							<Text
+								className="cnl-review-changes__detail"
+								variant="body-sm"
+							>
+								{ change.detail }
+							</Text>
+						</div>
+						<Scope>
+							<Button
+								variant="tertiary"
+								size="compact"
+								onClick={ () => {
+									discardedIndex.current = index;
+									onDiscard( change );
+								} }
+								aria-label={ sprintf(
+									/* translators: %s: What was changed, like "Site name". */
+									__( 'Discard change to %s' ),
+									change.label
+								) }
+							>
+								{ __( 'Discard' ) }
+							</Button>
+						</Scope>
+					</li>
+				);
+			} ) }
 		</ul>
 	);
 }
