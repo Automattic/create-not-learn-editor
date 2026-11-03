@@ -2320,6 +2320,23 @@
 	z-index: 1000001;
 }
 
+.routes-navigation-edit-list-view__item-popover {
+	z-index: 1000001;
+}
+
+.routes-navigation-edit-list-view__item-form {
+	box-sizing: border-box;
+	width: 280px;
+	padding: 16px;
+}
+
+.routes-navigation-edit-list-view__item-title {
+	margin: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .routes-navigation-edit-list-view__label-only-submenu-form {
 	box-sizing: border-box;
 	width: 280px;

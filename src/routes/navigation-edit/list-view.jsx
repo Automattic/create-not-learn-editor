@@ -31,6 +31,9 @@ import {
 } from '../../wordpress-packages';
 import NavigationListViewAppender from './navigation-list-view-appender';
 import { getLabelOnlyNavigationSubmenuAttributes } from './navigation-list-view-insertions';
+import NavigationListViewItemPopover, {
+	getMenuItemEditing,
+} from './navigation-list-view-item-popover';
 import NavigationListViewLinkUI from './navigation-list-view-link-ui';
 import NavigationListViewMoreMenu from './navigation-list-view-more-menu';
 import {
@@ -103,6 +106,52 @@ function getLabelOnlySubmenuPopoverAnchor( listViewElement, clientId ) {
 	};
 }
 
+/**
+ * Where a menu item's popover sits: level with its row, beside the whole list
+ * rather than over it, on the side with the most room.
+ *
+ * @param {Element} listViewElement The list.
+ * @param {string}  clientId        The item's block.
+ * @return {?Object} `{ anchor, placement }`, or null if the row isn't shown.
+ */
+function getItemPopoverPosition( listViewElement, clientId ) {
+	const rowElement = listViewElement.querySelector(
+		`[role="row"][data-block="${ clientId }"]`
+	);
+
+	if ( ! rowElement ) {
+		return null;
+	}
+
+	const { ownerDocument } = listViewElement;
+	const listRect = listViewElement.getBoundingClientRect();
+	const viewWidth = ownerDocument.defaultView?.innerWidth || 0;
+
+	return {
+		anchor: {
+			ownerDocument,
+			getBoundingClientRect() {
+				const list = listViewElement.getBoundingClientRect();
+				const row = rowElement.getBoundingClientRect();
+				const ViewDOMRect = ownerDocument.defaultView?.DOMRect;
+
+				return ViewDOMRect
+					? new ViewDOMRect(
+							list.left,
+							row.top,
+							list.width,
+							row.height
+						)
+					: row;
+			},
+		},
+		placement:
+			listRect.left + listRect.width / 2 > viewWidth / 2
+				? 'left-start'
+				: 'right-start',
+	};
+}
+
 const SUBMENU_ALLOWED_BLOCKS = [
 	'core/navigation-link',
 	'core/navigation-submenu',
@@ -149,6 +198,33 @@ export function NavigationListViewContent( {
 	const [ labelOnlySubmenuLabel, setLabelOnlySubmenuLabel ] = useState( '' );
 	const [ labelOnlyAnchorElement, setLabelOnlyAnchorElement ] =
 		useState( null );
+	const [ editingItemClientId, setEditingItemClientId ] = useState( null );
+	// Only while it's the one item selected: selecting more, or removing it,
+	// closes its popover.
+	const isEditingItemSelected = useSelect(
+		( select ) => {
+			const selectedClientIds =
+				select( blockEditorStore ).getSelectedBlockClientIds();
+
+			return (
+				!! editingItemClientId &&
+				selectedClientIds.length === 1 &&
+				selectedClientIds[ 0 ] === editingItemClientId
+			);
+		},
+		[ editingItemClientId ]
+	);
+	const editingItem = useMemo(
+		() =>
+			isEditingItemSelected && listViewRef.current
+				? getItemPopoverPosition(
+						listViewRef.current,
+						editingItemClientId
+					)
+				: null,
+		[ editingItemClientId, isEditingItemSelected ]
+	);
+	const { getBlock } = useSelect( blockEditorStore );
 	const rootClientId = useMenuRootClientId();
 	const pendingInsertionRootClientId =
 		pendingInsertion?.parentClientId || rootClientId;
@@ -309,6 +385,38 @@ export function NavigationListViewContent( {
 		updateBlockAttributes,
 	] );
 
+	// Clicking an item, or pressing Enter or Space on it, opens its popover.
+	// Selecting it any other way, like after moving or removing an item,
+	// doesn't.
+	const openItemPopover = useCallback(
+		( event ) => {
+			if (
+				event.shiftKey ||
+				event.metaKey ||
+				event.ctrlKey ||
+				( event.type === 'keydown' &&
+					event.key !== 'Enter' &&
+					event.key !== ' ' )
+			) {
+				return;
+			}
+
+			const row = event.target.closest?.(
+				'.block-editor-list-view-block-select-button'
+			)
+				? event.target.closest( '[role="row"][data-block]' )
+				: null;
+			const clientId = row?.dataset.block;
+
+			if ( ! clientId || ! getMenuItemEditing( getBlock( clientId ) ) ) {
+				return;
+			}
+
+			setEditingItemClientId( clientId );
+		},
+		[ getBlock ]
+	);
+
 	const description = sprintf(
 		/* translators: %s: Navigation menu title. */
 		__( 'Structure for Navigation Menu: %s' ),
@@ -316,7 +424,14 @@ export function NavigationListViewContent( {
 	);
 
 	return (
-		<div className="routes-navigation-edit-list-view" ref={ listViewRef }>
+		// The rows handle the keyboard; this only listens in.
+		// eslint-disable-next-line jsx-a11y/no-static-element-interactions
+		<div
+			className="routes-navigation-edit-list-view"
+			onClick={ openItemPopover }
+			onKeyDown={ openItemPopover }
+			ref={ listViewRef }
+		>
 			<PrivateListView
 				additionalBlockContent={ renderAdditionalBlockContent }
 				appenderParentClientId={
@@ -330,6 +445,21 @@ export function NavigationListViewContent( {
 				rootClientId={ rootClientId }
 				showAppender={ showAppender }
 			/>
+			{ editingItem && ! labelOnlySubmenuClientId && (
+				<NavigationListViewItemPopover
+					anchor={ editingItem.anchor }
+					clientId={ editingItemClientId }
+					key={ editingItemClientId }
+					onClose={ () =>
+						// Clicking another item closes this one after opening
+						// that, so only close if it's still this one.
+						setEditingItemClientId( ( current ) =>
+							current === editingItemClientId ? null : current
+						)
+					}
+					placement={ editingItem.placement }
+				/>
+			) }
 			{ labelOnlySubmenuClientId && labelOnlyAnchorElement && (
 				<Popover
 					anchor={ labelOnlyAnchorElement }
@@ -545,12 +675,31 @@ function NavigationMenuEditor( {
 		},
 		[ isAutomatic ]
 	);
+	const lastExpanded = useRef();
 	const blocks = useMemo( () => {
 		if ( ! entityBlocks || ! isAutomatic ) {
 			return entityBlocks;
 		}
 
-		return hasPages ? expandPageListBlocks( entityBlocks, pages ) : null;
+		if ( ! hasPages ) {
+			return null;
+		}
+
+		// The pages list changes whenever a page is fetched, even when nothing
+		// the menu shows has. New links would get new client IDs, losing the
+		// selection, so the last ones are kept while they'd come out the same.
+		const expanded = expandPageListBlocks( entityBlocks, pages );
+		const content = serializeNavigationBlocks( expanded );
+
+		if (
+			lastExpanded.current?.entityBlocks === entityBlocks &&
+			lastExpanded.current.content === content
+		) {
+			return lastExpanded.current.blocks;
+		}
+
+		lastExpanded.current = { blocks: expanded, content, entityBlocks };
+		return expanded;
 	}, [ entityBlocks, hasPages, isAutomatic, pages ] );
 	// Menu items only go inside a Navigation block, so they sit in one here.
 	// It is never rendered, so it does nothing a Navigation block would do.

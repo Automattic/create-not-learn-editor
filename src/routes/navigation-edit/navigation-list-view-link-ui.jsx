@@ -25,7 +25,7 @@ const BLOCKS_WITH_LINK_UI_SUPPORT = [
 	'core/navigation-submenu',
 ];
 
-function useNavigationEntityBinding( { clientId, attributes = {} } ) {
+export function useNavigationEntityBinding( { clientId, attributes = {} } ) {
 	const { updateBlockBindings } = useBlockBindingsUtils( clientId );
 	const blockEditingMode = useBlockEditingMode();
 	const { metadata, id, kind, type } = attributes;
