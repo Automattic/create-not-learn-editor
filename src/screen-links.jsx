@@ -21,7 +21,9 @@ import { Button, chevronRightIcon, Icon } from './wordpress-packages';
  * @param {string}   props.label Accessible name for the group of links.
  * @param {Object[]} props.links `{ description, icon, onSelect, search, title,
  *                               to }` for each. `onSelect`, run just before the
- *                               screen opens, and `search` are optional.
+ *                               screen opens, and `search` are optional. A
+ *                               link with `onOpen` and no `to` opens something
+ *                               in place, like a picker, rather than a screen.
  * @return {Element} The links.
  */
 export default function ScreenLinks( { label, links } ) {
@@ -30,11 +32,24 @@ export default function ScreenLinks( { label, links } ) {
 	return (
 		<nav aria-label={ label } className="cnl-screen-links">
 			{ links.map(
-				( { description, icon, onSelect, search, title, to } ) => (
+				( {
+					description,
+					icon,
+					onOpen,
+					onSelect,
+					search,
+					title,
+					to,
+				} ) => (
 					<Button
 						className="cnl-screen-links__link"
 						key={ title }
 						onClick={ () => {
+							if ( ! to && onOpen ) {
+								onOpen();
+								return;
+							}
+
 							onSelect?.();
 							navigate( { search, to } );
 						} }

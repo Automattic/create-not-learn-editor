@@ -3,6 +3,7 @@
  */
 import {
 	PAGE_ON_FRONT_PARAM,
+	POSTS_PER_PAGE_PARAM,
 	SHOW_ON_FRONT_PARAM,
 	TEMPLATE_PARAM,
 } from '../../../site-canvas/urls';
@@ -16,6 +17,7 @@ import { isHomeUrl } from './homepage-state';
  * shows the page in it. So is an unsaved change to what the homepage shows,
  * which moves pages: the homepage is at the site's address whatever it shows,
  * and a page that stops being the homepage is back at an address of its own.
+ * So is an unsaved number of posts to show at once.
  *
  * @param {Object}  args
  * @param {?Object} args.page          Page record, with its unsaved edits. None
@@ -61,6 +63,12 @@ export function getPagePreviewUrl( {
 			PAGE_ON_FRONT_PARAM,
 			String( Number( site.page_on_front ) || 0 )
 		);
+	}
+
+	const perPage = Number( site.posts_per_page ) || 0;
+
+	if ( perPage && perPage !== ( Number( savedSite.posts_per_page ) || 0 ) ) {
+		url.searchParams.set( POSTS_PER_PAGE_PARAM, String( perPage ) );
 	}
 
 	if ( ! page ) {

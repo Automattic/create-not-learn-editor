@@ -19,6 +19,10 @@ export const SHOW_ON_FRONT_PARAM = 'cnl-editor-show-on-front';
 // Which page the homepage shows, before it is saved. Read by the preview's PHP.
 export const PAGE_ON_FRONT_PARAM = 'cnl-editor-page-on-front';
 
+// How many posts a listing shows at once, before it is saved. Read by the
+// preview's PHP.
+export const POSTS_PER_PAGE_PARAM = 'cnl-editor-posts-per-page';
+
 // Query args that say how a page is being looked at, not which page it is.
 const VIEWING_PARAMS = [
 	PREVIEW_PARAM,
@@ -85,6 +89,7 @@ export function getLiveUrl( url ) {
 	parsed.searchParams.delete( LAYOUT_PARAM );
 	parsed.searchParams.delete( SHOW_ON_FRONT_PARAM );
 	parsed.searchParams.delete( PAGE_ON_FRONT_PARAM );
+	parsed.searchParams.delete( POSTS_PER_PAGE_PARAM );
 
 	return parsed.href;
 }

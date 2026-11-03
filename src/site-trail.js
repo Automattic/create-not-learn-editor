@@ -43,6 +43,19 @@ export function getSiteCrumb() {
 }
 
 /**
+ * Search params that carry the visit's trail on to the next screen, so a
+ * screen opened from one that was opened from "Home" still leads back there.
+ *
+ * @return {Object|undefined} `{ from }`, or undefined when the visit began
+ *                            somewhere without a trail.
+ */
+export function useTrailSearch() {
+	const { from } = useSearch( { strict: false } );
+
+	return useMemo( () => ( from ? { from } : undefined ), [ from ] );
+}
+
+/**
  * The breadcrumbs leading back to where the visit began: "Home". Visits
  * from the Menus screen lead back there instead, since it isn't linked from
  * "Home". Empty for visits that began anywhere else.

@@ -65,3 +65,27 @@ body:has(#{$edit-canvas}) {
 		}
 	}
 }
+
+/**
+ * A post's length and reading time, while writing it in a workspace for
+ * writers (`writing-aids.jsx`). Pinned to the corner of the canvas region,
+ * quiet enough not to pull the eye off the words.
+ */
+.cnl-editor-layer__writing-status {
+	position: absolute;
+	inset-block-end: var(--wpds-dimension-padding-md);
+	inset-inline-end: var(--wpds-dimension-padding-lg);
+	z-index: 1;
+	pointer-events: none;
+}
+
+.cnl-writing-status {
+	margin: 0;
+	padding: var(--wpds-dimension-padding-xs) var(--wpds-dimension-padding-sm);
+	border-radius: var(--wpds-border-radius-sm);
+	background: var(--wpds-color-background-surface-neutral-weak);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+	font-variant-numeric: tabular-nums;
+	opacity: 0.85;
+}

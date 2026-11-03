@@ -30,6 +30,7 @@ const SITE_SETTING_LABELS = {
 	show_on_front: __( 'Your homepage' ),
 	page_on_front: __( 'Your homepage' ),
 	page_for_posts: __( 'Blog page' ),
+	posts_per_page: __( 'Posts shown at once' ),
 };
 
 /*
@@ -84,6 +85,12 @@ function describeSiteSetting( property, value, { site, getPageTitle } ) {
 		detail = describeHomepage( site, getPageTitle );
 	} else if ( property === 'page_for_posts' ) {
 		detail = getPageTitle( value ) || __( 'None' );
+	} else if ( property === 'posts_per_page' ) {
+		detail = sprintf(
+			/* translators: %d: How many posts a listing shows at once. */
+			__( '%d at a time' ),
+			Number( value ) || 0
+		);
 	}
 
 	return {

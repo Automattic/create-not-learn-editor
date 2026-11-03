@@ -21,6 +21,13 @@ import {
 import { useSectionWording } from './section-wording';
 import { EDITOR_STORE, useForcedBlockEditorSettings } from './settings-guard';
 import { useStartPatternsGate } from './start-patterns';
+import {
+	WritingStatus,
+	usePostKindFocus,
+	useUntitledWording,
+	useWritingWording,
+} from './writing-aids';
+import { getActiveWorkspace } from '../workspaces/presets';
 
 /**
  * Block editor settings forced while the edit canvas is on screen, such as
@@ -81,7 +88,7 @@ function SectionPickerWhenAsked() {
 export function EditorLayer() {
 	const isEditCanvas = useIsEditCanvas();
 
-	const { postType, selectedBlockName } = useSelect(
+	const { hasWritingAids, postType, selectedBlockName } = useSelect(
 		( select ) => {
 			if ( ! isEditCanvas ) {
 				return NOT_EDITING;
@@ -91,18 +98,24 @@ export function EditorLayer() {
 				select( blockEditorStore );
 
 			return {
+				hasWritingAids: getActiveWorkspace( select ).writingAids,
 				postType: select( EDITOR_STORE )?.getCurrentPostType(),
 				selectedBlockName: getBlockName( getSelectedBlockClientId() ),
 			};
 		},
 		[ isEditCanvas ]
 	);
+	// Writing a post, in a workspace for writers.
+	const isWriting = hasWritingAids && postType === 'post';
 
 	useForcedBlockEditorSettings(
 		isEditCanvas ? FORCED_BLOCK_EDITOR_SETTINGS : null
 	);
 	useDistractionFreeEntry( isEditCanvas );
 	useSectionWording( postType === 'page' );
+	useWritingWording( isWriting );
+	useUntitledWording( isWriting );
+	usePostKindFocus( isWriting );
 	const canStartFromPattern = useStartPatternsGate( isEditCanvas );
 
 	const canvasMode = useCanvasMode();
@@ -126,6 +139,7 @@ export function EditorLayer() {
 				}
 			/>
 			{ canPickSections && <SectionPickerWhenAsked /> }
+			{ isWriting && <WritingStatus /> }
 		</>
 	);
 }

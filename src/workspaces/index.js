@@ -6,8 +6,8 @@
  * this?"; workspaces answer "how should the editor present this work?".
  *
  * Surfaces read the active workspace's configuration rather than checking
- * its id, so a new workspace is a new entry in `WORKSPACES`, not a new
- * branch in every surface.
+ * its id, so a new workspace is a new entry in `WORKSPACES` (`presets.js`),
+ * not a new branch in every surface. This module applies the sidebar side.
  *
  * The choice is a per-user editor preference, persisted to user meta by the
  * preferences store.
@@ -18,92 +18,28 @@
  */
 import { store as bootStore } from '@wordpress/boot';
 import { dispatch, select, subscribe } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
-import { pencil, postList, tool } from '@wordpress/icons';
 import { store as preferencesStore } from '@wordpress/preferences';
 
-export const PREFERENCES_SCOPE = 'create-not-learn-editor';
-export const PREFERENCE_NAME = 'workspace';
-
 /**
- * A parent no menu item has, so an item moved under it is never listed.
- * Boot has no way to remove a menu item once registered.
+ * Internal dependencies
  */
-const HIDDEN_PARENT = 'cnl-workspace-hidden';
+import {
+	DEFAULT_WORKSPACE,
+	PREFERENCE_NAME,
+	PREFERENCES_SCOPE,
+	WORKSPACES,
+	getActiveWorkspace,
+	getWorkspace,
+} from './presets';
 
-/**
- * Workspace presets.
- *
- * `menuItems` holds changes to boot's registered sidebar items, keyed by
- * item id. Anything not listed keeps its registered definition.
- *
- * `pinLastMenuItem` pins the last top-level sidebar item to the bottom of the
- * panel, for workspaces that end on a gateway like Advanced.
- */
-export const WORKSPACES = [
-	{
-		id: 'simple',
-		label: __( 'Default' ),
-		icon: pencil,
-		pinLastMenuItem: true,
-		menuItems: {},
-	},
-	{
-		id: 'blogging',
-		label: __( 'Blogging' ),
-		icon: postList,
-		// Writing first: Posts at the top level, the look of the site under
-		// Design, and everything else out of the way.
-		menuItems: {
-			pages: { parent: HIDDEN_PARENT },
-			'content-post': { parent: undefined },
-			navigation: { parent: HIDDEN_PARENT },
-			advanced: { parent: HIDDEN_PARENT },
-			'site-overview': { parent: HIDDEN_PARENT },
-		},
-	},
-	{
-		id: 'builder',
-		label: __( 'Builder' ),
-		icon: tool,
-		// Lift the site-building destinations out of Advanced to the top
-		// level. Posts comes with it so hiding Advanced doesn't also bury it.
-		menuItems: {
-			advanced: { parent: HIDDEN_PARENT },
-			'content-post': { parent: undefined },
-			patterns: { parent: undefined },
-			templateParts: { parent: undefined },
-			templates: { parent: undefined },
-		},
-	},
-];
-
-export const DEFAULT_WORKSPACE = WORKSPACES[ 0 ];
-
-/**
- * Get a workspace by id, falling back to the default.
- *
- * @param {string} id Workspace id.
- * @return {Object} Workspace preset.
- */
-export function getWorkspace( id ) {
-	return (
-		WORKSPACES.find( ( workspace ) => workspace.id === id ) ||
-		DEFAULT_WORKSPACE
-	);
-}
-
-/**
- * Select the active workspace preset.
- *
- * @param {Function} selectFn `select` from `@wordpress/data` or a `useSelect` callback.
- * @return {Object} Workspace preset.
- */
-export function getActiveWorkspace( selectFn = select ) {
-	return getWorkspace(
-		selectFn( preferencesStore ).get( PREFERENCES_SCOPE, PREFERENCE_NAME )
-	);
-}
+export {
+	DEFAULT_WORKSPACE,
+	PREFERENCE_NAME,
+	PREFERENCES_SCOPE,
+	WORKSPACES,
+	getActiveWorkspace,
+	getWorkspace,
+};
 
 /**
  * Switch the active workspace.
@@ -175,6 +111,10 @@ export function mountWorkspaces() {
 		appliedId = workspace.id;
 
 		document.body.dataset.cnlWorkspace = workspace.id;
+		// Core's own preference, so a choice made on the step itself wins.
+		dispatch( preferencesStore ).setDefaults( 'core', {
+			isPublishSidebarEnabled: workspace.publishStep,
+		} );
 		document.body.classList.toggle(
 			'cnl-pin-last-menu-item',
 			!! workspace.pinLastMenuItem

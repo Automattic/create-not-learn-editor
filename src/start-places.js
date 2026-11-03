@@ -14,6 +14,8 @@ import {
 	brush as brushIcon,
 	home as homeIcon,
 	pages as pagesIcon,
+	pencil as pencilIcon,
+	postList as postListIcon,
 	siteLogo as siteLogoIcon,
 } from '@wordpress/icons';
 
@@ -23,10 +25,27 @@ import {
 import sitePartsIcon from './site-parts-icon';
 
 /**
+ * Every place to start, in no particular order. Each workspace picks and
+ * orders the ones that fit what its people came to do.
+ *
  * @return {Object[]} `{ description, icon, id, title }` for each place.
  */
-export function getStartPlaces() {
+function getAllPlaces() {
 	return [
+		{
+			description: __( 'Start something new.' ),
+			icon: pencilIcon,
+			id: 'write',
+			title: __( 'Write a post' ),
+		},
+		{
+			description: __(
+				'Pick up a draft, or change something you’ve published.'
+			),
+			icon: postListIcon,
+			id: 'posts',
+			title: __( 'Your posts' ),
+		},
 		{
 			description: __( 'Make the first page visitors see your own.' ),
 			icon: homeIcon,
@@ -62,4 +81,21 @@ export function getStartPlaces() {
 			title: __( 'Header & footer' ),
 		},
 	];
+}
+
+/**
+ * The places a workspace offers, in its order and its words.
+ *
+ * @param {Object}   home        The workspace's `home` settings.
+ * @param {string[]} home.places Place ids, in order.
+ * @param {Object}   home.copy   Rewording for any of them, by id.
+ * @return {Object[]} `{ description, icon, id, title }` for each place.
+ */
+export function getStartPlaces( { places, copy = {} } ) {
+	const all = getAllPlaces();
+
+	return places
+		.map( ( id ) => all.find( ( place ) => place.id === id ) )
+		.filter( Boolean )
+		.map( ( place ) => ( { ...place, ...copy[ place.id ] } ) );
 }

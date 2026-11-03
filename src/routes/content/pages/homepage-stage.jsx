@@ -16,7 +16,7 @@ import { useSearch } from '@wordpress/route';
  * Internal dependencies
  */
 import ScreenLinks from '../../../screen-links';
-import { useSiteTrail } from '../../../site-trail';
+import { useSiteTrail, useTrailSearch } from '../../../site-trail';
 import useMainMenu from '../use-main-menu';
 import { getPageTitle, usePages } from './data';
 import {
@@ -29,8 +29,8 @@ import {
 	isFrontPageTemplateId,
 } from './homepage-state';
 import { HOMEPAGE_VIEW } from './homepage-view';
-import { MemoizedPageLayouts } from './page-layout-picker';
 import { getPageSearchString } from './sections-view';
+import PostsPerPage from './posts-per-page';
 import { PageDetailStage } from './stage';
 import {
 	__,
@@ -472,8 +472,10 @@ function getLayoutDestination( templateId ) {
 }
 
 /**
- * The homepage when no page is behind it: a word about what it lists, and
- * ways on to the posts and to how they look.
+ * The homepage when no page is behind it: a word about what it lists, how
+ * many it lists at once, and ways on to its layout, the posts and what it
+ * shows. The layout is a way on rather than a picker here, as the latest
+ * posts always use the one layout, so there is nothing to choose between.
  *
  * @param {Object}  props              Component props.
  * @param {boolean} props.canConfigure Whether what the homepage shows can be
@@ -483,6 +485,8 @@ function getLayoutDestination( templateId ) {
  * @return {Element} The body.
  */
 function LatestPostsBody( { canConfigure, homepage, searchParams } ) {
+	// Screens opened from here lead back to where the visit began, too.
+	const trailSearch = useTrailSearch();
 	const layout = homepage.latestPostsTemplateId
 		? getLayoutDestination( homepage.latestPostsTemplateId )
 		: null;
@@ -494,30 +498,28 @@ function LatestPostsBody( { canConfigure, homepage, searchParams } ) {
 					{ __( 'Shows your newest posts, newest first.' ) }
 				</Text>
 			) }
-			<MemoizedPageLayouts
-				isFrontPage
-				pageId={ 0 }
-				sectionCount={ 0 }
-				showsLatestPosts
-				slug=""
-			/>
+			{ homepage.shows === 'posts' && canConfigure && <PostsPerPage /> }
 			<ScreenLinks
 				label={ __( 'More for your homepage' ) }
 				links={ [
+					layout && {
+						description: __(
+							'Change how your posts are displayed'
+						),
+						icon: layoutIcon,
+						search: layout.search && {
+							...trailSearch,
+							...layout.search,
+						},
+						title: __( 'Layout' ),
+						to: layout.to,
+					},
 					{
 						description: __( 'Write, edit and publish blog posts' ),
 						icon: postIcon,
+						search: trailSearch,
 						title: __( 'Edit your posts' ),
 						to: '/types/post/list/all',
-					},
-					layout && {
-						description: __(
-							'Change the layout your latest posts are listed in'
-						),
-						icon: layoutIcon,
-						search: layout.search,
-						title: __( 'Change how it looks' ),
-						to: layout.to,
 					},
 					canConfigure && {
 						description: __( 'Choose what visitors see first' ),

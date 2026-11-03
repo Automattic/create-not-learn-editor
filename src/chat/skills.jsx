@@ -1426,15 +1426,23 @@ const PLACE_SUGGESTIONS = {
 	],
 };
 
-/*
+/**
  * What to ask for, grouped into the same places to start as "Home"
- * offers, so the first thing seen is a short, familiar list. A group with
- * one thing in it is that thing.
+ * offers in the workspace, so the first thing seen is a short, familiar
+ * list. A group with one thing in it is that thing. Places the chat can't
+ * help with yet are left out.
+ *
+ * @param {Object} home The workspace's `home` settings.
+ * @return {Object[]} The groups, each a place with its `suggestions`.
  */
-export const SUGGESTION_GROUPS = getStartPlaces().map( ( place ) => ( {
-	...place,
-	suggestions: PLACE_SUGGESTIONS[ place.id ],
-} ) );
+export function getSuggestionGroups( home ) {
+	return getStartPlaces( home )
+		.filter( ( place ) => PLACE_SUGGESTIONS[ place.id ] )
+		.map( ( place ) => ( {
+			...place,
+			suggestions: PLACE_SUGGESTIONS[ place.id ],
+		} ) );
+}
 
 // What to ask for about the page being worked on, when there is one.
 export const PAGE_SUGGESTIONS = [

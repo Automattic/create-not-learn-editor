@@ -12,6 +12,7 @@ import { settings } from '../../settings';
 import { DocumentTitle, SiteCanvas, useSiteCanvas } from '../../site-canvas';
 import { getHomepageDocumentIconStatus } from './preview';
 import Stage from './stage';
+import { getActiveWorkspace } from '../../workspaces/presets';
 import {
 	Button,
 	Dropdown,
@@ -22,7 +23,9 @@ import {
 	chevronDownIcon,
 	homeIcon,
 	postListIcon,
+	coreDataStore,
 	settingsIcon,
+	useSelect,
 } from '../../wordpress-packages';
 
 const DOCUMENT_ICON_BY_STATUS = {
@@ -150,13 +153,48 @@ function PreviewDocument( { canvas } ) {
 	);
 }
 
+/**
+ * Where a workspace's Home opens the site.
+ *
+ * Most start at the homepage. A workspace for writers starts wherever the
+ * posts are listed: the blog page, when the homepage shows a page and there
+ * is one, and the homepage otherwise.
+ *
+ * @return {string} The address to open.
+ */
+function useStartUrl() {
+	return useSelect( ( select ) => {
+		if ( getActiveWorkspace( select ).home.preview !== 'posts' ) {
+			return settings.homeUrl;
+		}
+
+		const site = select( coreDataStore ).getEntityRecord( 'root', 'site' );
+		const postsPageId =
+			site?.show_on_front === 'page'
+				? Number( site?.page_for_posts ) || 0
+				: 0;
+
+		if ( ! postsPageId ) {
+			return settings.homeUrl;
+		}
+
+		return (
+			select( coreDataStore ).getEntityRecord(
+				'postType',
+				'page',
+				postsPageId
+			)?.link || settings.homeUrl
+		);
+	}, [] );
+}
+
 /*
  * The site, starting at the homepage. Following links in Preview moves it
  * around the site, and the editor follows it, so turning Preview off changes
  * whatever page is on show.
  */
 function Canvas() {
-	const canvas = useSiteCanvas( { url: settings.homeUrl } );
+	const canvas = useSiteCanvas( { url: useStartUrl() } );
 
 	return (
 		<SiteCanvas

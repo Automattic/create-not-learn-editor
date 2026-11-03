@@ -6,6 +6,9 @@ import ScreenLinks from '../../screen-links';
 import { getStartPlaces } from '../../start-places';
 import { MODE_EDIT, setCanvasMode } from '../../site-canvas/mode';
 import { FROM_SITE_SEARCH } from '../../site-trail';
+import { requestDistractionFreeEntry } from '../../editor-layer/distraction-free';
+import { getActiveWorkspace } from '../../workspaces/presets';
+import PostKindPicker from '../../pickers/post-kinds';
 import {
 	Link,
 	Page,
@@ -15,6 +18,7 @@ import {
 	coreDataStore,
 	decodeEntities,
 	useSelect,
+	useState,
 } from '../../wordpress-packages';
 
 /*
@@ -35,14 +39,34 @@ const START_ROUTES = {
 	identity: { to: '/design/identity' },
 	style: { to: '/design' },
 	siteParts: { to: '/design/header-footer' },
+	write: { to: '/types/post/new' },
+	posts: { to: '/types/post/list/all' },
 };
 
-function getStartLinks() {
-	return getStartPlaces().map( ( place ) => ( {
-		...place,
-		search: FROM_SITE_SEARCH,
-		...START_ROUTES[ place.id ],
-	} ) );
+function getStartLinks( workspace, { onPickPostKind } ) {
+	return getStartPlaces( workspace.home ).map( ( place ) => {
+		const link = {
+			...place,
+			search: FROM_SITE_SEARCH,
+			...START_ROUTES[ place.id ],
+		};
+
+		if ( place.id !== 'write' ) {
+			return link;
+		}
+
+		// Asked what kind of post it is first, when the workspace asks.
+		if ( workspace.postKinds ) {
+			return { ...link, onOpen: onPickPostKind, to: undefined };
+		}
+
+		// A new post opens with nothing but the writing on show.
+		if ( workspace.writeInFocus ) {
+			link.onSelect = requestDistractionFreeEntry;
+		}
+
+		return link;
+	} );
 }
 
 export default function Stage() {
@@ -51,6 +75,8 @@ export default function Stage() {
 			select( coreDataStore ).getEntityRecord( 'root', 'site' )?.title,
 		[]
 	);
+	const workspace = useSelect( getActiveWorkspace, [] );
+	const [ isPickingPostKind, setIsPickingPostKind ] = useState( false );
 	const siteName = decodeEntities( siteTitle || settings.siteName || '' );
 
 	return (
@@ -64,7 +90,7 @@ export default function Stage() {
 					{ settings.homeUrl && ' · ' }
 					{ settings.homeUrl && (
 						<Link href={ settings.homeUrl } openInNewTab>
-							{ __( 'View site' ) }
+							{ workspace.home.viewLabel }
 						</Link>
 					) }
 				</>
@@ -78,15 +104,21 @@ export default function Stage() {
 					</Text>
 					<ScreenLinks
 						label={ __( 'Start working on your site' ) }
-						links={ getStartLinks() }
+						links={ getStartLinks( workspace, {
+							onPickPostKind: () => setIsPickingPostKind( true ),
+						} ) }
 					/>
 				</Stack>
 				<Text className="cnl-site-hub__hint" variant="body-sm">
-					{ __(
-						'Tip: follow links on the page to visit the rest of your site. Switch to Edit to change what is on it, then zoom out to add and arrange its sections.'
-					) }
+					{ workspace.home.hint }
 				</Text>
 			</div>
+			{ isPickingPostKind && (
+				<PostKindPicker
+					isFocusedOpen={ workspace.writeInFocus }
+					onClose={ () => setIsPickingPostKind( false ) }
+				/>
+			) }
 		</Page>
 	);
 }

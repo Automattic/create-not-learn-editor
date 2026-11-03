@@ -120,6 +120,28 @@ describe( 'getPagePreviewUrl', () => {
 		);
 	} );
 
+	test( 'passes an unsaved number of posts to show along', () => {
+		expect(
+			getPagePreviewUrl( {
+				homeUrl: HOME_URL,
+				isHomepage: true,
+				savedSite: { ...onPosts, posts_per_page: 10 },
+				site: { ...onPosts, posts_per_page: 5 },
+			} )
+		).toBe( `${ HOME_URL }?cnl-editor-posts-per-page=5` );
+	} );
+
+	test( 'leaves the number of posts to show alone when it is saved', () => {
+		expect(
+			getPagePreviewUrl( {
+				homeUrl: HOME_URL,
+				isHomepage: true,
+				savedSite: { ...onPosts, posts_per_page: 10 },
+				site: { ...onPosts, posts_per_page: 10 },
+			} )
+		).toBe( HOME_URL );
+	} );
+
 	test( 'shows a page that stops being the homepage at an address of its own', () => {
 		expect(
 			getPagePreviewUrl( {

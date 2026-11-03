@@ -9,9 +9,10 @@ import { getCurrentEditorPath } from '../static/screens';
 import { withUiTheme } from '../../theme';
 import { useSiteTrail } from '../../site-trail';
 import { usePostsTrip } from '../../site-canvas/mode';
-import { getTemplateAuthorText } from '../../records';
+import { getTemplateDisplayDescription } from '../../records';
 import { EMPTY_ARRAY } from './page-layouts';
 import { requestDistractionFreeEntry } from '../../editor-layer/distraction-free';
+import { getActiveWorkspace } from '../../workspaces/presets';
 import useMainMenu from './use-main-menu';
 import { PageDetailStage } from './pages/stage';
 import { parseTarget, useHomepageState } from './pages/homepage';
@@ -27,21 +28,31 @@ import {
 	getContentFields,
 	usePostAuthors,
 } from './content-fields';
-import { getStatusLabel, getTemplateTitle } from './helpers';
+import { getPostViewEmpty, getPostViews } from './post-views';
+import useCoreTrashActions from './use-core-trash-actions';
+import PostKindPicker from '../../pickers/post-kinds';
+import ScreenLinks from '../../screen-links';
+import { getTemplateTitle } from './helpers';
 import PagesTable from './pages-table';
 import useContentRecords from './use-content-records';
 import { useDataViews } from '../../use-dataviews';
 import {
 	Breadcrumbs,
 	Button,
+	checkIcon,
 	coreDataStore,
+	draftsIcon,
+	lockIcon,
+	pendingIcon,
+	publishedIcon,
+	scheduledIcon,
+	searchIcon,
+	trashIcon,
 	DropdownMenu,
 	EmptyState,
 	Icon,
-	infoIcon,
 	MenuGroup,
 	MenuItem,
-	Popover,
 	Spinner,
 	Tabs,
 	__,
@@ -58,6 +69,16 @@ import {
 	useState,
 } from '../../wordpress-packages';
 
+// The icon an empty status tab shows, by its slug.
+const EMPTY_TAB_ICONS = {
+	drafts: draftsIcon,
+	future: scheduledIcon,
+	pending: pendingIcon,
+	private: lockIcon,
+	published: publishedIcon,
+	trash: trashIcon,
+};
+
 function getTemplateIcon( template ) {
 	if ( template?.slug === 'home' ) {
 		return postListIcon;
@@ -68,72 +89,6 @@ function getTemplateIcon( template ) {
 	}
 
 	return layoutIcon;
-}
-
-function getTemplateDescription( template ) {
-	return template?.description || '';
-}
-
-function TemplateDescriptionInfo( { authorText, description } ) {
-	const [ isOpen, setIsOpen ] = useState( false );
-
-	if ( ! description && ! authorText ) {
-		return null;
-	}
-
-	return (
-		<span className="routes-post-list__template-card-info">
-			<Button
-				aria-expanded={ isOpen }
-				icon={ infoIcon }
-				label={ __( 'Template description' ) }
-				onClick={ ( event ) => {
-					event.stopPropagation();
-					setIsOpen( ( open ) => ! open );
-				} }
-				size="small"
-			/>
-			{ isOpen && (
-				<Popover
-					className="routes-post-list__template-card-info-popover"
-					focusOnMount="container"
-					onClose={ () => setIsOpen( false ) }
-					placement="right-start"
-					resize={ false }
-					shift
-				>
-					<span className="routes-post-list__template-card-info-content">
-						{ description && (
-							<span className="routes-post-list__template-card-info-description">
-								{ description }
-							</span>
-						) }
-						{ authorText && (
-							<span className="routes-post-list__template-card-info-author">
-								{ sprintf(
-									/* translators: %s: template author name. */
-									__( 'Author: %s' ),
-									authorText
-								) }
-							</span>
-						) }
-					</span>
-				</Popover>
-			) }
-		</span>
-	);
-}
-
-function getTemplateStatusLabel( template ) {
-	if ( template?.slug === 'page' || template?.slug === 'front-page' ) {
-		return __( 'Default' );
-	}
-
-	if ( template?.status === 'publish' ) {
-		return __( 'Active' );
-	}
-
-	return getStatusLabel( template?.status );
 }
 
 function TabLabel( { icon, label } ) {
@@ -158,8 +113,10 @@ function Stage() {
 	const postsTrip = usePostsTrip();
 	// Where a page being added goes: in the menu, out of it, or the user picks.
 	const [ addingPage, setAddingPage ] = useState( null );
+	const [ isPickingPostKind, setIsPickingPostKind ] = useState( false );
 	const {
 		activeTab,
+		statusTab,
 		contentView,
 		error,
 		isLoading,
@@ -190,6 +147,12 @@ function Stage() {
 		};
 	}, [] );
 	const isPages = type?.name === 'page';
+	// Posts are listed, worded and written as the workspace says.
+	const workspace = useSelect( getActiveWorkspace, [] );
+	const postsSettings = type?.name === 'post' ? workspace.posts : null;
+	// Lists split into status tabs move posts to and from the trash with
+	// core's own actions.
+	const trashActions = useCoreTrashActions( statusTab ? type?.name : null );
 	// Pages lists its pages in menu groups; every other type in DataViews.
 	const dataViews = useDataViews( !! type && ! isPages );
 	const authors = usePostAuthors( isPages ? EMPTY_ARRAY : posts );
@@ -206,10 +169,28 @@ function Stage() {
 			),
 		[ authors, frontPageId, isPages, mainMenu.menuPages, postsPageId ]
 	);
-	const contentActions = useMemo(
-		() => ( type ? getContentActions( navigate, type ) : [] ),
-		[ navigate, type ]
-	);
+	const contentActions = useMemo( () => {
+		if ( ! type ) {
+			return [];
+		}
+
+		const actions = getContentActions( navigate, type );
+
+		if ( ! statusTab ) {
+			return actions;
+		}
+
+		// A post in the trash can only be restored or deleted for good.
+		return [
+			...actions.map( ( action ) => ( {
+				...action,
+				isEligible: ( item ) =>
+					item.status !== 'trash' &&
+					( action.isEligible?.( item ) ?? true ),
+			} ) ),
+			...trashActions,
+		];
+	}, [ navigate, statusTab, trashActions, type ] );
 	const previewTemplatesKey = useMemo(
 		() =>
 			previewTemplates
@@ -222,7 +203,7 @@ function Stage() {
 		return null;
 	}
 
-	const listPath = `/types/${ type.name }/list/all`;
+	const listPath = `/types/${ type.name }/list/${ statusTab?.slug || 'all' }`;
 	const showTemplates = activeTab === 'templates';
 	const drilled =
 		isPages && ! showTemplates ? parseTarget( searchParams.postId ) : 0;
@@ -317,11 +298,13 @@ function Stage() {
 		1,
 		Math.ceil( posts.length / ( contentView.perPage || 20 ) )
 	);
-	const addLabel = sprintf(
-		/* translators: %s: post type singular label. */
-		__( 'Add %s' ),
-		( type.singular || type.name ).toLowerCase()
-	);
+	const addLabel =
+		postsSettings?.addLabel ||
+		sprintf(
+			/* translators: %s: post type singular label. */
+			__( 'Add %s' ),
+			( type.singular || type.name ).toLowerCase()
+		);
 	const openCreateFlow = ( menuPlacement ) => {
 		if ( type.name === 'page' ) {
 			setAddingPage( {
@@ -338,6 +321,16 @@ function Stage() {
 				window.open( type.newUrl, '_blank', 'noopener,noreferrer' );
 			}
 			return;
+		}
+
+		// Asked what kind of post it is first, when the workspace asks.
+		if ( type.name === 'post' && workspace.postKinds ) {
+			setIsPickingPostKind( true );
+			return;
+		}
+
+		if ( type.name === 'post' && workspace.writeInFocus ) {
+			requestDistractionFreeEntry();
 		}
 
 		navigate( {
@@ -398,7 +391,39 @@ function Stage() {
 			) }
 		</div>
 	);
-	const contentEmpty = (
+	// A status tab says what it would hold, not to write a first post.
+	const tabEmpty =
+		statusTab && getPostViewEmpty( statusTab, contentView.search );
+	let emptyIcon = type.name === 'page' ? pageIcon : postListIcon;
+
+	if ( tabEmpty ) {
+		emptyIcon = contentView.search
+			? searchIcon
+			: EMPTY_TAB_ICONS[ statusTab.slug ] || emptyIcon;
+	}
+
+	const contentEmpty = tabEmpty ? (
+		<div className="cnl-editor-empty-state">
+			<EmptyState.Root>
+				<EmptyState.Icon icon={ emptyIcon } />
+				<EmptyState.Title>{ tabEmpty.title }</EmptyState.Title>
+				<EmptyState.Description>
+					{ tabEmpty.description }
+				</EmptyState.Description>
+				{ tabEmpty.canWrite && type.canCreate && (
+					<EmptyState.Actions>
+						<Button
+							__next40pxDefaultSize
+							onClick={ openCreateFlow }
+							variant="primary"
+						>
+							{ addLabel }
+						</Button>
+					</EmptyState.Actions>
+				) }
+			</EmptyState.Root>
+		</div>
+	) : (
 		<div className="cnl-editor-empty-state">
 			<EmptyState.Root>
 				<EmptyState.Icon
@@ -491,11 +516,17 @@ function Stage() {
 				}` }
 				onChangeSelection={ () => {} }
 				onChangeView={ onChangeContentView }
-				onClickItem={ ( item ) =>
-					type.blockEditor
-						? openEditor( item.id )
-						: selectPost( item.id )
-				}
+				onClickItem={ ( item ) => {
+					if ( item.status === 'trash' ) {
+						return;
+					}
+
+					if ( type.blockEditor ) {
+						openEditor( item.id );
+					} else {
+						selectPost( item.id );
+					}
+				} }
 				paginationInfo={ {
 					totalItems: posts.length,
 					totalPages,
@@ -509,12 +540,13 @@ function Stage() {
 	}
 
 	// Pages has no tabs: its layouts open from the options menu, as a step
-	// down from Pages with a way back.
-	const isPageLayouts = isPages && showTemplates;
+	// down from Pages with a way back. So do the layouts of posts split into
+	// status tabs, which have no Layouts tab of their own.
+	const isLayoutsStep = showTemplates && ( isPages || !! statusTab );
 	// Layouts and the table of all pages are steps down from Pages.
 	let subScreenLabel = null;
 
-	if ( isPageLayouts ) {
+	if ( isLayoutsStep ) {
 		subScreenLabel = __( 'Layouts' );
 	} else if ( isPagesTable ) {
 		subScreenLabel = __( 'All pages' );
@@ -524,7 +556,7 @@ function Stage() {
 	// Opened from a section's Edit posts, the list leads back to its page.
 	// Opened from the "Home" screen, or the Header or Footer screen,
 	// Pages leads back there.
-	let siteCrumbs = isPages ? siteTrail : [];
+	let siteCrumbs = siteTrail;
 
 	if ( postsTrip?.postType === type.name ) {
 		siteCrumbs = [ { label: postsTrip.label, to: postsTrip.to } ];
@@ -536,7 +568,16 @@ function Stage() {
 					<Breadcrumbs
 						items={ [
 							...siteCrumbs,
-							{ label: title, to: listPath },
+							{
+								label: title,
+								// Back up keeps the way back to where the
+								// visit began.
+								to: searchParams.from
+									? `${ listPath }?${ new URLSearchParams( {
+											from: searchParams.from,
+										} ) }`
+									: listPath,
+							},
 							{ label: subScreenLabel },
 						] }
 					/>
@@ -558,8 +599,7 @@ function Stage() {
 						__(
 							'Every page on your site. Pick one to see it, or edit it to change what is on it.'
 						) ) ||
-					( type.name === 'post' &&
-						__( 'Your blog posts, newest first.' ) ) ||
+					postsSettings?.description ||
 					type.description ||
 					sprintf(
 						/* translators: %s: post type label. */
@@ -571,29 +611,55 @@ function Stage() {
 
 	return (
 		<Page { ...pageHeader } hasPadding={ false } headingLevel={ 2 }>
-			{ ! isPages && (
+			{ statusTab && ! showTemplates && (
 				<div className="routes-post-list__tabs-wrapper">
 					<Tabs.Root
-						onValueChange={ handleContentTabChange }
-						value={ showTemplates ? 'templates' : 'content' }
+						onValueChange={ ( slug ) =>
+							navigate( {
+								// Keeps the way back to where the visit began.
+								search: searchParams.from
+									? { from: searchParams.from }
+									: undefined,
+								to: `/types/${ type.name }/list/${ slug }`,
+							} )
+						}
+						value={ statusTab.slug }
 					>
 						<Tabs.List>
-							<Tabs.Tab value="content">
-								<TabLabel
-									icon={ type.menuIcon }
-									label={ type.menuName || type.label }
-								/>
-							</Tabs.Tab>
-							<Tabs.Tab value="templates">
-								<TabLabel
-									icon="dashicons-layout"
-									label={ __( 'Layouts' ) }
-								/>
-							</Tabs.Tab>
+							{ getPostViews().map( ( view ) => (
+								<Tabs.Tab key={ view.slug } value={ view.slug }>
+									{ view.title }
+								</Tabs.Tab>
+							) ) }
 						</Tabs.List>
 					</Tabs.Root>
 				</div>
 			) }
+			{ ! isPages &&
+				! statusTab &&
+				postsSettings?.showLayouts !== false && (
+					<div className="routes-post-list__tabs-wrapper">
+						<Tabs.Root
+							onValueChange={ handleContentTabChange }
+							value={ showTemplates ? 'templates' : 'content' }
+						>
+							<Tabs.List>
+								<Tabs.Tab value="content">
+									<TabLabel
+										icon={ type.menuIcon }
+										label={ type.menuName || type.label }
+									/>
+								</Tabs.Tab>
+								<Tabs.Tab value="templates">
+									<TabLabel
+										icon="dashicons-layout"
+										label={ __( 'Layouts' ) }
+									/>
+								</Tabs.Tab>
+							</Tabs.List>
+						</Tabs.Root>
+					</div>
+				) }
 			{ showTemplates && (
 				<p className="cnl-editor-stage__description">
 					{ sprintf(
@@ -613,59 +679,62 @@ function Stage() {
 							<Spinner />
 						</div>
 					) }
-					{ ! isLoading &&
-						templates.map( ( template ) => {
-							const isSelected =
-								String( selectedTemplateId ) ===
-								String( template.id );
+					{ ! isLoading && templates.length > 0 && (
+						// Drawn as the homepage's choices are: picking a
+						// layout shows it on the canvas.
+						<ul
+							aria-label={ __( 'Layouts' ) }
+							className="cnl-homepage-shows__options"
+							role="list"
+						>
+							{ templates.map( ( template ) => {
+								const isSelected =
+									String( selectedTemplateId ) ===
+									String( template.id );
+								const description =
+									getTemplateDisplayDescription( template );
 
-							return (
-								<div
-									key={ template.id }
-									className="routes-post-list__template-card-wrapper"
-								>
-									<button
-										aria-pressed={ isSelected }
-										className={ `routes-post-list__template-card${
-											isSelected ? ' is-selected' : ''
-										}` }
-										onClick={ () =>
-											selectTemplate( template.id )
-										}
-										type="button"
-									>
-										<span
-											aria-hidden
-											className="routes-post-list__template-card-icon"
+								return (
+									<li key={ template.id }>
+										<button
+											aria-pressed={ isSelected }
+											className="cnl-homepage-shows__option"
+											onClick={ () =>
+												selectTemplate( template.id )
+											}
+											type="button"
 										>
 											<Icon
+												className="cnl-homepage-shows__icon"
 												icon={ getTemplateIcon(
 													template
 												) }
 											/>
-										</span>
-										<span className="routes-post-list__template-card-content">
-											<span className="routes-post-list__template-card-title">
-												{ getTemplateTitle( template ) }
-											</span>
-											<span className="routes-post-list__template-badge">
-												{ getTemplateStatusLabel(
-													template
+											<span className="cnl-homepage-shows__text">
+												<span className="cnl-homepage-shows__label">
+													{ getTemplateTitle(
+														template
+													) }
+												</span>
+												{ description && (
+													<span className="cnl-homepage-shows__description">
+														{ description }
+													</span>
 												) }
 											</span>
-										</span>
-									</button>
-									<TemplateDescriptionInfo
-										authorText={ getTemplateAuthorText(
-											template
-										) }
-										description={ getTemplateDescription(
-											template
-										) }
-									/>
-								</div>
-							);
-						} ) }
+											{ isSelected && (
+												<Icon
+													className="cnl-homepage-shows__check"
+													icon={ checkIcon }
+													size={ 20 }
+												/>
+											) }
+										</button>
+									</li>
+								);
+							} ) }
+						</ul>
+					) }
 					{ ! isLoading && templates.length === 0 && templateEmpty }
 				</div>
 			) : (
@@ -673,18 +742,29 @@ function Stage() {
 			) }
 			{ showTemplates && templates.length > 0 && (
 				<div className="routes-post-list__template-footer">
-					<span>
-						{ __(
-							'Other parts of your site have layouts too.'
-						) }{ ' ' }
-					</span>
-					<Button
-						onClick={ () => navigate( { to: '/templates' } ) }
-						variant="link"
-					>
-						{ __( 'See all layouts.' ) }
-					</Button>
+					<ScreenLinks
+						label={ __( 'More layouts' ) }
+						links={ [
+							{
+								description: __(
+									'Other parts of your site have layouts too'
+								),
+								icon: layoutIcon,
+								search: searchParams.from
+									? { from: searchParams.from }
+									: undefined,
+								title: __( 'All layouts' ),
+								to: '/templates',
+							},
+						] }
+					/>
 				</div>
+			) }
+			{ isPickingPostKind && (
+				<PostKindPicker
+					isFocusedOpen={ workspace.writeInFocus }
+					onClose={ () => setIsPickingPostKind( false ) }
+				/>
 			) }
 			{ addingPage && type.name === 'page' && (
 				<AddPageFlow

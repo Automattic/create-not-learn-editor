@@ -11,7 +11,7 @@ import { parse } from '@wordpress/block-serialization-default-parser';
 /**
  * Internal dependencies
  */
-import { stampPatternName } from '../section-patterns';
+import { stampPattern, stampPatternName } from '../section-patterns';
 
 const NAME = 'theme/event-details';
 
@@ -92,5 +92,33 @@ describe( 'stampPatternName', () => {
 		expect( stampPatternName( '<p>Just HTML</p>', NAME ) ).toBe(
 			'<p>Just HTML</p>'
 		);
+	} );
+} );
+
+describe( 'stampPattern', () => {
+	const content =
+		'<!-- wp:image --><figure class="wp-block-image"><img alt=""/></figure><!-- /wp:image -->' +
+		'<!-- wp:paragraph --><p></p><!-- /wp:paragraph -->';
+
+	it( 'stamps a pattern added to pages as sections', () => {
+		const pattern = stampPattern( {
+			categories: [ 'featured' ],
+			content,
+			name: NAME,
+		} );
+
+		expect( getRootAttributes( pattern.content )[ 0 ].metadata ).toEqual( {
+			patternName: NAME,
+		} );
+	} );
+
+	it( 'leaves a kind of post alone, as it is a way to start a post', () => {
+		const pattern = {
+			categories: [ 'cnl-post-kinds' ],
+			content,
+			name: 'create-not-learn-editor/post-kind-photo',
+		};
+
+		expect( stampPattern( pattern ) ).toBe( pattern );
 	} );
 } );
