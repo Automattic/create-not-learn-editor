@@ -19,7 +19,7 @@
  *   applied as soon as it is picked. More control is Freeform: core's own
  *   unlock, for core's full block tools, left with Done.
  * - A header or footer shows on every page, so its words aren't reached by
- *   clicking: until it is opened it is veiled, locked. Edit header or Edit
+ *   clicking: until it is opened it is locked. Edit header or Edit
  *   footer, alone on its bar, opens it, in the spotlight, for its words and
  *   pictures only, with Edit design's bar under it, left with Done.
  * - What the page's layout puts around its sections that the page can
@@ -2743,30 +2743,6 @@ export function SectionModesLayer( {
 		);
 	};
 
-	/*
-	 * A header or footer is locked until Edit header or Edit footer opens
-	 * it, so it is darkened, as a section pointed at is, while it is: it
-	 * can't be clicked into as a section can. Zoomed out in Compose, nothing is clicked into.
-	 */
-	const renderLocked = () =>
-		! isComposing &&
-		parts.map( ( { clientId } ) => {
-			const rect = rects[ clientId ];
-
-			if ( ! rect || clientId === openId ) {
-				return null;
-			}
-
-			return (
-				<div
-					aria-hidden
-					className="cnl-section-modes__locked"
-					key={ clientId }
-					style={ local( rect, frame ) }
-				/>
-			);
-		} );
-
 	const freshRect = freshId && frame && rects[ freshId ];
 	const getLevel = () => {
 		if ( isWorkedOn ) {
@@ -2829,7 +2805,6 @@ export function SectionModesLayer( {
 							} }
 						/>
 					) }
-					{ renderLocked() }
 					{ renderPicked() }
 					{ /* Under the section being edited, so another section
 					pointed at never covers its Done. */ }

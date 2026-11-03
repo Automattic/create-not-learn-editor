@@ -495,11 +495,12 @@ test.describe( 'Edit mode', () => {
 			.first();
 		const bar = page.locator( '.cnl-section-modes__bar' );
 		const designBar = page.locator( '.cnl-section-modes__design' );
-		const locked = page.locator( '.cnl-section-modes__locked' );
+		const tint = page.locator( '.cnl-section-modes__tint' );
 
-		// Locked, and veiled, until it is opened: its bar has Edit header
-		// alone.
-		await expect( locked.first() ).toBeVisible( { timeout: 15000 } );
+		// Locked until it is opened, but darkened only while pointed at, as
+		// any section is: its bar has Edit header alone.
+		await expect( header ).toBeVisible( { timeout: 15000 } );
+		await expect( tint ).toHaveCount( 0 );
 		await expect( async () => {
 			await pointAtSection( page, header, { timeout: 1000 } );
 			await expect(
@@ -509,10 +510,8 @@ test.describe( 'Edit mode', () => {
 		await expect(
 			bar.getByRole( 'button', { name: 'Edit design' } )
 		).toHaveCount( 0 );
-		const lockedCount = await locked.count();
 
-		// Edit header opens Edit design's bar, with Done editing at its end,
-		// and lifts the veil.
+		// Edit header opens Edit design's bar, with Done editing at its end.
 		await pickSectionMode( page, header, 'Edit header' );
 		await expect(
 			designBar.getByRole( 'button', { name: 'Layout', exact: true } )
@@ -520,7 +519,6 @@ test.describe( 'Edit mode', () => {
 		await expect(
 			designBar.getByRole( 'button', { name: 'Done editing' } )
 		).toBeVisible();
-		await expect( locked ).toHaveCount( lockedCount - 1 );
 
 		// Only its content can be picked, not the groups laying it out.
 		await expect
@@ -584,7 +582,6 @@ test.describe( 'Edit mode', () => {
 		// Done editing locks it again.
 		await designBar.getByRole( 'button', { name: 'Done editing' } ).click();
 		await expect( designBar ).toHaveCount( 0 );
-		await expect( locked ).toHaveCount( lockedCount );
 	} );
 
 	test( 'bound values, like a menu link address, can be read', async ( {
