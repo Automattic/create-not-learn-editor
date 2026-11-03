@@ -6,6 +6,8 @@
  * narrow screens the stage fills the viewport and boot's sidebar save button
  * is kept instead.
  */
+@use "../colors" as *;
+
 $top-bar-height: 56px;
 
 // Boot's sidebar width plus the gap boot leaves between it and the surfaces.
@@ -255,6 +257,31 @@ $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 	+ .cnl-review-changes__item {
 		border-block-start: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
 	}
+}
+
+// Shows on every page, so its name is in the purple of what every page
+// shares, beside a globe. See `src/global-scope`.
+.cnl-review-changes__site-wide {
+	display: inline-flex;
+	align-items: center;
+	align-self: flex-start;
+	gap: var(--wpds-dimension-gap-xs);
+	max-width: 100%;
+	border-radius: var(--wpds-border-radius-xs);
+	color: $cnl-global;
+
+	.cnl-review-changes__label {
+		color: inherit;
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid $cnl-global;
+		outline-offset: 2px;
+	}
+}
+
+.cnl-review-changes__globe {
+	flex: none;
 }
 
 .cnl-review-changes__text {

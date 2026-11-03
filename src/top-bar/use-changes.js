@@ -52,6 +52,27 @@ const TYPE_LABELS = {
 	'postType/wp_block': __( 'Section' ),
 };
 
+/*
+ * Changes that show on every page of the site rather than one: its look, its
+ * header, footer and menus, and the name, tagline and images they show. The
+ * same as the chat's site-wide pickers, in `src/chat/scope.js`.
+ */
+const SITE_WIDE_SETTINGS = [ 'title', 'description', 'site_logo', 'site_icon' ];
+
+const SITE_WIDE_TYPES = [
+	'root/globalStyles',
+	'postType/wp_navigation',
+	'postType/wp_template_part',
+];
+
+function isSiteWideChange( { kind, name, property } ) {
+	if ( kind === 'root' && name === 'site' ) {
+		return SITE_WIDE_SETTINGS.includes( property );
+	}
+
+	return SITE_WIDE_TYPES.includes( `${ kind }/${ name }` );
+}
+
 function describeHomepage( site, getPageTitle ) {
 	if ( site?.show_on_front !== 'page' ) {
 		return __( 'Shows your latest posts' );
@@ -196,9 +217,9 @@ function putBackWhileSettling( registry, kept ) {
 }
 
 /**
- * @return {Object} `changes`, each with an `id`, a `label` and a `detail`,
- *                  whether they are saving, and `save`, `discard` and
- *                  `discardAll` actions.
+ * @return {Object} `changes`, each with an `id`, a `label`, a `detail` and
+ *                  `isSiteWide`, whether they are saving, and `save`,
+ *                  `discard` and `discardAll` actions.
  */
 export function useChanges() {
 	const { dirtyEntityRecords } = useEntitiesSavedStatesIsDirty();
@@ -249,6 +270,7 @@ export function useChanges() {
 		.map( ( record ) => ( {
 			...record,
 			id: getChangeId( record ),
+			isSiteWide: isSiteWideChange( record ),
 			...describeChange( record, {
 				getEntityConfig,
 				getPageTitle,
