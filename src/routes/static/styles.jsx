@@ -5,6 +5,7 @@ import { settings as appSettings } from '../../settings';
 import { DesignPage } from './design-page';
 import SitePreviewCanvas from './site-preview';
 import ScreenLinks from '../../screen-links';
+import { useTrailSearch } from '../../site-trail';
 import {
 	FontPicker,
 	LookPicker,
@@ -54,6 +55,8 @@ const DESIGN_LINKS = [
  * @param {Object}  props             Component props.
  * @param {Node}    props.children    The screen's options, once loaded.
  * @param {string}  props.description Sentence under the title.
+ * @param {boolean} props.isInDesign  Whether the screen is reached only from
+ *                                    Design.
  * @param {boolean} props.isLoading   Whether the theme's styles are still loading.
  * @param {boolean} props.isTopLevel  Whether this is the Design screen itself.
  * @param {string}  props.title       Screen title.
@@ -62,6 +65,7 @@ const DESIGN_LINKS = [
 function StylesScreen( {
 	children,
 	description,
+	isInDesign,
 	isLoading,
 	isTopLevel,
 	title,
@@ -69,6 +73,7 @@ function StylesScreen( {
 	return (
 		<DesignPage
 			description={ description }
+			isInDesign={ isInDesign }
 			isTopLevel={ isTopLevel }
 			title={ title }
 		>
@@ -95,6 +100,8 @@ function StylesScreen( {
 
 export function DesignStage() {
 	const { isLoading } = useStylesData();
+	// The screens it links to lead back to where the visit began, too.
+	const trailSearch = useTrailSearch();
 
 	return (
 		<StylesScreen
@@ -106,7 +113,10 @@ export function DesignStage() {
 			<LookPicker />
 			<ScreenLinks
 				label={ __( 'More design options' ) }
-				links={ DESIGN_LINKS }
+				links={ DESIGN_LINKS.map( ( link ) => ( {
+					...link,
+					search: trailSearch,
+				} ) ) }
 			/>
 		</StylesScreen>
 	);
@@ -130,6 +140,7 @@ export function ColorsStage() {
 					'Changes the whole site at once. Your theme, %s, provides these palettes.'
 				)
 			) }
+			isInDesign
 			isLoading={ isLoading }
 			title={ __( 'Colors' ) }
 		>
@@ -150,6 +161,7 @@ export function FontsStage() {
 					'Changes the whole site at once. Your theme, %s, provides these pairings.'
 				)
 			) }
+			isInDesign
 			isLoading={ isLoading }
 			title={ __( 'Fonts' ) }
 		>

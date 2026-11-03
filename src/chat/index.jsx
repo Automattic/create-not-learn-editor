@@ -39,6 +39,7 @@ import { Icon } from '@wordpress/ui';
  * Internal dependencies
  */
 import { preloadDeferred, useDeferred } from '../app-init-deferred';
+import { isAtFoot } from './at-foot';
 import { sparkleIcon } from './icons';
 import {
 	PLACEMENT_DOCK,
@@ -323,8 +324,13 @@ export function mountChat() {
 
 		const anyStage = document.querySelector( STAGE );
 
-		// The way in to the chat, at the foot of every screen.
-		if ( anyStage && help.parentElement !== anyStage ) {
+		// The way in to the chat, at the foot of every screen, including one
+		// boot has just added after it.
+		if (
+			anyStage &&
+			( help.parentElement !== anyStage ||
+				! isAtFoot( help, [ container ] ) )
+		) {
 			anyStage.append( help );
 		}
 

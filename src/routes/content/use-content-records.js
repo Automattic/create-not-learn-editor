@@ -7,6 +7,8 @@ import { useParams, useSearch } from '@wordpress/route';
  * Internal dependencies
  */
 import { getPostType } from '../../settings';
+import { getActiveWorkspace } from '../../workspaces/presets';
+import { getPostView } from './post-views';
 import { getErrorMessage } from '../../records';
 import { EMPTY_ARRAY } from './page-layouts';
 import {
@@ -25,7 +27,13 @@ import {
 
 // No `content`: nothing shows it, and the server renders it for every record.
 const POST_QUERY_FIELDS =
-	'id,author,link,title,status,type,date,modified,date_gmt,modified_gmt,template,slug,parent,comment_count';
+	'id,author,link,title,status,type,date,modified,date_gmt,modified_gmt,template,slug,parent,comment_count,excerpt';
+
+/*
+ * Lists by status also ask for each post's links, which say
+ * what the user may do with it, as core's trash actions need to know.
+ */
+const POST_QUERY_FIELDS_WITH_LINKS = `${ POST_QUERY_FIELDS },_links`;
 
 const TEMPLATE_QUERY = {
 	context: 'edit',
@@ -34,14 +42,29 @@ const TEMPLATE_QUERY = {
 		'id,slug,title,description,source,author,theme,type,status,content,is_custom',
 };
 
-function getPostQuery( search ) {
+const LISTED_STATUSES = [ 'publish', 'draft', 'pending', 'private', 'future' ];
+
+function getPostQuery( search, statuses = LISTED_STATUSES, withLinks ) {
 	return {
 		context: 'edit',
 		per_page: 20,
 		search: search || undefined,
-		_fields: POST_QUERY_FIELDS,
-		status: 'publish,draft,pending,private,future',
+		_fields: withLinks ? POST_QUERY_FIELDS_WITH_LINKS : POST_QUERY_FIELDS,
+		status: statuses.join( ',' ),
 	};
+}
+
+/**
+ * The status a list is showing, when its workspace lists posts by status.
+ *
+ * @param {?Object} type Post type.
+ * @param {string}  slug The address's view slug.
+ * @return {?Object} The tab, from `getPostView`, or null.
+ */
+function getStatusView( type, slug ) {
+	return type?.name === 'post' && getActiveWorkspace().posts.statusFilter
+		? getPostView( slug )
+		: null;
 }
 
 function getSearchValue( value ) {
@@ -52,21 +75,39 @@ function getSearchValue( value ) {
 	return value;
 }
 
-function getDefaultContentViewType( type ) {
-	return type?.name === 'page' ? 'grid' : 'table';
-}
+/**
+ * How a content type is listed to begin with. Posts follow the workspace:
+ * a writer's are a list of what they wrote, drafts first, rather than a
+ * table of records.
+ *
+ * @param {?Object} type Post type.
+ * @return {Object} `{ fields, type }`, plus `groupBy` and
+ *                  `descriptionField` for a list grouped by status.
+ */
+function getDefaultContentLayout( type ) {
+	if ( type?.name === 'page' ) {
+		return { fields: [ 'on-site' ], type: 'grid' };
+	}
 
-function getDefaultContentViewFields( type ) {
-	return type?.name === 'page' ? [ 'on-site' ] : DEFAULT_CONTENT_VIEW.fields;
+	const posts = getActiveWorkspace().posts;
+
+	if ( type?.name === 'post' && posts.layout === 'list' ) {
+		return {
+			descriptionField: 'excerpt',
+			fields: [ 'date' ],
+			type: 'list',
+		};
+	}
+
+	return { fields: DEFAULT_CONTENT_VIEW.fields, type: 'table' };
 }
 
 function getInitialContentView( searchParams, type ) {
 	return {
 		...DEFAULT_CONTENT_VIEW,
-		fields: getDefaultContentViewFields( type ),
+		...getDefaultContentLayout( type ),
 		page: searchParams.page ? Number( searchParams.page ) || 1 : 1,
 		search: searchParams.search || '',
-		type: getDefaultContentViewType( type ),
 	};
 }
 
@@ -74,15 +115,38 @@ export default function useContentRecords() {
 	const params = useParams( { strict: false } );
 	const searchParams = useSearch( { strict: false } );
 	const type = getPostType( params.type );
+	const statusView = getStatusView( type, params.view );
 	const [ contentView, setContentView ] = useState( () =>
 		getInitialContentView( searchParams, type )
 	);
 	const previousTypeNameRef = useRef( type?.name );
 	const activeTab = getActiveTab( searchParams );
+	// Listed by status, the status buttons pick which, so status is not one
+	// of the list's filters too.
+	const statuses = statusView ? statusView.statuses : LISTED_STATUSES;
+	const statusesKey = statuses.join( ',' );
+	const hasStatusFilter = !! statusView;
 	const postQuery = useMemo(
-		() => getPostQuery( contentView.search ),
-		[ contentView.search ]
+		() =>
+			getPostQuery(
+				contentView.search,
+				statusesKey.split( ',' ),
+				hasStatusFilter
+			),
+		[ contentView.search, hasStatusFilter, statusesKey ]
 	);
+
+	// Moving to another status starts its list afresh.
+	const statusViewSlug = statusView?.slug;
+	const previousStatusViewRef = useRef( statusViewSlug );
+	useEffect( () => {
+		if ( previousStatusViewRef.current === statusViewSlug ) {
+			return;
+		}
+
+		previousStatusViewRef.current = statusViewSlug;
+		setContentView( ( currentView ) => ( { ...currentView, page: 1 } ) );
+	}, [ statusViewSlug ] );
 
 	useEffect( () => {
 		setContentView( ( currentView ) => ( {
@@ -100,8 +164,8 @@ export default function useContentRecords() {
 		previousTypeNameRef.current = type?.name;
 		setContentView( ( currentView ) => ( {
 			...currentView,
-			fields: getDefaultContentViewFields( type ),
-			type: getDefaultContentViewType( type ),
+			descriptionField: undefined,
+			...getDefaultContentLayout( type ),
 		} ) );
 	}, [ type ] );
 
@@ -165,6 +229,59 @@ export default function useContentRecords() {
 		},
 		[ activeTab, needsPosts, postQuery, type ]
 	);
+	/*
+	 * What the user may do with each post, as core's post actions read it
+	 * from the post itself. Core-data learns it from the posts' links, so
+	 * asking costs nothing more. Kept as a string while selecting, so the
+	 * posts are only rebuilt when it changes.
+	 */
+	const permissionsKey = useSelect(
+		( select ) => {
+			if ( ! hasStatusFilter || ! type ) {
+				return '';
+			}
+
+			const { canUser } = select( coreDataStore );
+
+			return posts
+				.map( ( post ) => {
+					const resource = {
+						kind: 'postType',
+						name: type.name,
+						id: post.id,
+					};
+
+					return [
+						post.id,
+						canUser( 'delete', resource ) ? 1 : 0,
+						canUser( 'update', resource ) ? 1 : 0,
+					].join( ':' );
+				} )
+				.join( ',' );
+		},
+		[ hasStatusFilter, posts, type ]
+	);
+	const postsWithPermissions = useMemo( () => {
+		if ( ! permissionsKey ) {
+			return posts;
+		}
+
+		const permissions = new Map(
+			permissionsKey.split( ',' ).map( ( entry ) => {
+				const [ id, canDelete, canUpdate ] = entry.split( ':' );
+
+				return [
+					id,
+					{ delete: canDelete === '1', update: canUpdate === '1' },
+				];
+			} )
+		);
+
+		return posts.map( ( post ) => ( {
+			...post,
+			permissions: permissions.get( String( post.id ) ),
+		} ) );
+	}, [ permissionsKey, posts ] );
 	const templates = useMemo(
 		() =>
 			type
@@ -203,12 +320,13 @@ export default function useContentRecords() {
 
 	return {
 		activeTab,
+		statusView,
 		contentView,
 		error,
 		isLoading,
 		params,
 		previewTemplates,
-		posts,
+		posts: postsWithPermissions,
 		selectedId,
 		selectedPost,
 		selectedTemplate,

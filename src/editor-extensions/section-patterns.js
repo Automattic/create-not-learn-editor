@@ -9,7 +9,9 @@
  * columns, would land fully editable.
  *
  * So the name is stamped on each top-level block of those patterns as they
- * arrive from the REST API, before core parses them. Only the opening
+ * arrive from the REST API, before core parses them. Kinds of post, like a
+ * photo or a quote, are ways to start a post rather than sections, so they
+ * are left as they are. Only the opening
  * delimiter of each top-level block is rewritten. The rest of the markup is
  * left exactly as the theme wrote it, because re-serialising it would
  * normalise whitespace that some blocks, such as preformatted text, keep.
@@ -23,6 +25,11 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
+
+/**
+ * Internal dependencies
+ */
+import { POST_KINDS_CATEGORY } from '../post-kinds-base';
 
 const PATTERNS_PATH = /^\/wp\/v2\/block-patterns\/patterns(?:\?|$)/;
 
@@ -121,6 +128,23 @@ export function stampPatternName( content, patternName ) {
 }
 
 /**
+ * Stamp a pattern from the REST API, unless it is a kind of post.
+ *
+ * @param {Object} pattern Pattern, as the REST API gives it.
+ * @return {Object} The pattern, its content stamped where needed.
+ */
+export function stampPattern( pattern ) {
+	if ( pattern?.categories?.includes( POST_KINDS_CATEGORY ) ) {
+		return pattern;
+	}
+
+	return {
+		...pattern,
+		content: stampPatternName( pattern?.content, pattern?.name ),
+	};
+}
+
+/**
  * Stamp the block patterns core-data fetches.
  *
  * @param {Object}   options Request options.
@@ -135,12 +159,7 @@ function sectionPatternsMiddleware( options, next ) {
 	}
 
 	return response.then( ( patterns ) =>
-		Array.isArray( patterns )
-			? patterns.map( ( pattern ) => ( {
-					...pattern,
-					content: stampPatternName( pattern.content, pattern.name ),
-				} ) )
-			: patterns
+		Array.isArray( patterns ) ? patterns.map( stampPattern ) : patterns
 	);
 }
 

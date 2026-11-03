@@ -12,6 +12,7 @@ import {
 	createInterpolateElement,
 	useEffect,
 	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 } from '@wordpress/element';
@@ -57,11 +58,12 @@ import {
 import { GlobalNote } from '../global-scope';
 import { sparkleIcon } from './icons';
 import { isSiteWide } from './scope';
-import { PAGE_SUGGESTIONS, SKILLS, SUGGESTION_GROUPS } from './skills';
+import { PAGE_SUGGESTIONS, SKILLS, getSuggestionGroups } from './skills';
 import { findTargetPage } from './target-page';
 import { getSelectedSection } from './target-section';
 import { STORE_NAME } from './store';
 import { StreamingText } from './streaming-text';
+import { getActiveWorkspace } from '../workspaces/presets';
 
 const SUGGESTION_ICONS = {
 	color: colorIcon,
@@ -170,9 +172,12 @@ export function Suggestions( { isLarge = false } ) {
 			pageId: id,
 		};
 	}, [] );
-	const openGroup = SUGGESTION_GROUPS.find(
-		( group ) => group.id === openId
+	const home = useSelect(
+		( select ) => getActiveWorkspace( select ).home,
+		[]
 	);
+	const groups = useMemo( () => getSuggestionGroups( home ), [ home ] );
+	const openGroup = groups.find( ( group ) => group.id === openId );
 	const className = `cnl-chat-suggestions${ isLarge ? ' is-large' : '' }`;
 
 	if ( openGroup ) {
@@ -240,7 +245,7 @@ export function Suggestions( { isLarge = false } ) {
 					</Text>
 				) }
 				<div className="cnl-chat-suggestions__groups">
-					{ SUGGESTION_GROUPS.map( ( group ) => (
+					{ groups.map( ( group ) => (
 						<SuggestionGroup
 							group={ group }
 							key={ group.id }

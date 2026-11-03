@@ -28,6 +28,7 @@ import { mountEditorLayer } from '../../../src/editor-layer';
 import { registerLayoutWireframes } from '../../../src/layouts';
 import { mountTopBar } from '../../../src/top-bar';
 import { mountWorkspaces } from '../../../src/workspaces';
+import { mountPreferences } from '../../../src/preferences';
 import { enhanceSidebar } from './sidebar';
 
 export async function init() {
@@ -54,6 +55,7 @@ export async function init() {
 	} );
 
 	mountWorkspaces();
+	mountPreferences();
 	mountTopBar();
 	mountCommands();
 	mountChat();

@@ -28,6 +28,7 @@ import { decodeEntities } from '@wordpress/html-entities';
 import { __ } from '@wordpress/i18n';
 import {
 	brush as brushIcon,
+	cog as cogIcon,
 	color as colorIcon,
 	external as externalIcon,
 	footer as footerIcon,
@@ -49,6 +50,7 @@ import {
  * Internal dependencies
  */
 import { openRoute } from '../open-route';
+import { openPreferences } from '../preferences';
 import { HOMEPAGE } from '../routes/content/pages/homepage-state';
 import { getPostTypes, settings } from '../settings';
 import { MODE_EDIT, setCanvasMode } from '../site-canvas/mode';
@@ -60,6 +62,8 @@ const PAGES_PATH = '/types/page/list/all';
 const HIDDEN_COMMANDS = [
 	// Gutenberg's demo post, added to every block editor.
 	'gutenberg/insert-demo-content',
+	// Replaced by Preferences, which opens the editor's own in the editor.
+	'core/open-preferences',
 ];
 
 const EMPTY_ARRAY = [];
@@ -275,6 +279,27 @@ function useViewSiteCommand() {
 	useCommands( commands );
 }
 
+function usePreferencesCommand() {
+	const commands = useMemo(
+		() => [
+			{
+				name: 'create-not-learn-editor/preferences',
+				label: __( 'Preferences' ),
+				icon: cogIcon,
+				category: 'view',
+				keywords: [ __( 'settings' ), __( 'options' ) ],
+				callback: ( { close } ) => {
+					close();
+					openPreferences();
+				},
+			},
+		],
+		[]
+	);
+
+	useCommands( commands );
+}
+
 /**
  * What's typed, once it has stopped changing for a moment, so typing in the
  * palette asks for pages once rather than on every key.
@@ -374,19 +399,62 @@ function usePageCommands( { search } ) {
 	};
 }
 
+// Loaders whose commands have been filtered, so none is filtered twice.
+const filteredLoaders = new WeakSet();
+
+/**
+ * A loader's hook, without the commands that don't belong here.
+ *
+ * @param {Function} hook The loader's hook.
+ * @return {Function} The hook, filtered.
+ */
+function withoutHiddenCommands( hook ) {
+	const filtered = ( ...args ) => {
+		const result = hook( ...args );
+
+		return result?.commands
+			? {
+					...result,
+					commands: result.commands.filter(
+						( command ) =>
+							! HIDDEN_COMMANDS.includes( command.name )
+					),
+				}
+			: result;
+	};
+
+	filteredLoaders.add( filtered );
+
+	return filtered;
+}
+
 /**
  * Take commands that don't belong here back out whenever they're registered,
  * which can be at any time: the editor's own scripts add theirs when it loads.
+ * Some come from loaders, which offer several commands at once, so those are
+ * kept and filtered instead.
  */
 function hideCommands() {
 	const unregister = () => {
-		const { getCommands } = select( commandsStore );
+		const { getCommandLoaders, getCommands } = select( commandsStore );
 		const registered = [ ...getCommands(), ...getCommands( true ) ];
+		const loaders = [
+			...getCommandLoaders(),
+			...getCommandLoaders( true ),
+		];
 
 		registered
 			.filter( ( command ) => HIDDEN_COMMANDS.includes( command.name ) )
 			.forEach( ( command ) =>
 				dispatch( commandsStore ).unregisterCommand( command.name )
+			);
+		loaders
+			.filter( ( loader ) => ! filteredLoaders.has( loader.hook ) )
+			.forEach( ( loader ) =>
+				dispatch( commandsStore ).registerCommandLoader( {
+					...loader,
+					hook: withoutHiddenCommands( loader.hook ),
+				} )
 			);
 	};
 
@@ -397,6 +465,7 @@ function hideCommands() {
 function CommandPalette() {
 	useScreenCommands();
 	useViewSiteCommand();
+	usePreferencesCommand();
 	useCommandLoader( {
 		name: 'create-not-learn-editor/pages',
 		hook: usePageCommands,

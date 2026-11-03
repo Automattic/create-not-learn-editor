@@ -8,6 +8,7 @@ import { useDataViews } from '../../use-dataviews';
 import {
 	Badge,
 	coreDataStore,
+	decodeEntities,
 	Stack,
 	__,
 	sprintf,
@@ -36,6 +37,7 @@ const STATUS_OPTIONS = [
 	{ label: __( 'Scheduled' ), value: 'future' },
 	{ label: __( 'Pending review' ), value: 'pending' },
 	{ label: __( 'Private' ), value: 'private' },
+	{ label: __( 'Trash' ), value: 'trash' },
 ];
 
 function getDateLabel( post ) {
@@ -155,6 +157,12 @@ export function usePostAuthors( posts ) {
 	);
 }
 
+function getExcerptText( item ) {
+	const rendered = item?.excerpt?.rendered || '';
+
+	return decodeEntities( rendered.replace( /<[^>]+>/g, '' ) ).trim();
+}
+
 function getAuthorName( item, authors ) {
 	const authorId = Number( item.author );
 
@@ -191,9 +199,12 @@ export function getContentFields( siteRoles = {}, authors = NO_AUTHORS ) {
 		{
 			elements: STATUS_OPTIONS,
 			enableSorting: false,
-			filterBy: {
-				operators: [ 'isAny' ],
-			},
+			// Listed by status, buttons above the list pick the status.
+			filterBy: siteRoles.isListedByStatus
+				? false
+				: {
+						operators: [ 'isAny' ],
+					},
 			getValue: ( { item } ) => getStatusLabel( item.status ),
 			id: 'status',
 			label: __( 'Status' ),
@@ -227,6 +238,20 @@ export function getContentFields( siteRoles = {}, authors = NO_AUTHORS ) {
 			label: __( 'Comments' ),
 			render: ( { item } ) => Number( item.comment_count ) || 0,
 			type: 'integer',
+		},
+		{
+			enableHiding: false,
+			enableSorting: false,
+			filterBy: false,
+			getValue: ( { item } ) => getExcerptText( item ),
+			id: 'excerpt',
+			label: __( 'Excerpt' ),
+			render: ( { item } ) => (
+				<span className="cnl-editor-dataviews-excerpt">
+					{ getExcerptText( item ) }
+				</span>
+			),
+			type: 'text',
 		},
 		{
 			getValue: ( { item } ) => item.date || item.modified || '',

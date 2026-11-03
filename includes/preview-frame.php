@@ -27,6 +27,7 @@ function cnl_editor_register_preview_frame_hooks() {
 
 	add_filter( 'pre_option_show_on_front', 'cnl_editor_preview_show_on_front' );
 	add_filter( 'pre_option_page_on_front', 'cnl_editor_preview_page_on_front' );
+	add_filter( 'pre_option_posts_per_page', 'cnl_editor_preview_posts_per_page' );
 	add_filter( 'render_block', 'cnl_editor_name_preview_block', 10, 2 );
 }
 
@@ -204,6 +205,30 @@ function cnl_editor_preview_page_on_front( $value ) {
 	}
 
 	return $page_id;
+}
+
+/**
+ * List as many posts at once as will be listed once that is saved.
+ *
+ * Choosing how many posts show at once is an unsaved change like the ones
+ * above. The canvas passes the number along as `cnl-editor-posts-per-page`,
+ * and the preview lists that many, for those who could save it.
+ *
+ * @param mixed $value The option's value, or false to read it as saved.
+ * @return mixed The number passed along, or `$value`.
+ */
+function cnl_editor_preview_posts_per_page( $value ) {
+	if ( ! did_action( 'init' ) || ! cnl_editor_is_preview_frame_request() ) {
+		return $value;
+	}
+
+	$per_page = filter_input( INPUT_GET, 'cnl-editor-posts-per-page', FILTER_VALIDATE_INT );
+
+	if ( ! is_int( $per_page ) || $per_page < 1 || ! current_user_can( 'manage_options' ) ) {
+		return $value;
+	}
+
+	return $per_page;
 }
 
 /**

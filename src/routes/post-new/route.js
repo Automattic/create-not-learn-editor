@@ -5,10 +5,11 @@ import { notFound, redirect } from '@wordpress/route';
  */
 import { getPostType, namespace } from '../../settings';
 import { cnlEditorStore } from '../../records';
+import { startPostFromKind } from '../../post-kinds';
 import { __, dispatch, sprintf } from '../../wordpress-packages';
 
 export const route = {
-	beforeLoad: async ( { params } ) => {
+	beforeLoad: async ( { params, search } ) => {
 		const type = getPostType( params.type );
 
 		if ( ! type || ! type.blockEditor || ! type.canCreate ) {
@@ -22,6 +23,12 @@ export const route = {
 
 		if ( ! post?.id ) {
 			throw notFound();
+		}
+
+		// Picked as a kind of post, like a note or a photo, it starts with
+		// that kind's blocks.
+		if ( typeof search?.kind === 'string' ) {
+			await startPostFromKind( type.name, post.id, search.kind );
 		}
 
 		throw redirect( {

@@ -547,7 +547,7 @@ function isPassedToPreview( change, select ) {
 	if ( kind === 'postType' && name === 'page' ) {
 		shown = [ 'status', 'template' ];
 	} else if ( kind === 'root' && name === 'site' ) {
-		shown = [ 'page_on_front', 'show_on_front' ];
+		shown = [ 'page_on_front', 'posts_per_page', 'show_on_front' ];
 	} else {
 		return false;
 	}
