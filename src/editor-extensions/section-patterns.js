@@ -29,7 +29,7 @@ import apiFetch from '@wordpress/api-fetch';
 /**
  * Internal dependencies
  */
-import { POST_KINDS_CATEGORY } from '../post-kinds-category';
+import { POST_KINDS_CATEGORY } from '../post-kinds-base';
 
 const PATTERNS_PATH = /^\/wp\/v2\/block-patterns\/patterns(?:\?|$)/;
 

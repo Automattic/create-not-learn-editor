@@ -8,6 +8,7 @@ import { MODE_EDIT, setCanvasMode } from '../../site-canvas/mode';
 import { FROM_SITE_SEARCH } from '../../site-trail';
 import { requestDistractionFreeEntry } from '../../editor-layer/distraction-free';
 import { getActiveWorkspace } from '../../workspaces/presets';
+import { isAskingPostKind } from '../../post-kinds-base';
 import PostKindPicker from '../../pickers/post-kinds';
 import {
 	Link,
@@ -43,7 +44,7 @@ const START_ROUTES = {
 	posts: { to: '/types/post/list/all' },
 };
 
-function getStartLinks( workspace, { onPickPostKind } ) {
+function getStartLinks( workspace, { isAskingKind, onPickPostKind } ) {
 	return getStartPlaces( workspace.home ).map( ( place ) => {
 		const link = {
 			...place,
@@ -55,8 +56,8 @@ function getStartLinks( workspace, { onPickPostKind } ) {
 			return link;
 		}
 
-		// Asked what kind of post it is first, when the workspace asks.
-		if ( workspace.postKinds ) {
+		// Asked what kind of post it is first, unless they'd rather not be.
+		if ( isAskingKind ) {
 			return { ...link, onOpen: onPickPostKind, to: undefined };
 		}
 
@@ -76,6 +77,10 @@ export default function Stage() {
 		[]
 	);
 	const workspace = useSelect( getActiveWorkspace, [] );
+	const isAskingKind = useSelect(
+		( select ) => isAskingPostKind( select, workspace ),
+		[ workspace ]
+	);
 	const [ isPickingPostKind, setIsPickingPostKind ] = useState( false );
 	const siteName = decodeEntities( siteTitle || settings.siteName || '' );
 
@@ -105,6 +110,7 @@ export default function Stage() {
 					<ScreenLinks
 						label={ __( 'Start working on your site' ) }
 						links={ getStartLinks( workspace, {
+							isAskingKind,
 							onPickPostKind: () => setIsPickingPostKind( true ),
 						} ) }
 					/>

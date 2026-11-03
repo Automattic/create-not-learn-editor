@@ -3,8 +3,10 @@
  * starting point of blocks ready to fill in.
  *
  * The kinds are block patterns in the `cnl-post-kinds` category
- * (`includes/post-kinds.php`), so a theme can add its own. A plain Post, with
- * nothing to start from, always comes first. The plugin's own kinds get an
+ * (`includes/post-kinds.php`), so a theme can add its own. They come with the
+ * page, in the editor's settings, so the picker can offer them as it opens
+ * without waiting on every pattern the site has. A plain Post, with nothing
+ * to start from, always comes first. The plugin's own kinds get an
  * icon and a post format here, so themes that show formats differently can.
  *
  * Shared by the picker and the route that makes the new post, which are
@@ -18,6 +20,7 @@ import { parse } from '@wordpress/blocks';
 import { store as coreDataStore } from '@wordpress/core-data';
 import { dispatch, resolveSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
+import { loadEditorAssets } from '@wordpress/lazy-editor';
 import {
 	gallery,
 	image,
@@ -32,9 +35,20 @@ import {
 /**
  * Internal dependencies
  */
-import { POST_KINDS_CATEGORY } from './post-kinds-category';
+import {
+	POST_KINDS_CATEGORY,
+	isUntitledFormat,
+	requestPostKindFocus,
+	takePostKindFocus,
+} from './post-kinds-base';
+import { settings } from './settings';
 
-export { POST_KINDS_CATEGORY };
+export {
+	POST_KINDS_CATEGORY,
+	isUntitledFormat,
+	requestPostKindFocus,
+	takePostKindFocus,
+};
 
 // The kind with nothing to start from.
 export const PLAIN_POST = 'post';
@@ -46,12 +60,7 @@ const PREFIX = 'create-not-learn-editor/post-kind-';
  * (`src/pickers/post-kinds.jsx`).
  */
 const KIND_DETAILS = {
-	[ `${ PREFIX }note` ]: {
-		format: 'aside',
-		icon: paragraph,
-		sketch: 'note',
-		untitled: true,
-	},
+	[ `${ PREFIX }note` ]: { format: 'aside', icon: paragraph, sketch: 'note' },
 	[ `${ PREFIX }link` ]: { format: 'link', icon: link, sketch: 'link' },
 	[ `${ PREFIX }photo` ]: { format: 'image', icon: image, sketch: 'photo' },
 	[ `${ PREFIX }gallery` ]: {
@@ -63,22 +72,16 @@ const KIND_DETAILS = {
 	[ `${ PREFIX }video` ]: { format: 'video', icon: video, sketch: 'video' },
 };
 
-/*
- * Set when a kind is picked and read once the editor opens, to put the
- * caret in the kind's first block rather than the title. Kept on `window`,
- * as the route that makes the post and the editor layer are built
- * separately.
- */
-const FOCUS_FLAG = '__cnlEditorFocusPostKind';
-
 /**
  * Every kind of post, in the order they are offered.
  *
- * @param {Object[]} patterns The site's block patterns.
- * @return {Object[]} `{ description, format, icon, name, sketch, title,
- *                    untitled }`.
+ * @param {Object[]} patterns The kinds' patterns, `{ name, title,
+ *                            description, content }`. The editor's settings
+ *                            by default.
+ * @return {Object[]} `{ content, description, format, icon, name, sketch,
+ *                    title }`.
  */
-export function getPostKinds( patterns = [] ) {
+export function getPostKinds( patterns = settings.postKinds || [] ) {
 	return [
 		{
 			description: __( 'With a title, as long as you like' ),
@@ -88,33 +91,17 @@ export function getPostKinds( patterns = [] ) {
 			sketch: 'post',
 			title: __( 'Post' ),
 		},
-		...patterns
-			.filter( ( pattern ) =>
-				pattern.categories?.includes( POST_KINDS_CATEGORY )
-			)
-			.map( ( pattern ) => ( {
-				description: pattern.description || '',
-				format: 'standard',
-				icon: postContent,
-				name: pattern.name,
-				sketch: 'post',
-				title: pattern.title,
-				untitled: false,
-				...KIND_DETAILS[ pattern.name ],
-			} ) ),
+		...patterns.map( ( pattern ) => ( {
+			content: pattern.content || '',
+			description: pattern.description || '',
+			format: 'standard',
+			icon: postContent,
+			name: pattern.name,
+			sketch: 'post',
+			title: pattern.title,
+			...KIND_DETAILS[ pattern.name ],
+		} ) ),
 	];
-}
-
-/**
- * Whether a post format is one whose posts usually go without a title.
- *
- * @param {string} format Post format.
- * @return {boolean} Whether it is.
- */
-export function isUntitledFormat( format ) {
-	return Object.values( KIND_DETAILS ).some(
-		( details ) => details.untitled && details.format === format
-	);
 }
 
 /**
@@ -126,47 +113,35 @@ export function isUntitledFormat( format ) {
  * @param {string} name     The kind's pattern name.
  */
 export async function startPostFromKind( postType, postId, name ) {
-	const patterns = await resolveSelect( coreDataStore ).getBlockPatterns();
-	const kind = getPostKinds( patterns ).find(
-		( candidate ) => candidate.name === name
-	);
-	const pattern = ( patterns || [] ).find(
+	const kind = getPostKinds().find(
 		( candidate ) => candidate.name === name
 	);
 
-	if ( ! kind || ! pattern ) {
+	if ( ! kind?.content ) {
 		return;
 	}
 
-	// The record must be in the store before it can be edited.
-	await resolveSelect( coreDataStore ).getEntityRecord(
-		'postType',
-		postType,
-		postId
-	);
+	await Promise.all( [
+		// The blocks can only be read once the editor has registered them,
+		// which it may not have yet when a post starts from Posts.
+		loadEditorAssets(),
+		// The record must be in the store before it can be edited.
+		resolveSelect( coreDataStore ).getEntityRecord(
+			'postType',
+			postType,
+			postId
+		),
+	] );
 	dispatch( coreDataStore ).editEntityRecord(
 		'postType',
 		postType,
 		postId,
 		{
-			blocks: parse( pattern.content ),
-			content: pattern.content,
+			blocks: parse( kind.content ),
+			content: kind.content,
 			format: kind.format,
 		},
 		{ undoIgnore: true }
 	);
-	window[ FOCUS_FLAG ] = true;
-}
-
-/**
- * Whether a kind was just picked, forgetting it once asked.
- *
- * @return {boolean} Whether the editor should put the caret in the kind's
- *                   first block.
- */
-export function takePostKindFocus() {
-	const isRequested = !! window[ FOCUS_FLAG ];
-	delete window[ FOCUS_FLAG ];
-
-	return isRequested;
+	requestPostKindFocus();
 }

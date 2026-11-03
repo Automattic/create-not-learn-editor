@@ -78,6 +78,22 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	grid-column: 3;
 }
 
+// The Options menu's button, light on the dark frame like the chat's.
+.cnl-options-menu .components-button {
+	color: var(--wpds-color-foreground-interactive-neutral);
+
+	&:hover:not(:disabled) {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+		color: var(--wpds-color-foreground-interactive-neutral-active);
+	}
+
+	&.is-pressed,
+	&.is-pressed:hover:not(:disabled) {
+		background: var(--wpds-color-background-interactive-neutral-strong);
+		color: var(--wpds-color-foreground-interactive-neutral-strong);
+	}
+}
+
 /*
  * Command search. Dressed as a search field so it reads as somewhere to
  * type, but it is a button: the palette is where the typing happens.

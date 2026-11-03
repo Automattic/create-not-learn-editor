@@ -10,8 +10,7 @@
 /**
  * WordPress dependencies
  */
-import { Modal } from '@wordpress/components';
-import { store as coreDataStore } from '@wordpress/core-data';
+import { CheckboxControl, Modal } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { useNavigate } from '@wordpress/route';
@@ -21,6 +20,7 @@ import { useNavigate } from '@wordpress/route';
  */
 import { requestDistractionFreeEntry } from '../editor-layer/distraction-free';
 import { PLAIN_POST, getPostKinds } from '../post-kinds';
+import { setAskingPostKind, wantsPostKindQuestion } from '../post-kinds-base';
 import PostKindSketch from './post-kind-sketches';
 
 /**
@@ -33,11 +33,9 @@ import PostKindSketch from './post-kind-sketches';
  */
 export default function PostKindPicker( { onClose, isFocusedOpen } ) {
 	const navigate = useNavigate();
-	const kinds = useSelect(
-		( select ) =>
-			getPostKinds( select( coreDataStore ).getBlockPatterns() || [] ),
-		[]
-	);
+	// Sent with the page, so they're here as soon as the picker opens.
+	const kinds = getPostKinds();
+	const isAsking = useSelect( wantsPostKindQuestion, [] );
 
 	const pick = ( kind ) => {
 		if ( isFocusedOpen ) {
@@ -94,6 +92,15 @@ export default function PostKindPicker( { onClose, isFocusedOpen } ) {
 					);
 				} ) }
 			</div>
+			<CheckboxControl
+				checked={ ! isAsking }
+				className="cnl-post-kinds__skip"
+				help={ __(
+					'Start every post as a plain post. You can turn this back on in Preferences, in the ⋮ menu at the top right.'
+				) }
+				label={ __( 'Don’t ask me again' ) }
+				onChange={ ( isSkipping ) => setAskingPostKind( ! isSkipping ) }
+			/>
 		</Modal>
 	);
 }

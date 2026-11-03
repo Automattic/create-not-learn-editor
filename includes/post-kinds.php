@@ -4,7 +4,8 @@
  * post, like a note, a photo or a quote.
  *
  * Each kind is a block pattern in the `cnl-post-kinds` category, so a theme
- * can offer kinds of its own by registering patterns in it. They are kept out
+ * can offer kinds of its own by registering patterns in it. They reach the
+ * editor in its settings (`cnl_editor_get_post_kind_settings()`). They are kept out
  * of the inserter, as they are ways to start a post rather than something to
  * add to one. The editor gives the plugin's own kinds their icons and post
  * formats (`src/post-kinds.js`); a theme's are standard posts.
@@ -102,4 +103,33 @@ function cnl_editor_register_post_kinds() {
 			)
 		);
 	}
+}
+
+/**
+ * Every kind of post, the theme's as well as the plugin's, for the editor's
+ * settings.
+ *
+ * Sent with the page so the picker can offer them as soon as it opens.
+ * Fetched from the REST API, they would wait on every pattern the site has,
+ * which is a large download.
+ *
+ * @return array[] `name`, `title`, `description` and `content` of each kind.
+ */
+function cnl_editor_get_post_kind_settings() {
+	$kinds = array();
+
+	foreach ( WP_Block_Patterns_Registry::get_instance()->get_all_registered() as $pattern ) {
+		if ( empty( $pattern['categories'] ) || ! in_array( 'cnl-post-kinds', $pattern['categories'], true ) ) {
+			continue;
+		}
+
+		$kinds[] = array(
+			'name'        => $pattern['name'],
+			'title'       => $pattern['title'],
+			'description' => $pattern['description'] ?? '',
+			'content'     => $pattern['content'] ?? '',
+		);
+	}
+
+	return $kinds;
 }

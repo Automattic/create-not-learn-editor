@@ -68,6 +68,7 @@ import {
 } from '@wordpress/data';
 import {
 	Component,
+	createInterpolateElement,
 	flushSync,
 	Fragment,
 	memo,
@@ -176,6 +177,7 @@ import { addQueryArgs, getPath, safeDecodeURI } from '@wordpress/url';
 
 export {
 	addSubmenu as addSubmenuIcon,
+	createInterpolateElement,
 	addQueryArgs,
 	apiFetch,
 	archive as archiveIcon,

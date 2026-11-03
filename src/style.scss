@@ -897,11 +897,18 @@
 }
 
 /*
- * The way on to every layout, under a content type's own. A row like the
- * others, set in from the list's edges as the list is.
+ * The way on to every layout, under a content type's own: a quiet sentence,
+ * set in from the list's edges as the list is.
  */
 .routes-post-list__template-footer {
 	margin: var(--wpds-dimension-gap-lg) 24px 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+
+	.components-button.is-link {
+		font-size: inherit;
+		vertical-align: baseline;
+	}
 }
 
 .cnl-editor-panel__notice {
@@ -3319,4 +3326,9 @@ $sidebar-strip-width: 64px;
 	.components-toggle-group-control-option-base {
 		white-space: nowrap;
 	}
+}
+
+// The way out of being asked, under the kinds.
+.cnl-post-kinds__skip {
+	margin-block-start: var(--wpds-dimension-gap-xl);
 }

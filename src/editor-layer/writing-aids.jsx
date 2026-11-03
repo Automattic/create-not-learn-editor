@@ -26,7 +26,7 @@ import { __, _n, sprintf } from '@wordpress/i18n';
  */
 import { EDITOR_REGIONS, usePortalHost } from './portal-host';
 import { countWords } from './word-count';
-import { isUntitledFormat, takePostKindFocus } from '../post-kinds';
+import { isUntitledFormat, takePostKindFocus } from '../post-kinds-base';
 import { EDITOR_STORE } from './settings-guard';
 
 const NAMESPACE = 'create-not-learn-editor/writing-wording';

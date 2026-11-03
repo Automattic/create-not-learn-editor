@@ -51,7 +51,8 @@ export const HIDDEN_PARENT = 'cnl-workspace-hidden';
  * - `writingAids`: whether a post open in the editor gets a writer's prompt
  *   and its length (`src/editor-layer/writing-aids.jsx`).
  * - `postKinds`: whether writing a post starts by picking what kind it is,
- *   like a note, a photo or a quote (`src/pickers/post-kinds.jsx`).
+ *   like a note, a photo or a quote (`src/pickers/post-kinds.jsx`). Each
+ *   person can still opt out from the picker.
  * - `publishStep`: whether Publish asks "Are you ready to publish?" first,
  *   with the category, tags and when to publish to hand. Only a default:
  *   the person's own choice, from the checkbox on that step, wins.
@@ -77,7 +78,7 @@ const DEFAULTS = {
 	writeInFocus: false,
 	writingAids: false,
 	publishStep: false,
-	postKinds: false,
+	postKinds: true,
 };
 
 /**
@@ -134,7 +135,6 @@ const PRESETS = [
 		writeInFocus: true,
 		writingAids: true,
 		publishStep: true,
-		postKinds: true,
 	},
 	{
 		id: 'builder',

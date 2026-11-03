@@ -242,6 +242,7 @@ function cnl_editor_get_app_settings() {
 		'assistantCanType'   => cnl_editor_assistant_can_type(),
 		'assistantModel'     => cnl_editor_get_assistant_model(),
 		'assistantRouter'    => cnl_editor_assistant_can_route(),
+		'postKinds'          => cnl_editor_get_post_kind_settings(),
 	);
 }
 

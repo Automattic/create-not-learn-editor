@@ -31,7 +31,7 @@ import {
 import { getPostViewEmpty, getPostViews } from './post-views';
 import useCoreTrashActions from './use-core-trash-actions';
 import PostKindPicker from '../../pickers/post-kinds';
-import ScreenLinks from '../../screen-links';
+import { isAskingPostKind } from '../../post-kinds-base';
 import { getTemplateTitle } from './helpers';
 import PagesTable from './pages-table';
 import useContentRecords from './use-content-records';
@@ -41,6 +41,7 @@ import {
 	Button,
 	checkIcon,
 	coreDataStore,
+	createInterpolateElement,
 	draftsIcon,
 	lockIcon,
 	pendingIcon,
@@ -151,6 +152,10 @@ function Stage() {
 	const isPages = type?.name === 'page';
 	// Posts are listed, worded and written as the workspace says.
 	const workspace = useSelect( getActiveWorkspace, [] );
+	const isAskingKind = useSelect(
+		( select ) => isAskingPostKind( select, workspace ),
+		[ workspace ]
+	);
 	const postsSettings = type?.name === 'post' ? workspace.posts : null;
 	// Lists by status move posts to and from the trash with core's own
 	// actions.
@@ -333,8 +338,8 @@ function Stage() {
 			return;
 		}
 
-		// Asked what kind of post it is first, when the workspace asks.
-		if ( type.name === 'post' && workspace.postKinds ) {
+		// Asked what kind of post it is first, unless they'd rather not be.
+		if ( type.name === 'post' && isAskingKind ) {
 			setIsPickingPostKind( true );
 			return;
 		}
@@ -752,24 +757,34 @@ function Stage() {
 				contentList
 			) }
 			{ showTemplates && templates.length > 0 && (
-				<div className="routes-post-list__template-footer">
-					<ScreenLinks
-						label={ __( 'More layouts' ) }
-						links={ [
-							{
-								description: __(
-									'Other parts of your site have layouts too'
-								),
-								icon: layoutIcon,
-								search: searchParams.from
-									? { from: searchParams.from }
-									: undefined,
-								title: __( 'All layouts' ),
-								to: '/templates',
-							},
-						] }
-					/>
-				</div>
+				<p className="routes-post-list__template-footer">
+					{ createInterpolateElement(
+						sprintf(
+							/* translators: %s: post type singular label, like "Post". */
+							__(
+								'For more advanced control <a>view all %s layouts</a>'
+							),
+							type.singular || type.name
+						),
+						{
+							a: (
+								<Button
+									onClick={ () =>
+										navigate( {
+											// Keeps the way back to where the
+											// visit began.
+											search: searchParams.from
+												? { from: searchParams.from }
+												: undefined,
+											to: '/templates',
+										} )
+									}
+									variant="link"
+								/>
+							),
+						}
+					) }
+				</p>
 			) }
 			{ isPickingPostKind && (
 				<PostKindPicker
