@@ -427,6 +427,8 @@ function cnl_editor_render_full_page() {
 		wp_dequeue_style( $style );
 	}
 
+	$has_admin_bar = cnl_editor_enable_admin_bar();
+
 	cnl_editor_reset_editor_registry();
 
 	/**
@@ -457,9 +459,11 @@ function cnl_editor_render_full_page() {
 			body {
 				margin: 0;
 			}
+			<?php if ( ! $has_admin_bar ) : ?>
 			#wpadminbar {
 				display: none;
 			}
+			<?php endif; ?>
 		</style>
 	<?php
 	global $hook_suffix;
@@ -481,7 +485,7 @@ function cnl_editor_render_full_page() {
 	do_action( 'admin_head' );
 	?>
 	</head>
-	<body class="<?php echo esc_attr( 'create-not-learn-editor cnl-ui-theme-' . cnl_editor_get_ui_theme() ); ?>"<?php echo 'modern' === cnl_editor_get_ui_theme() ? ' data-wpds-corner-radius="moderate"' : ''; ?>>
+	<body class="<?php echo esc_attr( 'create-not-learn-editor cnl-ui-theme-' . cnl_editor_get_ui_theme() . ( $has_admin_bar ? ' ' . cnl_editor_get_admin_color_class() : '' ) . ( $has_admin_bar && cnl_editor_user_shows_admin_bar() ? ' admin-bar' : '' ) ); ?>"<?php echo 'modern' === cnl_editor_get_ui_theme() ? ' data-wpds-corner-radius="moderate"' : ''; ?>>
 		<div id="create-not-learn-editor-app" style="height: 100vh; box-sizing: border-box;">
 			<?php if ( ! $assets_ready ) : ?>
 				<div class="cnl-editor-loading">
@@ -490,6 +494,10 @@ function cnl_editor_render_full_page() {
 			<?php endif; ?>
 		</div>
 	<?php
+	if ( $has_admin_bar ) {
+		wp_admin_bar_render();
+	}
+
 	/** This action is documented in wp-admin/admin-footer.php */
 	do_action( 'admin_footer', '' );
 

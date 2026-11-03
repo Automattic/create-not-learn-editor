@@ -30,6 +30,10 @@ import { privateApis as preferencesPrivateApis } from '@wordpress/preferences';
 /**
  * Internal dependencies
  */
+import {
+	ADMIN_BAR_PREFERENCE,
+	ADMIN_BAR_PREFERENCES_SCOPE,
+} from '../admin-bar';
 import { usePortalHost } from '../editor-layer/portal-host';
 import { unlock } from '../lock-unlock';
 import {
@@ -92,6 +96,16 @@ function CreateNotLearnSection() {
 				label={ __( 'Ask what I’m posting' ) }
 				scope={ POST_KINDS_PREFERENCES_SCOPE }
 			/>
+			{ !! document.getElementById( 'wpadminbar' ) && (
+				<PreferenceToggleControl
+					featureName={ ADMIN_BAR_PREFERENCE }
+					help={ __(
+						'The bar along the top of every admin screen, with search and New, shows here too.'
+					) }
+					label={ __( 'Show the admin bar' ) }
+					scope={ ADMIN_BAR_PREFERENCES_SCOPE }
+				/>
+			) }
 		</PreferencesModalSection>
 	);
 }

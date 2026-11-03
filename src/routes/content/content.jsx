@@ -67,6 +67,7 @@ import {
 	postListIcon,
 	Page,
 	sprintf,
+	useEffect,
 	useMemo,
 	useSelect,
 	useState,
@@ -213,6 +214,28 @@ function Stage() {
 				.join( '|' ),
 		[ previewTemplates ]
 	);
+
+	// Asked to add one from outside the list, like the admin bar's New page.
+	const isAddRequested = !! searchParams.add && !! type;
+	useEffect( () => {
+		if ( ! isAddRequested ) {
+			return;
+		}
+
+		navigate( {
+			replace: true,
+			search: { ...searchParams, add: undefined },
+		} );
+
+		if ( type.name === 'page' ) {
+			setAddingPage( {} );
+		} else if ( type.name === 'post' && isAskingKind ) {
+			setIsPickingPostKind( true );
+		} else {
+			navigate( { to: `/types/${ type.name }/new` } );
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ isAddRequested ] );
 
 	if ( ! type ) {
 		return null;

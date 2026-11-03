@@ -17,6 +17,7 @@ import {
 /**
  * Internal dependencies
  */
+import { mountAdminBar } from '../../../src/admin-bar';
 import { preloadDeferredWhenIdle } from '../../../src/app-init-deferred';
 import { registerBlockToolbar } from '../../../src/block-toolbar';
 import { mountChat } from '../../../src/chat';
@@ -56,6 +57,7 @@ export async function init() {
 
 	mountWorkspaces();
 	mountPreferences();
+	mountAdminBar();
 	mountTopBar();
 	mountCommands();
 	mountChat();
