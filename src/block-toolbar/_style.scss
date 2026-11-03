@@ -9,6 +9,8 @@
  * that control shows again. See "Drift canaries" in the README.
  */
 
+@use "../elevation" as *;
+
 // Scoped to the block popover's toolbar, as core's own rules are, so these
 // win over them.
 $toolbar: "html.cnl-has-block-toolbar .components-popover .block-editor-block-contextual-toolbar";
@@ -62,7 +64,7 @@ $format-buttons: '[aria-label="Bold"], [aria-label="Italic"], [aria-label="More"
 	@return url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5'%3E%3Cpath d='#{$path}'/%3E%3C/svg%3E");
 }
 
-$parent-gap: 8px;
+$parent-gap: var(--wpds-dimension-gap-sm);
 
 $chevron-down: icon("M7 11L12 15L17 11");
 $more-vertical: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='6' r='1.25'/%3E%3Ccircle cx='12' cy='12' r='1.25'/%3E%3Ccircle cx='12' cy='18' r='1.25'/%3E%3C/svg%3E");
@@ -73,28 +75,35 @@ $arrows: (
 	"Move right": icon("M4 12L19 12M14 17L19 12L14 7"),
 );
 
-// A light box, as the proposal draws the toolbar: a soft edge and shadow
-// instead of core's black border.
+// The design system's overlay, as its menus are, rather than core's black
+// border: the proposal draws the toolbar as a light box.
 @mixin box {
-	border: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
-	border-radius: var(--wpds-border-radius-md);
-	box-shadow: 0 2px 6px rgb(0 0 0 / 6%), 0 1px 2px rgb(0 0 0 / 4%);
+
+	@include cnl-overlay-surface;
 }
 
-$group-gap: 6px;
+$group-gap: var(--wpds-dimension-gap-xs);
 
-// A divider before a group, a short light line rather than core's
-// full-height one.
+// Compact, as the section bars and the design system's menus are: 32px
+// buttons inset by the overlay's padding, 42px in all. Buttons' corners
+// follow the toolbar's, less that padding, as the section bars' do.
+$bar-padding: var(--wpds-dimension-padding-xs);
+$button-size: var(--wpds-dimension-size-md);
+$button-radius: max(2px, calc(var(--wpds-border-radius-md) - #{$bar-padding}));
+$divider: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral);
+
+// A divider before a group, a short line rather than core's full-height
+// one, in the stroke the section bars use for theirs.
 @mixin divider {
 	content: "";
 	position: absolute;
-	top: 25%;
-	bottom: 25%;
+	top: var(--wpds-dimension-padding-sm);
+	bottom: var(--wpds-dimension-padding-sm);
 	left: 0;
-	border-left: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
+	border-left: $divider;
 }
 
-@mixin mask-icon($image, $size: 24px) {
+@mixin mask-icon($image, $size: var(--wpds-dimension-size-sm)) {
 	content: "";
 	flex: none;
 	width: $size;
@@ -114,21 +123,57 @@ $group-gap: 6px;
 	.block-editor-block-toolbar {
 		position: relative;
 		overflow: visible;
+		padding: $bar-padding;
+	}
+
+	/*
+	 * Core's 48px buttons, compact: 32px, with the highlight core draws
+	 * inside each one, for focus and pressed, filling it.
+	 */
+	.components-toolbar-group,
+	.block-editor-block-toolbar__slot {
+		gap: var(--wpds-dimension-gap-xs);
+	}
+
+	// Core pulls its groups 1px over its border, which the padding replaces.
+	.components-toolbar-group {
+		min-height: $button-size;
+		margin-block: 0;
+		padding-inline: 0;
+		border-right: 0;
+	}
+
+	.components-button {
+		height: $button-size;
+		border-radius: $button-radius;
+
+		&::before {
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 100%;
+			border-radius: $button-radius;
+		}
+	}
+
+	// Icon-only buttons, at no more weight than a class, so the labelled
+	// buttons below, like the block's name, keep their own padding.
+	.components-toolbar-group :where(.components-button.has-icon:not(.has-text)) {
+		min-width: $button-size;
+		padding-inline: $bar-padding;
 	}
 
 	/*
 	 * Light dividers between groups, rather than core's full-height lines,
 	 * each with the same $group-gap of space either side of it.
 	 */
-	.components-toolbar-group {
-		border-right: 0;
-	}
-
 	.block-editor-block-toolbar > .components-toolbar-group + .components-toolbar-group,
 	.block-editor-block-toolbar > div + .components-toolbar-group,
 	.block-editor-block-toolbar__block-controls .block-editor-block-mover,
 	.block-editor-block-toolbar__slot > .cnl-block-toolbar__end:not(:first-child) {
 		position: relative;
+		margin-inline-start: $group-gap;
+		padding-inline-start: $group-gap;
 
 		&::before {
 
@@ -140,11 +185,6 @@ $group-gap: 6px;
 	// share with core's other tools, like an image's Replace.
 	.cnl-block-toolbar__end.components-toolbar-group {
 		padding: 0;
-
-		&:not(:first-child) {
-			margin-inline-start: $group-gap;
-			padding-inline-start: $group-gap;
-		}
 	}
 
 	// The block's name beside its icon, as the way to change it.
@@ -153,9 +193,9 @@ $group-gap: 6px;
 		.block-editor-block-styles-dropdown
 	) .components-dropdown-menu__toggle,
 	.block-editor-block-toolbar__block-controls .block-editor-block-toolbar__block-icon-button {
-		gap: 6px;
+		gap: var(--wpds-dimension-gap-xs);
 		width: auto;
-		padding-inline: 12px;
+		padding-inline: var(--wpds-dimension-padding-md);
 		font-weight: 500;
 		white-space: nowrap;
 
@@ -168,19 +208,24 @@ $group-gap: 6px;
 			background: none;
 			box-shadow: none;
 		}
+
+		// Core draws its focus ring on `::before`, which the name has taken.
+		&:focus-visible {
+			outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+			outline-offset: calc(-1 * var(--wpds-border-width-focus));
+		}
 	}
 
 	.block-editor-block-toolbar__block-controls :is(
 		.block-editor-block-switcher,
 		.block-editor-block-styles-dropdown
 	) .components-dropdown-menu__toggle {
-		padding-inline-end: 6px;
+		padding-inline-end: var(--wpds-dimension-padding-xs);
 
 		&::after {
 
-			@include mask-icon($chevron-down, 20px);
+			@include mask-icon($chevron-down, var(--wpds-dimension-size-xs));
 			order: 2;
-			margin-inline-start: -2px;
 		}
 	}
 
@@ -193,20 +238,19 @@ $group-gap: 6px;
 	.block-editor-block-mover {
 		display: flex;
 		gap: 0;
-		margin-inline-start: $group-gap;
-		padding-inline: $group-gap 0;
+		padding-inline-end: 0;
 	}
 
 	.block-editor-block-mover__drag-handle.components-button {
-		width: 20px;
-		min-width: 20px;
+		width: var(--wpds-dimension-size-xs);
+		min-width: var(--wpds-dimension-size-xs);
 		padding: 0;
 		justify-content: center;
-		color: var(--wpds-color-foreground-content-neutral-weak);
+		color: var(--wpds-color-foreground-interactive-neutral-weak);
 
 		svg {
-			width: 20px;
-			height: 20px;
+			width: var(--wpds-dimension-size-xs);
+			height: var(--wpds-dimension-size-xs);
 		}
 	}
 
@@ -223,7 +267,7 @@ $group-gap: 6px;
 		height: 100%;
 		padding: 0;
 		justify-content: center;
-		color: var(--wpds-color-foreground-content-neutral-weak);
+		color: var(--wpds-color-foreground-interactive-neutral-weak);
 
 		&::before {
 			display: none;
@@ -236,7 +280,7 @@ $group-gap: 6px;
 		@each $label, $image in $arrows {
 			&[aria-label^="#{$label}"]::after {
 
-				@include mask-icon($image, 20px);
+				@include mask-icon($image, var(--wpds-dimension-size-xs));
 				position: static;
 				border: 0;
 				box-shadow: none;
@@ -249,7 +293,7 @@ $group-gap: 6px;
 		.block-editor-block-mover__drag-handle,
 		.block-editor-block-mover-button
 	).components-button:is(:hover, :focus-visible):not([aria-disabled="true"]) {
-		color: var(--wpds-color-foreground-content-neutral);
+		color: var(--wpds-color-foreground-interactive-neutral-weak-active);
 	}
 
 	.block-editor-block-mover .block-editor-block-mover-button.components-button[aria-disabled="true"] {
@@ -258,7 +302,7 @@ $group-gap: 6px;
 
 	// Options with nothing in them, faded as a mover with nowhere to go is.
 	.cnl-block-options__toggle.components-button[aria-disabled="true"] {
-		color: var(--wpds-color-foreground-content-neutral-weak);
+		color: var(--wpds-color-foreground-interactive-neutral-weak);
 		background: none;
 		opacity: 0.4;
 	}
@@ -306,8 +350,8 @@ $group-gap: 6px;
 
 	// An open menu's button, pressed in grey rather than core's black.
 	.components-button:is(.is-pressed, [aria-expanded="true"]):not(:disabled) {
-		color: var(--wpds-color-foreground-content-neutral);
-		background: var(--wpds-color-background-surface-neutral-weak);
+		color: var(--wpds-color-foreground-interactive-neutral-active);
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
 
 		&::before {
 			display: none;
@@ -331,12 +375,11 @@ $group-gap: 6px;
 
 	.block-editor-block-toolbar > .components-toolbar-group:has(.cnl-block-parent__button) {
 		position: absolute;
-		top: -1px;
-		bottom: -1px;
+		top: calc(-1 * var(--wpds-border-width-xs));
+		bottom: calc(-1 * var(--wpds-border-width-xs));
 		right: calc(100% + #{$parent-gap});
 		margin: 0;
-		padding: 0;
-		background: #fff;
+		padding: $bar-padding;
 
 		@include box;
 
@@ -354,27 +397,26 @@ $group-gap: 6px;
 	}
 
 	:is(.cnl-block-parent__button, .cnl-block-parent__lineage).components-button {
-		height: 100%;
+		height: $button-size;
 	}
 
 	// The Layout menu's button, labelled, with a chevron like the name's.
 	.cnl-block-layout__toggle.components-button {
-		gap: 4px;
-		padding-inline: 12px 8px;
+		gap: var(--wpds-dimension-gap-xs);
+		padding-inline: var(--wpds-dimension-padding-md) var(--wpds-dimension-padding-sm);
 		font-weight: 500;
 
 		&::after {
 
-			@include mask-icon($chevron-down, 20px);
+			@include mask-icon($chevron-down, var(--wpds-dimension-size-xs));
 		}
 	}
 
 	/*
 	 * Formatting, out of sight until text is selected, then floating by the
-	 * selection. Drawn a size down from the block toolbar, as the proposal
-	 * draws it, so the two can't be mistaken for each other: 32px buttons
-	 * inset in a 40px bar, an active format filled in, and "More" as ⋮ after
-	 * a divider.
+	 * selection. Drawn as the toolbar is, 32px buttons in a 42px bar, where
+	 * the proposal draws it a size down; an active format filled in, and
+	 * "More" as ⋮ after a divider.
 	 */
 	.block-editor-block-toolbar > .components-toolbar-group:has(#{$format-buttons}) {
 		display: none;
@@ -386,10 +428,10 @@ $group-gap: 6px;
 			top: var(--cnl-format-top, 0);
 			left: var(--cnl-format-left, 0);
 			box-sizing: border-box;
-			height: 40px;
+			height: auto;
 			min-height: 0;
-			padding: 3px;
-			background: #fff;
+			margin: 0;
+			padding: $bar-padding;
 
 			@include box;
 
@@ -399,15 +441,15 @@ $group-gap: 6px;
 
 			.block-editor-block-toolbar__slot {
 				display: flex;
-				gap: 2px;
+				gap: var(--wpds-dimension-gap-xs);
 				align-items: center;
-				height: 32px;
+				height: var(--wpds-dimension-size-md);
 			}
 
 			.components-button {
-				width: 32px;
-				min-width: 32px;
-				height: 32px;
+				width: var(--wpds-dimension-size-md);
+				min-width: var(--wpds-dimension-size-md);
+				height: var(--wpds-dimension-size-md);
 				padding: 0;
 				justify-content: center;
 				border-radius: var(--wpds-border-radius-sm);
@@ -425,9 +467,9 @@ $group-gap: 6px;
 			.components-dropdown-menu:has(> [aria-label="More"]) {
 				display: flex;
 				align-items: center;
-				margin-inline-start: 2px;
-				padding-inline-start: 4px;
-				border-inline-start: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
+				margin-inline-start: var(--wpds-dimension-gap-xs);
+				padding-inline-start: var(--wpds-dimension-gap-xs);
+				border-inline-start: $divider;
 			}
 
 			[aria-label="More"] {
@@ -438,7 +480,7 @@ $group-gap: 6px;
 
 				&::after {
 
-					@include mask-icon($more-vertical, 20px);
+					@include mask-icon($more-vertical, var(--wpds-dimension-size-xs));
 				}
 			}
 		}
@@ -453,7 +495,7 @@ html.cnl-has-block-toolbar .block-editor-block-switcher__styles__menugroup {
 // A name with nothing left in its menu is a label: no chevron, and it
 // doesn't open (`name-menu.js`).
 html.cnl-has-block-toolbar.cnl-block-name-is-label .components-popover .block-editor-block-contextual-toolbar .block-editor-block-toolbar__block-controls .block-editor-block-switcher .components-dropdown-menu__toggle {
-	padding-inline-end: 12px;
+	padding-inline-end: var(--wpds-dimension-padding-md);
 	cursor: default;
 
 	&::after {
