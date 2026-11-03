@@ -3099,6 +3099,12 @@ $sidebar-heading-offset: 3px;
 	margin-inline: calc(var(--wpds-dimension-padding-xl) - #{$chevron-inset}) var(--wpds-dimension-gap-md);
 }
 
+// The admin bar's own logo is above it when the bar is shown. Hidden rather
+// than taken out, so the rows below stay where they are.
+body.admin-bar .cnl-sidebar-dashboard {
+	visibility: hidden;
+}
+
 .components-button.cnl-sidebar-dashboard__link {
 	gap: var(--wpds-dimension-gap-xs);
 	padding-inline-start: 0;

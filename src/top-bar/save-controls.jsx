@@ -3,7 +3,8 @@
  *
  * Changes made across the editor are held back until the user saves them,
  * so this says how many are waiting, with Save to open the review, where
- * they are saved or discarded. It replaces boot's save button
+ * they are saved or discarded. Save is always there, and disabled while
+ * there's nothing to save, so it's somewhere to look before there is. It replaces boot's save button
  * at the foot of the sidebar, which `style.scss` hides wherever the top bar
  * is shown.
  */
@@ -101,24 +102,22 @@ export function SaveControls() {
 			<div className="cnl-save-controls__status" role="status">
 				{ status }
 			</div>
-			{ hasChanges && (
-				<Button
-					variant="primary"
-					size="compact"
-					className={ `cnl-save-controls__button${
-						isPulsing ? ' is-pulsing' : ''
-					}` }
-					onAnimationEnd={ () => setIsPulsing( false ) }
-					onClick={ () => setIsReviewOpen( true ) }
-					disabled={ isSaving }
-					accessibleWhenDisabled
-					isBusy={ isSaving }
-					shortcut={ displayShortcut.primary( 's' ) }
-					aria-keyshortcuts={ rawShortcut.primary( 's' ) }
-				>
-					{ isSaving ? __( 'Saving…' ) : __( 'Save' ) }
-				</Button>
-			) }
+			<Button
+				variant="primary"
+				size="compact"
+				className={ `cnl-save-controls__button${
+					isPulsing ? ' is-pulsing' : ''
+				}` }
+				onAnimationEnd={ () => setIsPulsing( false ) }
+				onClick={ () => setIsReviewOpen( true ) }
+				disabled={ isSaving || ! hasChanges }
+				accessibleWhenDisabled
+				isBusy={ isSaving }
+				shortcut={ displayShortcut.primary( 's' ) }
+				aria-keyshortcuts={ rawShortcut.primary( 's' ) }
+			>
+				{ isSaving ? __( 'Saving…' ) : __( 'Save' ) }
+			</Button>
 			{ isReviewOpen && <ReviewChanges onClose={ closeReview } /> }
 		</div>
 	);

@@ -2,7 +2,9 @@
  * Top bar: the strip of boot's dark frame above the stage and canvas.
  *
  * It holds the command search in the middle, and the save controls, the
- * button that opens the chat and the Options menu on the right. The full-screen editor has a
+ * button that opens the chat and the Options menu on the right. When the
+ * admin bar is shown above, its search opens the palette, so the search here
+ * is left out. The full-screen editor has a
  * header of its own, so the bar is hidden there, and on narrow screens, where
  * the stage fills the viewport and boot's sidebar save button is kept.
  */
@@ -15,16 +17,19 @@ import { createRoot } from '@wordpress/element';
 /**
  * Internal dependencies
  */
+import { useShowsAdminBar } from '../admin-bar';
 import { ChatToggle } from '../chat';
 import { CommandSearch } from './command-search';
 import { OptionsMenu } from './options-menu';
 import { SaveControls } from './save-controls';
 
 function TopBar() {
+	const showsAdminBar = useShowsAdminBar();
+
 	return (
 		<div className="cnl-top-bar">
 			<div className="cnl-top-bar__center">
-				<CommandSearch />
+				{ ! showsAdminBar && <CommandSearch /> }
 			</div>
 			<div className="cnl-top-bar__end">
 				<SaveControls />
