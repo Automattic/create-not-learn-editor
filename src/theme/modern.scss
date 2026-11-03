@@ -1,9 +1,8 @@
 /**
  * "Modern" theme layer for the WordPress Design System.
  *
- * Softer corners, calmer surfaces, a floating site preview, and WordPress.org's
- * EB Garamond, larger than usual, for the black sidebar's headings, while
- * keeping WordPress's interface font, colors, and dark sidebar everywhere else.
+ * Softer corners, calmer surfaces and a floating site preview, while keeping
+ * WordPress's interface font, colors, and dark sidebar.
  *
  * Token values are changed through the design system's own API, not here:
  * `src/theme/index.js` wraps each route in a `ThemeProvider` with the
@@ -18,8 +17,6 @@
 
 @use "@wordpress/base-styles/variables" as wp;
 @use "../elevation" as *;
-
-$heading-font-family: "EB Garamond", "Georgia", "Times New Roman", serif;
 
 .cnl-ui-theme-modern {
 
@@ -70,25 +67,6 @@ $heading-font-family: "EB Garamond", "Georgia", "Times New Roman", serif;
 	.components-popover.is-unstyled .components-popover__content {
 		border-radius: 0;
 		box-shadow: none;
-	}
-
-	/*
-	 * The black sidebar keeps a distinct identity: WordPress.org's EB
-	 * Garamond serif, larger than WordPress's interface font, for the
-	 * greeting and the drilldown section titles (Content, Design,
-	 * Advanced). The font ships with the plugin and is enqueued by PHP
-	 * only for this theme. Every other heading follows the WordPress
-	 * Design System's defaults.
-	 */
-	.cnl-sidebar-welcome,
-	[class*="__sidebar"] [class*="__title-icon"] h1 {
-		font-family: $heading-font-family;
-		font-size: 28px;
-		font-weight: 400;
-		letter-spacing: normal;
-		line-height: 1.2;
-		text-transform: none;
-		text-wrap: balance;
 	}
 
 	/*

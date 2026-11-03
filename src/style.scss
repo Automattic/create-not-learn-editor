@@ -1,6 +1,7 @@
 @use "@wordpress/dataviews/build-style/style.css" as dataviews;
 @use "./vendor/gutenberg/list-view/style" as list-view;
 @use "./colors" as *;
+@use "./fonts" as *;
 @use "./theme/modern";
 @use "./routes/content/pages/style" as pages;
 @use "./site-canvas/style" as site-canvas;
@@ -2994,6 +2995,27 @@ $sidebar-heading-height: 56px;
 }
 
 /*
+ * The black sidebar's headings, the greeting below and each section's title
+ * (Content, Design, Advanced), in WordPress.org's EB Garamond, larger than
+ * the interface font, whatever the visual theme: one deliberate exception to
+ * stock WPDS. Every other heading follows the design system's defaults.
+ */
+@mixin cnl-sidebar-heading {
+	font-family: $cnl-heading-font-family;
+	font-size: 28px;
+	font-weight: 400;
+	letter-spacing: normal;
+	line-height: 1.2;
+	text-transform: none;
+}
+
+[class*="__sidebar"] [class*="__title-icon"] h1 {
+
+	@include cnl-sidebar-heading;
+	text-wrap: balance;
+}
+
+/*
  * Dashboard link with the WordPress logo, added to boot's sidebar by
  * app-init in place of boot's own text link. Knocked back until hovered.
  */
@@ -3112,7 +3134,8 @@ $workspace-toggle-inset: var(--wpds-dimension-gap-xs);
 }
 
 /*
- * Greeting above the main menu, added to boot's sidebar by app-init.
+ * Greeting above the main menu, added to boot's sidebar by app-init, set as
+ * the sidebar's headings are.
  */
 .cnl-sidebar-welcome {
 	position: relative;
@@ -3125,12 +3148,11 @@ $workspace-toggle-inset: var(--wpds-dimension-gap-xs);
 	padding: 0 var(--wpds-dimension-padding-xl);
 	overflow: hidden;
 	color: var(--wpds-color-foreground-content-neutral);
-	font-size: var(--wpds-typography-font-size-lg);
-	font-weight: var(--wpds-typography-font-weight-emphasis);
-	line-height: var(--wpds-typography-line-height-md);
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	pointer-events: none;
+
+	@include cnl-sidebar-heading;
 
 	/*
 	 * Only greet at the top level. Inside a section (Content, Design,

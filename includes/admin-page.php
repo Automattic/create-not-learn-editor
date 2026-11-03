@@ -669,17 +669,13 @@ function cnl_editor_register_script_module_from_build( $id, $path ) {
 }
 
 /**
- * Enqueue the web fonts used by the active visual theme.
+ * Enqueue the editor's web fonts.
  *
- * The modern theme sets the black sidebar's headings in EB Garamond, the
- * heading face on WordPress.org. The font ships with the plugin rather than
- * loading from a third-party CDN.
+ * The black sidebar's headings are set in EB Garamond, the heading face on
+ * WordPress.org, whatever the visual theme. The font ships with the plugin
+ * rather than loading from a third-party CDN.
  */
 function cnl_editor_enqueue_ui_theme_fonts() {
-	if ( 'modern' !== cnl_editor_get_ui_theme() ) {
-		return;
-	}
-
 	wp_enqueue_style(
 		'cnl-editor-font-eb-garamond',
 		CNL_EDITOR_URL . 'assets/fonts/eb-garamond/style.css',
@@ -689,13 +685,10 @@ function cnl_editor_enqueue_ui_theme_fonts() {
 }
 
 /**
- * Preload the heading font so screen titles do not flash in a fallback face.
+ * Preload the heading font so the sidebar's headings do not flash in a
+ * fallback face.
  */
 function cnl_editor_print_ui_theme_font_preload() {
-	if ( 'modern' !== cnl_editor_get_ui_theme() ) {
-		return;
-	}
-
 	printf(
 		'<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n",
 		esc_url( CNL_EDITOR_URL . 'assets/fonts/eb-garamond/EBGaramond-latin.woff2' )
