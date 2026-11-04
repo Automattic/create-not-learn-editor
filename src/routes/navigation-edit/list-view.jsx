@@ -514,39 +514,38 @@ export function NavigationListViewContent( {
  * @param {Function} args.createSuccessNotice Notices store action.
  * @param {Function} args.editEntityRecord    Core data store action.
  * @param {number}   args.navigationId        Menu ID.
+ * @param {string}   [args.message]           What to say, if not the default.
  * @param {string}   args.previousContent     Menu content before the change.
  */
 export function showMenuSetByHandNotice( {
 	createSuccessNotice,
 	editEntityRecord,
+	message = __(
+		'Your menu is now set by hand. New pages won’t be added to it automatically.'
+	),
 	navigationId,
 	previousContent,
 } ) {
-	createSuccessNotice(
-		__(
-			'Your menu is now set by hand. New pages won’t be added to it automatically.'
-		),
-		{
-			actions: [
-				{
-					label: __( 'Undo' ),
-					onClick: () =>
-						editEntityRecord(
-							'postType',
-							'wp_navigation',
-							navigationId,
-							{
-								blocks: undefined,
-								content: previousContent,
-								selection: undefined,
-							}
-						),
-				},
-			],
-			id: 'cnl-menu-set-by-hand',
-			type: 'snackbar',
-		}
-	);
+	createSuccessNotice( message, {
+		actions: [
+			{
+				label: __( 'Undo' ),
+				onClick: () =>
+					editEntityRecord(
+						'postType',
+						'wp_navigation',
+						navigationId,
+						{
+							blocks: undefined,
+							content: previousContent,
+							selection: undefined,
+						}
+					),
+			},
+		],
+		id: 'cnl-menu-set-by-hand',
+		type: 'snackbar',
+	} );
 }
 
 /**
@@ -555,10 +554,12 @@ export function showMenuSetByHandNotice( {
  * A menu that lists every page (a Page List block) is shown as the pages it
  * lists, as ordinary links, so it reads and edits like any other menu. Nothing
  * is written until the first change, which turns the menu into those links
- * plus the change, as one pending edit that can be undone.
+ * plus the change, as one pending edit that can be undone. A locked menu can't
+ * be changed at all, for an auto menu that waits for Customize instead.
  *
  * @param {Object}   props                Component props.
  * @param {Element}  props.children       What renders inside the editor.
+ * @param {boolean}  props.isLocked       Whether the items can't be changed.
  * @param {number}   props.navigationId   Menu ID.
  * @param {Function} props.onBlocksChange Called with the blocks shown.
  * @param {Function} props.onReadyChange  Called once the menu can be shown.
@@ -643,6 +644,7 @@ function NavigationMenuBlockListSettings() {
 
 function NavigationMenuEditor( {
 	children,
+	isLocked = false,
 	navigationId,
 	onBlocksChange,
 	onReadyChange,
@@ -725,6 +727,8 @@ function NavigationMenuEditor( {
 		const nextSettings = {
 			...editorSettings,
 			hasFixedToolbar: false,
+			// Nothing can be moved, added or removed.
+			templateLock: isLocked ? 'all' : editorSettings.templateLock,
 		};
 
 		if (
@@ -738,7 +742,7 @@ function NavigationMenuEditor( {
 		}
 
 		return nextSettings;
-	}, [ editorSettings ] );
+	}, [ editorSettings, isLocked ] );
 	const setByHand = useCallback(
 		( nextBlocks, options ) => {
 			// The editor tidying up what it was given isn't a change.
@@ -789,6 +793,10 @@ function NavigationMenuEditor( {
 	);
 	const handleInput = useCallback(
 		( nextValue, options ) => {
+			if ( isLocked ) {
+				return;
+			}
+
 			const nextBlocks = takeMenuItems( nextValue );
 
 			if ( isAutomatic ) {
@@ -798,10 +806,14 @@ function NavigationMenuEditor( {
 
 			onInput( nextBlocks, options );
 		},
-		[ isAutomatic, onInput, setByHand, takeMenuItems ]
+		[ isAutomatic, isLocked, onInput, setByHand, takeMenuItems ]
 	);
 	const handleChange = useCallback(
 		( nextValue, options ) => {
+			if ( isLocked ) {
+				return;
+			}
+
 			const nextBlocks = takeMenuItems( nextValue );
 
 			if ( isAutomatic ) {
@@ -811,7 +823,7 @@ function NavigationMenuEditor( {
 
 			onChange( nextBlocks, options );
 		},
-		[ isAutomatic, onChange, setByHand, takeMenuItems ]
+		[ isAutomatic, isLocked, onChange, setByHand, takeMenuItems ]
 	);
 	const isReady = settingsReady && assetsReady && !! blocks;
 
@@ -847,6 +859,7 @@ function NavigationMenuEditor( {
 }
 
 export default function NavigationEditListView( {
+	isAutoMenu = false,
 	menuTitle,
 	navigationId,
 	onAddMenuItems,
@@ -858,17 +871,23 @@ export default function NavigationEditListView( {
 } ) {
 	return (
 		<NavigationMenuEditorProvider
+			isLocked={ isAutoMenu }
 			navigationId={ navigationId }
 			onBlocksChange={ onBlocksChange }
 			onReadyChange={ onReadyChange }
 		>
 			<NavigationListViewContent
+				// An auto menu's pages are only shown until it's customized.
+				blockSettingsMenu={
+					isAutoMenu ? null : NavigationListViewMoreMenu
+				}
 				menuTitle={ menuTitle }
 				onAddMenuItems={ onAddMenuItems }
 				onInsertionTargetChange={ onInsertionTargetChange }
 				onPendingInsertionComplete={ onPendingInsertionComplete }
 				onReadyChange={ onReadyChange }
 				pendingInsertion={ pendingInsertion }
+				showAppender={ ! isAutoMenu }
 			/>
 		</NavigationMenuEditorProvider>
 	);

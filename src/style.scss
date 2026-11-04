@@ -2140,9 +2140,15 @@
 	text-align: center;
 }
 
-.routes-navigation-edit.is-auto-menu .routes-navigation-edit__body {
+.routes-navigation-edit__body.is-auto-menu {
 	align-items: center;
 	text-align: center;
+}
+
+// An auto menu's pages, shown but not yet editable.
+.routes-navigation-edit__body.is-auto-menu .routes-navigation-edit-list-view {
+	opacity: 0.6;
+	pointer-events: none;
 }
 
 .routes-navigation-edit__empty-summary {
