@@ -83,18 +83,21 @@ test.describe( 'Menus views', () => {
 		await expect(
 			stage.getByRole( 'heading', { level: 2, name: menu.title } )
 		).toBeVisible( { timeout: 15000 } );
-		// It reads like any other menu, as the pages it lists.
+		// It says it's an auto menu, and shows the pages it lists.
 		await expect(
-			stage.getByRole( 'heading', { name: 'Auto-menu' } )
+			stage.getByRole( 'heading', { name: 'Auto menu' } )
+		).toBeVisible();
+		await expect(
+			stage.getByRole( 'button', { name: 'Customize', exact: true } )
+		).toBeVisible();
+		const row = stage
+			.getByRole( 'treegrid', { name: 'Block navigation structure' } )
+			.getByRole( 'row', { name: testPage.title } );
+		await expect( row ).toBeVisible( { timeout: 15000 } );
+		// Its pages can't be changed until it's customized.
+		await expect(
+			row.getByRole( 'button', { name: 'Options' } )
 		).toHaveCount( 0 );
-		await expect(
-			stage.getByRole( 'button', { name: 'Customize' } )
-		).toHaveCount( 0 );
-		await expect(
-			stage
-				.getByRole( 'treegrid', { name: 'Block navigation structure' } )
-				.getByRole( 'row', { name: testPage.title } )
-		).toBeVisible( { timeout: 15000 } );
 	} );
 
 	test( 'a menu that is not on the site says so', async ( {
