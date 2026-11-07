@@ -104,9 +104,6 @@ export default function Stage() {
 		>
 			<div className="cnl-editor-stage cnl-site-hub">
 				<Stack direction="column" gap="sm">
-					<Text render={ <h2 /> } variant="heading-sm">
-						{ __( 'Where do you want to start?' ) }
-					</Text>
 					<ScreenLinks
 						label={ __( 'Start working on your site' ) }
 						links={ getStartLinks( workspace, {
