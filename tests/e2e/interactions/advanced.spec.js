@@ -1,5 +1,5 @@
 /**
- * Making and finding things on the lists under Advanced in the sidebar.
+ * Making and finding things on the lists of layouts, site parts and sections.
  */
 const {
 	expect,

@@ -34,9 +34,15 @@ export const HIDDEN_PARENT = 'cnl-workspace-hidden';
  * What every workspace starts from.
  *
  * - `menuItems`: changes to boot's registered sidebar items, keyed by item id.
- *   Anything not listed keeps its registered definition.
- * - `pinLastMenuItem`: pins the last top-level sidebar item to the bottom of
- *   the panel, for workspaces that end on a gateway like Advanced.
+ *   Anything not listed keeps its registered definition. Besides boot's own
+ *   properties, `section` moves an item to another titled section, or out of
+ *   them.
+ * - `pinLastMenuSection`: pins the sidebar's last titled section, like
+ *   Advanced, to the bottom of the panel.
+ * - `hiddenMenuSections`: sidebar sections whose items are all left out, by
+ *   section id. An item moved to another section in `menuItems` goes too.
+ *   Each item's section is its `section` (see `cnl_editor_get_menu_items()`),
+ *   and the titles come from `packages/app-init/src/menu-sections.jsx`.
  * - `home.places`: the places to start on "Home", and in the chat, by id
  *   (see `src/start-places.js`), with `home.copy` rewording any of them.
  * - `home.hint`: the tip under them.
@@ -59,7 +65,8 @@ export const HIDDEN_PARENT = 'cnl-workspace-hidden';
  */
 const DEFAULTS = {
 	menuItems: {},
-	pinLastMenuItem: false,
+	pinLastMenuSection: false,
+	hiddenMenuSections: [],
 	home: {
 		places: [ 'home', 'pages', 'identity', 'style', 'siteParts' ],
 		copy: {},
@@ -92,22 +99,22 @@ const PRESETS = [
 		id: 'simple',
 		label: __( 'Default' ),
 		icon: layout,
-		pinLastMenuItem: true,
+		pinLastMenuSection: true,
 	},
 	{
 		id: 'writing',
 		aliases: [ 'blogging' ],
 		label: __( 'Writing' ),
 		icon: pencil,
-		// Writing first: Posts at the top level, the look of the blog under
-		// Design, and the page-building screens out of the way.
+		// Writing first: Home, Posts, then the look of the blog, with no
+		// section titles over so short a list, and the page-building screens
+		// out of the way.
 		menuItems: {
-			pages: { parent: HIDDEN_PARENT },
-			'content-post': { parent: undefined },
-			navigation: { parent: HIDDEN_PARENT },
-			advanced: { parent: HIDDEN_PARENT },
-			'site-overview': { parent: HIDDEN_PARENT },
+			'content-post': { section: undefined },
+			colors: { section: undefined },
+			fonts: { section: undefined },
 		},
+		hiddenMenuSections: [ 'content', 'site', 'design', 'advanced' ],
 		home: {
 			// The homepage is the same place, and the same screen, as in
 			// every other workspace.
@@ -140,14 +147,14 @@ const PRESETS = [
 		id: 'builder',
 		label: __( 'Builder' ),
 		icon: tool,
-		// Lift the site-building destinations out of Advanced to the top
-		// level. Posts comes with it so hiding Advanced doesn't also bury it.
+		// Every site-building destination in reach: Sections, Site parts and
+		// Layouts join Design rather than being folded away in Advanced.
+		// Menus stays out of the way, as it always has here.
 		menuItems: {
-			advanced: { parent: HIDDEN_PARENT },
-			'content-post': { parent: undefined },
-			patterns: { parent: undefined },
-			templateParts: { parent: undefined },
-			templates: { parent: undefined },
+			navigation: { parent: HIDDEN_PARENT },
+			templateParts: { section: 'design' },
+			templates: { section: 'design' },
+			patterns: { section: 'design' },
 		},
 	},
 ];
@@ -174,6 +181,30 @@ export function getWorkspace( id ) {
 				workspace.id === id || workspace.aliases?.includes( id )
 		) || DEFAULT_WORKSPACE
 	);
+}
+
+/**
+ * The changes a workspace makes to boot's registered sidebar items: its own
+ * `menuItems`, and every item in one of its hidden sections moved out of
+ * sight.
+ *
+ * @param {Object}   workspace  Workspace preset.
+ * @param {Object[]} registered Boot's registered menu items.
+ * @return {Object} Changes keyed by item id.
+ */
+export function getMenuItemChanges( workspace, registered ) {
+	const changes = { ...workspace.menuItems };
+
+	registered.forEach( ( item ) => {
+		const own = changes[ item.id ];
+		const section = own && 'section' in own ? own.section : item.section;
+
+		if ( workspace.hiddenMenuSections.includes( section ) ) {
+			changes[ item.id ] = { ...own, parent: HIDDEN_PARENT };
+		}
+	} );
+
+	return changes;
 }
 
 /**

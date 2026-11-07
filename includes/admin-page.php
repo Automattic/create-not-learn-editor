@@ -95,8 +95,10 @@ function cnl_editor_register_route( $path, $content_module = null, $route_module
  * @param string $parent_id   Optional parent item ID.
  * @param string $parent_type Optional parent type.
  * @param string $icon        Optional dashicon class.
+ * @param string $section     Optional sidebar section ID, like `site` or
+ *                            `advanced`, which titles the item's group.
  */
-function cnl_editor_register_menu_item( $id, $label, $to, $parent_id = '', $parent_type = '', $icon = '' ) {
+function cnl_editor_register_menu_item( $id, $label, $to, $parent_id = '', $parent_type = '', $icon = '', $section = '' ) {
 	$menu_item = array(
 		'id'    => $id,
 		'label' => $label,
@@ -113,6 +115,10 @@ function cnl_editor_register_menu_item( $id, $label, $to, $parent_id = '', $pare
 
 	if ( ! empty( $parent_type ) && in_array( $parent_type, array( 'drilldown', 'dropdown' ), true ) ) {
 		$menu_item['parent_type'] = $parent_type;
+	}
+
+	if ( ! empty( $section ) ) {
+		$menu_item['section'] = $section;
 	}
 
 	$GLOBALS['cnl_editor_menu_items'][] = $menu_item;
@@ -155,7 +161,8 @@ function cnl_editor_register_default_routes_and_menu() {
 			$item['to'],
 			$item['parent'] ?? '',
 			$item['parent_type'] ?? '',
-			$item['icon'] ?? ''
+			$item['icon'] ?? '',
+			$item['section'] ?? ''
 		);
 	}
 }
@@ -999,80 +1006,87 @@ function cnl_editor_get_menu_items() {
 			'label' => __( 'Home', 'create-not-learn-editor' ),
 			'to'    => '/',
 		),
-		array(
-			'id'    => 'site-overview',
-			'icon'  => 'dashicons-networking',
-			'label' => __( 'Site Overview', 'create-not-learn-editor' ),
-			'to'    => '/site-overview',
-		),
 	);
 
+	/*
+	 * Below Home, each item is in a section of the sidebar, which app-init
+	 * titles and can fold away (`packages/app-init/src/menu-sections.jsx`).
+	 * Each section's items are kept together, in the order listed here.
+	 */
+
+	// Content: Pages, Posts and any custom post types.
 	foreach ( $post_types as $post_type ) {
-		$is_pages = 'page' === $post_type['name'];
-		$item     = array(
-			'id'    => $is_pages ? 'pages' : 'content-' . $post_type['name'],
-			'icon'  => $post_type['menuIcon'],
-			'label' => $post_type['menuName'],
+		$items[] = array(
+			'id'      => 'page' === $post_type['name'] ? 'pages' : 'content-' . $post_type['name'],
+			'icon'    => $post_type['menuIcon'],
+			'label'   => $post_type['menuName'],
 			// The route prefix, not a specific list view: switching tabs or
 			// filters within the list (or editing/creating an item) changes
 			// the URL past this point, and the sidebar's drilldown-restoration
 			// logic matches by longest `to` prefix, so this must cover every
 			// URL under this post type for the drilldown to stay open.
-			'to'    => '/types/' . $post_type['name'],
+			'to'      => '/types/' . $post_type['name'],
+			'section' => 'content',
 		);
-
-		// Pages is a top-level destination; other content types (Posts and
-		// any custom post types) live under Advanced.
-		if ( ! $is_pages ) {
-			$item['parent'] = 'advanced';
-		}
-
-		$items[] = $item;
 	}
 
-	$items[] = array(
-		'id'    => 'design',
-		'icon'  => 'dashicons-admin-appearance',
-		'label' => __( 'Design', 'create-not-learn-editor' ),
-		// Colors, Fonts and Name & logo live under this path, linked from the
-		// Design screen itself, so the item stays current on all of them.
-		'to'    => '/design',
+	return array_merge(
+		$items,
+		array(
+			array(
+				'id'      => 'site-overview',
+				'icon'    => 'dashicons-networking',
+				'label'   => __( 'Site Overview', 'create-not-learn-editor' ),
+				'to'      => '/site-overview',
+				'section' => 'site',
+			),
+			// The main menu is managed on the Pages screen; this is for the rest.
+			array(
+				'id'      => 'navigation',
+				'label'   => __( 'Menus', 'create-not-learn-editor' ),
+				'to'      => '/navigation',
+				'section' => 'site',
+			),
+			array(
+				'id'      => 'identity',
+				'icon'    => 'dashicons-id',
+				'label'   => __( 'Site Identity', 'create-not-learn-editor' ),
+				'to'      => '/design/identity',
+				'section' => 'site',
+			),
+			// The Design screen itself is reached from Home's "Colors & fonts".
+			array(
+				'id'      => 'colors',
+				'icon'    => 'dashicons-art',
+				'label'   => __( 'Colors', 'create-not-learn-editor' ),
+				'to'      => '/design/colors',
+				'section' => 'design',
+			),
+			array(
+				'id'      => 'fonts',
+				'icon'    => 'dashicons-editor-textcolor',
+				'label'   => __( 'Fonts', 'create-not-learn-editor' ),
+				'to'      => '/design/fonts',
+				'section' => 'design',
+			),
+			array(
+				'id'      => 'patterns',
+				'label'   => __( 'Sections', 'create-not-learn-editor' ),
+				'to'      => '/patterns',
+				'section' => 'advanced',
+			),
+			array(
+				'id'      => 'templateParts',
+				'label'   => __( 'Site parts', 'create-not-learn-editor' ),
+				'to'      => '/template-parts',
+				'section' => 'advanced',
+			),
+			array(
+				'id'      => 'templates',
+				'label'   => __( 'Layouts', 'create-not-learn-editor' ),
+				'to'      => '/templates',
+				'section' => 'advanced',
+			),
+		)
 	);
-	$items[] = array(
-		'id'          => 'advanced',
-		'icon'        => 'dashicons-admin-generic',
-		'label'       => __( 'Advanced', 'create-not-learn-editor' ),
-		// Not a real route: only used to identify this parent for the
-		// sidebar's drilldown-restoration logic, which must not mistake it
-		// for one of its sub-items.
-		'to'          => '/advanced',
-		'parent_type' => 'drilldown',
-	);
-	// The main menu is managed on the Pages screen; this is for the rest.
-	$items[] = array(
-		'id'     => 'navigation',
-		'label'  => __( 'Menus', 'create-not-learn-editor' ),
-		'to'     => '/navigation',
-		'parent' => 'advanced',
-	);
-	$items[] = array(
-		'id'     => 'patterns',
-		'label'  => __( 'Sections', 'create-not-learn-editor' ),
-		'to'     => '/patterns',
-		'parent' => 'advanced',
-	);
-	$items[] = array(
-		'id'     => 'templateParts',
-		'label'  => __( 'Site parts', 'create-not-learn-editor' ),
-		'to'     => '/template-parts',
-		'parent' => 'advanced',
-	);
-	$items[] = array(
-		'id'     => 'templates',
-		'label'  => __( 'Layouts', 'create-not-learn-editor' ),
-		'to'     => '/templates',
-		'parent' => 'advanced',
-	);
-
-	return $items;
 }

@@ -37,36 +37,33 @@ function getRoute( page ) {
 	return new URL( page.url() ).searchParams.get( 'p' ) || '';
 }
 
-const ADVANCED_LINKS = [
-	'Posts',
-	'Menus',
-	'Sections',
-	'Site parts',
-	'Layouts',
-];
+const ADVANCED_LINKS = [ 'Sections', 'Site parts', 'Layouts' ];
 
 /**
- * Follow a link in the sidebar, opening Advanced first for links under it.
+ * Follow a link in the sidebar, opening the folded Advanced section first for
+ * links in it.
  *
  * @param {import('@playwright/test').Page} page
  * @param {string}                          name The link's name.
  */
 async function openSidebarLink( page, name ) {
 	const advanced = page.getByRole( 'button', { name: 'Advanced' } );
-	const back = page.getByRole( 'button', { name: 'Back', exact: true } );
-	const expand = page.getByRole( 'button', { name: 'Expand sidebar' } );
+	const toggle = page.getByRole( 'button', {
+		name: /^(Expand|Collapse) sidebar$/,
+	} );
 
-	// Picking a screen folds the sidebar to a strip of icons, without Back.
-	if ( await expand.isVisible() ) {
-		await expand.click();
+	// Picking a screen folds the sidebar to a strip of icons, which has no
+	// section titles. App-init adds the toggle once the sidebar is ready.
+	await toggle.waitFor();
+	if ( ( await toggle.getAttribute( 'aria-expanded' ) ) === 'false' ) {
+		await toggle.click();
 	}
 
-	if ( ADVANCED_LINKS.includes( name ) ) {
-		if ( ! ( await back.isVisible() ) ) {
-			await advanced.click();
-		}
-	} else if ( await back.isVisible() ) {
-		await back.click();
+	if (
+		ADVANCED_LINKS.includes( name ) &&
+		( await advanced.getAttribute( 'aria-expanded' ) ) === 'false'
+	) {
+		await advanced.click();
 	}
 
 	await page.getByRole( 'link', { name, exact: true } ).click();

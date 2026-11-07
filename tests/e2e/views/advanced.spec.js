@@ -1,5 +1,5 @@
 /**
- * The full-width lists under Advanced in the sidebar.
+ * The full-width lists of layouts, site parts and sections.
  */
 const {
 	expect,
