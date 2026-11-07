@@ -1,0 +1,232 @@
+/*
+ * Page finder. The top bar's Go to page opens it; its toggle is styled in
+ * `src/top-bar/style.scss`.
+ */
+
+.cnl-page-finder__popover .components-popover__content {
+	width: 320px;
+	padding: 0;
+}
+
+.cnl-page-finder {
+	display: flex;
+	flex-direction: column;
+	max-height: min(560px, 70vh);
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+}
+
+.cnl-page-finder__search {
+	position: relative;
+	flex-shrink: 0;
+	padding: var(--wpds-dimension-padding-sm);
+	border-block-end: 1px solid var(--wpds-color-stroke-surface-neutral);
+}
+
+.cnl-page-finder__search-icon {
+	position: absolute;
+	inset-block-start: 50%;
+	inset-inline-start: calc(var(--wpds-dimension-padding-sm) + 8px);
+	transform: translateY(-50%);
+	fill: var(--wpds-color-foreground-content-neutral-weak);
+	pointer-events: none;
+}
+
+.cnl-page-finder__input[type="search"] {
+	box-sizing: border-box;
+	width: 100%;
+	height: 40px;
+	margin: 0;
+	padding-block: 0;
+	padding-inline: 36px var(--wpds-dimension-padding-sm);
+	border: 1px solid var(--wpds-color-stroke-interactive-neutral);
+	border-radius: var(--wpds-border-radius-sm);
+	background: var(--wpds-color-background-surface-neutral-strong);
+	color: inherit;
+	font: inherit;
+	box-shadow: none;
+
+	&:focus {
+		border-color: var(--wp-admin-theme-color);
+		outline: none;
+		box-shadow: 0 0 0 1px var(--wp-admin-theme-color);
+	}
+
+	&::-webkit-search-cancel-button {
+		cursor: pointer;
+	}
+}
+
+.cnl-page-finder__group {
+	overflow-y: auto;
+	// Clear of the sticky heading when a page is scrolled into view.
+	scroll-padding-block-start: 34px;
+	padding-block-end: var(--wpds-dimension-padding-sm);
+}
+
+// Stays at the top of a long list as it scrolls.
+.cnl-page-finder__heading {
+	position: sticky;
+	inset-block-start: 0;
+	z-index: 1;
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--wpds-dimension-gap-sm);
+	padding-block: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-xs);
+	padding-inline: var(--wpds-dimension-padding-lg);
+	background: var(--wpds-color-background-surface-neutral-strong);
+
+	h2 {
+		margin: 0;
+		color: var(--wpds-color-foreground-content-neutral-weak);
+		font-size: 11px;
+		font-weight: var(--wpds-typography-font-weight-emphasis);
+		letter-spacing: 0.04em;
+		line-height: 1.4;
+		text-transform: uppercase;
+	}
+}
+
+/*
+ * Show all, below the main pages, and Show fewer, beside the heading once
+ * they all show.
+ */
+.cnl-page-finder__more {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: var(--wpds-border-radius-sm);
+	background: none;
+	color: var(--wp-admin-theme-color);
+	font: inherit;
+	font-size: var(--wpds-typography-font-size-sm);
+	cursor: pointer;
+
+	&:hover {
+		text-decoration: underline;
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wp-admin-theme-color);
+		outline-offset: 2px;
+	}
+}
+
+.cnl-page-finder__more--row {
+	display: block;
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 32px;
+	padding-inline: var(--wpds-dimension-padding-lg);
+	font-size: inherit;
+	text-align: start;
+
+	&:focus-visible {
+		outline-offset: -2px;
+	}
+}
+
+.cnl-page-finder__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.cnl-page-finder__option {
+	display: flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+	min-height: 32px;
+	margin: 0;
+	padding-block: 0;
+	padding-inline: calc(var(--wpds-dimension-padding-lg) + 16px * var(--cnl-page-finder-depth, 0)) var(--wpds-dimension-padding-lg);
+	cursor: pointer;
+
+	&.is-active {
+		color: var(--wp-admin-theme-color);
+	}
+
+	&.is-current .cnl-page-finder__title {
+		font-weight: var(--wpds-typography-font-weight-emphasis);
+	}
+}
+
+.cnl-page-finder__title {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+// What the page is, after its name: "(Homepage)" or "(Latest posts)".
+.cnl-page-finder__role {
+	flex-shrink: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+
+	.cnl-page-finder__option.is-active & {
+		color: inherit;
+	}
+}
+
+// The parent's name, beside a page found by searching. Gives way first.
+.cnl-page-finder__parent {
+	flex-shrink: 1000;
+	min-width: 0;
+	overflow: hidden;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	white-space: nowrap;
+	text-overflow: ellipsis;
+
+	.cnl-page-finder__option.is-active & {
+		color: inherit;
+		opacity: 0.7;
+	}
+}
+
+.cnl-page-finder__status {
+	flex-shrink: 0;
+}
+
+.cnl-page-finder__empty {
+	margin: 0;
+	padding-block: var(--wpds-dimension-padding-xs);
+	padding-inline: var(--wpds-dimension-padding-lg);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.cnl-page-finder__footer {
+	flex-shrink: 0;
+	padding-block: var(--wpds-dimension-padding-xs);
+	border-block-start: 1px solid var(--wpds-color-stroke-surface-neutral);
+}
+
+.cnl-page-finder__action {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 32px;
+	margin: 0;
+	padding-block: 0;
+	padding-inline: var(--wpds-dimension-padding-lg) var(--wpds-dimension-padding-md);
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: start;
+	cursor: pointer;
+
+	svg {
+		fill: currentcolor;
+	}
+
+	&:hover {
+		color: var(--wp-admin-theme-color);
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wp-admin-theme-color);
+		outline-offset: -2px;
+	}
+}

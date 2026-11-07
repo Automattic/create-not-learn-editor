@@ -18,7 +18,7 @@
  * WordPress dependencies
  */
 import { store as commandsStore } from '@wordpress/commands';
-import { dispatch, select, subscribe, useSelect } from '@wordpress/data';
+import { dispatch, select, subscribe } from '@wordpress/data';
 import { store as preferencesStore } from '@wordpress/preferences';
 
 /**
@@ -43,13 +43,6 @@ function showsAdminBar( registrySelect ) {
 			ADMIN_BAR_PREFERENCE
 		)
 	);
-}
-
-/**
- * @return {boolean} Whether the admin bar is on screen.
- */
-export function useShowsAdminBar() {
-	return useSelect( showsAdminBar, [] );
 }
 
 /**
