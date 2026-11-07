@@ -1,5 +1,5 @@
 /**
- * Commands: what the command palette, behind the top bar's search, finds.
+ * Commands: what the command palette, behind Cmd+K, finds.
  *
  * Core's palette comes with commands for every wp-admin menu item and every
  * Site Editor screen, which all lead out of this editor. So core's palette is
@@ -50,13 +50,11 @@ import {
  * Internal dependencies
  */
 import { openRoute } from '../open-route';
+import { openPage } from '../page-finder/page-finder';
 import { openPreferences } from '../preferences';
 import { HOMEPAGE } from '../routes/content/pages/homepage-state';
 import { getPostTypes, settings } from '../settings';
-import { MODE_EDIT, setCanvasMode } from '../site-canvas/mode';
 import sitePartsIcon from '../site-parts-icon';
-
-const PAGES_PATH = '/types/page/list/all';
 
 // Commands registered by others that lead into wp-admin or don't belong here.
 const HIDDEN_COMMANDS = [
@@ -67,17 +65,6 @@ const HIDDEN_COMMANDS = [
 ];
 
 const EMPTY_ARRAY = [];
-
-/**
- * Open a page on the Pages screen, in Edit, as the homepage is from "Your
- * site".
- *
- * @param {number|string} pageId Page ID, or `HOMEPAGE`.
- */
-function openPage( pageId ) {
-	setCanvasMode( MODE_EDIT );
-	openRoute( PAGES_PATH, { postId: pageId, previewId: pageId } );
-}
 
 /**
  * The editor's screens, each under the name it has in the sidebar or on its
@@ -492,7 +479,7 @@ function CommandPalette() {
 }
 
 /**
- * Mount the command palette, opened from the top bar's search or Cmd+K.
+ * Mount the command palette, opened with Cmd+K or the admin bar's search.
  */
 export function mountCommands() {
 	hideCommands();

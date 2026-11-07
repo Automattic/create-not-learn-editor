@@ -49,9 +49,9 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 }
 
 /*
- * Three columns with equal outer tracks, so the search stays centred on the
+ * Three columns with equal outer tracks, so Go to page stays centred on the
  * screen whatever the save controls are showing. The first track never
- * narrows past the sidebar, so on smaller screens the search gives way,
+ * narrows past the sidebar, so on smaller screens Go to page gives way,
  * shrinking and then moving right, rather than running into the sidebar.
  */
 .cnl-top-bar {
@@ -97,17 +97,22 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 }
 
 /*
- * Command search. Dressed as a search field so it reads as somewhere to
- * type, but it is a button: the palette is where the typing happens.
+ * Go to page. Dressed as a search field so it reads as somewhere to type,
+ * but it is a button: the page finder it opens is where the typing happens.
  */
-.cnl-command-search {
+.cnl-go-to-page {
+	display: block;
+	width: 100%;
+}
+
+.cnl-go-to-page__toggle {
 	display: flex;
 	align-items: center;
 	gap: var(--wpds-dimension-gap-sm);
 	box-sizing: border-box;
 	width: 100%;
 	height: 32px;
-	padding-inline: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-xs);
+	padding-inline: var(--wpds-dimension-padding-sm);
 	border: 1px solid transparent;
 	border-radius: var(--wpds-border-radius-md);
 	background: rgba(255, 255, 255, 0.08);
@@ -117,7 +122,8 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	text-align: start;
 	cursor: pointer;
 
-	&:hover {
+	&:hover,
+	&[aria-expanded="true"] {
 		background: rgba(255, 255, 255, 0.12);
 		color: var(--wpds-color-foreground-content-neutral);
 	}
@@ -134,19 +140,11 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	}
 }
 
-.cnl-command-search__label {
+.cnl-go-to-page__label {
 	flex: 1;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-}
-
-.cnl-command-search__shortcut {
-	padding: 2px var(--wpds-dimension-padding-xs);
-	border-radius: var(--wpds-border-radius-sm);
-	background: rgba(255, 255, 255, 0.08);
-	font-family: inherit;
-	font-size: var(--wpds-typography-font-size-sm);
 }
 
 .cnl-save-controls {
@@ -179,7 +177,7 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 /*
  * Save with nothing to save. Core keeps a disabled primary button blue and
  * only dims its words, which reads as ready on the dark bar, so it takes the
- * command search's faint fill instead.
+ * Go to page field's faint fill instead.
  */
 .components-button.is-primary.cnl-save-controls__button[aria-disabled="true"] {
 

@@ -1,11 +1,10 @@
 /**
  * Top bar: the strip of boot's dark frame above the stage and canvas.
  *
- * It holds the command search in the middle, and the save controls, the
- * button that opens the chat and the Options menu on the right. When the
- * admin bar is shown above, its search opens the palette, so the search here
- * is left out. The full-screen editor has a
- * header of its own, so the bar is hidden there, and on narrow screens, where
+ * It holds Go to page, which opens the page finder (see `src/page-finder`),
+ * in the middle, and the save controls, the button that opens the chat and
+ * the Options menu on the right. The full-screen editor has a header of its
+ * own, so the bar is hidden there, and on narrow screens, where
  * the stage fills the viewport and boot's sidebar save button is kept.
  */
 
@@ -17,19 +16,16 @@ import { createRoot } from '@wordpress/element';
 /**
  * Internal dependencies
  */
-import { useShowsAdminBar } from '../admin-bar';
 import { ChatToggle } from '../chat';
-import { CommandSearch } from './command-search';
+import { GoToPage } from './go-to-page';
 import { OptionsMenu } from './options-menu';
 import { SaveControls } from './save-controls';
 
 function TopBar() {
-	const showsAdminBar = useShowsAdminBar();
-
 	return (
 		<div className="cnl-top-bar">
 			<div className="cnl-top-bar__center">
-				{ ! showsAdminBar && <CommandSearch /> }
+				<GoToPage />
 			</div>
 			<div className="cnl-top-bar__end">
 				<SaveControls />
@@ -46,7 +42,7 @@ function TopBar() {
  * Boot has no slot above its surfaces, so the bar is appended to boot's
  * layout element, which covers the whole screen, and positioned in the margin
  * `style.scss` opens above the surfaces. Spanning the screen rather than the
- * surfaces is what lets the search sit in the middle of the screen. The
+ * surfaces is what lets Go to page sit in the middle of the screen. The
  * layout can remount, so the bar is put back whenever it goes missing.
  */
 export function mountTopBar() {
