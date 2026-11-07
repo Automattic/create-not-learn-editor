@@ -2941,15 +2941,15 @@
 }
 
 /*
- * Pin the last root-level sidebar menu item ("Advanced") to the bottom of the
+ * Pin the sidebar's last titled section ("Advanced") to the bottom of the
  * panel.
  *
  * Gutenberg's boot sidebar has no API for this and its CSS module class names
  * are content hashed, so the menu is matched structurally instead: the menu
  * list is the element that directly follows the navigation screen title.
  * Drilldown screens render a title, the root screen leaves it empty, so only
- * the root screen gets the bottom pin. Only workspaces that end on a gateway
- * like Advanced ask for the pin, through `pinLastMenuItem`.
+ * the root screen gets the bottom pin. Only workspaces that ask for the pin,
+ * through `pinLastMenuSection`, get it.
  */
 #create-not-learn-editor-app {
 
@@ -2970,8 +2970,185 @@
 		flex-direction: column;
 	}
 
-	.cnl-pin-last-menu-item & .components-h-stack:has(> h1.components-heading:empty) + [role="list"] > :last-child {
+	.cnl-pin-last-menu-section & .components-h-stack:has(> h1.components-heading:empty) + [role="list"] > .cnl-menu-section[data-cnl-last] {
 		margin-block-start: auto;
+	}
+}
+
+/*
+ * Section titles in the sidebar's main menu, added by app-init
+ * (`packages/app-init/src/menu-sections.jsx`): small, all caps and knocked
+ * back, so the items lead. Each one folds its section away, showing its
+ * chevron while folded or pointed at.
+ *
+ * Boot sets each item 12px in from the panel's edge, and its icon a little
+ * further, so the title's box lines up with the items' and its text with
+ * their icons and the greeting.
+ */
+$menu-section-margin: 12px;
+$menu-section-inset: 8px;
+
+/*
+ * A faint rule halfway into the space above each title, from the titles'
+ * text to the same distance in from the far side, so it parts the sections
+ * without running edge to edge like the panel's own dividers.
+ */
+.cnl-menu-section {
+	position: relative;
+	margin: var(--wpds-dimension-gap-xl) $menu-section-margin var(--wpds-dimension-gap-xs);
+	padding: 0;
+	font: inherit;
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset-block-start: calc(-1 * var(--wpds-dimension-gap-md));
+		inset-inline: $menu-section-inset;
+		height: 1px;
+		background: var(--wpds-color-stroke-surface-neutral-weak);
+	}
+}
+
+.cnl-menu-section__toggle {
+	display: flex;
+	box-sizing: border-box;
+	align-items: center;
+	width: 100%;
+	min-height: 24px;
+	gap: var(--wpds-dimension-gap-xs);
+	margin: 0;
+	padding: 0 $menu-section-inset;
+	border: 0;
+	border-radius: var(--wpds-border-radius-sm);
+	background: transparent;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-family: inherit;
+	font-size: var(--wpds-typography-font-size-xs);
+
+	/*
+	 * Small capitals need opening up to read, and a step lighter than
+	 * emphasis, which looks heavier light on dark, keeps them behind the
+	 * items. Neither has a design token.
+	 */
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	line-height: var(--wpds-typography-line-height-xs);
+	text-align: start;
+	text-transform: uppercase;
+	cursor: pointer;
+
+	&:hover,
+	&:focus-visible {
+		color: var(--wpds-color-foreground-content-neutral);
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+		outline-offset: 0;
+	}
+
+	@media not (prefers-reduced-motion) {
+		transition: color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+	}
+}
+
+.cnl-menu-section__label {
+	flex: 1;
+}
+
+/*
+ * Drawn at 24px, as boot draws its own, so the small chevron reads. It sits
+ * over the title's end padding, level with the items' ends.
+ */
+.cnl-menu-section__chevron {
+	flex: none;
+	margin-block: -4px;
+	margin-inline-end: calc(-1 * #{$menu-section-inset});
+	fill: currentcolor;
+	opacity: 0;
+
+	.cnl-menu-section__toggle:hover &,
+	.cnl-menu-section__toggle:focus-visible &,
+	.cnl-menu-section__toggle[aria-expanded="false"] & {
+		opacity: 1;
+	}
+
+	.cnl-menu-section__toggle[aria-expanded="false"] & {
+		transform: rotate(-90deg);
+
+		body.rtl & {
+			transform: rotate(90deg);
+		}
+	}
+
+	@media not (prefers-reduced-motion) {
+		transition:
+			opacity var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
+			transform var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+	}
+}
+
+/*
+ * A folded section's items, all but the screen on show. Only while the
+ * sidebar can show its titles: expanded, or as a drawer on narrow screens.
+ */
+@mixin cnl-folded-menu-items {
+
+	[data-cnl-folded]:not(:has([aria-current="page"])),
+	[data-cnl-overflow]:not(:has([aria-current="page"])) {
+		display: none;
+	}
+}
+
+/*
+ * The screen on show: its item a step lighter than the panel, so where you
+ * are reads at a glance, in the strip of icons too. Pointing at an item only
+ * brightens its text, so the two never look alike.
+ */
+#create-not-learn-editor-app [class*="__sidebar"] [class*="__item-wrapper"] > [aria-current="page"] {
+	border-radius: var(--wpds-border-radius-md);
+	background: var(--wpds-color-background-interactive-neutral-weak-active);
+}
+
+/*
+ * Advanced's one icon in the strip of icons (`menu-sections.jsx`). Only the
+ * strip shows it; see there.
+ */
+.cnl-menu-section-stand-in {
+	display: none;
+}
+
+/*
+ * The "…" after a section's first few items, standing for the rest. Shaped
+ * like the items, with its dots in their icons' column, and knocked back
+ * like the titles.
+ */
+.cnl-menu-section-more {
+	margin-inline: $menu-section-margin;
+}
+
+.components-button.cnl-menu-section-more__button {
+	justify-content: flex-start;
+	width: 100%;
+	padding-inline: var(--wpds-dimension-gap-xs);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+
+	&:hover:not(:disabled),
+	&:focus-visible {
+		color: var(--wpds-color-foreground-content-neutral);
+	}
+}
+
+body.cnl-sidebar-is-expanded #create-not-learn-editor-app {
+
+	@include cnl-folded-menu-items;
+}
+
+@media (max-width: 781px) {
+
+	#create-not-learn-editor-app {
+
+		@include cnl-folded-menu-items;
 	}
 }
 
@@ -3333,8 +3510,65 @@ $sidebar-strip-width: 64px;
 			padding-inline: var(--wpds-dimension-gap-sm);
 		}
 
+		// Each item fills its row but for the row's own inset, so the screen
+		// on show is marked by a box nearly as wide as the strip. Boot sizes
+		// items to leave room for margins they no longer have here.
 		[class*="__item-wrapper"] > * {
+			width: 100%;
+			margin-inline: 0;
 			padding-inline: 0;
+		}
+
+		// Each section title is a short rule between groups of icons.
+		.cnl-menu-section {
+			box-sizing: border-box;
+			height: 1px;
+			margin-block: var(--wpds-dimension-gap-sm);
+			margin-inline: var(--wpds-dimension-padding-xl);
+			background: var(--wpds-color-stroke-surface-neutral);
+		}
+
+		.cnl-menu-section::before,
+		.cnl-menu-section__toggle,
+		.cnl-menu-section-more {
+			display: none;
+		}
+
+		/*
+		 * A section with a strip icon, like Advanced, shows that icon in
+		 * place of its items, unless one of them is the screen on show,
+		 * which stands in for them itself.
+		 */
+		[data-cnl-stands-in]:not(:has([aria-current="page"])),
+		[role="list"]:has(> [data-cnl-stands-in] [aria-current="page"]) > .cnl-menu-section-stand-in {
+			display: none;
+		}
+
+		// Shaped like the items around it, in rows of the same height.
+		.cnl-menu-section-stand-in {
+			display: block;
+			box-sizing: border-box;
+			padding: 2px var(--wpds-dimension-gap-sm);
+		}
+
+		.cnl-menu-section-stand-in__button {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 100%;
+			height: 32px;
+			margin: 0;
+			padding: 0;
+			border: 0;
+			border-radius: var(--wpds-border-radius-md);
+			background: transparent;
+			color: inherit;
+			cursor: pointer;
+
+			&:focus-visible {
+				outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+				outline-offset: 0;
+			}
 		}
 	}
 }

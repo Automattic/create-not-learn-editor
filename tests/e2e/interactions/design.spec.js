@@ -3,7 +3,6 @@ const {
 	getSaveControls,
 	getStage,
 	openReviewChanges,
-	openSidebarLink,
 	test,
 	visitEditor,
 } = require( '../utils' );
@@ -25,8 +24,9 @@ test.describe( 'Design interactions', () => {
 	test( 'links lead to each design screen, and breadcrumbs lead back', async ( {
 		page,
 	} ) => {
-		await visitEditor( page );
-		await openSidebarLink( page, 'Design' );
+		// The sidebar links to Colors and Fonts; Design itself is reached
+		// from Home.
+		await visitEditor( page, '/design' );
 
 		const stage = getStage( page );
 		const backToDesign = stage

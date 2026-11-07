@@ -29,6 +29,7 @@ import {
 	PREFERENCES_SCOPE,
 	WORKSPACES,
 	getActiveWorkspace,
+	getMenuItemChanges,
 	getWorkspace,
 } from './presets';
 
@@ -85,20 +86,30 @@ export function mountWorkspaces() {
 	 * including properties the item was registered without.
 	 */
 	const registered = select( bootStore ).getMenuItems();
+	const changesByWorkspace = Object.fromEntries(
+		WORKSPACES.map( ( workspace ) => [
+			workspace.id,
+			getMenuItemChanges( workspace, registered ),
+		] )
+	);
 	const originals = {};
 	WORKSPACES.forEach( ( workspace ) => {
-		Object.entries( workspace.menuItems ).forEach( ( [ id, changes ] ) => {
-			const item = registered.find( ( { id: itemId } ) => itemId === id );
+		Object.entries( changesByWorkspace[ workspace.id ] ).forEach(
+			( [ id, changes ] ) => {
+				const item = registered.find(
+					( { id: itemId } ) => itemId === id
+				);
 
-			if ( ! item ) {
-				return;
+				if ( ! item ) {
+					return;
+				}
+
+				originals[ id ] = originals[ id ] || {};
+				Object.keys( changes ).forEach( ( key ) => {
+					originals[ id ][ key ] = item[ key ];
+				} );
 			}
-
-			originals[ id ] = originals[ id ] || {};
-			Object.keys( changes ).forEach( ( key ) => {
-				originals[ id ][ key ] = item[ key ];
-			} );
-		} );
+		);
 	} );
 
 	let appliedId;
@@ -116,13 +127,13 @@ export function mountWorkspaces() {
 			isPublishSidebarEnabled: workspace.publishStep,
 		} );
 		document.body.classList.toggle(
-			'cnl-pin-last-menu-item',
-			!! workspace.pinLastMenuItem
+			'cnl-pin-last-menu-section',
+			!! workspace.pinLastMenuSection
 		);
 		Object.keys( originals ).forEach( ( id ) => {
 			dispatch( bootStore ).updateMenuItem( id, {
 				...originals[ id ],
-				...workspace.menuItems[ id ],
+				...changesByWorkspace[ workspace.id ][ id ],
 			} );
 		} );
 	};

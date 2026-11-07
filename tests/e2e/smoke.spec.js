@@ -46,19 +46,25 @@ test( 'every main screen loads without errors', async ( { page, rest } ) => {
 		).toBeVisible( { timeout: 15000 } );
 	} );
 
-	await test.step( 'Design', async () => {
-		await openSidebarLink( page, 'Design' );
-		await expect(
-			stage.getByRole( 'region', { name: 'Site look' } )
-		).toBeVisible();
-	} );
+	for ( const [ link, heading ] of [
+		[ 'Colors', 'Colors' ],
+		[ 'Fonts', 'Fonts' ],
+		[ 'Site Identity', 'Name & logo' ],
+	] ) {
+		await test.step( `Sidebar › ${ link }`, async () => {
+			await openSidebarLink( page, link );
+			await expect(
+				stage.getByRole( 'heading', { name: heading } )
+			).toBeVisible();
+		} );
+	}
 
 	for ( const [ link, heading ] of [
 		[ 'Layouts', 'Layouts' ],
 		[ 'Site parts', 'Site parts' ],
 		[ 'Sections', 'Sections' ],
 	] ) {
-		await test.step( `Advanced › ${ link }`, async () => {
+		await test.step( `Sidebar › ${ link }`, async () => {
 			await openSidebarLink( page, link );
 			await expect(
 				stage.getByRole( 'heading', { name: heading } )

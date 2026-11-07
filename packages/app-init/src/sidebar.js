@@ -49,7 +49,7 @@ import {
  * What can be pointed at in the sidebar while it is a strip of icons, the
  * sidebar not being expanded. Matches the rule in `src/style.scss`.
  */
-const STRIP_ITEM_SELECTOR = `body:not(.cnl-sidebar-is-expanded) #create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"] :is([class*="__item-wrapper"] > *, .cnl-sidebar-workspace__toggle)`;
+const STRIP_ITEM_SELECTOR = `body:not(.cnl-sidebar-is-expanded) #create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"] :is([class*="__item-wrapper"] > *, .cnl-menu-section-stand-in__button, .cnl-sidebar-workspace__toggle)`;
 
 const EXPANDED_CLASS = 'cnl-sidebar-is-expanded';
 
@@ -182,9 +182,9 @@ function getRoutePath() {
 let isFollowingSidebar = false;
 
 /**
- * Clicking an item in the sidebar's strip of icons that opens a section of
- * the menu, like Advanced, rather than a screen, expands the sidebar to show
- * that section. Picking a screen leaves it as a strip.
+ * Clicking an item in the sidebar's strip of icons that doesn't open a
+ * screen expands the sidebar to show what it stands for: Advanced's one icon
+ * (`menu-sections.jsx`), or a drilldown another plugin registers. Picking a screen leaves it as a strip.
  */
 function expandOnStripDrilldown() {
 	document.addEventListener( 'click', ( event ) => {

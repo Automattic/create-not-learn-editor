@@ -4,14 +4,12 @@
 import { store as bootStore } from '@wordpress/boot';
 import { dispatch } from '@wordpress/data';
 import {
-	brush,
 	color,
 	home,
 	layout,
 	navigation,
 	pages,
 	postList,
-	settings,
 	siteLogo,
 	sites,
 	styles,
@@ -37,6 +35,7 @@ import { registerLayoutWireframes } from '../../../src/layouts';
 import { mountTopBar } from '../../../src/top-bar';
 import { mountWorkspaces } from '../../../src/workspaces';
 import { mountPreferences } from '../../../src/preferences';
+import { mountMenuSections } from './menu-sections';
 import { enhanceSidebar } from './sidebar';
 
 export async function init() {
@@ -51,9 +50,7 @@ export async function init() {
 	// PHP can only hand boot dashicon strings; swap in @wordpress/icons SVGs
 	// here, as WordPress 7.2 is doing for its own admin menu.
 	const menuIcons = {
-		advanced: settings,
 		colors: color,
-		design: brush,
 		fonts: typography,
 		home,
 		identity: siteLogo,
@@ -72,6 +69,7 @@ export async function init() {
 	} );
 
 	mountWorkspaces();
+	mountMenuSections();
 	mountPreferences();
 	mountAdminBar();
 	mountTopBar();

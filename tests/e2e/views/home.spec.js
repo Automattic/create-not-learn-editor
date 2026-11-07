@@ -46,7 +46,7 @@ test.describe( 'Home view', () => {
 	test( 'keeps the sidebar links the same size when another screen loads', async ( {
 		page,
 	} ) => {
-		const names = [ 'Home', 'Site Overview', 'Pages', 'Design' ];
+		const names = [ 'Home', 'Site Overview', 'Pages', 'Colors' ];
 		const getHeights = () =>
 			Promise.all(
 				names.map( async ( name ) => {
