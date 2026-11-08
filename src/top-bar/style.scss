@@ -12,6 +12,9 @@ $top-bar-height: 56px;
 
 // Boot's sidebar width plus the gap boot leaves between it and the surfaces.
 $sidebar-width: 248px;
+
+// The sidebar as a strip of icons; see `src/style.scss`.
+$sidebar-strip-width: 64px;
 $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"])';
 
 .cnl-top-bar-host {
@@ -65,8 +68,37 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 }
 
 .cnl-top-bar__center,
-.cnl-top-bar__end {
+.cnl-top-bar__end,
+.cnl-top-bar__start > * {
 	pointer-events: auto;
+}
+
+/*
+ * Only the button takes clicks: the rest of the track is over the sidebar.
+ * The button lines up with the left edge of the white surfaces below, clear
+ * of the WordPress logo in the sidebar's top corner, whether the sidebar is
+ * a strip of icons or open. The bar's own inset is taken off, as the
+ * surfaces' gap from the sidebar is the same size.
+ */
+.cnl-top-bar__start {
+	display: flex;
+	grid-column: 1;
+	padding-inline-start: $sidebar-strip-width;
+	pointer-events: none;
+
+	body.cnl-sidebar-is-expanded & {
+		padding-inline-start: calc(#{$sidebar-width} - var(--wpds-dimension-gap-sm));
+	}
+}
+
+// Wide enough for each option's description to sit on one line.
+.cnl-quick-add__popover .components-dropdown-menu__menu {
+	width: 320px;
+}
+
+// Quick add's file picker, opened from its menu rather than shown.
+.cnl-quick-add__file {
+	display: none;
 }
 
 .cnl-top-bar__center {
