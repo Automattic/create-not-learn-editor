@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
 	DEFAULT_WORKSPACE,
 	WORKSPACES,
+	findWorkspace,
 	getAvailableWorkspaces,
 	getWorkspace,
 } from '../presets';
@@ -39,6 +40,18 @@ describe( 'getWorkspace', () => {
 		settings.shop = {};
 
 		expect( getWorkspace( 'selling' ).id ).toBe( 'selling' );
+	} );
+} );
+
+describe( 'findWorkspace', () => {
+	it( 'finds a workspace by its id or an id it was saved under', () => {
+		expect( findWorkspace( 'builder' ).id ).toBe( 'builder' );
+		expect( findWorkspace( 'blogging' ).id ).toBe( 'writing' );
+	} );
+
+	it( 'finds nothing for an unknown id or one the site can’t use', () => {
+		expect( findWorkspace( 'nope' ) ).toBeUndefined();
+		expect( findWorkspace( 'selling' ) ).toBeUndefined();
 	} );
 } );
 

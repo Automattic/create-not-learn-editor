@@ -12,6 +12,8 @@ To see how the editor copes with a site that isn't set up for it, [try it on a b
 
 To try the shop, [open Fernhouse with WooCommerce](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint-shop.json). It adds WooCommerce and a stocked demo shop, and opens on the Shop screen. It takes a minute or two longer, as Playground downloads WooCommerce.
 
+Each demo opens in the Default workspace. To start in another, open the demo in [Writing](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dwriting) or [Builder](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dbuilder), or the shop demo in [Selling](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint-shop.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dselling).
+
 Create Not Learn Editor is a standalone WordPress plugin that experiments with a focused, extensible site-editing experience.
 
 The plugin is intentionally not part of the Gutenberg repository. It consumes released WordPress and Gutenberg packages, declares the released Gutenberg plugin as a WordPress plugin dependency, and can be installed like a normal plugin.
@@ -164,6 +166,18 @@ Agentic Editor asks before running some of its tools, such as publishing a patte
 
 The editor loads Agentic Editor's tools with `agentic_editor_enqueue_abilities()`, which [wpscholar/agentic-editor#30](https://github.com/wpscholar/agentic-editor/pull/30) adds. Until that is merged, map the PR's branch into `wp-env` as described above.
 
+### Opening in a workspace
+
+A link can open the editor in a workspace by adding `workspace` to its address:
+
+```text
+/wp-admin/admin.php?page=create-not-learn-editor&workspace=writing
+```
+
+The ids are `simple` (Default), `writing`, `selling` and `builder`, from `src/workspaces/presets.js`. The link switches the person to that workspace as if they had picked it from the switcher, so it stays their workspace afterwards. The editor then takes `workspace` out of the address, so a reload doesn't undo a switch made since. A workspace the site can't use, like Selling on a site without WooCommerce, is ignored.
+
+It is there for demos, and for the end of an onboarding flow, which can send people on to the workspace that suits what they came to do. It works with any other part of the address, such as `p` for the screen to open on.
+
 ### Shop
 
 With WooCommerce active, Home offers the shop. Map WooCommerce in the same way, activate it, add its pages, then stock the shop with products that cover the awkward cases, like options, stock counts and drafts:
@@ -224,6 +238,14 @@ The demo links at the top of this README open [WordPress Playground](https://wor
 Playground can't install from the plugin source, which needs building first, or from workflow artifacts. So on every push to `trunk`, `.github/workflows/plugin-zip.yml` builds the plugin zip and publishes it to the `playground-build` branch, along with a zip of the theme and the seed scripts. The blueprints install from that branch, so the demos always run the latest successful build of `trunk`.
 
 Keep the Gutenberg version in every blueprint in step with `.wp-env.json`. Canvas is left out, as the plugin doesn't need it.
+
+Every demo opens in the Default workspace. Playground's `url` parameter changes where a blueprint lands, so any demo link opens in another workspace with `&url=` and the editor's address, encoded, on the end. This opens the trunk demo in Writing:
+
+```text
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dwriting
+```
+
+The workflows below add the Writing, Builder and Selling links wherever they list the demos. Selling needs a shop, so its link uses the shop blueprint.
 
 #### Branch demos
 
