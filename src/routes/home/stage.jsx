@@ -9,6 +9,7 @@ import { requestDistractionFreeEntry } from '../../editor-layer/distraction-free
 import { getActiveWorkspace } from '../../workspaces/presets';
 import { isAskingPostKind } from '../../post-kinds-base';
 import PostKindPicker from '../../pickers/post-kinds';
+import BlogAdmin from './blog-admin';
 import { SiteAddress, SiteMark, SiteStatus, useSite } from './site-card';
 import {
 	Page,
@@ -100,6 +101,9 @@ export default function Stage() {
 						} ) }
 					/>
 				</Stack>
+				{ !! workspace.home.adminLinks.length && (
+					<BlogAdmin ids={ workspace.home.adminLinks } />
+				) }
 				<Text className="cnl-site-hub__hint" variant="body-sm">
 					{ workspace.home.hint }
 				</Text>

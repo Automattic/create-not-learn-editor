@@ -53,6 +53,10 @@ export const HIDDEN_PARENT = 'cnl-workspace-hidden';
  *   (see `src/start-places.js`), with `home.copy` rewording any of them. A
  *   place the site has no use for, like a shop on a site without one, is
  *   left out.
+ * - `home.adminLinks`: WordPress's own screens to link to under them, by
+ *   id (see `src/routes/home/blog-admin-links.js`), for jobs visitors don't
+ *   see, like replying to comments. They open in a new tab, with an "All
+ *   settings" link under them. One this person can't use is left out.
  * - `home.hint`: the tip under them.
  * - `home.viewLabel`: the link to the live site, under Home's title.
  * - `home.preview`: what Home's canvas opens on. `home` is the homepage;
@@ -78,6 +82,7 @@ const DEFAULTS = {
 	home: {
 		places: [ 'home', 'pages', 'identity', 'style', 'siteParts', 'shop' ],
 		copy: {},
+		adminLinks: [],
 		hint: __(
 			'Tip: follow links on the page to visit the rest of your site. Switch to Edit to change what is on it, then zoom out to add and arrange its sections.'
 		),
@@ -128,14 +133,18 @@ const PRESETS = [
 		hiddenMenuSections: [ 'content', 'site', 'design', 'advanced' ],
 		home: {
 			// The homepage is the same place, and the same screen, as in
-			// every other workspace.
-			places: [ 'write', 'posts', 'home', 'identity', 'style', 'shop' ],
+			// every other workspace. Name & logo is left to the logo in
+			// Home's header, which opens it, and a shop to Plugins in the
+			// sidebar.
+			// Most used first. A blog's look matters to more people than its
+			// homepage, which usually just lists the posts.
+			places: [ 'write', 'posts', 'style', 'home' ],
 			copy: {
-				identity: {
-					description: __( 'Name your blog and add a logo.' ),
-				},
 				style: { description: __( 'Pick the look of your blog.' ) },
 			},
+			// Kept to two, most used first. Every other setting is one
+			// "All settings" link under them.
+			adminLinks: [ 'comments', 'categories' ],
 			hint: __(
 				'Tip: follow links on your blog to read it here as visitors do. Open a post to change it.'
 			),
