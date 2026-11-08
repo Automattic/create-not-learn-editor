@@ -206,9 +206,9 @@ function cnl_editor_get_shop_routes() {
 /**
  * Get the shop's sidebar item.
  *
- * It starts out of the sidebar, under a parent no item has, as "Your site"
- * leads to the shop. The Selling workspace lifts it to the top level. See
- * `src/workspaces/index.js`.
+ * It starts out of the sidebar, under a parent no item has, as "Home" and
+ * Plugins both lead to the shop. The Selling workspace lifts it to the top
+ * level, in Plugins' place. See `src/workspaces/presets.js`.
  *
  * @return array[] Menu item definitions, none when there is no shop.
  */
@@ -224,6 +224,41 @@ function cnl_editor_get_shop_menu_items() {
 			'label'  => __( 'Shop', 'create-not-learn-editor' ),
 			'to'     => '/shop',
 			'parent' => 'cnl-workspace-hidden',
+		),
+	);
+}
+
+/**
+ * Get WooCommerce's item in the sidebar's Plugins section, which leads to
+ * the same Shop screens.
+ *
+ * It wears the icon WooCommerce gives itself in WP Admin's menu, so it is
+ * recognised as the plugin it is.
+ *
+ * @return array[] Menu item definitions, none when there is no shop.
+ */
+function cnl_editor_get_shop_extension_menu_items() {
+	global $menu;
+
+	if ( ! cnl_editor_has_shop() ) {
+		return array();
+	}
+
+	$icon = 'dashicons-cart';
+	foreach ( (array) $menu as $admin_item ) {
+		if ( isset( $admin_item[2], $admin_item[6] ) && 'woocommerce' === $admin_item[2] ) {
+			$icon = $admin_item[6];
+			break;
+		}
+	}
+
+	return array(
+		array(
+			'id'      => 'woocommerce',
+			'icon'    => $icon,
+			'label'   => __( 'WooCommerce', 'create-not-learn-editor' ),
+			'to'      => '/shop',
+			'section' => 'plugins',
 		),
 	);
 }

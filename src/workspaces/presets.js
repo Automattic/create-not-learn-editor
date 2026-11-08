@@ -160,10 +160,12 @@ const PRESETS = [
 		icon: store,
 		isAvailable: () => !! settings.shop,
 		pinLastMenuSection: true,
-		// The shop first, on Home and at the top of the sidebar. The rest is
-		// as Default has it, so the site is still built the same way.
+		// The shop first, on Home and at the top of the sidebar, in place of
+		// WooCommerce under Plugins. The rest is as Default has it, so the
+		// site is still built the same way.
 		menuItems: {
 			shop: { parent: undefined },
+			woocommerce: { parent: HIDDEN_PARENT },
 		},
 		home: {
 			places: [

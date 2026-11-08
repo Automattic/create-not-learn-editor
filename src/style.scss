@@ -3075,6 +3075,46 @@ $menu-section-inset: 8px;
 }
 
 /*
+ * A section's "?", just after its title's words. It sits over the title's
+ * button rather than in it (see `useTextEnd()`), level with the words.
+ */
+.cnl-menu-section__help {
+	position: absolute;
+	inset-block-start: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--wpds-dimension-size-sm);
+	height: var(--wpds-dimension-size-sm);
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: var(--wpds-border-radius-sm);
+	background: transparent;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	cursor: var(--wpds-cursor-control);
+
+	svg {
+		fill: currentcolor;
+	}
+
+	&:hover,
+	&:focus-visible {
+		color: var(--wpds-color-foreground-content-neutral);
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+		outline-offset: 0;
+	}
+}
+
+// Wrapped to a readable measure, as it is a sentence or two.
+.cnl-menu-section__help-popup {
+	max-width: 240px;
+}
+
+/*
  * Drawn at 24px, as boot draws its own, so the small chevron reads. It sits
  * over the title's end padding, level with the items' ends.
  */
@@ -3126,6 +3166,22 @@ $menu-section-inset: 8px;
 #create-not-learn-editor-app [class*="__sidebar"] [class*="__item-wrapper"] > [aria-current="page"] {
 	border-radius: var(--wpds-border-radius-md);
 	background: var(--wpds-color-background-interactive-neutral-weak-active);
+}
+
+/*
+ * An item boot counts as current only because the screen on show is under
+ * its own, when another item leads closer to it (`markOutranked()`), looks
+ * like any other.
+ */
+#create-not-learn-editor-app [class*="__sidebar"] [data-cnl-outranked][class*="__item-wrapper"] > [aria-current="page"] {
+	background: transparent;
+	color: var(--wpds-color-foreground-interactive-neutral);
+	font-weight: inherit;
+
+	&:hover,
+	&:focus {
+		color: var(--wpds-color-foreground-interactive-brand-active);
+	}
 }
 
 /*
@@ -3548,6 +3604,7 @@ $sidebar-strip-width: 64px;
 
 		.cnl-menu-section::before,
 		.cnl-menu-section__toggle,
+		.cnl-menu-section__help,
 		.cnl-menu-section-more {
 			display: none;
 		}

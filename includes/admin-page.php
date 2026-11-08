@@ -89,16 +89,18 @@ function cnl_editor_register_route( $path, $content_module = null, $route_module
 /**
  * Register a menu item for the Create Not Learn full-page editor.
  *
- * @param string $id          Menu item ID.
- * @param string $label       Menu item label.
- * @param string $to          Route path.
- * @param string $parent_id   Optional parent item ID.
- * @param string $parent_type Optional parent type.
- * @param string $icon        Optional dashicon class.
- * @param string $section     Optional sidebar section ID, like `site` or
- *                            `advanced`, which titles the item's group.
+ * @param string $id           Menu item ID.
+ * @param string $label        Menu item label.
+ * @param string $to           Route path.
+ * @param string $parent_id    Optional parent item ID.
+ * @param string $parent_type  Optional parent type.
+ * @param string $icon         Optional dashicon class.
+ * @param string $section      Optional sidebar section ID, like `site` or
+ *                             `advanced`, which titles the item's group.
+ * @param bool   $always_shown Whether the item stays listed when its section
+ *                             puts the rest behind a "…".
  */
-function cnl_editor_register_menu_item( $id, $label, $to, $parent_id = '', $parent_type = '', $icon = '', $section = '' ) {
+function cnl_editor_register_menu_item( $id, $label, $to, $parent_id = '', $parent_type = '', $icon = '', $section = '', $always_shown = false ) {
 	$menu_item = array(
 		'id'    => $id,
 		'label' => $label,
@@ -119,6 +121,10 @@ function cnl_editor_register_menu_item( $id, $label, $to, $parent_id = '', $pare
 
 	if ( ! empty( $section ) ) {
 		$menu_item['section'] = $section;
+	}
+
+	if ( $always_shown ) {
+		$menu_item['alwaysShown'] = true;
 	}
 
 	$GLOBALS['cnl_editor_menu_items'][] = $menu_item;
@@ -162,7 +168,8 @@ function cnl_editor_register_default_routes_and_menu() {
 			$item['parent'] ?? '',
 			$item['parent_type'] ?? '',
 			$item['icon'] ?? '',
-			$item['section'] ?? ''
+			$item['section'] ?? '',
+			! empty( $item['alwaysShown'] )
 		);
 	}
 }
@@ -1030,9 +1037,19 @@ function cnl_editor_get_menu_items() {
 	 */
 
 	// Content: Pages, Posts and any custom post types.
+	$products = null;
 	foreach ( $post_types as $post_type ) {
-		// The shop has its own Products screen.
+		// The shop's products open its own Products screen, and are always
+		// listed, after Posts, rather than behind the section's "…".
 		if ( 'product' === $post_type['name'] && cnl_editor_has_shop() ) {
+			$products = array(
+				'id'          => 'content-product',
+				'icon'        => $post_type['menuIcon'],
+				'label'       => $post_type['menuName'],
+				'to'          => '/shop/products',
+				'section'     => 'content',
+				'alwaysShown' => true,
+			);
 			continue;
 		}
 
@@ -1048,6 +1065,11 @@ function cnl_editor_get_menu_items() {
 			'to'      => '/types/' . $post_type['name'],
 			'section' => 'content',
 		);
+	}
+
+	if ( $products ) {
+		$after_posts = array_search( 'content-post', array_column( $items, 'id' ), true );
+		array_splice( $items, false === $after_posts ? count( $items ) : $after_posts + 1, 0, array( $products ) );
 	}
 
 	return array_merge(
@@ -1089,6 +1111,10 @@ function cnl_editor_get_menu_items() {
 				'to'      => '/design/fonts',
 				'section' => 'design',
 			),
+		),
+		// Plugins: those that add to the site, each leading to its screens.
+		cnl_editor_get_shop_extension_menu_items(),
+		array(
 			array(
 				'id'      => 'patterns',
 				'label'   => __( 'Sections', 'create-not-learn-editor' ),
