@@ -1,15 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { store as bootStore } from '@wordpress/boot';
-import {
-	Button,
-	Dropdown,
-	MenuGroup,
-	MenuItem,
-	Path,
-	SVG,
-} from '@wordpress/components';
+import { Button, Dropdown, MenuGroup, MenuItem } from '@wordpress/components';
 import { subscribe, useSelect } from '@wordpress/data';
 import {
 	createElement as el,
@@ -18,15 +10,13 @@ import {
 	useState,
 	useSyncExternalStore,
 } from '@wordpress/element';
-import { __, isRTL, sprintf } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import {
 	category,
 	check,
-	chevronLeft,
-	chevronRight,
 	chevronUpDown,
 	drawerLeft,
-	wordpress,
+	menu as menuIcon,
 } from '@wordpress/icons';
 import { Icon, Tooltip } from '@wordpress/ui';
 
@@ -59,13 +49,12 @@ const SIDEBAR_SELECTOR =
 /*
  * The parts of the sidebar that keep their place while it expands or folds,
  * which glide to where they sit in the other shape: each item's icon, the
- * toggle, the WordPress logo and the workspace switcher's icon. Everything
+ * menu button and the workspace switcher's icon. Everything
  * else in the sidebar is clipped as it narrows, or revealed as it widens.
  */
 const GLIDING_PARTS_SELECTOR = [
 	'[class*="__item-wrapper"] > * > * > :first-child',
 	'.cnl-sidebar-toggle__button',
-	'.cnl-sidebar-dashboard__link > :last-child',
 	'.cnl-sidebar-workspace__toggle > :first-child',
 ].join( ', ' );
 
@@ -189,23 +178,10 @@ const expansion = {
 	},
 };
 
-/*
- * `drawerLeft` with the sidebar folded down to a narrow bar, shown while the
- * sidebar is a strip of icons. `drawerLeft` itself shows it expanded.
- */
-const drawerLeftCollapsed = el(
-	SVG,
-	{ xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 24 24' },
-	el( Path, {
-		fillRule: 'evenodd',
-		clipRule: 'evenodd',
-		d: 'M18 4H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm.5 14c0 .3-.2.5-.5.5H6c-.3 0-.5-.2-.5-.5V6c0-.3.2-.5.5-.5h12c.3 0 .5.2.5.5v12zM7.5 8.75a.75.75 0 0 1 1.5 0v6.5a.75.75 0 0 1-1.5 0z',
-	} )
-);
-
 /**
- * Expand the sidebar from its strip of icons, or fold it back. Sits where
- * the greeting does.
+ * Expand the sidebar from its strip of icons, or fold it back: a menu button
+ * at the top of the sidebar, in the corner below the admin bar. Once the
+ * sidebar is expanded it shows the sidebar itself, as the way to close it.
  *
  * @return {Element} The toggle.
  */
@@ -219,7 +195,7 @@ function SidebarToggle() {
 		__next40pxDefaultSize: true,
 		'aria-expanded': isExpanded,
 		className: 'cnl-sidebar-toggle__button',
-		icon: isExpanded ? drawerLeft : drawerLeftCollapsed,
+		icon: isExpanded ? drawerLeft : menuIcon,
 		label: isExpanded ? __( 'Collapse sidebar' ) : __( 'Expand sidebar' ),
 		onClick: () => expansion.set( ! isExpanded ),
 		showTooltip: true,
@@ -231,7 +207,7 @@ function SidebarToggle() {
  * Name the icon pointed at, or focused, in the sidebar's strip of icons.
  *
  * Boot's menu items aren't ours to wrap in a tooltip, so one tooltip follows
- * whichever item is under the pointer or has focus. The Dashboard link and
+ * whichever item is under the pointer or has focus. The menu button and
  * boot's Back button already show their own.
  *
  * @return {?Element} The tooltip.
@@ -359,31 +335,6 @@ function shareRoomWithChat() {
 }
 
 /**
- * Link back to wp-admin: a back arrow followed by the WordPress logo.
- *
- * @return {Element} The Dashboard link.
- */
-function DashboardLink() {
-	const dashboardLink = useSelect(
-		( select ) => select( bootStore ).getDashboardLink(),
-		[]
-	);
-
-	return el(
-		Button,
-		{
-			__next40pxDefaultSize: true,
-			className: 'cnl-sidebar-dashboard__link',
-			href: dashboardLink || '/',
-			label: __( 'Go to WordPress Dashboard' ),
-			showTooltip: true,
-		},
-		el( Icon, { icon: isRTL() ? chevronRight : chevronLeft } ),
-		el( Icon, { icon: wordpress } )
-	);
-}
-
-/**
  * Switch between workspaces: a quiet button showing the active workspace,
  * opening a menu of all of them above it.
  *
@@ -467,26 +418,28 @@ function createWelcome( name ) {
 	return welcome;
 }
 
-function createDashboardLink() {
-	const container = document.createElement( 'div' );
-	container.className = 'cnl-sidebar-dashboard';
-	createRoot( container ).render( el( DashboardLink ) );
-
-	return container;
-}
-
 function mountStripTooltip() {
 	const container = document.createElement( 'div' );
 	document.body.append( container );
 	createRoot( container ).render( el( StripTooltip ) );
 }
 
-function createSidebarToggle() {
-	const container = document.createElement( 'div' );
-	container.className = 'cnl-sidebar-toggle';
-	createRoot( container ).render( el( SidebarToggle ) );
+/**
+ * The sidebar's top row: the greeting, then the menu button at the far end.
+ *
+ * @param {string} name The user's first name or nickname, if any.
+ * @return {Element} The row.
+ */
+function createSidebarHeader( name ) {
+	const toggle = document.createElement( 'div' );
+	toggle.className = 'cnl-sidebar-toggle';
+	createRoot( toggle ).render( el( SidebarToggle ) );
 
-	return container;
+	const header = document.createElement( 'div' );
+	header.className = 'cnl-sidebar-header';
+	header.append( createWelcome( name ), toggle );
+
+	return header;
 }
 
 /**
@@ -530,13 +483,12 @@ function createWorkspaceSwitcher() {
 /**
  * Add the plugin's own pieces to boot's sidebar.
  *
- * - A Dashboard link showing the WordPress logo, replacing boot's text link,
- *   which `src/style.scss` hides.
- * - A greeting above the main menu, hidden inside menu sections by CSS.
- * - A toggle in the greeting's row to expand the sidebar from its strip of
- *   icons and fold it back. It starts as a strip, so the first thing anyone
- *   sees is the screen itself, and folds back whenever another screen is
- *   picked.
+ * - A top row in place of boot's Dashboard link, which `src/style.scss`
+ *   hides, as the admin bar above leads to the Dashboard. It holds a
+ *   greeting, hidden inside menu sections by CSS, and a menu button to
+ *   expand the sidebar from its strip of icons and fold it back. The sidebar
+ *   starts as a strip, so the first thing anyone sees is the screen itself,
+ *   and folds back whenever another screen is picked.
  * - A workspace switcher in its own section below the menu, outside boot's
  *   navigation screens so it stays put when drilling in and out.
  * - A tooltip naming each icon while the sidebar is a strip of icons.
@@ -554,9 +506,7 @@ function createWorkspaceSwitcher() {
  * @param {string} options.userName The user's first name or nickname, if any.
  */
 export function enhanceSidebar( { userName } = {} ) {
-	const dashboardLink = createDashboardLink();
-	const welcome = createWelcome( userName );
-	const sidebarToggle = createSidebarToggle();
+	const header = createSidebarHeader( userName );
 	const workspaceSwitcher = createWorkspaceSwitcher();
 
 	mountStripTooltip();
@@ -578,16 +528,8 @@ export function enhanceSidebar( { userName } = {} ) {
 			return;
 		}
 
-		if ( backButton.previousElementSibling !== dashboardLink ) {
-			backButton.before( dashboardLink );
-		}
-
-		if ( backButton.nextElementSibling !== welcome ) {
-			backButton.after( welcome );
-		}
-
-		if ( welcome.nextElementSibling !== sidebarToggle ) {
-			welcome.after( sidebarToggle );
+		if ( backButton.previousElementSibling !== header ) {
+			backButton.before( header );
 		}
 
 		// Picking another screen folds the sidebar to its strip of icons.

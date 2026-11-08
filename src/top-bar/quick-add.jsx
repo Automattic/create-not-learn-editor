@@ -3,9 +3,9 @@
  * something new from any screen.
  *
  * Its menu lists each kind of content the site has that the person can add,
- * pages and posts first, then uploading media. Pages and posts open the same
- * add flows the admin bar's New links do, by asking their list to add one
- * (`?add=1`, see `src/routes/content/content.jsx`). Media has no screen in
+ * pages and posts first, then uploading media. Pages and posts open their
+ * list's add flow, by asking the list to add one (`?add=1`, see
+ * `src/routes/content/content.jsx`). Media has no screen in
  * the editor, so it opens the file picker and uploads straight to the media
  * library, with snackbar notices to say how it went.
  */

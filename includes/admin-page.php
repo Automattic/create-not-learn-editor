@@ -145,7 +145,7 @@ function cnl_editor_render_full_page() {
 	do_action( 'admin_head' );
 	?>
 	</head>
-	<body class="<?php echo esc_attr( 'create-not-learn-editor cnl-ui-theme-' . cnl_editor_get_ui_theme() . ( $has_admin_bar ? ' ' . cnl_editor_get_admin_color_class() : '' ) . ( $has_admin_bar && cnl_editor_user_shows_admin_bar() ? ' admin-bar' : '' ) ); ?>"<?php echo 'modern' === cnl_editor_get_ui_theme() ? ' data-wpds-corner-radius="moderate"' : ''; ?>>
+	<body class="<?php echo esc_attr( 'create-not-learn-editor cnl-ui-theme-' . cnl_editor_get_ui_theme() . ( $has_admin_bar ? ' admin-bar ' . cnl_editor_get_admin_color_class() : '' ) ); ?>"<?php echo 'modern' === cnl_editor_get_ui_theme() ? ' data-wpds-corner-radius="moderate"' : ''; ?>>
 		<div id="create-not-learn-editor-app" style="height: 100vh; box-sizing: border-box;">
 			<?php if ( ! $assets_ready ) : ?>
 				<div class="cnl-editor-loading">

@@ -3406,10 +3406,9 @@ button.cnl-site-card__status {
  * Sidebar heading slot.
  *
  * Inside a menu section, boot shows a title row with a Back button and the
- * section name. At the top level that row is empty, and the greeting sits
- * over it instead. Giving the row one fixed height at both levels, and
- * laying the greeting over it rather than above it, keeps the menu items
- * in the same place when drilling in and out.
+ * section name. At the top level that row is empty, so it is taken out and
+ * the menu starts right below the greeting's row, where it starts when the
+ * sidebar is a strip of icons too.
  */
 $sidebar-heading-height: 56px;
 
@@ -3418,6 +3417,10 @@ $sidebar-heading-height: 56px;
 	height: $sidebar-heading-height;
 	padding-block: 0;
 	align-items: center;
+
+	&:not(:has(.components-button)) {
+		display: none;
+	}
 }
 
 /*
@@ -3442,53 +3445,50 @@ $sidebar-heading-height: 56px;
 }
 
 /*
- * Dashboard link with the WordPress logo, added to boot's sidebar by
- * app-init in place of boot's own text link. Knocked back until hovered.
+ * Boot's Dashboard link. The admin bar above leads to the Dashboard, and
+ * app-init puts the sidebar's menu button in its place.
  */
 [class*="__sidebar"] [class*="__back-button"] {
 	display: none;
 }
 
 /*
- * Line the arrow's visible edge up with the greeting text below, which sits
- * at the padding-xl inset. The chevron is drawn 9px in from its 24px box,
- * which sits inside the button's 1px border.
- */
-$chevron-inset: 10px;
-
-/*
- * The space below the logo sets where the heading row sits. It lines the
- * row's middle up with the headers of the white surfaces beside it, which sit
- * 31px below the top bar: the canvas toolbar's 1px border and 60px height.
+ * The space below the sidebar's top row sets where the menu starts. It lines
+ * the menu up with the tops of the white surfaces beside it.
  */
 $sidebar-heading-offset: 3px;
 
-.cnl-sidebar-dashboard {
-
-	/*
-	 * Top margin centres the 40px button on the 56px top bar, so its icon
-	 * sits level with the search field's icon there. The bottom margin
-	 * makes up the rest of gap-lg plus the heading offset above, so the
-	 * row below still starts in the same place.
-	 */
+/*
+ * The sidebar's top row, added by app-init in place of boot's Dashboard link:
+ * the greeting, level with the top bar beside it, and the menu button at the
+ * far end.
+ *
+ * The top margin centres the 40px row on the 56px top bar. The bottom margin
+ * makes up the rest of gap-lg plus the offset above.
+ */
+.cnl-sidebar-header {
+	display: flex;
+	align-items: center;
+	min-height: 40px;
 	margin-block: var(--wpds-dimension-gap-sm) calc(var(--wpds-dimension-gap-lg) - var(--wpds-dimension-gap-sm) + #{$sidebar-heading-offset});
-	margin-inline: calc(var(--wpds-dimension-padding-xl) - #{$chevron-inset}) var(--wpds-dimension-gap-md);
+	margin-inline: var(--wpds-dimension-gap-md);
 }
 
-// The admin bar's own logo is above it when the bar is shown. Hidden rather
-// than taken out, so the rows below stay where they are.
-body.admin-bar .cnl-sidebar-dashboard {
-	visibility: hidden;
+/*
+ * Menu button that expands the sidebar from its strip of icons and folds it
+ * back. Shown only where the sidebar can be a strip; on narrow screens it is
+ * a drawer instead. It sits at the sidebar's far end, so it travels with that
+ * edge as the sidebar expands and folds, and is centred over the icons once
+ * the sidebar is a strip.
+ */
+.cnl-sidebar-toggle {
+	display: none;
+	flex-shrink: 0;
+	margin-inline-start: auto;
 }
 
-.components-button.cnl-sidebar-dashboard__link {
-	gap: var(--wpds-dimension-gap-xs);
-	padding-inline-start: 0;
+.components-button.cnl-sidebar-toggle__button {
 	color: var(--wpds-color-foreground-content-neutral-weak);
-
-	svg {
-		fill: currentcolor;
-	}
 
 	&:hover:not(:disabled),
 	&:focus-visible {
@@ -3523,7 +3523,7 @@ $workspace-toggle-inset: var(--wpds-dimension-gap-xs);
 }
 
 /*
- * Tertiary: knocked back like the Dashboard link until hovered, with the
+ * Tertiary: knocked back like the menu button until hovered, with the
  * workspace name a step brighter than its icons.
  */
 .components-button.cnl-sidebar-workspace__toggle {
@@ -3566,23 +3566,18 @@ $workspace-toggle-inset: var(--wpds-dimension-gap-xs);
 }
 
 /*
- * Greeting above the main menu, added to boot's sidebar by app-init, set as
- * the sidebar's headings are.
+ * Greeting at the start of the sidebar's top row, set as the sidebar's
+ * headings are and lined up with the section titles below.
  */
 .cnl-sidebar-welcome {
-	position: relative;
-	z-index: 1;
-	display: flex;
-	box-sizing: border-box;
-	align-items: center;
-	height: $sidebar-heading-height;
-	margin: 0 0 (-$sidebar-heading-height);
-	padding: 0 var(--wpds-dimension-padding-xl);
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	padding-inline: calc(var(--wpds-dimension-padding-xl) - var(--wpds-dimension-gap-md)) var(--wpds-dimension-gap-sm);
 	overflow: hidden;
 	color: var(--wpds-color-foreground-content-neutral);
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	pointer-events: none;
 
 	@include cnl-sidebar-heading;
 
@@ -3606,7 +3601,7 @@ $workspace-toggle-inset: var(--wpds-dimension-gap-xs);
  * The sidebar as a strip of icons, which it is unless toggled open. The way
  * to other areas stays in reach without taking the room. Labels are hidden
  * visually but kept for screen readers, and app-init shows each one as a
- * tooltip. A toggle in the greeting's row expands it until another screen is
+ * tooltip. The menu button at its top expands it until another screen is
  * picked. On narrow screens the sidebar is a drawer instead.
  */
 $sidebar-strip-width: 64px;
@@ -3629,37 +3624,33 @@ $sidebar-strip-width: 64px;
 		display: flex;
 	}
 
-	// Keep a long greeting clear of the toggle at the end of its row.
-	.cnl-sidebar-welcome {
-		padding-inline-end: calc(40px + 2 * var(--wpds-dimension-gap-md));
-	}
-
 	body:not(.cnl-sidebar-is-expanded) #create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"] {
 		width: $sidebar-strip-width;
 
-		// The toggle stands in for the Back button and section title.
-		[class*="__title-icon"] > * {
-			visibility: hidden;
-		}
-
-		.cnl-sidebar-toggle {
-			justify-content: center;
-			padding-inline: 0;
-		}
-
+		/*
+		 * No greeting, Back button or section title, so the icons start
+		 * right below the menu button.
+		 */
+		[class*="__title-icon"],
 		.cnl-sidebar-welcome,
-		.cnl-sidebar-dashboard__link > :first-child,
 		.cnl-sidebar-workspace__toggle > :not(:first-child) {
 			display: none;
 		}
 
-		[class*="__title-icon"] h1,
+		.cnl-sidebar-header {
+			justify-content: center;
+			margin-inline: 0;
+		}
+
+		.cnl-sidebar-toggle {
+			margin-inline: 0;
+		}
+
 		[class*="__item-wrapper"] > * > * > :not(:first-child) {
 
 			@include cnl-visually-hidden;
 		}
 
-		.cnl-sidebar-dashboard,
 		.cnl-sidebar-workspace {
 			display: flex;
 			justify-content: center;
@@ -3667,7 +3658,6 @@ $sidebar-strip-width: 64px;
 			padding-inline: 0;
 		}
 
-		.components-button.cnl-sidebar-dashboard__link,
 		.components-button.cnl-sidebar-workspace__toggle {
 			justify-content: center;
 			width: 40px;
@@ -3675,12 +3665,10 @@ $sidebar-strip-width: 64px;
 			padding-inline: 0;
 		}
 
-		[class*="__title-icon"],
 		[class*="__item-wrapper"] > * > * {
 			justify-content: center;
 		}
 
-		[class*="__title-icon"],
 		[class*="__item-wrapper"] {
 			box-sizing: border-box;
 			padding-inline: var(--wpds-dimension-gap-sm);
@@ -3751,33 +3739,6 @@ $sidebar-strip-width: 64px;
 }
 
 /*
- * Laid over the greeting's row like the greeting is, at its far end, so it
- * neither moves the menu nor covers the Back button.
- */
-.cnl-sidebar-toggle {
-	position: relative;
-	z-index: 2;
-	display: none;
-	box-sizing: border-box;
-	align-items: center;
-	justify-content: flex-end;
-	height: $sidebar-heading-height;
-	margin-block-end: (-$sidebar-heading-height);
-	padding-inline: var(--wpds-dimension-gap-md);
-	pointer-events: none;
-}
-
-.components-button.cnl-sidebar-toggle__button {
-	color: var(--wpds-color-foreground-content-neutral-weak);
-	pointer-events: auto;
-
-	&:hover:not(:disabled),
-	&:focus-visible {
-		color: var(--wpds-color-foreground-content-neutral);
-	}
-}
-
-/*
  * Expanding the sidebar or folding it to its strip of icons is one view
  * transition (`packages/app-init/src/sidebar.js`), not a transition of its
  * width, which would lay out the menu and the site beside it again on every
@@ -3786,8 +3747,8 @@ $sidebar-strip-width: 64px;
  *
  * The sidebar's pictures are drawn at their own size from its start edge,
  * so it is clipped as it narrows and revealed as it widens, rather than
- * squeezed, with its labels fading as they go. Its icons, the toggle and
- * the logo are pictured on their own, so they glide to their new places.
+ * squeezed, with its labels fading as they go. Its icons and the menu
+ * button are pictured on their own, so they glide to their new places.
  * Boot styles the stage and canvas the same way for its transitions.
  *
  * `html` makes these a step more specific than boot's own rules for those
