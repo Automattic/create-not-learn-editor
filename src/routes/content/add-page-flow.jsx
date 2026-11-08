@@ -30,6 +30,10 @@ import {
 } from '../../design-picker';
 import { getTemplateTitle } from './helpers';
 import {
+	setShowsPageDesigns,
+	showsPageDesigns,
+} from '../../add-page-preferences';
+import {
 	PageLayoutCard,
 	usePageLayoutPatterns,
 } from '../../pickers/page-designs';
@@ -44,6 +48,7 @@ import {
 	chevronLeftIcon,
 	chevronRightIcon,
 	coreDataStore,
+	plusIcon,
 	postContentIcon,
 	InputControl,
 	Notice,
@@ -250,7 +255,12 @@ export default function AddPageFlow( {
 	const { showPage } = useSwitchHomepage( useHomepageState() );
 	const [ addToMenu, setAddToMenu ] = useState( true );
 	const menuListsAllPages = Boolean( mainMenu.menuPages?.listsAllPages );
-	const [ startedBlank, setStartedBlank ] = useState( false );
+	const isShowingDesigns = useSelect( showsPageDesigns, [] );
+	// Someone who'd rather not see the designs starts with a blank page,
+	// and can still go back to them from the next step.
+	const [ startedBlank, setStartedBlank ] = useState(
+		() => ! isShowingDesigns
+	);
 	const [ selectedLayout, setSelectedLayout ] = useState();
 	const [ selectedPageType, setSelectedPageType ] = useState();
 	const [ selectedTemplateSlug, setSelectedTemplateSlug ] = useState( '' );
@@ -768,23 +778,43 @@ export default function AddPageFlow( {
 				</ToggleGroupControl>,
 			] }
 			className="cnl-add-page-modal"
+			footer={
+				<CheckboxControl
+					checked={ ! isShowingDesigns }
+					label={ __( 'Don’t show this again' ) }
+					onChange={ ( isChecked ) =>
+						setShowsPageDesigns( ! isChecked )
+					}
+				/>
+			}
 			mainClassName="cnl-add-page-layout-main"
 			nav={
-				hasPageLayoutNav && (
-					<DesignPickerNav
-						current={ activePageType }
-						items={ pageLayoutGroups.map( ( group ) => ( {
-							label: group.label,
-							value: group.slug,
-						} ) ) }
-						label={ __( 'Page types' ) }
-						onSelect={ setSelectedPageType }
-					>
-						{ isLoadingPageLayouts && (
-							<PageLayoutSidebarPlaceholder />
-						) }
-					</DesignPickerNav>
-				)
+				<DesignPickerNav
+					action={
+						<Button
+							__next40pxDefaultSize
+							className="cnl-add-page-start-blank"
+							icon={ plusIcon }
+							onClick={ handleStartBlank }
+							variant="secondary"
+						>
+							{ __( 'Start from scratch' ) }
+						</Button>
+					}
+					current={ activePageType }
+					items={
+						hasPageLayoutNav
+							? pageLayoutGroups.map( ( group ) => ( {
+									label: group.label,
+									value: group.slug,
+								} ) )
+							: []
+					}
+					label={ __( 'Page types' ) }
+					onSelect={ setSelectedPageType }
+				>
+					{ isLoadingPageLayouts && <PageLayoutSidebarPlaceholder /> }
+				</DesignPickerNav>
 			}
 			onClose={ onClose }
 			subtitle={ __(
@@ -793,10 +823,6 @@ export default function AddPageFlow( {
 			title={ __( 'Add a page' ) }
 		>
 			<div className="cnl-design-picker__starts">
-				<StartFromScratch
-					description={ __( 'Build your page on a blank canvas' ) }
-					onClick={ handleStartBlank }
-				/>
 				<StartFromScratch
 					description={ __(
 						'A title and text, for pages like a privacy policy'

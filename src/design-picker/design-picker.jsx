@@ -30,6 +30,8 @@ import { Icon, Text } from '@wordpress/ui';
  * @param {Element}  props.nav           The list of kinds, if there is one.
  * @param {Element}  props.children      The designs, or whatever the step
  *                                       shows.
+ * @param {Element}  props.footer        Kept along the bottom, under
+ *                                       everything else.
  * @param {string}   props.className     Extra class for the modal.
  * @param {string}   props.mainClassName Extra class for the main area.
  * @param {Object}   props.mainRef       Ref to the main area, which scrolls.
@@ -43,6 +45,7 @@ export function DesignPicker( {
 	actions,
 	nav,
 	children,
+	footer,
 	className,
 	mainClassName,
 	mainRef,
@@ -103,6 +106,11 @@ export function DesignPicker( {
 				>
 					{ children }
 				</div>
+				{ footer && (
+					<footer className="cnl-design-picker__footer">
+						{ footer }
+					</footer>
+				) }
 			</div>
 		</Modal>
 	);
@@ -113,48 +121,62 @@ export function DesignPicker( {
  *
  * @param {Object}   props            Component props.
  * @param {string}   props.label      Accessible name of the list.
- * @param {Object[]} props.items      `{ value, label }` for each kind.
+ * @param {Object[]} props.items      `{ value, label }` for each kind. The
+ *                                    list is left out when there are none.
  * @param {string}   props.current    Value of the kind showing.
  * @param {boolean}  props.isDisabled Whether picking a kind is off.
  * @param {Function} props.onSelect   Called with the value picked.
+ * @param {Element}  props.action     A button above the kinds, for a way to
+ *                                    start that isn't a design.
  * @param {Element}  props.children   Shown instead of the items, such as
  *                                    while they load.
  * @return {Element} The list.
  */
 export function DesignPickerNav( {
 	label,
-	items,
+	items = [],
 	current,
 	isDisabled,
 	onSelect,
+	action,
 	children,
 } ) {
 	return (
 		<nav
 			aria-label={ label }
-			className={ `cnl-design-picker__nav${ isDisabled ? ' is-disabled' : '' }` }
+			className={ [
+				'cnl-design-picker__nav',
+				isDisabled && 'is-disabled',
+				action && 'has-action',
+			]
+				.filter( Boolean )
+				.join( ' ' ) }
 		>
-			{ children || (
-				<ul className="cnl-design-picker__nav-list" role="list">
-					{ items.map( ( item ) => (
-						<li key={ item.value }>
-							<button
-								aria-current={
-									! isDisabled && current === item.value
-										? 'true'
-										: undefined
-								}
-								className="cnl-design-picker__nav-item"
-								disabled={ isDisabled }
-								onClick={ () => onSelect( item.value ) }
-								type="button"
-							>
-								{ item.label }
-							</button>
-						</li>
-					) ) }
-				</ul>
+			{ action && (
+				<div className="cnl-design-picker__nav-action">{ action }</div>
 			) }
+			{ children ||
+				( items.length > 0 && (
+					<ul className="cnl-design-picker__nav-list" role="list">
+						{ items.map( ( item ) => (
+							<li key={ item.value }>
+								<button
+									aria-current={
+										! isDisabled && current === item.value
+											? 'true'
+											: undefined
+									}
+									className="cnl-design-picker__nav-item"
+									disabled={ isDisabled }
+									onClick={ () => onSelect( item.value ) }
+									type="button"
+								>
+									{ item.label }
+								</button>
+							</li>
+						) ) }
+					</ul>
+				) ) }
 		</nav>
 	);
 }
