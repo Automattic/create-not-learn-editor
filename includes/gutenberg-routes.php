@@ -21,8 +21,14 @@
  * @package CreateNotLearnEditor
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Register Gutenberg route hooks.
+ */
+function cnl_editor_register_gutenberg_route_hooks() {
+	add_action( CNL_EDITOR_SLUG . '_init', 'cnl_editor_register_gutenberg_routes' );
+	add_filter( CNL_EDITOR_SLUG . '_prerequisite_script_dependencies', 'cnl_editor_add_gutenberg_route_script_dependencies' );
 }
 
 /**
@@ -56,7 +62,7 @@ function cnl_editor_get_gutenberg_routes() {
  * @return array Asset metadata, or an empty array if Gutenberg doesn't have the file.
  */
 function cnl_editor_get_gutenberg_route_asset( $route, $name ) {
-	$asset_file = WP_PLUGIN_DIR . '/gutenberg/build/routes/' . $route . '/' . $name . '.min.asset.php';
+	$asset_file = cnl_editor_get_gutenberg_path( 'build/routes/' . $route . '/' . $name . '.min.asset.php' );
 
 	return file_exists( $asset_file ) ? require $asset_file : array();
 }
@@ -85,7 +91,7 @@ function cnl_editor_register_gutenberg_routes() {
 
 			wp_register_script_module(
 				$id,
-				plugins_url( 'gutenberg/build/routes/' . $route['name'] . '/' . $name . $extension ),
+				cnl_editor_get_gutenberg_url( 'build/routes/' . $route['name'] . '/' . $name . $extension ),
 				$asset['module_dependencies'] ?? array(),
 				$asset['version'] ?? CNL_EDITOR_VERSION
 			);
@@ -100,7 +106,6 @@ function cnl_editor_register_gutenberg_routes() {
 		cnl_editor_register_route( $route['path'], $modules['content'] ?? null, $modules['route'] );
 	}
 }
-add_action( CNL_EDITOR_SLUG . '_init', 'cnl_editor_register_gutenberg_routes' );
 
 /**
  * Load the classic scripts Gutenberg's routes need before the editor starts.
@@ -118,4 +123,3 @@ function cnl_editor_add_gutenberg_route_script_dependencies( $script_deps ) {
 
 	return array_values( array_unique( $script_deps ) );
 }
-add_filter( CNL_EDITOR_SLUG . '_prerequisite_script_dependencies', 'cnl_editor_add_gutenberg_route_script_dependencies' );

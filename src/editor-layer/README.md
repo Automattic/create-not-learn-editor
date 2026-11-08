@@ -15,8 +15,8 @@ All of it is scoped to boot's full-screen edit canvas, so stage screens and prev
 
 | File | What it does |
 | --- | --- |
-| `index.js` | `mountEditorLayer()`, called from `packages/app-init`. |
-| `editor-layer.js` | `EditorLayer`, the composition root. Start here. |
+| `index.jsx` | `mountEditorLayer()`, called from `packages/app-init`. |
+| `editor-layer.jsx` | `EditorLayer`, the composition root. Start here. |
 | `canvas-mode.js` | `useIsEditCanvas()`: whether the full-screen edit canvas is on screen. |
 | `portal-host.js` | `usePortalHost()` and `EDITOR_REGIONS`. |
 | `settings-guard.js` | `useForcedBlockEditorSettings()`. |
@@ -56,7 +56,7 @@ Don't portal into core's toolbars (`.editor-document-tools`, the block toolbar).
 
 ### Force a block editor setting
 
-Add it to `FORCED_BLOCK_EDITOR_SETTINGS` in `editor-layer.js`. For example, content-only editing:
+Add it to `FORCED_BLOCK_EDITOR_SETTINGS` in `editor-layer.jsx`. For example, content-only editing:
 
 ```js
 const FORCED_BLOCK_EDITOR_SETTINGS = { templateLock: 'contentOnly' };

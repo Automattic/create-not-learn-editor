@@ -18,7 +18,6 @@ import { select as selectFromRegistry } from '@wordpress/data';
  * Internal dependencies
  */
 import { unlock } from '../lock-unlock';
-import { getSectionTitle } from '../routes/content/pages/page-sections';
 import {
 	MODE_COMPOSE,
 	MODE_EDIT,
@@ -51,21 +50,6 @@ export function getSectionIds( select = selectFromRegistry ) {
 	const root = store.getSectionRootClientId?.();
 
 	return root ? store.getBlockOrder( root ) : EMPTY_ARRAY;
-}
-
-/**
- * The page's sections, named as Compose names them.
- *
- * @param {Function} select Registry `select`.
- * @return {Object[]} `{ clientId, title }` items, top to bottom.
- */
-export function getSections( select = selectFromRegistry ) {
-	const store = select( blockEditorStore );
-
-	return getSectionIds( select ).map( ( clientId ) => ( {
-		clientId,
-		title: getSectionTitle( store.getBlock( clientId ) ),
-	} ) );
 }
 
 /**

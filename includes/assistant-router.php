@@ -344,7 +344,11 @@ function cnl_editor_ask_typesafe( $state, $questions ) {
 	if ( 200 !== $status || ! is_array( $answers ) ) {
 		return new WP_Error(
 			'cnl_editor_router_unavailable',
-			sprintf( 'TypeSafe answered with HTTP %d.', $status ),
+			sprintf(
+				/* translators: %d: HTTP status code. */
+				__( 'TypeSafe answered with HTTP %d.', 'create-not-learn-editor' ),
+				$status
+			),
 			array( 'status' => 502 )
 		);
 	}

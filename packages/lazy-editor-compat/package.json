@@ -8,5 +8,5 @@
 		"@wordpress/data": "^10.50.0",
 		"@wordpress/element": "^8.2.0"
 	},
-	"wpScriptModuleExports": "./src/index.js"
+	"wpScriptModuleExports": "./src/index.jsx"
 }

@@ -29,6 +29,7 @@ function cnl_editor_register_preview_frame_hooks() {
 	add_filter( 'pre_option_page_on_front', 'cnl_editor_preview_page_on_front' );
 	add_filter( 'pre_option_posts_per_page', 'cnl_editor_preview_posts_per_page' );
 	add_filter( 'render_block', 'cnl_editor_name_preview_block', 10, 2 );
+	add_filter( 'show_admin_bar', 'cnl_editor_hide_admin_bar_in_preview', PHP_INT_MAX );
 }
 
 /**
@@ -54,6 +55,16 @@ function cnl_editor_is_preview_frame_request() {
 	}
 
 	return $is_preview;
+}
+
+/**
+ * Hide the WordPress admin bar inside Create Not Learn preview iframes.
+ *
+ * @param bool $show_admin_bar Whether to show the admin bar.
+ * @return bool Whether to show the admin bar.
+ */
+function cnl_editor_hide_admin_bar_in_preview( $show_admin_bar ) {
+	return cnl_editor_is_preview_frame_request() ? false : $show_admin_bar;
 }
 
 /**

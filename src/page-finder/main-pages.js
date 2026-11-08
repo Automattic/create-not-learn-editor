@@ -20,21 +20,16 @@ import { useMemo } from '@wordpress/element';
 /**
  * Internal dependencies
  */
-import { getMainMenu } from '../routes/navigation/navigation-locations';
+import {
+	getMainMenu,
+	TEMPLATE_PARTS_QUERY,
+} from '../routes/navigation/navigation-locations';
 import {
 	getBlockAttributes,
 	getBlockName,
 	getNavigationContentFromEditedRecord,
 	getParsedBlocks,
 } from '../routes/navigation-edit/navigation-blocks';
-
-// The Menus screen's template part query (see `use-main-menu.js`), to share
-// what core-data has fetched.
-const TEMPLATE_PARTS_QUERY = {
-	context: 'edit',
-	per_page: 100,
-	_fields: 'id,slug,title,area,status,content',
-};
 
 // Most recent first, as `getMainMenu` expects.
 const MENUS_QUERY = {

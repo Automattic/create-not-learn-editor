@@ -14,7 +14,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CNL_EDITOR_VERSION', '0.1.0' );
+define( 'CNL_EDITOR_VERSION', '0.4.0' );
 define( 'CNL_EDITOR_MIN_GUTENBERG_VERSION', '24.0.0' );
 define( 'CNL_EDITOR_FILE', __FILE__ );
 define( 'CNL_EDITOR_PATH', plugin_dir_path( __FILE__ ) );
@@ -70,6 +70,9 @@ function cnl_editor_bootstrap() {
 	require_once CNL_EDITOR_PATH . 'includes/admin-bar.php';
 	require_once CNL_EDITOR_PATH . 'includes/shop.php';
 	require_once CNL_EDITOR_PATH . 'includes/blog-admin.php';
+	require_once CNL_EDITOR_PATH . 'includes/editor-registry.php';
+	require_once CNL_EDITOR_PATH . 'includes/app-settings.php';
+	require_once CNL_EDITOR_PATH . 'includes/editor-assets.php';
 	require_once CNL_EDITOR_PATH . 'includes/admin-page.php';
 	require_once CNL_EDITOR_PATH . 'includes/media.php';
 	require_once CNL_EDITOR_PATH . 'includes/gutenberg-routes.php';
@@ -84,7 +87,11 @@ function cnl_editor_bootstrap() {
 	cnl_editor_register_preview_frame_hooks();
 	cnl_editor_register_block_template_hooks();
 	cnl_editor_register_rest_hooks();
+	cnl_editor_register_editor_registry_hooks();
 	cnl_editor_register_admin_page_hooks();
+	cnl_editor_register_editor_asset_hooks();
+	cnl_editor_register_media_hooks();
+	cnl_editor_register_gutenberg_route_hooks();
 	cnl_editor_register_block_canvas_style_hooks();
 	cnl_editor_register_layout_hooks();
 	cnl_editor_register_plugin_compat_hooks();

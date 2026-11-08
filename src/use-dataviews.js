@@ -4,9 +4,10 @@
  */
 
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-import { useEffect, useState } from '@wordpress/element';
+import { createModuleLoader } from './module-loader';
+import { useLoadedModule } from './use-loaded-module';
 
 /*
  * Held in a variable so the build leaves the import for the browser to
@@ -14,21 +15,9 @@ import { useEffect, useState } from '@wordpress/element';
  */
 const DATAVIEWS_MODULE = '@create-not-learn-editor/dataviews';
 
-let loaded = null;
-let loading = null;
-
-function loadDataViews() {
-	if ( ! loading ) {
-		loading = import( /* webpackIgnore: true */ DATAVIEWS_MODULE ).then(
-			( module ) => {
-				loaded = module;
-				return module;
-			}
-		);
-	}
-
-	return loading;
-}
+const loader = createModuleLoader(
+	() => import( /* webpackIgnore: true */ DATAVIEWS_MODULE )
+);
 
 /**
  * @param {boolean} [shouldLoad=true] Whether the caller shows a list now.
@@ -38,25 +27,5 @@ function loadDataViews() {
  *                   `null` until it has loaded.
  */
 export function useDataViews( shouldLoad = true ) {
-	const [ dataViews, setDataViews ] = useState( () => loaded );
-
-	useEffect( () => {
-		if ( dataViews || ! shouldLoad ) {
-			return undefined;
-		}
-
-		let isCurrent = true;
-
-		loadDataViews().then( ( module ) => {
-			if ( isCurrent ) {
-				setDataViews( module );
-			}
-		} );
-
-		return () => {
-			isCurrent = false;
-		};
-	}, [ dataViews, shouldLoad ] );
-
-	return dataViews;
+	return useLoadedModule( loader, shouldLoad );
 }

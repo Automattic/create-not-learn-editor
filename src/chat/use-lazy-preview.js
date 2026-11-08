@@ -7,23 +7,12 @@
  */
 
 /**
- * WordPress dependencies
+ * Internal dependencies
  */
-import { useEffect, useState } from '@wordpress/element';
+import { createModuleLoader } from '../module-loader';
+import { useLoadedModule } from '../use-loaded-module';
 
-let loadedPreview = null;
-let loading = null;
-
-function loadPreview() {
-	if ( ! loading ) {
-		loading = import( '@wordpress/lazy-editor' ).then( ( module ) => {
-			loadedPreview = module.Preview;
-			return loadedPreview;
-		} );
-	}
-
-	return loading;
-}
+const loader = createModuleLoader( () => import( '@wordpress/lazy-editor' ) );
 
 // Stands in until the preview has loaded, with whatever placeholder the
 // caller gives the real one.
@@ -35,25 +24,5 @@ function PreviewPlaceholder( { placeholder = null } ) {
  * @return {Function} The preview component, or a placeholder until it loads.
  */
 export function useLazyPreview() {
-	const [ Preview, setPreview ] = useState( () => loadedPreview );
-
-	useEffect( () => {
-		if ( Preview ) {
-			return undefined;
-		}
-
-		let isCurrent = true;
-
-		loadPreview().then( ( component ) => {
-			if ( isCurrent ) {
-				setPreview( () => component );
-			}
-		} );
-
-		return () => {
-			isCurrent = false;
-		};
-	}, [ Preview ] );
-
-	return Preview || PreviewPlaceholder;
+	return useLoadedModule( loader )?.Preview || PreviewPlaceholder;
 }

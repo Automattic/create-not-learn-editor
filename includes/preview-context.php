@@ -202,7 +202,7 @@ function cnl_editor_is_home_equivalent_title( $title ) {
  */
 function cnl_editor_get_post_preview_context( $post_id, $preview_type = '', $status_label = '', $status = '' ) {
 	$post = get_post( $post_id );
-	if ( ! $post ) {
+	if ( ! $post || ! current_user_can( 'read_post', $post->ID ) ) {
 		return array();
 	}
 

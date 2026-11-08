@@ -6,6 +6,7 @@ import { cnlEditorStore } from '../../records';
 import {
 	buildNavigationLocationsMap,
 	getMainMenu,
+	TEMPLATE_PARTS_QUERY,
 } from '../navigation/navigation-locations';
 import {
 	MENU_PAGES_QUERY,
@@ -32,12 +33,6 @@ import {
 } from '../../wordpress-packages';
 
 const EMPTY_ARRAY = [];
-// Matches the Menus screen's query so both share one cached request.
-const TEMPLATE_PARTS_QUERY = {
-	context: 'edit',
-	per_page: 100,
-	_fields: 'id,slug,title,area,status,content',
-};
 
 function getMenuTitleText( menu ) {
 	return menu?.title?.raw || menu?.title?.rendered || '';

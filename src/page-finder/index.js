@@ -1,1 +1,1 @@
-export { openPage, PageFinder, PageFinderPanel } from './page-finder';
+export { openPage, PageFinder } from './page-finder';

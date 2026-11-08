@@ -18,6 +18,34 @@ function cnl_editor_is_gutenberg_ready() {
 }
 
 /**
+ * Get the path of a file in the Gutenberg plugin, wherever it is installed.
+ *
+ * @param string $relative_path Path relative to the Gutenberg plugin's folder.
+ * @return string Absolute path.
+ */
+function cnl_editor_get_gutenberg_path( $relative_path = '' ) {
+	$base = function_exists( 'gutenberg_dir_path' )
+		? gutenberg_dir_path()
+		: trailingslashit( WP_PLUGIN_DIR ) . 'gutenberg/';
+
+	return $base . ltrim( $relative_path, '/' );
+}
+
+/**
+ * Get the URL of a file in the Gutenberg plugin, wherever it is installed.
+ *
+ * @param string $relative_path Path relative to the Gutenberg plugin's folder.
+ * @return string URL.
+ */
+function cnl_editor_get_gutenberg_url( $relative_path ) {
+	$relative_path = ltrim( $relative_path, '/' );
+
+	return function_exists( 'gutenberg_url' )
+		? gutenberg_url( $relative_path )
+		: plugins_url( 'gutenberg/' . $relative_path );
+}
+
+/**
  * Render an admin notice when Gutenberg is missing or too old.
  */
 function cnl_editor_render_dependency_notice() {
