@@ -198,10 +198,10 @@ function getScreenCommands() {
 		},
 		{
 			name: 'create-not-learn-editor/screen-sections',
-			label: __( 'Sections' ),
+			label: __( 'Patterns' ),
 			icon: symbolIcon,
 			to: '/patterns',
-			keywords: [ __( 'patterns' ), __( 'blocks' ) ],
+			keywords: [ __( 'sections' ), __( 'blocks' ) ],
 		},
 		{
 			name: 'create-not-learn-editor/screen-site-part-list',
@@ -212,10 +212,10 @@ function getScreenCommands() {
 		},
 		{
 			name: 'create-not-learn-editor/screen-layouts',
-			label: __( 'Layouts' ),
+			label: __( 'Templates' ),
 			icon: layoutIcon,
 			to: '/templates',
-			keywords: [ __( 'templates' ) ],
+			keywords: [ __( 'layouts' ) ],
 		},
 	];
 }

@@ -50,13 +50,11 @@ const screens = {
 		title: __( 'Media' ),
 	},
 	'/patterns': {
-		description: __(
-			'Ready-made pieces you can drop into any page, like a row of reviews or a contact block. WordPress calls these patterns.'
-		),
+		description: __( 'Ready-made designs you can drop into any page.' ),
 		icon: 'dashicons-layout',
 		section: __( 'Advanced' ),
 		status: __( 'Patterns' ),
-		title: __( 'Sections' ),
+		title: __( 'Patterns' ),
 	},
 	'/template-parts': {
 		description: __(
@@ -69,12 +67,12 @@ const screens = {
 	},
 	'/templates': {
 		description: __(
-			'Layouts decide how each kind of page is arranged. Changing one changes every page that uses it. WordPress calls these templates.'
+			'Templates decide how each kind of page is arranged. Changing one changes every page that uses it.'
 		),
 		icon: 'dashicons-media-document',
 		section: __( 'Advanced' ),
 		status: __( 'Templates' ),
-		title: __( 'Layouts' ),
+		title: __( 'Templates' ),
 	},
 };
 

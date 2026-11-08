@@ -60,9 +60,9 @@ test( 'every main screen loads without errors', async ( { page, rest } ) => {
 	}
 
 	for ( const [ link, heading ] of [
-		[ 'Layouts', 'Layouts' ],
+		[ 'Templates', 'Templates' ],
 		[ 'Site parts', 'Site parts' ],
-		[ 'Sections', 'Sections' ],
+		[ 'Patterns', 'Patterns' ],
 	] ) {
 		await test.step( `Sidebar › ${ link }`, async () => {
 			await openSidebarLink( page, link );

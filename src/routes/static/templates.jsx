@@ -269,7 +269,7 @@ function RenameTemplateModal( {
 					onClose();
 				}
 			} }
-			title={ __( 'Rename layout' ) }
+			title={ __( 'Rename template' ) }
 		>
 			<form
 				className="routes-template-list__rename-form"
@@ -337,7 +337,7 @@ function CreateTemplateModal( { isSaving, onClose, onCreate, saveError } ) {
 					onClose();
 				}
 			} }
-			title={ __( 'Add a layout' ) }
+			title={ __( 'Add a template' ) }
 		>
 			<form
 				className="routes-template-list__create-form"
@@ -498,7 +498,7 @@ export function TemplatesStage() {
 				TEMPLATE_QUERY,
 			] );
 			setTemplateToRename( null );
-			createSuccessNotice( __( 'Layout renamed.' ), {
+			createSuccessNotice( __( 'Template renamed.' ), {
 				type: 'snackbar',
 			} );
 		} catch ( saveError ) {
@@ -507,7 +507,7 @@ export function TemplatesStage() {
 			createErrorNotice(
 				sprintf(
 					/* translators: %s: error message. */
-					__( 'Unable to rename layout (%s).' ),
+					__( 'Unable to rename template (%s).' ),
 					message
 				),
 				{ type: 'snackbar' }
@@ -601,7 +601,7 @@ export function TemplatesStage() {
 				onClick={ openCreateModal }
 				variant="primary"
 			>
-				{ __( 'Add layout' ) }
+				{ __( 'Add template' ) }
 			</Button>
 		</div>
 	);
@@ -632,7 +632,7 @@ export function TemplatesStage() {
 						items={ [
 							{ label: __( 'Shop' ), to: SHOP_PATH },
 							{ label: __( 'Shop pages' ), to: SHOP_PAGES_PATH },
-							{ label: __( 'Shop layouts' ) },
+							{ label: __( 'Shop templates' ) },
 						] }
 					/>
 				) : undefined
@@ -644,7 +644,7 @@ export function TemplatesStage() {
 				isShop ? (
 					<>
 						{ __(
-							'The layouts WooCommerce adds, for its pages and lists of products. Changing one changes every page that uses it.'
+							'The templates WooCommerce adds, for its pages and lists of products. Changing one changes every page that uses it.'
 						) }{ ' ' }
 						<Link
 							href="#"
@@ -653,7 +653,7 @@ export function TemplatesStage() {
 								navigate( { to: '/templates' } );
 							} }
 						>
-							{ __( 'Show all layouts' ) }
+							{ __( 'Show all templates' ) }
 						</Link>
 					</>
 				) : (
