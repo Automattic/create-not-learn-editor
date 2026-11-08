@@ -40,7 +40,8 @@ const START_ROUTES = {
 	identity: { to: '/design/identity' },
 	style: { to: '/design' },
 	siteParts: { to: '/design/header-footer' },
-	write: { to: '/types/post/new' },
+	// Starts a post straight away rather than opening a screen.
+	write: { isAction: true, to: '/types/post/new' },
 	posts: { to: '/types/post/list/all' },
 };
 
