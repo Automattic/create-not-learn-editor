@@ -1050,7 +1050,6 @@ function cnl_editor_get_menu_items() {
 			'to'    => '/',
 		),
 	);
-	$items = array_merge( $items, cnl_editor_get_shop_menu_items() );
 
 	/*
 	 * Below Home, each item is in a section of the sidebar, which app-init

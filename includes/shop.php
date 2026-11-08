@@ -204,33 +204,9 @@ function cnl_editor_get_shop_routes() {
 }
 
 /**
- * Get the shop's sidebar item.
- *
- * It starts out of the sidebar, under a parent no item has, as "Home" and
- * Plugins both lead to the shop. The Selling workspace lifts it to the top
- * level, in Plugins' place. See `src/workspaces/presets.js`.
- *
- * @return array[] Menu item definitions, none when there is no shop.
- */
-function cnl_editor_get_shop_menu_items() {
-	if ( ! cnl_editor_has_shop() ) {
-		return array();
-	}
-
-	return array(
-		array(
-			'id'     => 'shop',
-			'icon'   => 'dashicons-store',
-			'label'  => __( 'Shop', 'create-not-learn-editor' ),
-			'to'     => '/shop',
-			'parent' => 'cnl-workspace-hidden',
-		),
-	);
-}
-
-/**
  * Get WooCommerce's item in the sidebar's Plugins section, which leads to
- * the same Shop screens.
+ * the Shop screens. It is the shop's only item in the sidebar, which is the
+ * same in every workspace.
  *
  * It wears the icon WooCommerce gives itself in WP Admin's menu, so it is
  * recognised as the plugin it is.

@@ -2967,8 +2967,7 @@
  * are content hashed, so the menu is matched structurally instead: the menu
  * list is the element that directly follows the navigation screen title.
  * Drilldown screens render a title, the root screen leaves it empty, so only
- * the root screen gets the bottom pin. Only workspaces that ask for the pin,
- * through `pinLastMenuSection`, get it.
+ * the root screen gets the bottom pin.
  */
 #create-not-learn-editor-app {
 
@@ -2989,7 +2988,7 @@
 		flex-direction: column;
 	}
 
-	.cnl-pin-last-menu-section & .components-h-stack:has(> h1.components-heading:empty) + [role="list"] > .cnl-menu-section[data-cnl-last] {
+	.components-h-stack:has(> h1.components-heading:empty) + [role="list"] > .cnl-menu-section[data-cnl-last] {
 		margin-block-start: auto;
 	}
 }
