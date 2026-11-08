@@ -10,8 +10,13 @@ import { ColorsStage, DesignStage, FontsStage, StylesCanvas } from './styles';
 import { TemplatesStage } from './templates';
 import { TemplatePartsStage } from './template-parts';
 import { PatternsStage } from './patterns';
+import { MediaStage } from './media';
 
 function Stage() {
+	if ( getCurrentEditorPath() === '/media' ) {
+		return <MediaStage />;
+	}
+
 	if ( getCurrentEditorPath() === '/patterns' ) {
 		return <PatternsStage />;
 	}
@@ -55,7 +60,7 @@ function Stage() {
 	);
 }
 
-// The Advanced lists have no canvas; see `route.js`.
+// The Advanced lists and Media have no canvas; see `route.js`.
 function Canvas() {
 	if (
 		getCurrentEditorPath() === '/design' ||

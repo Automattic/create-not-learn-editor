@@ -250,6 +250,7 @@ function cnl_editor_get_app_settings() {
 		'assistantModel'     => cnl_editor_get_assistant_model(),
 		'assistantRouter'    => cnl_editor_assistant_can_route(),
 		'postKinds'          => cnl_editor_get_post_kind_settings(),
+		'mediaEditor'        => cnl_editor_has_media_editor(),
 	);
 }
 
@@ -327,6 +328,14 @@ function cnl_editor_get_prerequisite_script_dependencies( $boot_asset ) {
 			'wp-url',
 		)
 	);
+
+	/**
+	 * Filters the classic scripts loaded before the editor starts, for
+	 * routes whose modules aren't the plugin's own.
+	 *
+	 * @param string[] $script_deps Script handles.
+	 */
+	$script_deps = apply_filters( CNL_EDITOR_SLUG . '_prerequisite_script_dependencies', $script_deps );
 
 	return array_values( array_unique( $script_deps ) );
 }
@@ -940,6 +949,19 @@ function cnl_editor_get_routes() {
 			'route_module' => 'create-not-learn-editor/routes/template-part-edit/route',
 		),
 		array(
+			'path'           => '/media',
+			'route_module'   => 'create-not-learn-editor/routes/static/route',
+			'content_module' => 'create-not-learn-editor/routes/static/content',
+		),
+		/*
+		 * Gutenberg's media editor links back to its own media list, here.
+		 * The route sends it on to the Media screen. See `includes/media.php`.
+		 */
+		array(
+			'path'         => '/types/attachment/list/$view',
+			'route_module' => 'create-not-learn-editor/routes/static/route',
+		),
+		array(
 			'path'           => '/design',
 			'route_module'   => 'create-not-learn-editor/routes/static/route',
 			'content_module' => 'create-not-learn-editor/routes/static/content',
@@ -1052,6 +1074,13 @@ function cnl_editor_get_menu_items() {
 				'icon'    => 'dashicons-id',
 				'label'   => __( 'Site Identity', 'create-not-learn-editor' ),
 				'to'      => '/design/identity',
+				'section' => 'site',
+			),
+			array(
+				'id'      => 'media',
+				'icon'    => 'dashicons-admin-media',
+				'label'   => __( 'Media', 'create-not-learn-editor' ),
+				'to'      => '/media',
 				'section' => 'site',
 			),
 			// The Design screen itself is reached from Home's "Colors & fonts".

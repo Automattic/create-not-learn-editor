@@ -12,6 +12,12 @@
 /**
  * WordPress dependencies
  */
+/*
+ * The block editor's `MediaUpload` rather than media-utils' own, so the logo
+ * and icon open whichever media modal the editor uses, and Gutenberg's
+ * DataViews one while the editor turns it on (see `includes/media.php`).
+ */
+import { MediaUpload } from '@wordpress/block-editor';
 import { Button, DropZone, Tooltip } from '@wordpress/components';
 import { store as coreDataStore } from '@wordpress/core-data';
 import { useDispatch, useSelect } from '@wordpress/data';
@@ -19,7 +25,7 @@ import { forwardRef, useState } from '@wordpress/element';
 import { decodeEntities } from '@wordpress/html-entities';
 import { __ } from '@wordpress/i18n';
 import { closeSmall } from '@wordpress/icons';
-import { MediaUpload, uploadMedia } from '@wordpress/media-utils';
+import { uploadMedia } from '@wordpress/media-utils';
 import { store as noticesStore } from '@wordpress/notices';
 import { Fieldset, InputControl, Spinner, Stack, Text } from '@wordpress/ui';
 

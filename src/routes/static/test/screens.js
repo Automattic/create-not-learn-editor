@@ -42,6 +42,12 @@ describe( 'static screens', () => {
 		expect( getStaticScreen().title ).toBe( 'Design' );
 	} );
 
+	test( 'gives media a screen of its own, under Site', () => {
+		visit( '/media' );
+		expect( getStaticScreen().title ).toBe( 'Media' );
+		expect( getStaticScreen().section ).toBe( 'Site' );
+	} );
+
 	test( 'files every design screen under Design', () => {
 		[
 			'/design',

@@ -40,6 +40,15 @@ const screens = {
 		status: __( 'Site identity' ),
 		title: __( 'Name & logo' ),
 	},
+	'/media': {
+		description: __(
+			'The photos, videos, and files on your site. Upload new ones here, or open one to crop it or change its details.'
+		),
+		icon: 'dashicons-admin-media',
+		section: __( 'Site' ),
+		status: __( 'Media' ),
+		title: __( 'Media' ),
+	},
 	'/patterns': {
 		description: __(
 			'Ready-made pieces you can drop into any page, like a row of reviews or a contact block. WordPress calls these patterns.'
