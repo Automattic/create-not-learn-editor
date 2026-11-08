@@ -84,6 +84,9 @@ export default function Canvas() {
 	const [ view, setRawView ] = useState( { k: 1, x: 0, y: 0 } );
 	const [ isAnimating, setIsAnimating ] = useState( false );
 	const [ isPanning, setIsPanning ] = useState( false );
+	// Whether the person has moved the canvas yet, after which the hint on
+	// how to move it is no longer needed.
+	const [ hasMoved, setHasMoved ] = useState( false );
 	const viewportRef = useRef();
 	const size = useElementSize( viewportRef );
 	const viewRef = useRef( view );
@@ -223,11 +226,13 @@ export default function Canvas() {
 	}, [ animateTo, hasSize, layout, nodesById, selectedId, setView ] );
 
 	/*
-	 * When the canvas changes size, as the sidebar opens or closes, the level
-	 * that fits the site changes too. Showing the whole site keeps showing
-	 * it; a closer view is kept within the new limits.
+	 * When the canvas changes size, as the sidebar opens or closes, showing
+	 * the whole site keeps showing it, centred. That holds even when the
+	 * level that fits it stays the same, as it does when the canvas's height
+	 * limits the site and only its width changes. A closer view is kept
+	 * within the new limits.
 	 */
-	const fitScaleRef = useRef( null );
+	const previousFitRef = useRef( null );
 	const fitScale = scaleLimits?.min;
 
 	useEffect( () => {
@@ -235,19 +240,26 @@ export default function Canvas() {
 			return;
 		}
 
-		const previousFitScale = fitScaleRef.current;
-		fitScaleRef.current = fitScale;
+		const previous = previousFitRef.current;
+		previousFitRef.current = {
+			height: size.height,
+			scale: fitScale,
+			width: size.width,
+		};
 
-		if ( previousFitScale === null || previousFitScale === fitScale ) {
+		if (
+			! previous ||
+			( previous.width === size.width && previous.height === size.height )
+		) {
 			return;
 		}
 
-		if ( Math.abs( viewRef.current.k - previousFitScale ) < 0.0001 ) {
+		if ( Math.abs( viewRef.current.k - previous.scale ) < 0.0001 ) {
 			setView( fitView( layout.bounds, sizeRef.current ) );
 		} else {
 			setView( ( current ) => current );
 		}
-	}, [ fitScale, layout, setView ] );
+	}, [ fitScale, layout, setView, size.height, size.width ] );
 
 	const zoomBy = useCallback(
 		( direction ) => {
@@ -260,6 +272,7 @@ export default function Canvas() {
 			const { max, min } = getScaleLimits( layout.bounds, currentSize );
 			const step = getNextZoomStep( current.k / min, direction );
 
+			setHasMoved( true );
 			animateTo(
 				zoomAt( current, Math.min( max, Math.max( min, step * min ) ), {
 					x: currentSize.width / 2,
@@ -288,6 +301,7 @@ export default function Canvas() {
 		const onWheel = ( event ) => {
 			event.preventDefault();
 			setIsAnimating( false );
+			setHasMoved( true );
 
 			const lineHeight = event.deltaMode === 1 ? 16 : 1;
 			const deltaX = event.deltaX * lineHeight;
@@ -373,6 +387,7 @@ export default function Canvas() {
 			viewportRef.current?.setPointerCapture?.( event.pointerId );
 			setIsAnimating( false );
 			setIsPanning( true );
+			setHasMoved( true );
 		}
 
 		setView( {
@@ -434,6 +449,7 @@ export default function Canvas() {
 		if ( pans[ event.key ] ) {
 			event.preventDefault();
 			const [ deltaX, deltaY ] = pans[ event.key ];
+			setHasMoved( true );
 			animateTo( {
 				...viewRef.current,
 				x: viewRef.current.x + deltaX,
@@ -539,6 +555,7 @@ export default function Canvas() {
 								.filter( Boolean )
 								.join( ' ' ) }
 							style={ {
+								'--cnl-site-overview-scale': view.k,
 								height: layout.bounds.height,
 								transform: `translate(${ view.x }px, ${ view.y }px) scale(${ view.k })`,
 								width: layout.bounds.width,
@@ -612,7 +629,9 @@ export default function Canvas() {
 						</div>
 					) }
 					<p
-						className="cnl-site-overview__help"
+						className={ `cnl-site-overview__help${
+							hasMoved ? ' is-dismissed' : ''
+						}` }
 						id="cnl-site-overview-help"
 					>
 						{ __(

@@ -136,7 +136,11 @@ export function SelectedPage( {
 				</Text>
 			) ) }
 			<Stack align="center" gap="md" wrap="wrap">
-				<UiButton disabled={ ! onEdit } onClick={ onEdit }>
+				<UiButton
+					disabled={ ! onEdit }
+					onClick={ onEdit }
+					size="compact"
+				>
 					{ __( 'Edit' ) }
 				</UiButton>
 				{ node.url && (
