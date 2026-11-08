@@ -1,5 +1,5 @@
 /**
- * The full-width lists of layouts, site parts and sections.
+ * The full-width lists of templates, site parts and patterns.
  */
 const {
 	expect,
@@ -14,17 +14,17 @@ test.describe( 'Advanced views', () => {
 		await visitEditor( page );
 	} );
 
-	test( 'lists Layouts full width', async ( { page } ) => {
-		await openSidebarLink( page, 'Layouts' );
+	test( 'lists Templates full width', async ( { page } ) => {
+		await openSidebarLink( page, 'Templates' );
 		await expect( page ).toHaveURL( /p=%2Ftemplates/ );
 
 		const stage = getStage( page );
 
 		await expect(
-			stage.getByRole( 'heading', { name: 'Layouts' } )
+			stage.getByRole( 'heading', { name: 'Templates' } )
 		).toBeVisible();
 		await expect(
-			stage.getByRole( 'button', { name: 'Add layout' } )
+			stage.getByRole( 'button', { name: 'Add template' } )
 		).toBeVisible();
 		await expect( stage.locator( '.dataviews-search' ) ).toBeVisible( {
 			timeout: 15000,
@@ -59,17 +59,17 @@ test.describe( 'Advanced views', () => {
 		await expect( page.locator( '.boot-layout__canvas' ) ).toHaveCount( 0 );
 	} );
 
-	test( 'lists Sections full width, by source', async ( { page } ) => {
-		await openSidebarLink( page, 'Sections' );
+	test( 'lists Patterns full width, by source', async ( { page } ) => {
+		await openSidebarLink( page, 'Patterns' );
 		await expect( page ).toHaveURL( /p=%2Fpatterns/ );
 
 		const stage = getStage( page );
 
 		await expect(
-			stage.getByRole( 'heading', { name: 'Sections' } )
+			stage.getByRole( 'heading', { name: 'Patterns' } )
 		).toBeVisible();
 		await expect(
-			stage.getByRole( 'tab', { name: 'All sections' } )
+			stage.getByRole( 'tab', { name: 'All patterns' } )
 		).toBeVisible();
 		await expect(
 			stage.getByRole( 'tab', { name: 'Saved by you' } )

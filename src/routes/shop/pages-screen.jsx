@@ -138,7 +138,7 @@ export function ShopPagesStage() {
 				links={ [
 					{
 						description: __(
-							'All of WooCommerce’s layouts, like a product category’s or search results.'
+							'All of WooCommerce’s templates, like a product category’s or search results.'
 						),
 						icon: layoutIcon,
 						search: { layouts: SHOP_LAYOUTS },

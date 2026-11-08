@@ -1,5 +1,5 @@
 /**
- * Making and finding things on the lists of layouts, site parts and sections.
+ * Making and finding things on the lists of templates, site parts and patterns.
  */
 const {
 	expect,
@@ -23,18 +23,18 @@ function getRoutePostId( page ) {
 }
 
 test.describe( 'Advanced interactions', () => {
-	test( 'adds a layout and opens it in the block editor', async ( {
+	test( 'adds a template and opens it in the block editor', async ( {
 		page,
 		rest,
 	} ) => {
-		const title = `Created layout ${ Date.now() }`;
+		const title = `Created template ${ Date.now() }`;
 
 		await visitEditor( page, '/templates' );
 		await getStage( page )
-			.getByRole( 'button', { name: 'Add layout' } )
+			.getByRole( 'button', { name: 'Add template' } )
 			.click();
 
-		const dialog = page.getByRole( 'dialog', { name: 'Add a layout' } );
+		const dialog = page.getByRole( 'dialog', { name: 'Add a template' } );
 		await dialog.getByLabel( 'Name' ).fill( title );
 		await dialog.getByRole( 'button', { name: 'Add' } ).click();
 
@@ -87,18 +87,18 @@ test.describe( 'Advanced interactions', () => {
 		expect( part.area ).toBe( 'header' );
 	} );
 
-	test( 'adds a section and opens it in the block editor', async ( {
+	test( 'adds a pattern and opens it in the block editor', async ( {
 		page,
 		rest,
 	} ) => {
-		const title = `Created section ${ Date.now() }`;
+		const title = `Created pattern ${ Date.now() }`;
 
 		await visitEditor( page, '/patterns' );
 		await getStage( page )
-			.getByRole( 'button', { name: 'Add section' } )
+			.getByRole( 'button', { name: 'Add pattern' } )
 			.click();
 
-		const dialog = page.getByRole( 'dialog', { name: 'Add a section' } );
+		const dialog = page.getByRole( 'dialog', { name: 'Add a pattern' } );
 		await dialog.getByLabel( 'Name' ).fill( title );
 		await dialog.getByRole( 'combobox' ).selectOption( {
 			label: 'Let each copy be changed on its own',

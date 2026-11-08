@@ -1146,7 +1146,7 @@ function cnl_editor_get_menu_items() {
 		array(
 			array(
 				'id'      => 'patterns',
-				'label'   => __( 'Sections', 'create-not-learn-editor' ),
+				'label'   => __( 'Patterns', 'create-not-learn-editor' ),
 				'to'      => '/patterns',
 				'section' => 'advanced',
 			),
@@ -1158,7 +1158,7 @@ function cnl_editor_get_menu_items() {
 			),
 			array(
 				'id'      => 'templates',
-				'label'   => __( 'Layouts', 'create-not-learn-editor' ),
+				'label'   => __( 'Templates', 'create-not-learn-editor' ),
 				'to'      => '/templates',
 				'section' => 'advanced',
 			),

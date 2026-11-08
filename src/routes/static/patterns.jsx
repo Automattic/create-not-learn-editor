@@ -75,7 +75,7 @@ const DEFAULT_PATTERN_VIEW = {
 };
 const PATTERN_TABS = [
 	{
-		label: __( 'All sections' ),
+		label: __( 'All patterns' ),
 		value: 'all',
 	},
 	{
@@ -95,7 +95,7 @@ function PatternCategoryChips( { chips, onChange, value } ) {
 
 	return (
 		<div
-			aria-label={ __( 'Kinds of section' ) }
+			aria-label={ __( 'Kinds of pattern' ) }
 			className="routes-pattern-list__categories"
 			role="group"
 		>
@@ -243,7 +243,7 @@ function CreatePatternModal( { isSaving, onClose, onCreate, saveError } ) {
 					onClose();
 				}
 			} }
-			title={ __( 'Add a section' ) }
+			title={ __( 'Add a pattern' ) }
 		>
 			<form
 				className="routes-pattern-list__create-form"
@@ -550,7 +550,7 @@ export function PatternsStage() {
 				onClick={ openCreateModal }
 				variant="primary"
 			>
-				{ __( 'Add section' ) }
+				{ __( 'Add pattern' ) }
 			</Button>
 		</div>
 	);
@@ -559,7 +559,7 @@ export function PatternsStage() {
 			<EmptyState.Root>
 				<EmptyState.Icon icon={ layoutIcon } />
 				<EmptyState.Title>
-					{ __( 'No sections found' ) }
+					{ __( 'No patterns found' ) }
 				</EmptyState.Title>
 				<EmptyState.Description>
 					{ __(
