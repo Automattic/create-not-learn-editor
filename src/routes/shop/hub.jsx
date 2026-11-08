@@ -12,7 +12,7 @@
  */
 import ScreenLinks from '../../screen-links';
 import SitePreviewCanvas from '../static/site-preview';
-import { ShopHeading, useShopSearch } from './heading';
+import { ShopPage, useShopSearch } from './heading';
 import { PRODUCTS_PATH, SHOP_PAGES_PATH, getShop } from './shop';
 import {
 	Link,
@@ -64,62 +64,65 @@ export function ShopStage() {
 	const adminLinks = getAdminLinks();
 
 	return (
-		<div className="cnl-editor-stage routes-styles cnl-shop">
-			<ShopHeading
-				description={ __( 'What you sell, and how your shop looks.' ) }
-			/>
-			<ScreenLinks
-				label={ __( 'Your shop on your site' ) }
-				links={ [
-					can.editProducts && {
-						description: __(
-							'Add what you sell, with photos and prices.'
-						),
-						icon: tagIcon,
-						search,
-						title: __( 'Products' ),
-						to: PRODUCTS_PATH,
-					},
-					{
-						description: __(
-							'How your shop, product, cart and checkout pages look.'
-						),
-						icon: storeIcon,
-						search,
-						title: __( 'Shop pages' ),
-						to: SHOP_PAGES_PATH,
-					},
-				].filter( Boolean ) }
-			/>
-			{ !! adminLinks.length && (
-				<Stack direction="column" gap="sm">
-					<Stack direction="column" gap="xs">
-						<Text render={ <h2 /> } variant="heading-sm">
-							{ __( 'Run your shop' ) }
-						</Text>
-						<Text
-							className="routes-styles__muted"
-							variant="body-sm"
-						>
-							{ __(
-								'Visitors never see these, so they open in WP Admin.'
-							) }
-						</Text>
+		<ShopPage
+			description={ __( 'What you sell, and how your shop looks.' ) }
+			hasPadding={ false }
+		>
+			{ /* Laid out as Home is, as it too is a list of places to go. */ }
+			<div className="cnl-editor-stage cnl-site-hub">
+				<ScreenLinks
+					label={ __( 'Your shop on your site' ) }
+					links={ [
+						can.editProducts && {
+							description: __(
+								'Add what you sell, with photos and prices.'
+							),
+							icon: tagIcon,
+							search,
+							title: __( 'Products' ),
+							to: PRODUCTS_PATH,
+						},
+						{
+							description: __(
+								'How your shop, product, cart and checkout pages look.'
+							),
+							icon: storeIcon,
+							search,
+							title: __( 'Shop pages' ),
+							to: SHOP_PAGES_PATH,
+						},
+					].filter( Boolean ) }
+				/>
+				{ !! adminLinks.length && (
+					<Stack direction="column" gap="sm">
+						<Stack direction="column" gap="xs">
+							<Text render={ <h2 /> } variant="heading-sm">
+								{ __( 'Run your shop' ) }
+							</Text>
+							<Text
+								className="routes-styles__muted"
+								variant="body-sm"
+							>
+								{ __(
+									'Visitors never see these, so they open in WP Admin.'
+								) }
+							</Text>
+						</Stack>
+						<ScreenLinks
+							label={ __( 'Run your shop in WP Admin' ) }
+							links={ adminLinks }
+						/>
+						{ can.manageShop && adminUrls.settings && (
+							<Text variant="body-sm">
+								<Link href={ adminUrls.settings } openInNewTab>
+									{ __( 'All shop settings' ) }
+								</Link>
+							</Text>
+						) }
 					</Stack>
-					<ScreenLinks
-						label={ __( 'Run your shop in WP Admin' ) }
-						links={ adminLinks }
-					/>
-					{ can.manageShop && adminUrls.settings && (
-						<Text variant="body-sm">
-							<Link href={ adminUrls.settings } openInNewTab>
-								{ __( 'All shop settings' ) }
-							</Link>
-						</Text>
-					) }
-				</Stack>
-			) }
-		</div>
+				) }
+			</div>
+		</ShopPage>
 	);
 }
 

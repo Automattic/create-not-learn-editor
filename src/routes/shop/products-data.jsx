@@ -27,14 +27,20 @@ import {
 import { PRODUCTS_PATH } from './shop';
 import {
 	Badge,
+	Button,
+	EmptyState,
 	Stack,
 	__,
 	coreDataStore,
 	decodeEntities,
+	noticesStore,
+	searchIcon,
 	sprintf,
+	tagIcon,
 	useDispatch,
 	useMemo,
 	useSelect,
+	useState,
 } from '../../wordpress-packages';
 
 export const EMPTY_ARRAY = [];
@@ -374,6 +380,97 @@ export function useProductsPage( view ) {
 			};
 		},
 		[ query ]
+	);
+}
+
+/**
+ * Adds a product and opens it. A draft, so nothing shows in the shop until
+ * it is switched on.
+ *
+ * @return {{ add: () => Promise<void>, isAdding: boolean }} Adds one, and
+ *         whether it is.
+ */
+export function useAddProduct() {
+	const navigate = useNavigate();
+	const search = useShopSearch();
+	const { saveEntityRecord } = useDispatch( coreDataStore );
+	const { createErrorNotice } = useDispatch( noticesStore );
+	const [ isAdding, setIsAdding ] = useState( false );
+
+	const add = async () => {
+		setIsAdding( true );
+
+		try {
+			const product = await saveEntityRecord(
+				PRODUCT_KIND,
+				PRODUCT_NAME,
+				{ name: __( 'New product' ), status: 'draft', type: 'simple' },
+				{ throwOnError: true }
+			);
+			navigate( {
+				search: { ...search, product: product.id },
+				to: PRODUCTS_PATH,
+			} );
+		} catch ( addError ) {
+			createErrorNotice( addError.message, { type: 'snackbar' } );
+		}
+
+		setIsAdding( false );
+	};
+
+	return { add, isAdding };
+}
+
+/**
+ * What the list and the table show with no products in them: a way to add
+ * the first, or, when a search finds nothing, what was searched for.
+ *
+ * @param {Object} props      Component props.
+ * @param {Object} props.view The DataViews view.
+ * @return {Element} The empty state.
+ */
+export function ProductsEmpty( { view } ) {
+	const { add, isAdding } = useAddProduct();
+	const isFiltered = !! view.search || !! view.filters?.length;
+	let title = __( 'No products yet' );
+
+	if ( view.search ) {
+		title = sprintf(
+			/* translators: %s: What the products were searched for. */
+			__( 'Nothing matches “%s”' ),
+			view.search
+		);
+	} else if ( isFiltered ) {
+		title = __( 'No products match' );
+	}
+
+	return (
+		<div className="cnl-editor-empty-state">
+			<EmptyState.Root>
+				<EmptyState.Icon icon={ isFiltered ? searchIcon : tagIcon } />
+				<EmptyState.Title>{ title }</EmptyState.Title>
+				<EmptyState.Description>
+					{ isFiltered
+						? __( 'Try other words, or clear the filters.' )
+						: __(
+								'Add what you sell, with a photo and a price, and it shows in your shop.'
+							) }
+				</EmptyState.Description>
+				{ ! isFiltered && (
+					<EmptyState.Actions>
+						<Button
+							__next40pxDefaultSize
+							disabled={ isAdding }
+							isBusy={ isAdding }
+							onClick={ add }
+							variant="primary"
+						>
+							{ __( 'Add product' ) }
+						</Button>
+					</EmptyState.Actions>
+				) }
+			</EmptyState.Root>
+		</div>
 	);
 }
 

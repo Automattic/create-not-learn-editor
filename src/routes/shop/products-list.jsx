@@ -18,6 +18,7 @@ import { useNavigate } from '@wordpress/route';
 import { useShopSearch } from './heading';
 import {
 	EMPTY_ARRAY,
+	ProductsEmpty,
 	getProductFields,
 	useProductsPage,
 } from './products-data';
@@ -53,10 +54,9 @@ function ProductsListLayout( { DataViews } ) {
 /**
  * @param {Object}  props            Component props.
  * @param {?number} props.selectedId The product open, if any.
- * @param {Element} props.empty      What to show when nothing matches.
  * @return {Element} The list.
  */
-export default function ProductsList( { empty, selectedId } ) {
+export default function ProductsList( { selectedId } ) {
 	const navigate = useNavigate();
 	const search = useShopSearch();
 	const [ view, setView ] = useState( DEFAULT_VIEW );
@@ -82,7 +82,7 @@ export default function ProductsList( { empty, selectedId } ) {
 		<DataViews
 			data={ data }
 			defaultLayouts={ DEFAULT_LAYOUTS }
-			empty={ empty }
+			empty={ <ProductsEmpty view={ view } /> }
 			fields={ fields }
 			getItemId={ ( item ) => String( item.id ) }
 			isLoading={ isLoading && ! data.length }

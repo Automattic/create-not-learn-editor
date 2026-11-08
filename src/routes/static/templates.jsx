@@ -2,12 +2,18 @@
  * WordPress dependencies
  */
 import { Preview as LazyEditorPreview } from '@wordpress/lazy-editor';
-import { useNavigate } from '@wordpress/route';
+import { useNavigate, useSearch } from '@wordpress/route';
 
 /**
  * Internal dependencies
  */
 import { getStaticScreen } from './screens';
+import {
+	SHOP_LAYOUTS,
+	SHOP_PAGES_PATH,
+	SHOP_PATH,
+	isShopLayout,
+} from '../shop/shop';
 import { useDataViews } from '../../use-dataviews';
 import {
 	DEFAULT_TEMPLATE_LAYOUTS,
@@ -22,10 +28,12 @@ import {
 	getTitleText,
 } from '../../records';
 import {
+	Breadcrumbs,
 	Button,
 	coreDataStore,
 	EmptyState,
 	InputControl,
+	Link,
 	layoutIcon,
 	Modal,
 	noticesStore,
@@ -45,7 +53,7 @@ const TEMPLATE_QUERY = {
 	context: 'edit',
 	per_page: 100,
 	_fields:
-		'id,slug,title,description,source,author,theme,type,status,content,date,modified',
+		'id,slug,title,description,source,author,theme,type,status,content,date,modified,plugin',
 };
 const DEFAULT_TEMPLATE_VIEW = {
 	descriptionField: 'description',
@@ -423,7 +431,19 @@ export function TemplatesStage() {
 		useDispatch( coreDataStore );
 	const { createErrorNotice, createSuccessNotice } =
 		useDispatch( noticesStore );
-	const { error, isLoading, templates } = useTemplatesData();
+	const { error, isLoading, templates: allTemplates } = useTemplatesData();
+	// Opened from Shop pages' Advanced, only the shop's layouts are listed.
+	const { layouts } = useSearch( { strict: false } );
+	const isShop = layouts === SHOP_LAYOUTS;
+	const templates = useMemo(
+		() =>
+			isShop
+				? allTemplates.filter( ( template ) =>
+						isShopLayout( template, allTemplates )
+					)
+				: allTemplates,
+		[ allTemplates, isShop ]
+	);
 	const [ view, setView ] = useState( DEFAULT_TEMPLATE_VIEW );
 	const [ isCreateModalOpen, setIsCreateModalOpen ] = useState( false );
 	const [ isCreatingTemplate, setIsCreatingTemplate ] = useState( false );
@@ -520,6 +540,7 @@ export function TemplatesStage() {
 						? nextView.page
 						: undefined,
 				search: nextView.search || undefined,
+				layouts: isShop ? SHOP_LAYOUTS : undefined,
 			},
 			to: '/templates',
 		} );
@@ -605,11 +626,41 @@ export function TemplatesStage() {
 	return (
 		<Page
 			actions={ pageActions }
+			breadcrumbs={
+				isShop ? (
+					<Breadcrumbs
+						items={ [
+							{ label: __( 'Shop' ), to: SHOP_PATH },
+							{ label: __( 'Shop pages' ), to: SHOP_PAGES_PATH },
+							{ label: __( 'Shop layouts' ) },
+						] }
+					/>
+				) : undefined
+			}
 			className="cnl-editor-stage routes-template-list"
 			hasPadding={ false }
 			headingLevel={ 2 }
-			subTitle={ getStaticScreen().description }
-			title={ getStaticScreen().title }
+			subTitle={
+				isShop ? (
+					<>
+						{ __(
+							'The layouts WooCommerce adds, for its pages and lists of products. Changing one changes every page that uses it.'
+						) }{ ' ' }
+						<Link
+							href="#"
+							onClick={ ( event ) => {
+								event.preventDefault();
+								navigate( { to: '/templates' } );
+							} }
+						>
+							{ __( 'Show all layouts' ) }
+						</Link>
+					</>
+				) : (
+					getStaticScreen().description
+				)
+			}
+			title={ isShop ? undefined : getStaticScreen().title }
 		>
 			{ error && <div className="cnl-editor-empty">{ error }</div> }
 			{ DataViews ? (

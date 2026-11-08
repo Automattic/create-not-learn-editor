@@ -14,6 +14,7 @@
 import { ShopPage } from './heading';
 import {
 	EMPTY_ARRAY,
+	ProductsEmpty,
 	getProductFields,
 	useProductActions,
 	useProductsPage,
@@ -65,6 +66,7 @@ export default function ProductsTable() {
 					actions={ actions }
 					data={ data }
 					defaultLayouts={ DEFAULT_LAYOUTS }
+					empty={ <ProductsEmpty view={ view } /> }
 					fields={ fields }
 					getItemId={ ( item ) => String( item.id ) }
 					isLoading={ isLoading && ! data.length }

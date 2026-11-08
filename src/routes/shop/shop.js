@@ -29,6 +29,25 @@ export const SHOP_PATH = '/shop';
 export const PRODUCTS_PATH = '/shop/products';
 export const SHOP_PAGES_PATH = '/shop/pages';
 
+// The Layouts screen's search param value that lists only the shop's.
+export const SHOP_LAYOUTS = 'shop';
+
+/**
+ * Whether a layout is one of WooCommerce's: one it adds, or a theme's own
+ * copy of one, like a theme's Single Product.
+ *
+ * @param {Object}   template  Template record.
+ * @param {Object[]} templates Every template, to find the ones WooCommerce
+ *                             adds.
+ * @return {boolean} Whether it is the shop's.
+ */
+export function isShopLayout( template, templates ) {
+	return templates.some(
+		( other ) =>
+			other.plugin === 'woocommerce' && other.slug === template.slug
+	);
+}
+
 /**
  * The shop's settings from `cnl_editor_get_shop_settings()`.
  *

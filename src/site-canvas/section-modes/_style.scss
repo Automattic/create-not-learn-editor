@@ -940,7 +940,9 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	justify-content: center;
 	border-radius: $button-radius;
 
-	&[aria-pressed="true"] {
+	// Core's pressed hover would turn it near black.
+	&[aria-pressed="true"],
+	&[aria-pressed="true"]:hover:not(:disabled) {
 		background: $theme;
 		color: #fff;
 	}

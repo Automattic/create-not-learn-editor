@@ -29,9 +29,13 @@
 	color: var(--wpds-color-foreground-interactive-neutral);
 	text-align: start;
 
+	// Picked, it is a light row, not the dark fill and white text core gives
+	// a pressed button, its hover included.
 	&:hover:not(:disabled),
-	&[aria-pressed="true"] {
+	&[aria-pressed="true"],
+	&[aria-pressed="true"]:hover:not(:disabled) {
 		background: var(--wpds-color-background-interactive-neutral-weak-active);
+		color: var(--wpds-color-foreground-interactive-neutral);
 	}
 }
 

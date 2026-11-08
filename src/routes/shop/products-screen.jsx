@@ -38,6 +38,13 @@ import {
 } from './product-entity';
 import { getProductEditUrl } from './product-labels';
 import { ProductPriceFields } from '../../pickers/product-price';
+import {
+	getPlainDescription,
+	isDescriptionOf,
+	stripTags,
+	toDescriptionHtml,
+} from './description';
+import { useAddProduct } from './products-data';
 import ProductsList from './products-list';
 import ProductsTable from './products-table';
 import { revealProductBlock } from './reveal-product-block';
@@ -60,54 +67,17 @@ import {
 	__,
 	coreDataStore,
 	decodeEntities,
-	escapeHTML,
 	externalIcon,
 	moreVerticalIcon,
-	noticesStore,
 	useDispatch,
+	useEffect,
 	useMemo,
+	useRef,
 	useSelect,
 	useState,
 } from '../../wordpress-packages';
 
 registerProductEntity();
-
-/**
- * A description this screen can change: plain paragraphs, nothing else.
- *
- * @param {string} html Description as WooCommerce stores it.
- * @return {?string} The text, paragraphs a blank line apart, or null when
- *                   the description has other formatting.
- */
-function getPlainDescription( html = '' ) {
-	const withoutParagraphs = html
-		.replace( /<\/p>\s*<p>/g, '\n\n' )
-		.replace( /<\/?p>/g, '' )
-		.replace( /<br\s*\/?>/g, '\n' );
-
-	if ( /<[a-z!/]/i.test( withoutParagraphs ) ) {
-		return null;
-	}
-
-	return decodeEntities( withoutParagraphs ).trim();
-}
-
-function toDescriptionHtml( text ) {
-	return text
-		.split( /\n{2,}/ )
-		.filter( ( paragraph ) => paragraph.trim() )
-		.map(
-			( paragraph ) =>
-				`<p>${ escapeHTML( paragraph ).replace( /\n/g, '<br>' ) }</p>`
-		)
-		.join( '' );
-}
-
-function stripTags( html = '' ) {
-	return decodeEntities( html.replace( /<[^>]+>/g, ' ' ) )
-		.replace( /\s+/g, ' ' )
-		.trim();
-}
 
 /**
  * A post's title or excerpt as text, whichever shape the editor has it in,
@@ -193,17 +163,6 @@ function useSelectedId() {
 	return Number( product ) || null;
 }
 
-function useOpenProduct() {
-	const navigate = useNavigate();
-	const search = useShopSearch();
-
-	return ( id ) =>
-		navigate( {
-			search: id ? { ...search, product: id } : search,
-			to: PRODUCTS_PATH,
-		} );
-}
-
 function ProductPhoto( { className = '', product } ) {
 	const src = product.images?.[ 0 ]?.src;
 
@@ -256,8 +215,53 @@ function PhotoField( { product, update } ) {
 	);
 }
 
+// How long typing pauses before the description goes to the product.
+const DESCRIPTION_WRITE_MS = 150;
+
+/**
+ * The short description, as plain paragraphs. The field keeps the text as
+ * typed, spaces and blank lines and all, which the stored HTML drops at a
+ * paragraph's ends, and hands the HTML on once typing pauses, so each key
+ * doesn't wait for the editor to follow. A change from somewhere else, like
+ * undo or the excerpt on the page, takes its place.
+ *
+ * @param {Object}   props             Component props.
+ * @param {string}   props.description The description, as stored.
+ * @param {Function} props.onChange    Called with the description as HTML.
+ * @param {number}   props.productId   The product.
+ * @return {Element} The field.
+ */
 function DescriptionField( { description, onChange, productId } ) {
 	const plain = getPlainDescription( description );
+	const [ text, setText ] = useState( plain ?? '' );
+	const pending = useRef( null );
+	const write = useRef( onChange );
+	write.current = onChange;
+
+	const flush = () => {
+		if ( pending.current ) {
+			window.clearTimeout( pending.current.timeout );
+			write.current( pending.current.html );
+			pending.current = null;
+		}
+	};
+
+	// Follow a change from somewhere else, unless this field is still
+	// handing over what was typed.
+	useEffect( () => {
+		if (
+			! pending.current &&
+			plain !== null &&
+			! isDescriptionOf( text, description )
+		) {
+			setText( plain );
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ description ] );
+
+	// Hand over what was typed when the field goes, rather than lose it.
+
+	useEffect( () => flush, [] );
 
 	if ( plain === null ) {
 		return (
@@ -284,9 +288,22 @@ function DescriptionField( { description, onChange, productId } ) {
 		<TextareaControl
 			description={ __( 'A sentence or two, shown beside the photo.' ) }
 			label={ __( 'Short description' ) }
-			onValueChange={ ( text ) => onChange( toDescriptionHtml( text ) ) }
+			onValueChange={ ( next ) => {
+				setText( next );
+
+				const html = toDescriptionHtml( next );
+
+				if ( pending.current ) {
+					window.clearTimeout( pending.current.timeout );
+				}
+
+				pending.current = {
+					html,
+					timeout: window.setTimeout( flush, DESCRIPTION_WRITE_MS ),
+				};
+			} }
 			rows={ 3 }
-			value={ plain }
+			value={ text }
 		/>
 	);
 }
@@ -449,6 +466,9 @@ function ProductFields( { id } ) {
 					post?.excerpt,
 					product.short_description
 				) }
+				// A product of its own, so typing still being handed over
+				// goes to the product it was typed for.
+				key={ id }
 				onChange={ ( excerpt ) => editPost( { excerpt } ) }
 				productId={ id }
 			/>
@@ -484,29 +504,7 @@ function ProductFields( { id } ) {
  * @return {Element} The actions.
  */
 function ProductsActions() {
-	const openProduct = useOpenProduct();
-	const { saveEntityRecord } = useDispatch( coreDataStore );
-	const { createErrorNotice } = useDispatch( noticesStore );
-	const [ isAdding, setIsAdding ] = useState( false );
-
-	// A draft, so nothing shows in the shop until it is switched on.
-	const add = async () => {
-		setIsAdding( true );
-
-		try {
-			const product = await saveEntityRecord(
-				PRODUCT_KIND,
-				PRODUCT_NAME,
-				{ name: __( 'New product' ), status: 'draft', type: 'simple' },
-				{ throwOnError: true }
-			);
-			openProduct( product.id );
-		} catch ( addError ) {
-			createErrorNotice( addError.message, { type: 'snackbar' } );
-		}
-
-		setIsAdding( false );
-	};
+	const { add, isAdding } = useAddProduct();
 
 	return (
 		<div className="routes-post-list__page-actions">
@@ -669,13 +667,7 @@ export function ProductsStage() {
 			crumbs={ [ { label: __( 'Products' ) } ] }
 			description={ __( 'What you sell, with photos and prices.' ) }
 		>
-			<ProductsList
-				empty={
-					<Text className="routes-styles__muted" variant="body-sm">
-						{ __( 'No products yet, or none match.' ) }
-					</Text>
-				}
-			/>
+			<ProductsList />
 		</ShopPage>
 	);
 }
