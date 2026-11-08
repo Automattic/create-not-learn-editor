@@ -8,11 +8,12 @@ const {
 	expectBlockEditor,
 	expectCanvasMode,
 	getCanvasEditor,
-	getComposeButton,
 	getModeToggle,
+	getZoomOutToggle,
 	getRoute,
 	getSitePreview,
 	openSidebarLink,
+	openViewMenu,
 	pickCanvasMode,
 	clickIntoSection,
 	setCanvasMode,
@@ -59,19 +60,19 @@ test.describe( 'Site canvas interactions', () => {
 		await visitEditor( page );
 
 		const toggle = getModeToggle( page );
-		const compose = getComposeButton( page );
+		const zoomOut = getZoomOutToggle( page );
 
 		await expect(
 			toggle.getByRole( 'radio', { name: 'Browse' } )
 		).toBeChecked();
-		await expect( compose ).toHaveCount( 0 );
+		await expect( zoomOut ).toHaveCount( 0 );
 
 		await setCanvasMode( page, 'Edit' );
-		await expect( compose ).toBeVisible();
-		await expect( compose ).toHaveAttribute( 'aria-pressed', 'false' );
+		await expect( zoomOut ).toBeVisible( { timeout: 15000 } );
+		await expect( zoomOut ).toHaveAttribute( 'aria-pressed', 'false' );
 
 		// Compose is editing from further away: the toggle stays on Edit.
-		await compose.click();
+		await zoomOut.click();
 		await expectCanvasMode( page, 'Compose' );
 		await expect(
 			toggle.getByRole( 'radio', { name: 'Edit' } )
@@ -135,18 +136,29 @@ test.describe( 'Site canvas interactions', () => {
 		).toBeVisible();
 	} );
 
-	test( 'switches the canvas between desktop and mobile', async ( {
+	test( 'switches the canvas between desktop, tablet and mobile', async ( {
 		page,
 	} ) => {
 		await visitEditor( page );
 
 		const preview = page.locator( '.cnl-site-canvas__preview' );
 
-		await page.getByRole( 'radio', { name: 'Mobile view' } ).click();
-		await expect( preview ).toHaveClass( /is-mobile/ );
+		for ( const device of [ 'Mobile', 'Tablet', 'Desktop' ] ) {
+			const menu = await openViewMenu( page );
 
-		await page.getByRole( 'radio', { name: 'Desktop view' } ).click();
-		await expect( preview ).toHaveClass( /is-desktop/ );
+			await menu
+				.getByRole( 'menuitemradio', { name: new RegExp( device ) } )
+				.click();
+			await expect( preview ).toHaveClass(
+				new RegExp( `is-${ device.toLowerCase() }` )
+			);
+			// As in core's, the menu stays open to compare them.
+			await expect(
+				menu.getByRole( 'menuitemradio', {
+					name: new RegExp( device ),
+				} )
+			).toBeChecked();
+		}
 	} );
 
 	test( 'follows links in the preview, and back again', async ( {

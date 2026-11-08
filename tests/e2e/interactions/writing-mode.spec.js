@@ -7,8 +7,8 @@
 const {
 	expect,
 	getCanvasEditor,
-	getComposeButton,
 	getModeToggle,
+	getZoomOutToggle,
 	getSitePreview,
 	pointAtSection,
 	setCanvasMode,
@@ -121,7 +121,7 @@ test.describe( 'Writing mode', () => {
 		).toBeVisible();
 
 		await expect( page.locator( '.cnl-section-modes' ) ).toHaveCount( 0 );
-		await expect( getComposeButton( page ) ).toHaveCount( 0 );
+		await expect( getZoomOutToggle( page ) ).toHaveCount( 0 );
 		await expect(
 			page.locator( '.cnl-site-canvas__zoom-controls' )
 		).toHaveCount( 0 );

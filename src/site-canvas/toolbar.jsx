@@ -1,7 +1,7 @@
 /**
- * The site canvas toolbar's controls: Browse or Edit, Compose, undo and redo
- * while editing, stepping through pages visited in Browse, the preview's
- * device, and the way out to the full-screen editor.
+ * The site canvas toolbar's controls: Browse or Edit, undo and redo while
+ * editing, stepping through pages visited in Browse, the View menu with the
+ * device, Zoom out for Compose, and the way out to the full-screen editor.
  */
 
 /**
@@ -23,26 +23,46 @@ import {
 	externalIcon,
 	fullscreenIcon,
 	isRTL,
+	Menu,
 	mobileIcon,
 	DropdownMenu,
 	MenuGroup,
 	MenuItem,
 	moreVerticalIcon,
 	redoIcon,
+	squareIcon,
+	tabletIcon,
 	ToggleGroupControl,
 	ToggleGroupControlOption,
-	ToggleGroupControlOptionIcon,
 	undoIcon,
 	useDispatch,
 	useSelect,
 } from '../wordpress-packages';
-import { zoomInIcon, zoomOutIcon } from './icons';
 import { MODE_BROWSE, MODE_EDIT } from './mode';
+
+const DEVICE_ICONS = {
+	desktop: desktopIcon,
+	mobile: mobileIcon,
+	tablet: tabletIcon,
+};
 
 function getDeviceOptions() {
 	return [
-		{ icon: desktopIcon, label: __( 'Desktop view' ), value: 'desktop' },
-		{ icon: mobileIcon, label: __( 'Mobile view' ), value: 'mobile' },
+		{
+			description: __( 'How it looks on a computer.' ),
+			label: __( 'Desktop' ),
+			value: 'desktop',
+		},
+		{
+			description: __( 'How it looks on a tablet.' ),
+			label: __( 'Tablet' ),
+			value: 'tablet',
+		},
+		{
+			description: __( 'How it looks on a phone.' ),
+			label: __( 'Mobile' ),
+			value: 'mobile',
+		},
 	];
 }
 
@@ -94,39 +114,6 @@ export function ModeToggle( { canEdit, mode, onChange } ) {
 }
 
 /**
- * Step back from the page to work on its sections, and back again. Offered
- * while editing. Named for what it does to the page, Compose being our word
- * for it, not one people would look for.
- *
- * Shows the action the click will take, not the mode already on: "Zoom out"
- * while editing the page, "Zoom in" once Compose has zoomed out.
- *
- * @param {Object}   props
- * @param {boolean}  props.isComposing Whether Compose is on.
- * @param {Function} props.onToggle    Turns Compose on or off.
- * @return {Element} The button.
- */
-export function ComposeButton( { isComposing, onToggle } ) {
-	const label = isComposing
-		? __( 'Zoom in to edit the page' )
-		: __( 'Arrange sections' );
-
-	return (
-		<ComponentsTooltip placement="bottom" text={ label }>
-			<Button
-				__next40pxDefaultSize
-				className="cnl-site-canvas__compose-button"
-				icon={ isComposing ? zoomInIcon : zoomOutIcon }
-				isPressed={ isComposing }
-				onClick={ onToggle }
-			>
-				{ isComposing ? __( 'Zoom in' ) : __( 'Zoom out' ) }
-			</Button>
-		</ComponentsTooltip>
-	);
-}
-
-/**
  * Undo and redo, as in the editor's own header. The history is core's, so
  * changes made in Edit and in Compose are stepped through alike.
  *
@@ -163,28 +150,88 @@ export function EditHistory() {
 	);
 }
 
-export function DeviceSwitcher( { device, onChange } ) {
+/**
+ * The device the page is shown on, in a menu as core's editor has it. The
+ * button shows the device's icon.
+ *
+ * Compose lays the page out as on a desktop, so it shows Desktop picked, and
+ * picking a device zooms back in, as core resets its zoom on a device change.
+ *
+ * @param {Object}    props
+ * @param {string}    props.device      The device picked.
+ * @param {boolean}   props.isComposing Whether Compose is on.
+ * @param {Function}  props.onChange    Called with the device picked.
+ * @param {?Function} props.onZoomIn    Zooms back in to Edit.
+ * @return {Element} The menu.
+ */
+export function ViewMenu( { device, isComposing, onChange, onZoomIn } ) {
+	const shown = isComposing ? 'desktop' : device;
+
 	return (
-		<div className="cnl-editor-preview-canvas__device-switcher cnl-editor-homepage-device-switcher">
-			<ToggleGroupControl
-				__next40pxDefaultSize
-				__nextHasNoMarginBottom
-				className="cnl-editor-homepage-device-switcher__control"
-				hideLabelFromVision
-				label={ __( 'Preview device' ) }
-				onChange={ onChange }
-				value={ device }
-			>
-				{ getDeviceOptions().map( ( option ) => (
-					<ToggleGroupControlOptionIcon
-						icon={ option.icon }
-						key={ option.value }
-						label={ option.label }
-						value={ option.value }
+		<Menu.Root modal={ false }>
+			<Menu.Trigger
+				render={
+					<Button
+						__next40pxDefaultSize
+						className="cnl-site-canvas__view-menu-toggle"
+						icon={ DEVICE_ICONS[ shown ] }
+						label={ __( 'View' ) }
+						showTooltip
 					/>
-				) ) }
-			</ToggleGroupControl>
-		</div>
+				}
+			/>
+			<Menu.Popup positioner={ <Menu.Positioner align="end" /> }>
+				<Menu.RadioGroup
+					value={ shown }
+					onValueChange={ ( value ) => {
+						onChange( value );
+
+						if ( isComposing ) {
+							onZoomIn?.();
+						}
+					} }
+				>
+					<Menu.Group>
+						{ getDeviceOptions().map( ( option ) => (
+							<Menu.RadioItem
+								key={ option.value }
+								value={ option.value }
+							>
+								<Menu.ItemLabel>
+									{ option.label }
+								</Menu.ItemLabel>
+								<Menu.ItemDescription>
+									{ option.description }
+								</Menu.ItemDescription>
+							</Menu.RadioItem>
+						) ) }
+					</Menu.Group>
+				</Menu.RadioGroup>
+			</Menu.Popup>
+		</Menu.Root>
+	);
+}
+
+/**
+ * Zoom out, which is Compose: core's own toggle, beside the View menu, and
+ * pressed while it is on. Offered while editing a page with sections.
+ *
+ * @param {Object}   props
+ * @param {boolean}  props.isComposing Whether Compose is on.
+ * @param {Function} props.onToggle    Turns Compose on or off.
+ * @return {Element} The button.
+ */
+export function ZoomOutToggle( { isComposing, onToggle } ) {
+	return (
+		<Button
+			__next40pxDefaultSize
+			className="cnl-site-canvas__zoom-out-toggle"
+			icon={ squareIcon }
+			isPressed={ isComposing }
+			label={ __( 'Zoom out' ) }
+			onClick={ onToggle }
+			showTooltip
+		/>
 	);
 }
 

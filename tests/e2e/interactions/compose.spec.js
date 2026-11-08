@@ -10,6 +10,8 @@ const {
 	getCanvasEditor,
 	expectCanvasMode,
 	getStage,
+	closeViewMenu,
+	openViewMenu,
 	pickSectionTemplate,
 	pointAtSection,
 	setCanvasMode,
@@ -106,12 +108,15 @@ test.describe( 'Compose', () => {
 		await openPage( page, rest, { content: tallSection( 'A section' ) } );
 		await setCanvasMode( page, 'Compose' );
 
-		const toolbar = page.locator( '.cnl-editor-homepage-toolbar' );
 		const bar = page.locator( '.cnl-section-modes__bar' );
 
+		// Compose lays the page out as on a desktop.
+		const menu = await openViewMenu( page );
 		await expect(
-			toolbar.getByRole( 'radio', { name: 'Desktop view' } )
-		).toHaveCount( 0 );
+			menu.getByRole( 'menuitemradio', { name: /Desktop/ } )
+		).toBeChecked();
+		await closeViewMenu( page );
+		await expectCanvasMode( page, 'Compose' );
 
 		await pointAtSection( page, getWords( page, 'A section' ) );
 		await expect(
@@ -128,10 +133,14 @@ test.describe( 'Compose', () => {
 			bar.getByRole( 'button', { name: 'Add', exact: true } )
 		).toHaveCount( 0 );
 
-		await setCanvasMode( page, 'Edit' );
-		await expect(
-			toolbar.getByRole( 'radio', { name: 'Desktop view' } )
-		).toBeVisible();
+		// Picking a device zooms back in to show it.
+		await (
+			await openViewMenu( page )
+		)
+			.getByRole( 'menuitemradio', { name: /Mobile/ } )
+			.click();
+		await expectCanvasMode( page, 'Edit' );
+		await closeViewMenu( page );
 	} );
 
 	test( 'adds sections from an empty page and after the last one', async ( {

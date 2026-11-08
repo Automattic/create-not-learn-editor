@@ -143,18 +143,56 @@ function getModeToggle( page ) {
 }
 
 /**
- * The site canvas's Compose button, offered while editing.
+ * Open the site canvas's View menu, with the device and, while editing,
+ * Zoom out. Like core's, it stays open when something in it is picked, so
+ * it is only opened when it isn't already.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @return {Promise<import('@playwright/test').Locator>} The open menu.
+ */
+async function openViewMenu( page ) {
+	const toggle = page.locator( '.cnl-site-canvas__view-menu-toggle' );
+
+	if ( ( await toggle.getAttribute( 'aria-expanded' ) ) !== 'true' ) {
+		await toggle.click();
+	}
+
+	const menu = page.getByRole( 'menu' );
+
+	await expect( menu ).toBeVisible();
+
+	return menu;
+}
+
+/**
+ * Close the site canvas's View menu with its button, as Escape could also
+ * step out of Compose.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function closeViewMenu( page ) {
+	const toggle = page.locator( '.cnl-site-canvas__view-menu-toggle' );
+
+	if ( ( await toggle.getAttribute( 'aria-expanded' ) ) === 'true' ) {
+		await toggle.click();
+	}
+
+	await expect( page.getByRole( 'menu' ) ).toHaveCount( 0 );
+}
+
+/**
+ * The site canvas's Zoom out toggle, which is Compose, offered while editing.
  *
  * @param {import('@playwright/test').Page} page
  * @return {import('@playwright/test').Locator} The button.
  */
-function getComposeButton( page ) {
-	return page.locator( '.cnl-site-canvas__compose-button' );
+function getZoomOutToggle( page ) {
+	return page.locator( '.cnl-site-canvas__zoom-out-toggle' );
 }
 
 /**
  * The mode the site canvas is in, from its controls: Browse or Edit from the
- * toggle, and Compose when its button is pressed.
+ * toggle, and Compose when Zoom out is pressed.
  *
  * @param {import('@playwright/test').Page} page
  * @return {Promise<?string>} `Browse`, `Edit` or `Compose`.
@@ -170,7 +208,7 @@ async function getCanvasMode( page ) {
 		return 'Browse';
 	}
 
-	return ( await getComposeButton( page ).getAttribute( 'aria-pressed' ) ) ===
+	return ( await getZoomOutToggle( page ).getAttribute( 'aria-pressed' ) ) ===
 		'true'
 		? 'Compose'
 		: 'Edit';
@@ -195,9 +233,9 @@ async function pickCanvasMode( page, mode ) {
 		return;
 	}
 
-	// Leaving Compose for Edit is its own button, pressed again.
+	// Leaving Compose for Edit is Zoom out, pressed again.
 	if ( mode === 'Edit' && current === 'Compose' ) {
-		await getComposeButton( page ).click();
+		await getZoomOutToggle( page ).click();
 		return;
 	}
 
@@ -213,10 +251,10 @@ async function pickCanvasMode( page, mode ) {
 	}
 
 	if ( mode === 'Compose' ) {
-		await expect( getComposeButton( page ) ).toBeVisible( {
+		await expect( getZoomOutToggle( page ) ).toBeVisible( {
 			timeout: 15000,
 		} );
-		await getComposeButton( page ).click();
+		await getZoomOutToggle( page ).click();
 	}
 }
 
@@ -526,9 +564,9 @@ module.exports = {
 	getEditorCanvas,
 	getFrameTexts,
 	getCanvasMode,
-	getComposeButton,
 	getModeToggle,
 	getPageItem,
+	getZoomOutToggle,
 	getRoute,
 	getSaveControls,
 	getSitePreview,
@@ -536,6 +574,8 @@ module.exports = {
 	openPageLayouts,
 	openReviewChanges,
 	openSidebarLink,
+	closeViewMenu,
+	openViewMenu,
 	pickCanvasMode,
 	clickIntoSection,
 	pickSectionMode,
