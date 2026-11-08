@@ -42,7 +42,8 @@ test( 'every main screen loads without errors', async ( { page, rest } ) => {
 		await openSidebarLink( page, 'Menus' );
 		await expect.poll( () => getRoute( page ) ).toMatch( /^\/navigation/ );
 		await expect(
-			stage.getByRole( 'heading', { name: 'Menus' } )
+			// Exact, as "All menus" is a heading too.
+			stage.getByRole( 'heading', { name: 'Menus', exact: true } )
 		).toBeVisible( { timeout: 15000 } );
 	} );
 
@@ -59,18 +60,19 @@ test( 'every main screen loads without errors', async ( { page, rest } ) => {
 		} );
 	}
 
-	for ( const [ link, heading ] of [
-		[ 'Templates', 'Templates' ],
-		[ 'Site parts', 'Site parts' ],
-		[ 'Patterns', 'Patterns' ],
+	for ( const [ link, heading, list ] of [
+		// Gutenberg's own templates list, without the editor's stage class.
+		[ 'Templates', 'Templates', page.locator( '.template-page' ) ],
+		[ 'Site parts', 'Site parts', stage ],
+		[ 'Patterns', 'Patterns', stage ],
 	] ) {
 		await test.step( `Sidebar › ${ link }`, async () => {
 			await openSidebarLink( page, link );
 			await expect(
-				stage.getByRole( 'heading', { name: heading } )
+				list.getByRole( 'heading', { name: heading } )
 			).toBeVisible();
 			await expect(
-				stage.locator( '.dataviews-view-grid, .dataviews-view-list' )
+				list.locator( '.dataviews-view-grid, .dataviews-view-list' )
 			).toBeVisible( { timeout: 15000 } );
 		} );
 	}

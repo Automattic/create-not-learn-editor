@@ -72,6 +72,7 @@ function cnl_editor_bootstrap() {
 	require_once CNL_EDITOR_PATH . 'includes/blog-admin.php';
 	require_once CNL_EDITOR_PATH . 'includes/admin-page.php';
 	require_once CNL_EDITOR_PATH . 'includes/media.php';
+	require_once CNL_EDITOR_PATH . 'includes/gutenberg-routes.php';
 	require_once CNL_EDITOR_PATH . 'includes/block-canvas-styles.php';
 	require_once CNL_EDITOR_PATH . 'includes/layouts.php';
 	require_once CNL_EDITOR_PATH . 'includes/plugin-compat.php';

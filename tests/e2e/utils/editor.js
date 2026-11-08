@@ -59,14 +59,22 @@ async function openSidebarLink( page, name ) {
 		await toggle.click();
 	}
 
-	if (
-		ADVANCED_LINKS.includes( name ) &&
-		( await advanced.getAttribute( 'aria-expanded' ) ) === 'false'
-	) {
-		await advanced.click();
+	const link = page.getByRole( 'link', { name, exact: true } );
+
+	// Advanced folds again as the editor loads, which can land after it was
+	// seen open, so it's opened until its link shows.
+	if ( ADVANCED_LINKS.includes( name ) ) {
+		await expect( async () => {
+			if (
+				( await advanced.getAttribute( 'aria-expanded' ) ) === 'false'
+			) {
+				await advanced.click();
+			}
+			await expect( link ).toBeVisible( { timeout: 1000 } );
+		} ).toPass( { timeout: 15000 } );
 	}
 
-	await page.getByRole( 'link', { name, exact: true } ).click();
+	await link.click();
 }
 
 /**

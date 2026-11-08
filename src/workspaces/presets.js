@@ -32,7 +32,8 @@ export const PREFERENCE_NAME = 'workspace';
 /**
  * What every workspace starts from.
  *
- * The sidebar is the same in every workspace, so none of these change it.
+ * The sidebar lists the same items in every workspace. Only `tuckAdvanced`
+ * changes how it shows them.
  *
  * - `home.places`: the places to start on "Home", and in the chat, by id
  *   (see `src/start-places.js`), with `home.copy` rewording any of them. A
@@ -56,6 +57,10 @@ export const PREFERENCE_NAME = 'workspace';
  * - `postKinds`: whether writing a post starts by picking what kind it is,
  *   like a note, a photo or a quote (`src/pickers/post-kinds.jsx`). Each
  *   person can still opt out from the picker.
+ * - `tuckAdvanced`: whether the sidebar tucks its Advanced section away:
+ *   pinned to the bottom, folded whenever the editor loads, and one icon in
+ *   the strip of icons. Without it, Advanced is listed like the other
+ *   sections, and opens whenever the workspace is arrived in.
  * - `publishStep`: whether Publish asks "Are you ready to publish?" first,
  *   with the category, tags and when to publish to hand. Only a default:
  *   the person's own choice, from the checkbox on that step, wins.
@@ -81,6 +86,7 @@ const DEFAULTS = {
 	writingAids: false,
 	publishStep: false,
 	postKinds: true,
+	tuckAdvanced: true,
 };
 
 /**
@@ -157,6 +163,28 @@ const PRESETS = [
 		id: 'builder',
 		label: __( 'Builder' ),
 		icon: tool,
+		// For agencies, in-house developers and theme authors, who know what
+		// they've come to change: Home goes straight to the site editor's
+		// own pieces, site-wide ones first, with no tip under them.
+		home: {
+			places: [
+				'globalStyles',
+				'templates',
+				'templateParts',
+				'patterns',
+				'pages',
+			],
+			copy: {
+				pages: {
+					description: __( 'Add and edit pages.' ),
+					title: __( 'Pages' ),
+				},
+			},
+			hint: null,
+		},
+		// Templates, template parts and patterns are what these people
+		// came for, so they're out with the rest.
+		tuckAdvanced: false,
 	},
 ];
 

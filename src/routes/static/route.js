@@ -9,7 +9,7 @@ import { redirect } from '@wordpress/route';
 import { getCurrentEditorPath, getStaticScreen } from './screens';
 
 // The lists, which fill the stage, with no canvas beside them.
-const LIST_PATHS = [ '/media', '/patterns', '/template-parts', '/templates' ];
+const LIST_PATHS = [ '/media', '/patterns', '/template-parts' ];
 
 export const route = {
 	/*

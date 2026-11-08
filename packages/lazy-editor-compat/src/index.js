@@ -36,7 +36,42 @@ const UpstreamEditor = upstream.Editor;
  * @param {Object} props Editor props.
  * @return {Element} The released lazy editor with compatible settings.
  */
-function CompatibleEditor( { postId, postType, settings, ...props } ) {
+function CompatibleEditor( {
+	postId: givenPostId,
+	postType: givenPostType,
+	settings,
+	...props
+} ) {
+	/*
+	 * Given no post, as Gutenberg's own Styles screen leaves it, the editor
+	 * shows the homepage. When that is a page, it is resolved here as well,
+	 * so its blocks are loaded like any other page's below. Otherwise the
+	 * editor is left to resolve it, to a template, which needs nothing here.
+	 */
+	const { homePageId, isResolvingHomePage } = useSelect(
+		( select ) => {
+			if ( givenPostId || givenPostType ) {
+				return { homePageId: null, isResolvingHomePage: false };
+			}
+
+			const { getEntityRecord, hasFinishedResolution } =
+				select( coreDataStore );
+			const site = getEntityRecord( 'root', 'site' );
+			return {
+				homePageId:
+					site?.show_on_front === 'page' && site.page_on_front
+						? site.page_on_front
+						: null,
+				isResolvingHomePage: ! hasFinishedResolution(
+					'getEntityRecord',
+					[ 'root', 'site' ]
+				),
+			};
+		},
+		[ givenPostId, givenPostType ]
+	);
+	const postId = givenPostId || homePageId || undefined;
+	const postType = givenPostType || ( homePageId ? 'page' : undefined );
 	const initializedEntities = useRef( new Set() );
 	const entityKey = `${ postType || '' }:${ postId || '' }`;
 	/*
@@ -162,6 +197,12 @@ function CompatibleEditor( { postId, postType, settings, ...props } ) {
 		postType,
 		rawContent,
 	] );
+
+	// Waits for the homepage, so the editor doesn't start on one entity and
+	// remount on another.
+	if ( isResolvingHomePage ) {
+		return null;
+	}
 
 	return createElement( UpstreamEditor, {
 		...props,

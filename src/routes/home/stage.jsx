@@ -42,6 +42,13 @@ const START_ROUTES = {
 	write: { isAction: true, to: '/types/post/new' },
 	posts: { to: '/types/post/list/all' },
 	shop: { to: '/shop' },
+	// Gutenberg's own Styles and Templates screens
+	// (`includes/gutenberg-routes.php`). Templates goes straight to its
+	// list, as Gutenberg's redirect from `/templates` drops the way back.
+	globalStyles: { to: '/styles' },
+	templates: { to: '/templates/list/all' },
+	templateParts: { to: '/template-parts' },
+	patterns: { to: '/patterns' },
 };
 
 function getStartLinks( workspace, { isAskingKind, onPickPostKind } ) {
@@ -104,9 +111,11 @@ export default function Stage() {
 				{ !! workspace.home.adminLinks.length && (
 					<BlogAdmin ids={ workspace.home.adminLinks } />
 				) }
-				<Text className="cnl-site-hub__hint" variant="body-sm">
-					{ workspace.home.hint }
-				</Text>
+				{ workspace.home.hint && (
+					<Text className="cnl-site-hub__hint" variant="body-sm">
+						{ workspace.home.hint }
+					</Text>
+				) }
 			</div>
 			{ isPickingPostKind && (
 				<PostKindPicker

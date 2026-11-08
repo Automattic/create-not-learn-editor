@@ -58,7 +58,7 @@ describe( 'WORKSPACES', () => {
 	it( 'gives every workspace every setting', () => {
 		WORKSPACES.forEach( ( workspace ) => {
 			expect( workspace.home.places.length ).toBeGreaterThan( 0 );
-			expect( workspace.home.hint ).toBeTruthy();
+			expect( workspace.home ).toHaveProperty( 'hint' );
 			expect( Array.isArray( workspace.home.adminLinks ) ).toBe( true );
 			expect( workspace.posts.layout ).toBeTruthy();
 			expect( typeof workspace.writingAids ).toBe( 'boolean' );
@@ -68,8 +68,15 @@ describe( 'WORKSPACES', () => {
 	it( 'keeps settings a workspace leaves out at the default’s', () => {
 		const builder = getWorkspace( 'builder' );
 
-		expect( builder.home ).toEqual( DEFAULT_WORKSPACE.home );
+		expect( builder.home.preview ).toBe( DEFAULT_WORKSPACE.home.preview );
+		expect( builder.home.viewLabel ).toBe(
+			DEFAULT_WORKSPACE.home.viewLabel
+		);
 		expect( builder.posts ).toEqual( DEFAULT_WORKSPACE.posts );
+	} );
+
+	it( 'gives Builder no tip under its places', () => {
+		expect( getWorkspace( 'builder' ).home.hint ).toBeNull();
 	} );
 
 	it( 'offers only places that exist on "Home"', () => {

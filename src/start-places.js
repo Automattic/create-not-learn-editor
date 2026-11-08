@@ -14,10 +14,14 @@ import {
 	brush as brushIcon,
 	home as homeIcon,
 	pages as pagesIcon,
+	layout as layoutIcon,
 	pencil as pencilIcon,
 	postList as postListIcon,
 	siteLogo as siteLogoIcon,
 	store as storeIcon,
+	styles as stylesIcon,
+	symbol as symbolIcon,
+	symbolFilled as symbolFilledIcon,
 } from '@wordpress/icons';
 
 /**
@@ -81,6 +85,31 @@ function getAllPlaces() {
 			icon: sitePartsIcon,
 			id: 'siteParts',
 			title: __( 'Header & footer' ),
+		},
+		// For people who know WordPress, so in WordPress's own words.
+		{
+			description: __( 'Global styles, block styles and custom CSS.' ),
+			icon: stylesIcon,
+			id: 'globalStyles',
+			title: __( 'Styles' ),
+		},
+		{
+			description: __( 'Lay out each kind of page.' ),
+			icon: layoutIcon,
+			id: 'templates',
+			title: __( 'Templates' ),
+		},
+		{
+			description: __( 'Edit the areas templates share.' ),
+			icon: symbolFilledIcon,
+			id: 'templateParts',
+			title: __( 'Template parts' ),
+		},
+		{
+			description: __( 'Synced and unsynced patterns.' ),
+			icon: symbolIcon,
+			id: 'patterns',
+			title: __( 'Patterns' ),
 		},
 		// Only a site with a shop has one to run.
 		settings.shop && {

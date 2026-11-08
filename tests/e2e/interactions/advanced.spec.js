@@ -29,14 +29,21 @@ test.describe( 'Advanced interactions', () => {
 	} ) => {
 		const title = `Created template ${ Date.now() }`;
 
+		// Gutenberg's own templates list, which opens what it adds at
+		// `/types/wp_template/edit/$id`, sent on to the template editor.
 		await visitEditor( page, '/templates' );
-		await getStage( page )
-			.getByRole( 'button', { name: 'Add template' } )
+		await page.getByRole( 'button', { name: 'Add Template' } ).click();
+
+		await page
+			.getByRole( 'dialog', { name: 'Add template' } )
+			.getByRole( 'button', { name: /Custom template/ } )
 			.click();
 
-		const dialog = page.getByRole( 'dialog', { name: 'Add a template' } );
+		const dialog = page.getByRole( 'dialog', {
+			name: 'Create custom template',
+		} );
 		await dialog.getByLabel( 'Name' ).fill( title );
-		await dialog.getByRole( 'button', { name: 'Add' } ).click();
+		await dialog.getByRole( 'button', { name: 'Create' } ).click();
 
 		await expect
 			.poll( () => getRoute( page ), { timeout: 15000 } )
