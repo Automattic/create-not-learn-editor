@@ -94,6 +94,39 @@ export function NavigationMenuRow( {
 	);
 }
 
+/**
+ * A place on the site that shows a menu, such as the header. Opens the menu
+ * it shows.
+ *
+ * @param {Object}     props
+ * @param {string}     props.description The menu's name.
+ * @param {Object}     props.icon        The place's icon.
+ * @param {string}     props.label       The place, e.g. "Header".
+ * @param {() => void} props.onEdit      Opens the menu.
+ */
+export function MenuLocationRow( { description, icon, label, onEdit } ) {
+	return (
+		<div className="routes-navigation-list__row">
+			<Button
+				className="routes-navigation-list__row-link cnl-screen-links__link"
+				onClick={ onEdit }
+			>
+				<Icon className="cnl-screen-links__icon" icon={ icon } />
+				<span className="cnl-screen-links__text">
+					<span className="cnl-screen-links__title">{ label }</span>
+					<span className="cnl-screen-links__description">
+						{ description }
+					</span>
+				</span>
+				<Icon
+					className="cnl-screen-links__chevron"
+					icon={ chevronRightIcon }
+				/>
+			</Button>
+		</div>
+	);
+}
+
 export function RenameNavigationMenuModal( {
 	isSaving,
 	menuTitle,

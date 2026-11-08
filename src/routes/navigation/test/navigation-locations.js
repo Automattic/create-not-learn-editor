@@ -10,6 +10,7 @@ import {
 	assignNavigationMenuToFirstBlock,
 	buildNavigationLocationsMap,
 	createEditedTemplatePartsCache,
+	getCommonMenuLocations,
 	getLocationsSummary,
 	getMainMenu,
 	getReferencedMenuIdsFromContent,
@@ -241,5 +242,65 @@ describe( 'createEditedTemplatePartsCache', () => {
 		expect( edited[ 0 ].content ).toBe( headerPart.content );
 		expect( mergeEdits( parts, getEdited ) ).toBe( edited );
 		expect( mergeEdits( [ headerPart ], getEdited ) ).toHaveLength( 1 );
+	} );
+} );
+
+describe( 'getCommonMenuLocations', () => {
+	const menus = [ { id: 20 }, { id: 10 } ];
+
+	test( 'lists header then footer, each with the menu it shows', () => {
+		expect(
+			getCommonMenuLocations( [ footerPart, headerPart ], menus ).map(
+				( { area, label, menu } ) => [ area, label, menu.id ]
+			)
+		).toEqual( [
+			[ 'header', 'Header menu', 10 ],
+			[ 'footer', 'Footer menu', 20 ],
+		] );
+	} );
+
+	test( 'leaves out areas without a menu', () => {
+		const emptyFooter = {
+			...footerPart,
+			content: { raw: '<!-- wp:paragraph /-->' },
+		};
+
+		expect(
+			getCommonMenuLocations( [ headerPart, emptyFooter ], menus ).map(
+				( { area } ) => area
+			)
+		).toEqual( [ 'header' ] );
+	} );
+
+	test( 'leaves out areas whose menu no longer exists', () => {
+		expect(
+			getCommonMenuLocations( [ headerPart ], [ { id: 99 } ] )
+		).toEqual( [] );
+	} );
+
+	test( 'prefers the part named after its area', () => {
+		const largeHeader = {
+			...headerPart,
+			content: { raw: '<!-- wp:navigation {"ref":20} /-->' },
+			id: 'theme//header-large',
+			slug: 'header-large',
+			title: { rendered: 'A large header' },
+		};
+		const header = { ...headerPart, slug: 'header' };
+
+		expect(
+			getCommonMenuLocations( [ largeHeader, header ], menus )[ 0 ].menu
+				.id
+		).toBe( 10 );
+	} );
+
+	test( 'leaves out areas that are not common locations', () => {
+		const overlay = {
+			...headerPart,
+			area: 'navigation-overlay',
+			id: 'theme//overlay',
+		};
+
+		expect( getCommonMenuLocations( [ overlay ], menus ) ).toEqual( [] );
 	} );
 } );

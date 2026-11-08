@@ -14,6 +14,9 @@ import {
 	coreDataStore,
 	EmptyState,
 	compassIcon,
+	drawerLeftIcon,
+	footerIcon,
+	headerIcon,
 	noticesStore,
 	Notice,
 	Page,
@@ -21,6 +24,7 @@ import {
 	__,
 	sprintf,
 	useDispatch,
+	useMemo,
 	useState,
 } from '../../wordpress-packages';
 import {
@@ -36,11 +40,19 @@ import {
 import { useNavigationMenus } from './use-navigation-menus';
 import {
 	DeleteNavigationMenuModal,
+	MenuLocationRow,
 	NavigationMenuRow,
 	RenameNavigationMenuModal,
 } from './menu-row';
+import { getCommonMenuLocations } from './navigation-locations';
 import { AddNavigationModal } from './add-navigation-modal';
 import { Canvas } from './canvas';
+
+const LOCATION_ICONS = {
+	footer: footerIcon,
+	header: headerIcon,
+	sidebar: drawerLeftIcon,
+};
 
 function Stage() {
 	const navigate = useNavigate();
@@ -58,7 +70,12 @@ function Stage() {
 		locationsMap,
 		mainMenuId,
 		menus,
+		templateParts,
 	} = useNavigationMenus();
+	const commonLocations = useMemo(
+		() => getCommonMenuLocations( templateParts, menus ),
+		[ menus, templateParts ]
+	);
 	const [ isAddNavigationModalOpen, setIsAddNavigationModalOpen ] =
 		useState( false );
 	const [ menuToRename, setMenuToRename ] = useState( null );
@@ -277,23 +294,49 @@ function Stage() {
 			{ ! isLoading && ! menus.length && navigationEmpty }
 			{ ! isLoading && !! menus.length && (
 				<div className="routes-navigation-list__rows">
-					{ menus.map( ( menu ) => (
-						<NavigationMenuRow
-							description={ getMenuRowDescription(
-								menu,
-								locationsMap[ getNavigationMenuId( menu ) ] ||
-									EMPTY_ARRAY,
-								isResolvingLocations
+					{ ! isResolvingLocations && !! commonLocations.length && (
+						<section className="routes-navigation-list__group">
+							<h3 className="routes-navigation-list__group-title">
+								{ __( 'Common locations' ) }
+							</h3>
+							{ commonLocations.map(
+								( { area, label, menu } ) => (
+									<MenuLocationRow
+										description={ getMenuTitle( menu ) }
+										icon={ LOCATION_ICONS[ area ] }
+										key={ area }
+										label={ label }
+										onEdit={ () =>
+											editNavigationMenu( menu )
+										}
+									/>
+								)
 							) }
-							isBusy={ isRowActionSaving }
-							key={ getNavigationMenuId( menu ) }
-							menu={ menu }
-							onDelete={ openDeleteModal }
-							onDuplicate={ duplicateNavigationMenu }
-							onEdit={ editNavigationMenu }
-							onRename={ openRenameModal }
-						/>
-					) ) }
+						</section>
+					) }
+					<section className="routes-navigation-list__group">
+						<h3 className="routes-navigation-list__group-title">
+							{ __( 'All menus' ) }
+						</h3>
+						{ menus.map( ( menu ) => (
+							<NavigationMenuRow
+								description={ getMenuRowDescription(
+									menu,
+									locationsMap[
+										getNavigationMenuId( menu )
+									] || EMPTY_ARRAY,
+									isResolvingLocations
+								) }
+								isBusy={ isRowActionSaving }
+								key={ getNavigationMenuId( menu ) }
+								menu={ menu }
+								onDelete={ openDeleteModal }
+								onDuplicate={ duplicateNavigationMenu }
+								onEdit={ editNavigationMenu }
+								onRename={ openRenameModal }
+							/>
+						) ) }
+					</section>
 				</div>
 			) }
 		</Page>,

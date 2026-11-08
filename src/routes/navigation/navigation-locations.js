@@ -525,3 +525,59 @@ export function buildNavigationLocationsMap( templateParts, fallbackMenuId ) {
 		{}
 	);
 }
+
+/**
+ * Template part areas listed under "Common locations" on the Menus screen, in
+ * the order they're shown.
+ */
+export const COMMON_MENU_LOCATION_AREAS = [ 'header', 'footer', 'sidebar' ];
+
+function getCommonMenuLocationLabel( area ) {
+	switch ( area ) {
+		case 'header':
+			return __( 'Header menu' );
+		case 'footer':
+			return __( 'Footer menu' );
+		default:
+			return __( 'Side area menu' );
+	}
+}
+
+/**
+ * The menu each common area shows, for areas that have one.
+ *
+ * A theme can have several parts in one area, such as a header and a large
+ * header. The part whose slug is the area's name is the one templates use by
+ * convention, so its menu wins. Otherwise the area's first part with a menu
+ * does.
+ *
+ * @param {Object[]} templateParts Template parts to look for menu refs in.
+ * @param {Object[]} menus         Navigation menus, most recent first.
+ * @return {Object[]} `{ area, label, menu, part }` for each area with a menu.
+ */
+export function getCommonMenuLocations( templateParts, menus ) {
+	const refs = getTemplatePartMenuRefs( templateParts, menus?.[ 0 ]?.id );
+
+	return COMMON_MENU_LOCATION_AREAS.reduce( ( locations, area ) => {
+		const areaRefs = refs.filter( ( { part } ) => part.area === area );
+		const ref =
+			areaRefs.find( ( { part } ) => part.slug === area ) ||
+			areaRefs[ 0 ];
+		const menu = ref
+			? ( menus || EMPTY_ARRAY ).find(
+					( { id } ) => Number( id ) === ref.menuIds[ 0 ]
+				)
+			: null;
+
+		if ( menu ) {
+			locations.push( {
+				area,
+				label: getCommonMenuLocationLabel( area ),
+				menu,
+				part: ref.part,
+			} );
+		}
+
+		return locations;
+	}, [] );
+}
