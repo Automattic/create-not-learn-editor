@@ -14,14 +14,7 @@ import {
 	THUMBNAIL_VIEWPORT_WIDTH,
 } from './layout';
 import { useHasBeenVisible, useThumbnailTurn } from './hooks';
-import {
-	Badge,
-	Icon,
-	__,
-	memo,
-	useRef,
-	useState,
-} from '../../wordpress-packages';
+import { Icon, __, memo, useRef, useState } from '../../wordpress-packages';
 
 const THUMBNAIL_SCALE = CARD_WIDTH / THUMBNAIL_VIEWPORT_WIDTH;
 
@@ -154,7 +147,9 @@ function SiteOverviewCard( {
 						</span>
 					) }
 					{ hasNotableStatus( node ) && (
-						<Badge intent="draft">{ node.statusLabel }</Badge>
+						<span className="cnl-site-overview-card__status">
+							{ node.statusLabel }
+						</span>
 					) }
 				</div>
 			</div>

@@ -45,13 +45,14 @@ export function ZoomControls( { canZoomIn, isReset, onReset, onZoom, zoom } ) {
 			/>
 			<Button
 				accessibleWhenDisabled
+				className="cnl-site-overview__zoom-reset"
 				disabled={ isReset }
 				label={ __( 'Show the whole site' ) }
 				onClick={ onReset }
 				shortcut="0"
 				showTooltip
 				size="compact"
-				variant="secondary"
+				variant="tertiary"
 			>
 				{ __( 'Reset' ) }
 			</Button>

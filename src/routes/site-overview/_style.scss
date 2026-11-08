@@ -6,6 +6,14 @@
 $cnl-site-overview-accent: var(--wp-admin-theme-color, #3858e9);
 $cnl-site-overview-line: var(--wpds-color-stroke-surface-neutral-strong);
 
+// Lines, rings and outlines on the canvas stay the same width on screen at any
+// zoom level, the way design tools draw them, rather than turning hairline when
+// zoomed out and heavy when zoomed in. The canvas sets its scale on the world.
+@function cnl-site-overview-screen-px($width) {
+
+	@return calc(#{$width} / var(--cnl-site-overview-scale, 1));
+}
+
 // ---------------------------------------------------------------------------
 // Canvas.
 // ---------------------------------------------------------------------------
@@ -57,8 +65,8 @@ $cnl-site-overview-line: var(--wpds-color-stroke-surface-neutral-strong);
 	text-align: center;
 }
 
-.cnl-site-overview__zoom .components-button.is-secondary {
-	margin-inline-start: 6px;
+.cnl-site-overview__zoom-reset.components-button {
+	margin-inline-start: 4px;
 }
 
 .cnl-site-overview__viewport {
@@ -120,14 +128,13 @@ $cnl-site-overview-line: var(--wpds-color-stroke-surface-neutral-strong);
 .cnl-site-overview__lane {
 	position: absolute;
 	box-sizing: border-box;
-	border: 1px solid var(--wpds-color-stroke-surface-neutral);
-	border-radius: var(--wpds-border-radius-lg);
+	border: cnl-site-overview-screen-px(1px) solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-xl);
 	background: rgba(255, 255, 255, 0.6);
 
 	&.is-dynamic {
 		border-style: dashed;
-		border-color: var(--wpds-color-stroke-surface-neutral);
-		background: color-mix(in srgb, #{$cnl-site-overview-accent} 4%, transparent);
+		background: color-mix(in srgb, #{$cnl-site-overview-accent} 3%, rgba(255, 255, 255, 0.4));
 	}
 }
 
@@ -177,7 +184,7 @@ $cnl-site-overview-line: var(--wpds-color-stroke-surface-neutral-strong);
 	overflow: hidden;
 	min-width: 0;
 	color: var(--wpds-color-foreground-content-neutral);
-	font-size: 15px;
+	font-size: var(--wpds-typography-font-size-lg);
 	font-weight: var(--wpds-typography-font-weight-emphasis);
 	line-height: 20px;
 	text-overflow: ellipsis;
@@ -226,26 +233,30 @@ $cnl-site-overview-line: var(--wpds-color-stroke-surface-neutral-strong);
 .cnl-site-overview__edge {
 	fill: none;
 	stroke: $cnl-site-overview-line;
-	stroke-width: 2;
+	stroke-width: cnl-site-overview-screen-px(1.5px);
 	stroke-linecap: round;
-	transition: stroke 0.12s ease;
+	transition: stroke var(--wpds-motion-duration-sm) ease;
 
 	&.is-items {
-		stroke-dasharray: 2 7;
-		stroke-width: 2.5;
+		stroke-dasharray: 0 cnl-site-overview-screen-px(6px);
+		stroke-width: cnl-site-overview-screen-px(2.5px);
 	}
 
 	&.is-active {
 		stroke: $cnl-site-overview-accent;
-		stroke-width: 3;
+		stroke-width: cnl-site-overview-screen-px(2px);
+	}
+
+	&.is-items.is-active {
+		stroke-width: cnl-site-overview-screen-px(3px);
 	}
 }
 
 .cnl-site-overview__edge-label {
 	position: absolute;
-	padding: 3px 10px;
+	padding: 2px 10px;
 	border: 1px solid var(--wpds-color-stroke-surface-neutral);
-	border-radius: var(--wpds-border-radius-sm);
+	border-radius: 9999px;
 	background: var(--wpds-color-background-surface-neutral);
 	color: var(--wpds-color-foreground-content-neutral-weak);
 	font-size: 12px;
@@ -283,26 +294,24 @@ $cnl-site-overview-line: var(--wpds-color-stroke-surface-neutral-strong);
 		border-color: var(--wpds-color-stroke-interactive-neutral-active);
 	}
 
+	// The ring sits just outside the border, the same width on screen at any
+	// zoom level.
 	&.is-selected {
 		border-color: $cnl-site-overview-accent;
-		box-shadow: 0 0 0 var(--wpds-border-width-xs) $cnl-site-overview-accent;
+		box-shadow:
+			0 0 0 cnl-site-overview-screen-px(1px) $cnl-site-overview-accent,
+			$cnl-rest-shadow;
 	}
 
-	&:focus-within {
-		box-shadow: 0 0 0 var(--wpds-border-width-focus) $cnl-site-overview-accent;
+	&:has(:focus-visible) {
+		border-color: $cnl-site-overview-accent;
+		box-shadow:
+			0 0 0 cnl-site-overview-screen-px(var(--wpds-border-width-focus)) $cnl-site-overview-accent,
+			$cnl-rest-shadow;
 	}
 
 	&.is-unpublished .cnl-site-overview-card__thumbnail {
 		opacity: 0.7;
-	}
-
-	&.is-home {
-		border-width: 2px;
-		border-color: var(--wpds-color-stroke-interactive-neutral-strong);
-	}
-
-	&.is-home.is-selected {
-		border-color: $cnl-site-overview-accent;
 	}
 }
 
@@ -323,7 +332,8 @@ $cnl-site-overview-line: var(--wpds-color-stroke-surface-neutral-strong);
 	flex: none;
 	height: 150px;
 	border-bottom: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
-	border-radius: var(--wpds-border-radius-lg) var(--wpds-border-radius-lg) 0 0;
+	// Inside the card's border, so a pixel tighter than its corners.
+	border-radius: calc(var(--wpds-border-radius-lg) - 1px) calc(var(--wpds-border-radius-lg) - 1px) 0 0;
 	background: var(--wpds-color-background-surface-neutral-weak);
 }
 
@@ -409,7 +419,8 @@ $cnl-site-overview-line: var(--wpds-color-stroke-surface-neutral-strong);
 	}
 }
 
-.cnl-site-overview-card__count {
+.cnl-site-overview-card__count,
+.cnl-site-overview-card__status {
 	color: var(--wpds-color-foreground-content-neutral-weak);
 
 	&::before {
@@ -418,11 +429,21 @@ $cnl-site-overview-line: var(--wpds-color-stroke-surface-neutral-strong);
 	}
 }
 
+.cnl-site-overview-card__status {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 // ---------------------------------------------------------------------------
 // How to move around.
 // ---------------------------------------------------------------------------
 
+// Shown until the canvas is first moved, then fades away so it never sits
+// over pages. It stays in the page, so the canvas keeps its description.
 .cnl-site-overview__help {
+
+	@include cnl-overlay-surface;
+
 	position: absolute;
 	bottom: 16px;
 	inset-inline-start: 16px;
@@ -430,12 +451,22 @@ $cnl-site-overview-line: var(--wpds-color-stroke-surface-neutral-strong);
 	box-sizing: border-box;
 	margin: 0;
 	padding: 8px 12px;
-	border: 1px solid var(--wpds-color-stroke-surface-neutral);
-	border-radius: var(--wpds-border-radius-lg);
-	background: rgba(255, 255, 255, 0.92);
 	color: var(--wpds-color-foreground-content-neutral-weak);
 	font-size: 12px;
+	line-height: 1.5;
 	pointer-events: none;
+	transition:
+		opacity var(--wpds-motion-duration-md) var(--wpds-motion-easing-subtle),
+		translate var(--wpds-motion-duration-md) var(--wpds-motion-easing-subtle);
+
+	&.is-dismissed {
+		opacity: 0;
+		translate: 0 4px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
 }
 
 // ---------------------------------------------------------------------------

@@ -15,6 +15,12 @@ import {
 
 // Space kept between a lane's name and the next lane.
 const LANE_LABEL_GAP = 12;
+// Space kept between a lane's name and the canvas's left edge, when the lane
+// runs off it.
+const LANE_LABEL_INSET = 16;
+// How much of a lane must still be on screen for its name to follow it to the
+// canvas's edge, so the name never sits over the space beside the lane.
+const LANE_LABEL_MIN_WIDTH = 160;
 
 function getLaneDescription( lane, group ) {
 	if ( lane.name === 'home' ) {
@@ -33,7 +39,7 @@ function getLaneDescription( lane, group ) {
 }
 
 // How far each sheet behind a single page sits from the one in front.
-const STACK_OFFSETS = [ 12, 24 ];
+const STACK_OFFSETS = [ 6, 12 ];
 
 /**
  * Sheets behind a single page, so it reads as one of many: the page every
@@ -81,6 +87,8 @@ function Lane( { lane } ) {
  *
  * Drawn on screen rather than on the canvas, so it stays the same size and
  * lined up with the lane at any zoom level, the way design tools label frames.
+ * When the lane runs off the canvas's left edge, the name stays at that edge,
+ * so a lane zoomed into is still named.
  *
  * @param {Object} props          Component props.
  * @param {Object} props.group    Content type the lane shows.
@@ -91,16 +99,31 @@ function Lane( { lane } ) {
  * @return {Element} Lane label.
  */
 export function LaneLabel( { group, lane, nextLane, view } ) {
-	const width = nextLane
-		? ( nextLane.x - lane.x ) * view.k - LANE_LABEL_GAP
-		: Infinity;
+	const laneLeft = lane.x * view.k + view.x;
+	const laneRight = laneLeft + lane.width * view.k;
+	const left =
+		laneLeft < LANE_LABEL_INSET
+			? Math.max(
+					laneLeft,
+					Math.min(
+						LANE_LABEL_INSET,
+						laneRight - LANE_LABEL_MIN_WIDTH
+					)
+				)
+			: laneLeft;
+	const end = nextLane
+		? nextLane.x * view.k + view.x - LANE_LABEL_GAP
+		: laneRight;
+	const width = nextLane || left !== laneLeft ? end - left : Infinity;
 
 	return (
 		<div
 			className="cnl-site-overview__lane-header"
 			style={ {
-				left: lane.x * view.k + view.x,
-				maxWidth: Number.isFinite( width ) ? width : undefined,
+				left,
+				maxWidth: Number.isFinite( width )
+					? Math.max( 0, width )
+					: undefined,
 				top: lane.y * view.k + view.y,
 			} }
 		>
