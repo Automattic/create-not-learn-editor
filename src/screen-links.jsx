@@ -12,7 +12,7 @@ import { useNavigate } from '@wordpress/route';
 /**
  * Internal dependencies
  */
-import { Button, chevronRightIcon, Icon } from './wordpress-packages';
+import { Button, chevronRightIcon, Icon, plusIcon } from './wordpress-packages';
 
 /**
  * Links on to related screens.
@@ -24,6 +24,10 @@ import { Button, chevronRightIcon, Icon } from './wordpress-packages';
  *                               screen opens, and `search` are optional. A
  *                               link with `onOpen` and no `to` opens something
  *                               in place, like a picker, rather than a screen.
+ *                               `isAction` marks a link that does something
+ *                               straight away, like starting a post, rather
+ *                               than leading to a screen: it ends in a plus
+ *                               rather than a chevron.
  * @return {Element} The links.
  */
 export default function ScreenLinks( { label, links } ) {
@@ -35,6 +39,7 @@ export default function ScreenLinks( { label, links } ) {
 				( {
 					description,
 					icon,
+					isAction,
 					onOpen,
 					onSelect,
 					search,
@@ -42,7 +47,11 @@ export default function ScreenLinks( { label, links } ) {
 					to,
 				} ) => (
 					<Button
-						className="cnl-screen-links__link"
+						className={
+							isAction
+								? 'cnl-screen-links__link is-action'
+								: 'cnl-screen-links__link'
+						}
 						key={ title }
 						onClick={ () => {
 							if ( ! to && onOpen ) {
@@ -68,7 +77,7 @@ export default function ScreenLinks( { label, links } ) {
 						</span>
 						<Icon
 							className="cnl-screen-links__chevron"
-							icon={ chevronRightIcon }
+							icon={ isAction ? plusIcon : chevronRightIcon }
 						/>
 					</Button>
 				)
