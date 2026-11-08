@@ -30,6 +30,8 @@ import {
 	ColorIndicator,
 	Dropdown,
 	DropdownMenu,
+	DropZone,
+	FormFileUpload,
 	/*
 	 * The design system's `Icon` only renders SVG elements. Block icons can also
 	 * be dashicon strings or components, so those call sites keep this one.
@@ -156,10 +158,11 @@ import {
 	tag,
 	undo,
 	update,
+	upload,
 } from '@wordpress/icons';
 import { displayShortcut } from '@wordpress/keycodes';
 import { useEditorAssets, useEditorSettings } from '@wordpress/lazy-editor';
-import { MediaUpload } from '@wordpress/media-utils';
+import { MediaUpload, uploadMedia } from '@wordpress/media-utils';
 import { store as noticesStore } from '@wordpress/notices';
 import {
 	Badge,
@@ -235,6 +238,7 @@ export {
 	drawerLeft as drawerLeftIcon,
 	Dropdown,
 	DropdownMenu,
+	DropZone,
 	EmptyState,
 	escapeHTML,
 	external as externalIcon,
@@ -242,6 +246,7 @@ export {
 	fetchLinkSuggestions,
 	flushSync,
 	footer as footerIcon,
+	FormFileUpload,
 	Fragment,
 	fullscreen as fullscreenIcon,
 	getBlockType,
@@ -335,6 +340,8 @@ export {
 	UiNotice,
 	undo as undoIcon,
 	update as updateIcon,
+	upload as uploadIcon,
+	uploadMedia,
 	useBlockBindingsUtils,
 	useBlockEditingMode,
 	useCallback,
