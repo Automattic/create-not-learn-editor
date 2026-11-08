@@ -1,7 +1,6 @@
 /**
  * Internal dependencies
  */
-import { settings } from '../../settings';
 import ScreenLinks from '../../screen-links';
 import { getStartPlaces } from '../../start-places';
 import { MODE_EDIT, setCanvasMode } from '../../site-canvas/mode';
@@ -10,14 +9,12 @@ import { requestDistractionFreeEntry } from '../../editor-layer/distraction-free
 import { getActiveWorkspace } from '../../workspaces/presets';
 import { isAskingPostKind } from '../../post-kinds-base';
 import PostKindPicker from '../../pickers/post-kinds';
+import { SiteAddress, SiteMark, SiteStatus, useSite } from './site-card';
 import {
-	Link,
 	Page,
 	Stack,
 	Text,
 	__,
-	coreDataStore,
-	decodeEntities,
 	useSelect,
 	useState,
 } from '../../wordpress-packages';
@@ -71,36 +68,25 @@ function getStartLinks( workspace, { isAskingKind, onPickPostKind } ) {
 }
 
 export default function Stage() {
-	const siteTitle = useSelect(
-		( select ) =>
-			select( coreDataStore ).getEntityRecord( 'root', 'site' )?.title,
-		[]
-	);
+	const site = useSite();
 	const workspace = useSelect( getActiveWorkspace, [] );
 	const isAskingKind = useSelect(
 		( select ) => isAskingPostKind( select, workspace ),
 		[ workspace ]
 	);
 	const [ isPickingPostKind, setIsPickingPostKind ] = useState( false );
-	const siteName = decodeEntities( siteTitle || settings.siteName || '' );
 
 	return (
 		<Page
 			className="cnl-editor-stage cnl-editor-content-page"
 			hasPadding={ false }
 			headingLevel={ 1 }
+			badges={ <SiteStatus /> }
 			subTitle={
-				<>
-					{ siteName || __( 'Untitled site' ) }
-					{ settings.homeUrl && ' · ' }
-					{ settings.homeUrl && (
-						<Link href={ settings.homeUrl } openInNewTab>
-							{ workspace.home.viewLabel }
-						</Link>
-					) }
-				</>
+				<SiteAddress fallbackLabel={ workspace.home.viewLabel } />
 			}
-			title={ __( 'Home' ) }
+			title={ site.name || __( 'Untitled site' ) }
+			visual={ <SiteMark { ...site } /> }
 		>
 			<div className="cnl-editor-stage cnl-site-hub">
 				<Stack direction="column" gap="sm">
