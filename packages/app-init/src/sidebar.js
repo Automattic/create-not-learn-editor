@@ -53,20 +53,131 @@ const STRIP_ITEM_SELECTOR = `body:not(.cnl-sidebar-is-expanded) #create-not-lear
 
 const EXPANDED_CLASS = 'cnl-sidebar-is-expanded';
 
+const SIDEBAR_SELECTOR =
+	'#create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"]';
+
 /*
- * Whether the sidebar is expanded rather than a strip of icons. Held as a
- * class on <body>, which the strip's rule keys off. It starts as a strip and
- * only expands when toggled open, or to show a section of the menu, until
- * another screen is picked.
+ * The parts of the sidebar that keep their place while it expands or folds,
+ * which glide to where they sit in the other shape: each item's icon, the
+ * toggle, the WordPress logo and the workspace switcher's icon. Everything
+ * else in the sidebar is clipped as it narrows, or revealed as it widens.
+ */
+const GLIDING_PARTS_SELECTOR = [
+	'[class*="__item-wrapper"] > * > * > :first-child',
+	'.cnl-sidebar-toggle__button',
+	'.cnl-sidebar-dashboard__link > :last-child',
+	'.cnl-sidebar-workspace__toggle > :first-child',
+].join( ', ' );
+
+const TRANSITION_CLASS = 'cnl-sidebar-is-transitioning';
+
+let latestTransition = null;
+
+// Everything named for the latest transition, and any it cut short.
+const namedParts = new Set();
+
+/**
+ * Whether the sidebar's change of shape can be animated: the browser can run
+ * a view transition, motion isn't reduced, and the sidebar is a column
+ * rather than a drawer. Not while another view transition runs, like boot's
+ * on a change of screen, as starting one would cut that one short.
+ *
+ * @return {boolean} Whether to animate.
+ */
+function canAnimateExpansion() {
+	if (
+		! document.startViewTransition ||
+		window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches ||
+		! window.matchMedia( '(min-width: 782px)' ).matches ||
+		document.activeViewTransition
+	) {
+		return false;
+	}
+
+	try {
+		return ! document.documentElement.matches( ':active-view-transition' );
+	} catch {
+		return true;
+	}
+}
+
+/**
+ * Expand the sidebar or fold it to its strip of icons as one view transition.
+ *
+ * The page is laid out once, in its new shape, and the browser animates
+ * pictures of the before and after, so neither the sidebar's menu nor the
+ * site beside it is laid out again on every frame. Boot names its stage and
+ * canvas for its own transitions, so they slide and widen with it. The
+ * sidebar and its gliding parts are named only for this transition, so
+ * boot's own transitions are left as they are. See `src/style.scss`.
+ *
+ * @param {() => void} update Changes the sidebar's shape.
+ */
+function animateExpansion( update ) {
+	const sidebar = document.querySelector( SIDEBAR_SELECTOR );
+
+	if ( ! sidebar || ! canAnimateExpansion() ) {
+		update();
+		return;
+	}
+
+	sidebar.style.viewTransitionName = 'cnl-sidebar';
+	namedParts.add( sidebar );
+	sidebar
+		.querySelectorAll( GLIDING_PARTS_SELECTOR )
+		.forEach( ( part, index ) => {
+			part.style.viewTransitionName = `cnl-sidebar-part-${ index }`;
+			namedParts.add( part );
+		} );
+
+	const root = document.documentElement;
+	root.classList.add( TRANSITION_CLASS );
+
+	const transition = document.startViewTransition( update );
+	latestTransition = transition;
+
+	transition.finished.finally( () => {
+		// Starting another transition cuts this one short, and the newer
+		// one tidies up after them both.
+		if ( transition !== latestTransition ) {
+			return;
+		}
+
+		latestTransition = null;
+		namedParts.forEach( ( element ) => {
+			element.style.viewTransitionName = '';
+		} );
+		namedParts.clear();
+		root.classList.remove( TRANSITION_CLASS );
+	} );
+}
+
+/*
+ * Whether the sidebar is expanded rather than a strip of icons. Shown as a
+ * class on <body>, which the strip's rule keys off, once the change of shape
+ * is under way. It starts as a strip and only expands when toggled open, or
+ * to show a section of the menu, until another screen is picked.
  */
 const expansion = {
 	listeners: new Set(),
-	get: () => document.body.classList.contains( EXPANDED_CLASS ),
+	isExpanded: document.body.classList.contains( EXPANDED_CLASS ),
+	get: () => expansion.isExpanded,
 	set( isExpanded ) {
-		if ( isExpanded !== expansion.get() ) {
-			document.body.classList.toggle( EXPANDED_CLASS, isExpanded );
-			expansion.listeners.forEach( ( listener ) => listener() );
+		if ( isExpanded === expansion.isExpanded ) {
+			return;
 		}
+
+		expansion.isExpanded = isExpanded;
+
+		// Shows the latest shape asked for, should it change again before
+		// the transition gets to it.
+		animateExpansion( () => {
+			document.body.classList.toggle(
+				EXPANDED_CLASS,
+				expansion.isExpanded
+			);
+			expansion.listeners.forEach( ( listener ) => listener() );
+		} );
 	},
 	subscribe( listener ) {
 		expansion.listeners.add( listener );
