@@ -1,0 +1,116 @@
+// What the screens that list things with DataViews share: Posts and the
+// other content types (`routes-post-list`), Template parts and Patterns, and
+// Media, which borrows the patterns list's classes. Each list's own extras are
+// with its screen.
+
+.routes-post-list__tabs-wrapper,
+.routes-template-part-list__tabs-wrapper,
+.routes-pattern-list__tabs-wrapper {
+	border-bottom: 1px solid var(--wpds-color-stroke-surface-neutral);
+	padding: 0 24px;
+}
+
+.routes-post-list__page-actions,
+.routes-template-part-list__page-actions,
+.routes-pattern-list__page-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.routes-post-list__dataviews,
+.routes-template-part-list__dataviews,
+.routes-pattern-list__dataviews {
+	min-height: 0;
+}
+
+.routes-post-list__dataviews-toolbar,
+.routes-template-part-list__dataviews-toolbar,
+.routes-pattern-list__dataviews-toolbar {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 24px 0;
+}
+
+.routes-post-list__dataviews-toolbar-start,
+.routes-post-list__dataviews-toolbar-end,
+.routes-template-part-list__dataviews-toolbar-start,
+.routes-template-part-list__dataviews-toolbar-end,
+.routes-pattern-list__dataviews-toolbar-start,
+.routes-pattern-list__dataviews-toolbar-end {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.routes-post-list__dataviews-toolbar-start,
+.routes-template-part-list__dataviews-toolbar-start,
+.routes-pattern-list__dataviews-toolbar-start {
+	flex: 1;
+	min-width: 0;
+
+	.dataviews-search {
+		width: 100%;
+		max-width: 360px;
+	}
+}
+
+.routes-post-list__dataviews-filters,
+.routes-template-part-list__dataviews-filters,
+.routes-pattern-list__dataviews-filters {
+	padding: 0 24px;
+}
+
+.routes-post-list__dataviews-scroll,
+.routes-template-part-list__dataviews-scroll,
+.routes-pattern-list__dataviews-scroll {
+	box-sizing: border-box;
+	min-height: 0;
+	overflow: auto;
+	padding: 12px 24px 0;
+}
+
+.cnl-editor-dataviews-title {
+	font-weight: 500;
+}
+
+/*
+ * A post's opening lines under its title, in a writer's list of posts. Two
+ * lines are enough to recognise it by.
+ */
+.cnl-editor-dataviews-excerpt {
+	display: -webkit-box;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.cnl-editor-dataviews-preview {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	min-height: 120px;
+	overflow: hidden;
+	border: 1px solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-sm);
+	background: var(--wpds-color-background-surface-neutral-weak);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+
+	.lazy-editor-block-preview__container,
+	.block-editor-block-preview__container {
+		width: 100%;
+		height: 100%;
+		min-height: 120px;
+	}
+
+	.block-editor-block-preview__content {
+		width: 100%;
+		height: 100%;
+	}
+}

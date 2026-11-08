@@ -1,0 +1,60 @@
+// A screen's links to the screens under it (`src/screen-links.jsx`).
+
+.cnl-screen-links {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+	border-top: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral);
+	padding-top: var(--wpds-dimension-padding-lg);
+}
+
+.components-button.cnl-screen-links__link {
+	display: flex;
+	gap: var(--wpds-dimension-gap-md);
+	align-items: center;
+	width: 100%;
+	height: auto;
+	padding: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-md);
+	border-radius: var(--wpds-border-radius-md);
+	color: var(--wpds-color-foreground-interactive-neutral);
+	font-weight: var(--wpds-typography-font-weight-default);
+	text-align: start;
+
+	&:hover:not(:disabled) {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+		color: var(--wpds-color-foreground-interactive-neutral-active);
+	}
+}
+
+.cnl-screen-links__text {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.cnl-screen-links__title {
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.cnl-screen-links__description {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+	font-weight: var(--wpds-typography-font-weight-default);
+	line-height: var(--wpds-typography-line-height-xs);
+}
+
+// Each link's subject, in the icon Gutenberg's own Styles panel uses for it.
+.cnl-screen-links__icon,
+.cnl-screen-links__chevron {
+	flex: 0 0 auto;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	fill: currentcolor;
+}
+
+.components-button.cnl-screen-links__link:not(:hover) .cnl-screen-links__chevron {
+	opacity: 0.6;
+}

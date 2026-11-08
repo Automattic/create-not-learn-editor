@@ -1,0 +1,70 @@
+// The Advanced lists served by `routes/static`: Patterns, Template parts and
+// Media.
+
+.routes-template-part-list,
+.routes-pattern-list {
+	gap: 0;
+	padding: 0;
+	background: #fff;
+}
+
+.routes-template-part-list__dataviews-scroll,
+.routes-pattern-list__dataviews-scroll {
+
+	.dataviews-view-list,
+	.dataviews-view-table,
+	.dataviews-view-grid {
+		padding-inline: 0;
+	}
+}
+
+.routes-template-part-list__create-modal,
+.routes-pattern-list__create-modal {
+	width: min(520px, calc(100vw - 48px));
+}
+
+.routes-template-part-list__create-form,
+.routes-pattern-list__create-form {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.routes-template-part-list__create-actions,
+.routes-pattern-list__create-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+// The categories a list of patterns can be narrowed to.
+.routes-pattern-list__categories {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--wpds-dimension-gap-sm);
+	padding: var(--wpds-dimension-padding-lg) var(--wpds-dimension-padding-xl) 0;
+}
+
+.routes-pattern-list__categories .components-button.routes-pattern-list__category {
+	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-strong);
+	border-radius: var(--wpds-border-radius-sm);
+	background: transparent;
+	box-shadow: none;
+	color: var(--wpds-color-foreground-interactive-neutral);
+
+	&:hover:not(:disabled) {
+		border-color: var(--wpds-color-stroke-interactive-neutral-active);
+		background: transparent;
+		box-shadow: none;
+		color: var(--wpds-color-foreground-interactive-neutral-active);
+	}
+
+	&[aria-pressed="true"],
+	&[aria-pressed="true"]:hover:not(:disabled) {
+		border-color: var(--wpds-color-background-interactive-neutral-strong);
+		background: var(--wpds-color-background-interactive-neutral-strong);
+		box-shadow: none;
+		color: var(--wpds-color-foreground-interactive-neutral-strong);
+	}
+}

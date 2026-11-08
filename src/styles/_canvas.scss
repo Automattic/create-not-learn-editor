@@ -1,0 +1,319 @@
+// The canvas beside the stage: its toolbar, document title and the states it
+// shows before or instead of the site.
+
+@use "../colors" as *;
+
+.cnl-editor-canvas {
+	display: grid;
+	grid-template-rows: auto minmax(0, 1fr);
+	height: 100%;
+	min-width: 0;
+	background: #e9eef2;
+}
+
+.cnl-editor-canvas__toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 56px;
+	padding: 9px 14px;
+	border-bottom: 1px solid var(--wpds-color-stroke-surface-neutral);
+	background: #fff;
+}
+
+.cnl-editor-canvas__label {
+	font-weight: 600;
+}
+
+.cnl-editor-canvas__status {
+	margin-top: 2px;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: 12px;
+}
+
+.cnl-editor-canvas__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.cnl-editor-canvas__frame-wrap {
+	min-height: 0;
+	padding: 20px;
+}
+
+.cnl-editor-canvas__frame {
+	display: block;
+	width: 100%;
+	height: 100%;
+	min-height: 520px;
+	border: 1px solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-md);
+	background: #fff;
+}
+
+.cnl-editor-preview-canvas {
+	grid-template-rows: auto minmax(0, 1fr);
+}
+
+.cnl-editor-preview-canvas__notice {
+	margin: 0;
+	border-right: 0;
+	border-left: 0;
+}
+
+.cnl-editor-preview-canvas__spinner {
+	position: absolute;
+	z-index: 1;
+	top: 12px;
+	left: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	margin-left: -16px;
+	border: 1px solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: 50%;
+	background: #fff;
+}
+
+.cnl-editor-homepage-preview {
+	height: 100%;
+	overflow: hidden;
+	background: #fff;
+}
+
+.cnl-editor-homepage-toolbar {
+	display: grid;
+	grid-template-columns: minmax(210px, 1fr) minmax(0, auto) minmax(190px, 1fr);
+	gap: 12px;
+	align-items: center;
+	box-sizing: border-box;
+	min-height: 60px;
+	padding: 8px 10px;
+}
+
+.cnl-editor-homepage-toolbar__left,
+.cnl-editor-homepage-toolbar__center,
+.cnl-editor-homepage-toolbar__right,
+.cnl-editor-homepage-toolbar__history {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+}
+
+.cnl-editor-homepage-toolbar__left {
+	gap: 14px;
+	justify-content: flex-start;
+}
+
+.cnl-editor-homepage-toolbar__center {
+	justify-content: center;
+}
+
+.cnl-editor-homepage-toolbar__right {
+	gap: 16px;
+	justify-content: flex-end;
+}
+
+.cnl-editor-homepage-toolbar__history {
+	gap: 12px;
+}
+
+.cnl-editor-homepage-toolbar__history-button.components-button.has-icon {
+	width: 34px;
+	height: 34px;
+	min-width: 34px;
+	color: var(--wpds-color-foreground-content-neutral);
+
+	/*
+	 * Full strength when there is a step to take, faint when there isn't.
+	 * The buttons stay focusable when they can't be used, so they are marked
+	 * with `aria-disabled` rather than `disabled`.
+	 */
+	&[aria-disabled="true"],
+	&[aria-disabled="true"]:hover {
+		color: var(--wpds-color-foreground-interactive-neutral-disabled);
+	}
+}
+
+.cnl-editor-homepage-document {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	justify-content: center;
+	max-width: min(480px, 100%);
+	min-width: 0;
+	color: var(--wpds-color-foreground-content-neutral);
+}
+
+// The title and meta clip their own text, so the title's focus ring isn't.
+.cnl-editor-homepage-document__text {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	min-width: 0;
+	text-align: center;
+}
+
+.cnl-editor-homepage-document__heading {
+	display: flex;
+	gap: 4px;
+	align-items: center;
+	justify-content: center;
+	min-width: 0;
+	max-width: 100%;
+}
+
+.cnl-editor-homepage-document__icon {
+	flex: 0 0 auto;
+	width: 16px;
+	height: 16px;
+}
+
+.cnl-editor-homepage-document__title {
+	overflow: hidden;
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 18px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+
+	// Focusable when clipped, to show the whole title in a tooltip.
+	&:focus-visible {
+		border-radius: var(--wpds-border-radius-sm);
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+		outline-offset: 2px;
+	}
+}
+
+.cnl-editor-homepage-document__meta {
+	overflow: hidden;
+	margin: 0;
+	max-width: 100%;
+	font-size: 12px;
+	line-height: 16px;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+// The header or footer's name and that every page has it, in the purple of
+// what every page shares. See `src/global-scope`.
+.cnl-editor-homepage-document.is-global {
+
+	.cnl-editor-homepage-document__icon {
+		fill: $cnl-global;
+	}
+
+	.cnl-editor-homepage-document__title,
+	.cnl-editor-homepage-document__meta {
+		color: $cnl-global;
+	}
+}
+
+.cnl-editor-homepage-options {
+	flex: 0 0 auto;
+}
+
+.cnl-editor-homepage-options__content {
+	min-width: 240px;
+	padding: var(--wpds-dimension-padding-sm);
+}
+
+.cnl-editor-homepage-options__menu {
+	margin: 0;
+}
+
+.cnl-editor-homepage-options__menu .components-menu-item__button {
+	min-height: 40px;
+}
+
+@media (max-width: 1080px) {
+
+	.cnl-editor-homepage-toolbar {
+		grid-template-columns: minmax(0, 1fr) auto;
+		min-height: 96px;
+	}
+
+	.cnl-editor-homepage-toolbar__center {
+		order: 3;
+		grid-column: 1 / -1;
+	}
+}
+
+@media (max-width: 720px) {
+
+	.cnl-editor-homepage-toolbar {
+		grid-template-columns: 1fr;
+		min-height: 0;
+	}
+
+	.cnl-editor-homepage-toolbar__left,
+	.cnl-editor-homepage-toolbar__center,
+	.cnl-editor-homepage-toolbar__right {
+		justify-content: center;
+	}
+}
+
+// In place of a canvas that stopped working. See `canvas-recovery.jsx`.
+.cnl-canvas-recovery {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	height: 100%;
+	padding: 16px;
+	background: #fff;
+}
+
+.cnl-editor-canvas-placeholder {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	min-height: 420px;
+	padding: 32px;
+	border: 1px dashed var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-md);
+	background: #fff;
+	color: var(--wpds-color-foreground-content-neutral);
+	text-align: center;
+}
+
+.cnl-editor-canvas-placeholder__icon {
+	width: 40px;
+	height: 40px;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: 40px;
+}
+
+.cnl-editor-canvas-placeholder__title {
+	margin: 16px 0 0;
+	font-size: 20px;
+	line-height: 1.25;
+}
+
+.cnl-editor-canvas-placeholder__description {
+	max-width: 360px;
+	margin: 8px 0 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.cnl-editor-canvas-placeholder > .components-button {
+	margin-top: 24px;
+}
+
+.cnl-editor-canvas-placeholder__meta {
+	margin-top: 14px;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: 12px;
+}

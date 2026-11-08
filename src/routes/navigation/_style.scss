@@ -1,0 +1,328 @@
+// Menus: the list of menus, the menu canvas and choosing where a menu goes.
+
+.routes-navigation-list {
+	gap: 0;
+	overflow: hidden;
+	padding: 0;
+	background: #fff;
+}
+
+.routes-navigation-list__rows {
+	box-sizing: border-box;
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+	padding: 12px 24px 24px;
+}
+
+.routes-navigation-list__group + .routes-navigation-list__group {
+	margin-top: var(--wpds-dimension-gap-lg);
+}
+
+// Matches the Pages screen's menu group titles.
+.routes-navigation-list__group-title {
+	display: flex;
+	align-items: center;
+	min-height: 40px;
+	margin: 0;
+	padding: 0 var(--wpds-dimension-padding-sm);
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-md);
+}
+
+.routes-navigation-list__row {
+	display: flex;
+	gap: var(--wpds-dimension-gap-xs);
+	align-items: center;
+}
+
+// Each row's link is a screen link (`src/_screen-links.scss`), stretched to
+// leave its menu button at the row's end.
+.components-button.routes-navigation-list__row-link {
+	flex: 1 1 auto;
+}
+
+.cnl-editor-panel__notice {
+	margin: 14px 0 0;
+}
+
+/*
+ * The menu canvas stacks a fixed header over whichever view is showing, plus an
+ * optional notice between them, so it lays out as a column rather than with the
+ * two-row grid `.cnl-editor-canvas` uses.
+ */
+.routes-navigation-canvas {
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+}
+
+.routes-navigation-canvas-toolbar {
+	gap: 16px;
+	flex: 0 0 auto;
+}
+
+.routes-navigation-canvas-toolbar__document {
+	min-width: 0;
+}
+
+.routes-navigation-canvas-toolbar__title {
+	margin: 0;
+	overflow: hidden;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.4;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.routes-navigation-canvas-toolbar__meta {
+	margin: 2px 0 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.routes-navigation-canvas-toolbar__actions {
+	display: flex;
+	flex: 0 0 auto;
+	gap: 8px;
+	align-items: center;
+}
+
+// Opens the menu in the site preview, where it collapses into a button.
+.routes-navigation-canvas-toolbar__menu-toggle.components-base-control {
+	flex: 0 0 auto;
+	margin-bottom: 0;
+
+	.components-toggle-control__label {
+		white-space: nowrap;
+	}
+}
+
+.routes-navigation-canvas__body {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-height: 0;
+}
+
+/*
+ * The site preview can't be clicked or edited, so the pointer says so. It is
+ * inert, which passes the pointer through to the body under it, so the body
+ * shows the cursor, and the preview's frame is kept from showing its own.
+ */
+.routes-navigation-canvas__body:has(> .routes-navigation-canvas__preview) {
+	cursor: not-allowed;
+}
+
+.routes-navigation-canvas__preview {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+	background: #fff;
+
+	iframe {
+		pointer-events: none;
+	}
+
+	/*
+	 * The editor's own loading state is sized for the full window, which
+	 * overflows the canvas column it is rendered into here.
+	 */
+	> div:has(> .components-spinner) {
+		height: 100% !important;
+	}
+}
+
+.routes-navigation-locations-canvas-shell {
+	grid-template-rows: minmax(0, 1fr);
+	padding: 0;
+	background: #fff;
+}
+
+.routes-navigation-locations-canvas {
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	min-width: 0;
+	overflow: hidden;
+	background: #fff;
+
+	&.is-centered {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	&.is-top-centered {
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		padding: 48px 32px 32px;
+		overflow: auto;
+	}
+}
+
+.routes-navigation-locations-canvas__content {
+	box-sizing: border-box;
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+	padding: 32px;
+}
+
+.routes-navigation-locations-canvas__empty-state {
+	max-width: 420px;
+	margin: 48px auto 0;
+}
+
+.routes-navigation-locations-canvas__previews {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 32px;
+}
+
+// Inline in the notice's sentence, as a link in running text.
+// Above the preview, inset as the Locations notice is.
+.routes-navigation-canvas__notice {
+	flex: 0 0 auto;
+	padding: 12px 14px 0;
+}
+
+.routes-navigation-locations-notice__link.components-button.is-link {
+	vertical-align: baseline;
+	font-size: inherit;
+}
+
+.routes-navigation-locations-canvas__card {
+	overflow: hidden;
+	border: 1px solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-md);
+	background: #fff;
+}
+
+.routes-navigation-locations-canvas__card-header {
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	min-height: 56px;
+	padding: 8px 24px;
+	border-bottom: 1px solid var(--wpds-color-stroke-surface-neutral);
+}
+
+.routes-navigation-locations-canvas__card-title {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	min-width: 0;
+	font-weight: 600;
+
+	span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+.routes-navigation-locations-canvas__card-icon {
+	flex: 0 0 auto;
+}
+
+// Like the site preview, the location previews can't be clicked.
+.routes-navigation-locations-canvas__preview {
+	max-height: 420px;
+	min-height: 96px;
+	overflow: hidden;
+	background: #fff;
+	cursor: not-allowed;
+
+	.block-editor-block-preview__container,
+	.lazy-editor-block-preview__container {
+		width: 100%;
+		min-height: 96px;
+	}
+}
+
+.routes-navigation-choose-location-modal {
+	width: min(840px, calc(100vw - 48px));
+}
+
+.routes-navigation-choose-location-modal__intro {
+	margin: 0 0 16px;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.routes-navigation-choose-location-modal__empty-state {
+	min-height: 220px;
+	padding: 24px;
+}
+
+.routes-navigation-choose-location-modal__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 12px;
+	max-height: min(58vh, 560px);
+	overflow: auto;
+	padding: 2px;
+}
+
+.routes-navigation-choose-location-modal__card {
+	overflow: hidden;
+	border: 1px solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-md);
+	background: #fff;
+}
+
+.routes-navigation-choose-location-modal__card-header {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 8px;
+	align-items: center;
+	min-height: 48px;
+	padding: 10px 12px;
+	border-bottom: 1px solid var(--wpds-color-stroke-surface-neutral);
+}
+
+.routes-navigation-choose-location-modal__area {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: 12px;
+}
+
+.routes-navigation-choose-location-modal__preview {
+	height: 160px;
+	overflow: hidden;
+	background: #fff;
+
+	.lazy-editor-block-preview__container,
+	.block-editor-block-preview__container {
+		width: 100%;
+		height: 100%;
+	}
+}
+
+.routes-navigation-choose-location-modal__footer {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: 16px;
+}
+
+.routes-navigation-choose-location-modal__selection-summary {
+	margin: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.routes-navigation-choose-location-modal__actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}

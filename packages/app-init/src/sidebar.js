@@ -37,7 +37,7 @@ import {
 
 /*
  * What can be pointed at in the sidebar while it is a strip of icons, the
- * sidebar not being expanded. Matches the rule in `src/style.scss`.
+ * sidebar not being expanded. Matches the rule in `_sidebar.scss`.
  */
 const STRIP_ITEM_SELECTOR = `body:not(.cnl-sidebar-is-expanded) #create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"] :is([class*="__item-wrapper"] > *, .cnl-menu-section-stand-in__button, .cnl-sidebar-workspace__toggle)`;
 
@@ -98,7 +98,7 @@ function canAnimateExpansion() {
  * site beside it is laid out again on every frame. Boot names its stage and
  * canvas for its own transitions, so they slide and widen with it. The
  * sidebar and its gliding parts are named only for this transition, so
- * boot's own transitions are left as they are. See `src/style.scss`.
+ * boot's own transitions are left as they are. See `_sidebar.scss`.
  *
  * @param {() => void} update Changes the sidebar's shape.
  */
@@ -483,7 +483,7 @@ function createWorkspaceSwitcher() {
 /**
  * Add the plugin's own pieces to boot's sidebar.
  *
- * - A top row in place of boot's Dashboard link, which `src/style.scss`
+ * - A top row in place of boot's Dashboard link, which `_sidebar.scss`
  *   hides, as the admin bar above leads to the Dashboard. It holds a
  *   greeting, hidden inside menu sections by CSS, and a menu button to
  *   expand the sidebar from its strip of icons and fold it back. The sidebar

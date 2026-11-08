@@ -1,0 +1,70 @@
+// The content lists: Pages, Posts and the other content types, with their
+// layouts.
+
+@use "./add-page";
+
+// The list's table and grid line up with the toolbar above them.
+.routes-post-list__dataviews-scroll {
+
+	.dataviews-view-table {
+
+		td.dataviews-view-table__checkbox-column:first-child,
+		th.dataviews-view-table__checkbox-column:first-child {
+			padding-inline-start: 0;
+		}
+	}
+
+	.dataviews-view-grid {
+		padding-inline: 0;
+	}
+}
+
+.routes-post-list__templates {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 16px 24px 0;
+}
+
+/*
+ * The way on to every layout, under a content type's own: a quiet sentence,
+ * set in from the list's edges as the list is.
+ */
+.routes-post-list__template-footer {
+	margin: var(--wpds-dimension-gap-lg) 24px 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+
+	.components-button.is-link {
+		font-size: inherit;
+		vertical-align: baseline;
+	}
+}
+
+.routes-post-list__badges {
+	min-width: 0;
+}
+
+.routes-post-list__tab-label {
+	display: inline-flex;
+	gap: var(--wpds-dimension-gap-sm);
+	align-items: center;
+}
+
+.routes-post-list__tab-icon {
+	flex: 0 0 auto;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+/*
+ * The statuses a writer's posts can be narrowed to, as a row of buttons under
+ * the Posts tab, set in from the list's edges as the list is.
+ */
+.routes-post-list__statuses {
+	padding: var(--wpds-dimension-padding-lg) 24px var(--wpds-dimension-padding-xs);
+
+	// Each status reads on one line, however narrow the row.
+	.components-toggle-group-control-option-base {
+		white-space: nowrap;
+	}
+}

@@ -1,0 +1,83 @@
+// The stage beside the canvas, where every screen's panel sits, and what the
+// admin page around the editor needs.
+
+.cnl-editor-page {
+
+	#wpcontent,
+	#wpbody-content {
+		padding: 0;
+	}
+
+	#wpfooter,
+	.notice:not(.inline) {
+		display: none;
+	}
+}
+
+.cnl-editor-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 240px;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.cnl-editor-stage {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 24px;
+}
+
+.cnl-editor-content-page {
+	gap: 0;
+	padding: 0;
+	background: #fff;
+}
+
+// As tall as a header with a button in it, so titles and breadcrumbs sit at
+// the same height on every screen.
+.cnl-editor-stage > [class*="__header"] > [class*="__header-content"] {
+	min-height: var(--wpds-dimension-size-lg);
+}
+
+.cnl-editor-stage__header {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+
+	h1 {
+		margin: 0;
+		font-size: 22px;
+		line-height: 1.2;
+	}
+
+	p {
+		margin: 6px 0 0;
+		color: var(--wpds-color-foreground-content-neutral-weak);
+	}
+}
+
+.cnl-editor-stage__description {
+	margin: 16px 24px 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	line-height: 1.5;
+}
+
+.cnl-editor-stage .cnl-editor-empty-state {
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	box-sizing: border-box;
+	min-height: 0;
+	padding: 48px 24px 24px;
+}
+
+.cnl-editor-spinner,
+.cnl-editor-empty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 120px;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
