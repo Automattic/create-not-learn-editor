@@ -202,6 +202,23 @@
 	padding: 12px 24px 24px;
 }
 
+.routes-navigation-list__group + .routes-navigation-list__group {
+	margin-top: var(--wpds-dimension-gap-lg);
+}
+
+// Matches the Pages screen's menu group titles.
+.routes-navigation-list__group-title {
+	display: flex;
+	align-items: center;
+	min-height: 40px;
+	margin: 0;
+	padding: 0 var(--wpds-dimension-padding-sm);
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-md);
+}
+
 .routes-navigation-list__row {
 	display: flex;
 	gap: var(--wpds-dimension-gap-xs);
