@@ -1,10 +1,19 @@
 /**
+ * WordPress dependencies
+ */
+import { useLinkProps } from '@wordpress/route';
+
+/**
  * Internal dependencies
  */
-import { settings as appSettings } from '../../settings';
 import { DesignPage } from './design-page';
 import SitePreviewCanvas from './site-preview';
 import ScreenLinks from '../../screen-links';
+import {
+	FONT_LIBRARY_PATH,
+	FONT_LIBRARY_TABS,
+	selectFontLibraryTab,
+} from '../../font-library';
 import { useTrailSearch } from '../../site-trail';
 import {
 	FontPicker,
@@ -17,10 +26,14 @@ import {
 	Spinner,
 	Text,
 	__,
+	cloudDownloadIcon,
 	colorIcon,
+	coreDataStore,
 	siteLogoIcon,
 	sprintf,
 	typographyIcon,
+	uploadIcon,
+	useSelect,
 } from '../../wordpress-packages';
 
 /*
@@ -49,8 +62,89 @@ const DESIGN_LINKS = [
 ];
 
 /**
+ * The way out to Gutenberg's full Styles editor, which the editor mounts at
+ * `/styles` (`includes/gutenberg-routes.php`), as Builder's Home does.
+ *
+ * @return {Node} The line.
+ */
+function FullStylesLink() {
+	const { href, onClick } = useLinkProps( { to: '/styles' } );
+
+	return (
+		<Text className="routes-styles__muted" variant="body-sm">
+			{ __( 'Want more control? Every style setting is in the' ) }{ ' ' }
+			<Link href={ href } onClick={ onClick }>
+				{ __( 'full Styles editor' ) }
+			</Link>
+			.
+		</Text>
+	);
+}
+
+/**
+ * The font library's tabs, as rows under the Fonts screen's pairings.
+ * Installing and uploading need permission to add fonts, as in the font
+ * library itself, and installing needs a font collection to choose from.
+ *
+ * @return {?Node} The rows, once it's known which this person can use.
+ */
+function FontLibraryLinks() {
+	const trailSearch = useTrailSearch();
+	const { canAddFonts, collection } = useSelect( ( select ) => {
+		const core = select( coreDataStore );
+		// The font library's own query, so a collection whose fonts can't be
+		// fetched is left out here as it is there, and the answer is shared.
+		const collections = core.getEntityRecords( 'root', 'fontCollection', {
+			_fields: 'slug,name,description',
+		} );
+
+		return {
+			canAddFonts: core.canUser( 'create', {
+				kind: 'postType',
+				name: 'wp_font_family',
+			} ),
+			// Google Fonts, unless a plugin has swapped in others.
+			collection:
+				collections?.find( ( { slug } ) => slug === 'google-fonts' ) ??
+				collections?.[ 0 ],
+		};
+	}, [] );
+
+	const link = ( tabId, fields ) => ( {
+		...fields,
+		onSelect: () => selectFontLibraryTab( tabId ),
+		search: trailSearch,
+		to: FONT_LIBRARY_PATH,
+	} );
+	const links = [
+		link( FONT_LIBRARY_TABS.library, {
+			description: __(
+				'Turn fonts and their styles on or off, or remove them.'
+			),
+			icon: typographyIcon,
+			title: __( 'Configure fonts' ),
+		} ),
+		canAddFonts &&
+			collection &&
+			link( collection.slug, {
+				description: __( 'Choose from hundreds of free fonts.' ),
+				icon: cloudDownloadIcon,
+				title: __( 'Install fonts' ),
+			} ),
+		canAddFonts &&
+			link( FONT_LIBRARY_TABS.upload, {
+				description: __( 'Add font files from your computer.' ),
+				icon: uploadIcon,
+				title: __( 'Upload fonts' ),
+			} ),
+	].filter( Boolean );
+
+	return <ScreenLinks label={ __( 'More font options' ) } links={ links } />;
+}
+
+/**
  * The shell every styles screen shares: its title, the live-preview layout,
- * and the way out to the full Styles editor.
+ * and a way out to where there's more.
  *
  * @param {Object}  props             Component props.
  * @param {Node}    props.children    The screen's options, once loaded.
@@ -59,6 +153,8 @@ const DESIGN_LINKS = [
  *                                    Design.
  * @param {boolean} props.isLoading   Whether the theme's styles are still loading.
  * @param {boolean} props.isTopLevel  Whether this is the Design screen itself.
+ * @param {Node}    props.moreLink    The way out, below the options. The full
+ *                                    Styles editor unless given.
  * @param {string}  props.title       Screen title.
  * @return {Node} The screen.
  */
@@ -68,6 +164,7 @@ function StylesScreen( {
 	isInDesign,
 	isLoading,
 	isTopLevel,
+	moreLink = <FullStylesLink />,
 	title,
 } ) {
 	return (
@@ -83,17 +180,7 @@ function StylesScreen( {
 				</div>
 			) }
 			{ ! isLoading && children }
-			{ ! isLoading && (
-				<Text className="routes-styles__muted" variant="body-sm">
-					{ __( 'Want more control? Every style setting is in the' ) }{ ' ' }
-					<Link
-						href={ `${ appSettings.adminUrl }site-editor.php?p=%2Fstyles` }
-					>
-						{ __( 'full Styles editor' ) }
-					</Link>
-					.
-				</Text>
-			) }
+			{ ! isLoading && moreLink }
 		</DesignPage>
 	);
 }
@@ -163,6 +250,7 @@ export function FontsStage() {
 			) }
 			isInDesign
 			isLoading={ isLoading }
+			moreLink={ <FontLibraryLinks /> }
 			title={ __( 'Fonts' ) }
 		>
 			<FontPicker />
