@@ -13,6 +13,9 @@
  *   The editor's own Design screen leads with whole-site looks and keeps to
  *   colors and fonts; this is for people who want everything. Builder's
  *   Home links to it.
+ * - `/font-list`: the font library, where fonts are installed from Google
+ *   Fonts, uploaded and removed, in tabs. It's WordPress's Fonts screen
+ *   under Appearance. The editor's Fonts screen links to each tab.
  * - `/templates`: the templates list, in place of the editor's own. It
  *   sends `/templates` on to `/templates/list/all`, and opens a template at
  *   `/types/wp_template/edit/$id`, which the editor's post route sends on to
@@ -42,6 +45,10 @@ function cnl_editor_get_gutenberg_routes() {
 		array(
 			'name' => 'styles',
 			'path' => '/styles',
+		),
+		array(
+			'name' => 'font-list',
+			'path' => '/font-list',
 		),
 		array(
 			'name' => 'template',
