@@ -35,11 +35,11 @@ import { MODE_COMPOSE, MODE_EDIT } from './mode';
 import { SectionModesLayer } from './section-modes/section-modes-layer';
 import {
 	CanvasMoreMenu,
-	DeviceSwitcher,
-	ComposeButton,
 	EditHistory,
 	ModeToggle,
 	PreviewHistory,
+	ViewMenu,
+	ZoomOutToggle,
 } from './toolbar';
 import { UnsavedChangesDialog } from './unsaved-changes-dialog';
 import { useSectionLock } from './use-section-lock';
@@ -130,7 +130,8 @@ export function SiteCanvas( {
 
 	useComposeZoom( isComposing && Boolean( editorEntity ), editorRef );
 
-	// Zooming out is Compose, offered wherever the toolbar offers it.
+	// Zooming out is Compose, offered by the toolbar's Zoom out, the canvas's
+	// corner and by pinching.
 	const canZoom = ! isPreviewing && canArrange && Boolean( editorEntity );
 	const zoomIn = () => isComposing && canvas.requestMode( MODE_EDIT );
 	const zoomOut = () => ! isComposing && canvas.requestMode( MODE_COMPOSE );
@@ -181,16 +182,6 @@ export function SiteCanvas( {
 						mode={ mode }
 						onChange={ canvas.requestMode }
 					/>
-					{ ! isPreviewing && canArrange && (
-						<ComposeButton
-							isComposing={ isComposing }
-							onToggle={ () =>
-								canvas.requestMode(
-									isComposing ? MODE_EDIT : MODE_COMPOSE
-								)
-							}
-						/>
-					) }
 					{ ! isPreviewing && <EditHistory /> }
 					{ isPreviewing && (
 						<PreviewHistory
@@ -214,10 +205,18 @@ export function SiteCanvas( {
 					{ document }
 				</div>
 				<div className="cnl-editor-homepage-toolbar__right">
-					{ ! isComposing && (
-						<DeviceSwitcher
-							device={ device }
-							onChange={ canvas.setDevice }
+					<ViewMenu
+						device={ device }
+						isComposing={ isComposing }
+						onChange={ canvas.setDevice }
+						onZoomIn={ zoomIn }
+					/>
+					{ canZoom && (
+						<ZoomOutToggle
+							isComposing={ isComposing }
+							onToggle={ () =>
+								( isComposing ? zoomIn : zoomOut )()
+							}
 						/>
 					) }
 					<CanvasMoreMenu

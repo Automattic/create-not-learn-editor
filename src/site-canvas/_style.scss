@@ -17,7 +17,7 @@
 }
 
 /*
- * The device switcher and overflow menu read as one cluster. Flush: each
+ * The View menu, Zoom out and overflow menu read as one cluster. Flush: each
  * 40px button already carries its own padding around a smaller icon, so no
  * extra gap is needed between them.
  */
@@ -55,25 +55,6 @@
 }
 
 /*
- * Compose, a normal icon button beside the toggle, in the admin colour while
- * it is on, as the toggle's picked mode is.
- */
-.cnl-site-canvas__compose-button.components-button {
-	flex-shrink: 0;
-
-	&.is-pressed,
-	&.is-pressed:hover:not(:disabled),
-	&.is-pressed:focus:not(:disabled) {
-		background: var(--wp-admin-theme-color);
-		color: #fff;
-	}
-
-	&.is-pressed:hover:not(:disabled) {
-		background: var(--wp-admin-theme-color-darker-10);
-	}
-}
-
-/*
  * Zoom out and back in from the canvas's corner, as on a map: drawn as
  * core's popovers are, over the editor and its section layer.
  */
@@ -99,11 +80,18 @@
 	}
 }
 
+.cnl-site-canvas__view-menu-toggle.components-button.has-icon,
+.cnl-site-canvas__zoom-out-toggle.components-button.has-icon,
 .cnl-site-canvas__more-menu-toggle.components-button.has-icon {
 	width: 40px;
 	height: 40px;
 	min-width: 40px;
 	color: var(--wpds-color-foreground-content-neutral);
+}
+
+// Pressed while zoomed out, in core's own pressed colours.
+.cnl-site-canvas__zoom-out-toggle.components-button.has-icon.is-pressed {
+	color: #fff;
 }
 
 .cnl-site-canvas__body {

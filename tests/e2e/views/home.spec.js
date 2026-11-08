@@ -88,8 +88,8 @@ test.describe( 'Home view', () => {
 			toolbar.getByRole( 'button', { name: 'Compose' } )
 		).toHaveCount( 0 );
 		await expect(
-			toolbar.getByRole( 'radio', { name: 'Desktop view' } )
-		).toBeChecked();
+			toolbar.getByRole( 'button', { name: 'View', exact: true } )
+		).toBeVisible();
 		await expect(
 			document.getByRole( 'heading', { level: 1, name: 'Home' } )
 		).toBeVisible();
