@@ -92,6 +92,7 @@ function cnl_editor_get_app_settings() {
 		'assistantRouter'    => cnl_editor_assistant_can_route(),
 		'postKinds'          => cnl_editor_get_post_kind_settings(),
 		'mediaEditor'        => cnl_editor_has_media_editor(),
+		'maxUploadFileSize'  => wp_max_upload_size(),
 	);
 }
 

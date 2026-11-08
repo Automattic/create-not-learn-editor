@@ -96,11 +96,6 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	width: 320px;
 }
 
-// Quick add's file picker, opened from its menu rather than shown.
-.cnl-quick-add__file {
-	display: none;
-}
-
 .cnl-top-bar__center {
 	grid-column: 2;
 	min-width: 0;

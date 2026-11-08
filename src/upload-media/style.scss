@@ -1,0 +1,58 @@
+// The upload modal. See `index.jsx`. Layout comes from `Stack` and the
+// design system's own parts; this styles only what they don't cover.
+
+/*
+ * The drop area: an empty state on a dashed surface. The whole area opens
+ * the file picker, so it uses the interactive neutral roles, idle and
+ * hovered. Core's DropZone covers it while files are dragged over.
+ */
+.cnl-upload-media__area {
+	position: relative;
+	// The empty state is no wider than a small surface and leaves centring
+	// it to what holds it.
+	display: flex;
+	justify-content: center;
+	padding: var(--wpds-dimension-padding-2xl) var(--wpds-dimension-padding-xl);
+	border: var(--wpds-border-width-sm) dashed var(--wpds-color-stroke-interactive-neutral);
+	border-radius: var(--wpds-border-radius-lg);
+	background: var(--wpds-color-background-interactive-neutral-weak);
+	cursor: var(--wpds-cursor-control);
+	transition:
+		border-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
+		background-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+
+	&:hover {
+		border-color: var(--wpds-color-stroke-interactive-neutral-active);
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+	}
+
+	.components-drop-zone {
+		border-radius: var(--wpds-border-radius-lg);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
+}
+
+// Each file as it uploads, scrolling once there are many.
+.cnl-upload-media__files {
+	max-height: 240px;
+	margin: 0;
+	padding: 0;
+	overflow-y: auto;
+	list-style: none;
+}
+
+// The design system's progress bar has a set width; here it spans the row.
+.cnl-upload-media__progress {
+	width: 100%;
+}
+
+.cnl-upload-media__file-name {
+	min-width: 0;
+	overflow: hidden;
+	color: var(--wpds-color-foreground-content-neutral);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
