@@ -9,10 +9,15 @@
  * editor loads, since it is for those who look for it. The screen on show stays listed even in a
  * folded section, so the sidebar never loses track of where you are.
  *
- * A section can show only its first few items, with a "…" item after them
- * that lists the rest when clicked: Content shows Pages and Posts, and a
- * shop's Products, and keeps any other content types behind the "…". They
- * stay listed until the editor is reloaded.
+ * A section lists at most three items, with a "…" item after them that
+ * lists the rest when clicked. They stay listed until the editor is
+ * reloaded. Which three is up to the person: each section has defaults, like
+ * Pages and Posts in Content, and an item used often lately takes the place
+ * of the one used least (`src/menu-use.js`). Every visit to an item's screen
+ * counts, however it was reached, and the counts are kept as a preference.
+ * Which items are listed is worked out once, as the editor loads, so the
+ * sidebar never rearranges itself under the pointer. Items keep their
+ * order, whichever are listed.
  *
  * Items with no section, like Home, come first, untitled. While the sidebar
  * is a strip of icons, each title is a thin rule and every item shows, as
@@ -49,14 +54,21 @@ import { Icon, Tooltip, VisuallyHidden } from '@wordpress/ui';
 /**
  * Internal dependencies
  */
+import {
+	getItemIdForRoute,
+	pickShownItems,
+	recordUse,
+} from '../../../src/menu-use';
 import { PREFERENCES_SCOPE } from '../../../src/workspaces';
 
 /*
  * The sections, in no particular order: the menu items set it. An item
  * naming a section that isn't here is listed as if it had none.
- * `shownItems` is how many items show before the rest go behind a "…". An
- * item registered with `alwaysShown`, like the shop's Products, is never
- * one of the rest, and isn't counted.
+ * `shownItems` is how many items show before the rest go behind a "…",
+ * `MAX_SHOWN_ITEMS` if not given. `defaults` are the items shown until others
+ * are used more, by id; without them, the section's first items are. An item
+ * registered with `alwaysShown`, like the shop's Products, is never one of
+ * the rest, but takes one of the places.
  * `foldsOnLoad` folds the section whenever the editor loads, however it was
  * left. `stripIcon` stands for all of the section's items in the strip of
  * icons, unless one of them is the screen on show, which stands in itself.
@@ -66,10 +78,14 @@ import { PREFERENCES_SCOPE } from '../../../src/workspaces';
 const SECTIONS = {
 	content: {
 		label: __( 'Content' ),
-		shownItems: 2,
+		defaults: [ 'pages', 'content-post' ],
 		moreLabel: __( 'Show all content types' ),
 	},
-	site: { label: __( 'Site' ) },
+	// Media waits behind the "…" until it is used.
+	site: {
+		label: __( 'Site' ),
+		defaults: [ 'site-overview', 'navigation', 'identity' ],
+	},
 	design: { label: __( 'Design' ) },
 	plugins: {
 		label: __( 'Plugins' ),
@@ -80,7 +96,12 @@ const SECTIONS = {
 	advanced: { label: __( 'Advanced' ), foldsOnLoad: true, stripIcon: code },
 };
 
+const MAX_SHOWN_ITEMS = 3;
+
 const PREFERENCE_NAME = 'foldedMenuSections';
+
+// How much each item is used (`src/menu-use.js`).
+const USE_PREFERENCE_NAME = 'menuItemUse';
 
 const DEFAULT_FOLDED = { advanced: true };
 
@@ -109,6 +130,35 @@ function getFolded( selectFn = select ) {
 			PREFERENCES_SCOPE,
 			PREFERENCE_NAME
 		) || DEFAULT_FOLDED
+	);
+}
+
+/**
+ * The top-level items boot lists in the sidebar's main menu.
+ *
+ * @return {Object[]} Menu items.
+ */
+function getTopLevelItems() {
+	return select( bootStore )
+		.getMenuItems()
+		.filter( ( item ) => ! item.parent );
+}
+
+/**
+ * The screen on show, which is the route's path.
+ *
+ * @return {string} Route path. No route at all is home.
+ */
+function getRoutePath() {
+	return new URL( window.location.href ).searchParams.get( 'p' ) ?? '/';
+}
+
+function getUses() {
+	return (
+		select( preferencesStore ).get(
+			PREFERENCES_SCOPE,
+			USE_PREFERENCE_NAME
+		) || {}
 	);
 }
 
@@ -423,9 +473,42 @@ export function mountMenuSections() {
 	// Sections whose "…" has been clicked, so all their items show.
 	const expanded = new Set();
 
+	/*
+	 * What was used as of loading, which picks the items listed until the
+	 * editor is loaded again, and the time it is measured at.
+	 */
+	const usesAtLoad = getUses();
+	const loadedAt = Date.now();
+
+	/*
+	 * The item whose screen is on show. The one the editor opened on isn't
+	 * counted, so reloading a screen isn't a visit to it.
+	 */
+	let usedId = getItemIdForRoute( getTopLevelItems(), getRoutePath() );
+	const trackUse = () => {
+		const items = getTopLevelItems();
+		const id = getItemIdForRoute( items, getRoutePath() );
+
+		if ( id === usedId ) {
+			return;
+		}
+		usedId = id;
+
+		// Only items in a section compete for a place.
+		if ( id && items.find( ( item ) => item.id === id )?.section ) {
+			dispatch( preferencesStore ).set(
+				PREFERENCES_SCOPE,
+				USE_PREFERENCE_NAME,
+				recordUse( getUses(), id, Date.now() )
+			);
+		}
+	};
+
 	let isScheduled = false;
 	const place = () => {
 		isScheduled = false;
+
+		trackUse();
 
 		const list = document.querySelector( ROOT_LIST_SELECTOR );
 
@@ -434,36 +517,55 @@ export function mountMenuSections() {
 		}
 
 		const itemByRoute = new Map(
-			select( bootStore )
-				.getMenuItems()
-				.filter( ( item ) => ! item.parent )
-				.map( ( item ) => [ item.to, item ] )
+			getTopLevelItems().map( ( item ) => [ item.to, item ] )
 		);
 		const folded = getFolded();
+
+		const entries = [ ...list.children ]
+			.filter(
+				( child ) =>
+					! child.classList.contains( TITLE_CLASS ) &&
+					! child.classList.contains( MORE_CLASS ) &&
+					! child.classList.contains( STAND_IN_CLASS )
+			)
+			.map( ( child ) => {
+				const item = itemByRoute.get( getLinkedRoute( child ) );
+
+				return {
+					child,
+					item,
+					section: SECTIONS[ item?.section ]
+						? item.section
+						: undefined,
+				};
+			} );
+
+		// The items each section lists, of those boot has rendered.
+		const shownBySection = {};
+		Object.keys( SECTIONS ).forEach( ( id ) => {
+			const items = entries
+				.filter( ( entry ) => entry.section === id && entry.item )
+				.map( ( { item } ) => item );
+
+			if ( items.length && ! expanded.has( id ) ) {
+				shownBySection[ id ] = pickShownItems( items, {
+					limit: SECTIONS[ id ].shownItems ?? MAX_SHOWN_ITEMS,
+					defaults: SECTIONS[ id ].defaults,
+					uses: usesAtLoad,
+					now: loadedAt,
+				} );
+			}
+		} );
 
 		/*
 		 * Where each title goes: before the first item of its section. A
 		 * section split by another only gets a title the first time. And
-		 * where each "…" goes: before the first item it hides.
+		 * where each "…" goes: after the last item of its section.
 		 */
 		const placements = [];
 		const overflows = {};
-		const counts = {};
 		let previous;
-		[ ...list.children ].forEach( ( child ) => {
-			if (
-				child.classList.contains( TITLE_CLASS ) ||
-				child.classList.contains( MORE_CLASS ) ||
-				child.classList.contains( STAND_IN_CLASS )
-			) {
-				return;
-			}
-
-			const item = itemByRoute.get( getLinkedRoute( child ) );
-			const section = SECTIONS[ item?.section ]
-				? item.section
-				: undefined;
-
+		entries.forEach( ( { child, item, section } ) => {
 			setData( child, 'cnlMenuSectionItem', section );
 			setData(
 				child,
@@ -476,23 +578,16 @@ export function mountMenuSections() {
 				section && folded[ section ] ? '' : undefined
 			);
 
-			if ( ! item?.alwaysShown ) {
-				counts[ section ] = ( counts[ section ] || 0 ) + 1;
-			}
-			const isOverflow =
-				!! section &&
-				! item?.alwaysShown &&
-				! expanded.has( section ) &&
-				counts[ section ] >
-					( SECTIONS[ section ].shownItems ?? Infinity );
+			const shown = shownBySection[ section ];
+			const isOverflow = !! shown && !! item && ! shown.has( item.id );
 			setData( child, 'cnlOverflow', isOverflow ? '' : undefined );
 
-			if ( isOverflow ) {
-				overflows[ section ] = overflows[ section ] || {
-					before: child,
-					count: 0,
-				};
-				overflows[ section ].count++;
+			if ( shown ) {
+				overflows[ section ] = overflows[ section ] || { count: 0 };
+				overflows[ section ].after = child;
+				if ( isOverflow ) {
+					overflows[ section ].count++;
+				}
 			}
 
 			if (
@@ -546,19 +641,25 @@ export function mountMenuSections() {
 			);
 		} );
 
+		Object.entries( overflows ).forEach( ( [ id, { count } ] ) => {
+			if ( ! count ) {
+				delete overflows[ id ];
+			}
+		} );
+
 		Object.entries( mores ).forEach( ( [ id, more ] ) => {
 			if ( ! overflows[ id ] ) {
 				more.remove();
 			}
 		} );
 
-		Object.entries( overflows ).forEach( ( [ id, { before, count } ] ) => {
+		Object.entries( overflows ).forEach( ( [ id, { after, count } ] ) => {
 			// Rendered again whenever the count changes, which also catches
 			// boot rendering a new list.
 			const more = ( mores[ id ] = mores[ id ] || createMore() );
 
-			if ( before.previousElementSibling !== more ) {
-				before.before( more );
+			if ( after.nextElementSibling !== more ) {
+				after.after( more );
 			}
 
 			setData( more, 'cnlMenuSectionItem', id );
