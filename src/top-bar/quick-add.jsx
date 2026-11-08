@@ -5,29 +5,25 @@
  * Its menu lists each kind of content the site has that the person can add,
  * pages and posts first, then uploading media. Pages and posts open their
  * list's add flow, by asking the list to add one (`?add=1`, see
- * `src/routes/content/content.jsx`). Media has no screen in
- * the editor, so it opens the file picker and uploads straight to the media
- * library, with snackbar notices to say how it went.
+ * `src/routes/content/content.jsx`). Upload media opens the same upload
+ * modal as the Media screen's Upload button, from any screen (see
+ * `src/upload-media`).
  */
 
 /**
  * WordPress dependencies
  */
 import { DropdownMenu, MenuGroup, MenuItem } from '@wordpress/components';
-import { dispatch } from '@wordpress/data';
-import { useRef } from '@wordpress/element';
-import { __, _n, sprintf } from '@wordpress/i18n';
+import { useState } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 import { page, plus, post, upload } from '@wordpress/icons';
-import { uploadMedia } from '@wordpress/media-utils';
-import { store as noticesStore } from '@wordpress/notices';
 
 /**
  * Internal dependencies
  */
 import { openRoute } from '../open-route';
 import { getPostTypes } from '../settings';
-
-const UPLOAD_NOTICE_ID = 'cnl-quick-add-upload';
+import { UploadMediaModal } from '../upload-media';
 
 /*
  * Pages and posts get words of their own. Any other kind the site has is
@@ -72,83 +68,8 @@ function getTypeItem( type ) {
 	};
 }
 
-/**
- * @param {File[]} files Files to add to the media library.
- */
-function uploadFiles( files ) {
-	const notices = dispatch( noticesStore );
-	const total = files.length;
-	const uploaded = new Set();
-	let failed = 0;
-
-	notices.createInfoNotice(
-		sprintf(
-			/* translators: %d: number of files. */
-			_n( 'Uploading %d file…', 'Uploading %d files…', total ),
-			total
-		),
-		{ id: UPLOAD_NOTICE_ID, type: 'snackbar' }
-	);
-
-	const finishIfDone = () => {
-		if ( uploaded.size + failed < total || ! uploaded.size ) {
-			return;
-		}
-
-		notices.createSuccessNotice(
-			sprintf(
-				/* translators: %d: number of files. */
-				_n(
-					'%d file added to your media library.',
-					'%d files added to your media library.',
-					uploaded.size
-				),
-				uploaded.size
-			),
-			{
-				id: UPLOAD_NOTICE_ID,
-				type: 'snackbar',
-				actions: [
-					{
-						label: __( 'Open media library' ),
-						// WP Admin's, in a new tab, so the editor stays open.
-						onClick: () =>
-							window.open(
-								new URL( 'upload.php', window.location.href ),
-								'_blank'
-							),
-					},
-				],
-			}
-		);
-	};
-
-	uploadMedia( {
-		filesList: files,
-		onFileChange: ( attachments ) => {
-			attachments.forEach( ( attachment ) => {
-				// Each file shows first as a blob, then as the saved attachment.
-				if ( attachment?.id ) {
-					uploaded.add( attachment.id );
-				}
-			} );
-			finishIfDone();
-		},
-		onError: ( error ) => {
-			failed++;
-			notices.createErrorNotice( error.message, { type: 'snackbar' } );
-
-			if ( failed === total ) {
-				notices.removeNotice( UPLOAD_NOTICE_ID );
-			}
-
-			finishIfDone();
-		},
-	} );
-}
-
 export function QuickAdd() {
-	const fileInput = useRef();
+	const [ isUploadOpen, setIsUploadOpen ] = useState( false );
 	const types = getPostTypes().filter( ( type ) => type.canCreate );
 
 	return (
@@ -204,7 +125,7 @@ export function QuickAdd() {
 								) }
 								onClick={ () => {
 									onClose();
-									fileInput.current?.click();
+									setIsUploadOpen( true );
 								} }
 							>
 								{ __( 'Upload media' ) }
@@ -213,24 +134,9 @@ export function QuickAdd() {
 					</>
 				) }
 			</DropdownMenu>
-			<input
-				className="cnl-quick-add__file"
-				multiple
-				onChange={ ( event ) => {
-					const files = Array.from( event.target.files || [] );
-
-					// Cleared so picking the same file again still uploads it.
-					event.target.value = '';
-
-					if ( files.length ) {
-						uploadFiles( files );
-					}
-				} }
-				ref={ fileInput }
-				tabIndex={ -1 }
-				type="file"
-				aria-hidden="true"
-			/>
+			{ isUploadOpen && (
+				<UploadMediaModal onClose={ () => setIsUploadOpen( false ) } />
+			) }
 		</>
 	);
 }

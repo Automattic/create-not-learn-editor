@@ -21,23 +21,20 @@ import { useDataViews } from '../../use-dataviews';
 import { EMPTY_ARRAY, getSearchParams } from './list-shared';
 import { getErrorMessage } from '../../records';
 import { settings } from '../../settings';
+import { UploadMediaModal } from '../../upload-media';
 import {
 	Button,
 	coreDataStore,
 	decodeEntities,
 	DropZone,
 	EmptyState,
-	FormFileUpload,
 	imageIcon,
-	noticesStore,
 	Page,
 	Spinner,
 	Tabs,
 	__,
 	uploadIcon,
-	uploadMedia,
 	useCallback,
-	useDispatch,
 	useMemo,
 	useSelect,
 	useState,
@@ -168,63 +165,6 @@ function useOpenMedia() {
 	);
 }
 
-function useMediaUpload() {
-	const { invalidateResolutionForStoreSelector } =
-		useDispatch( coreDataStore );
-	const { createErrorNotice, createSuccessNotice } =
-		useDispatch( noticesStore );
-	const [ uploadsLeft, setUploadsLeft ] = useState( 0 );
-
-	const upload = ( files ) => {
-		const filesList = Array.from( files || [] );
-
-		if ( ! filesList.length ) {
-			return;
-		}
-
-		setUploadsLeft( ( count ) => count + filesList.length );
-
-		let finished = false;
-		const finish = () => {
-			if ( finished ) {
-				return;
-			}
-			finished = true;
-			setUploadsLeft( ( count ) =>
-				Math.max( 0, count - filesList.length )
-			);
-			invalidateResolutionForStoreSelector( 'getEntityRecords' );
-		};
-
-		uploadMedia( {
-			filesList,
-			onFileChange( uploaded ) {
-				// It calls this first with previews, which have no IDs yet.
-				if ( ! uploaded.every( ( media ) => media?.id ) ) {
-					return;
-				}
-
-				finish();
-				createSuccessNotice(
-					uploaded.length === 1
-						? __( 'Added to your media.' )
-						: __( 'All added to your media.' ),
-					{ id: 'cnl-editor-media-uploaded', type: 'snackbar' }
-				);
-			},
-			onError( error ) {
-				finish();
-				createErrorNotice( getErrorMessage( error ), {
-					id: 'cnl-editor-media-upload-failed',
-					type: 'snackbar',
-				} );
-			},
-		} );
-	};
-
-	return { isUploading: uploadsLeft > 0, upload };
-}
-
 function MediaDataViewsLayout() {
 	// Only rendered inside `DataViews`, so the module has loaded.
 	const { DataViews } = useDataViews();
@@ -252,7 +192,8 @@ export function MediaStage() {
 	const navigate = useNavigate();
 	const dataViews = useDataViews();
 	const openMedia = useOpenMedia();
-	const { isUploading, upload } = useMediaUpload();
+	// The files to upload, or `[]` for an empty modal; `null` when closed.
+	const [ uploadFiles, setUploadFiles ] = useState( null );
 	const [ view, setView ] = useState( DEFAULT_MEDIA_VIEW );
 	const [ activeTab, setActiveTab ] = useState( getMediaTabFromSearch );
 	const query = useMemo(
@@ -331,26 +272,14 @@ export function MediaStage() {
 	};
 	const canAdd = canUpload !== false;
 	const pageActions = canAdd && (
-		<FormFileUpload
-			multiple
-			onChange={ ( event ) => {
-				upload( event.currentTarget.files );
-				// Let the same file be picked again.
-				event.currentTarget.value = '';
-			} }
-			render={ ( { openFileDialog } ) => (
-				<Button
-					__next40pxDefaultSize
-					disabled={ isUploading }
-					icon={ uploadIcon }
-					isBusy={ isUploading }
-					onClick={ openFileDialog }
-					variant="primary"
-				>
-					{ isUploading ? __( 'Uploading…' ) : __( 'Upload' ) }
-				</Button>
-			) }
-		/>
+		<Button
+			__next40pxDefaultSize
+			icon={ uploadIcon }
+			onClick={ () => setUploadFiles( [] ) }
+			variant="primary"
+		>
+			{ __( 'Upload' ) }
+		</Button>
 	);
 	const empty = (
 		<div className="cnl-editor-empty-state">
@@ -388,7 +317,13 @@ export function MediaStage() {
 			{ canAdd && (
 				<DropZone
 					label={ __( 'Drop files to upload them' ) }
-					onFilesDrop={ upload }
+					onFilesDrop={ setUploadFiles }
+				/>
+			) }
+			{ uploadFiles && (
+				<UploadMediaModal
+					initialFiles={ uploadFiles }
+					onClose={ () => setUploadFiles( null ) }
 				/>
 			) }
 			<div className="routes-pattern-list__tabs-wrapper">
