@@ -136,6 +136,10 @@ function animateExpansion( update ) {
 	const transition = document.startViewTransition( update );
 	latestTransition = transition;
 
+	// A transition cut short by the next one rejects `ready`; the change of
+	// shape still happens, so that's nothing to report.
+	transition.ready.catch( () => {} );
+
 	transition.finished.finally( () => {
 		// Starting another transition cuts this one short, and the newer
 		// one tidies up after them both.

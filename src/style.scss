@@ -2988,7 +2988,7 @@
 		flex-direction: column;
 	}
 
-	.components-h-stack:has(> h1.components-heading:empty) + [role="list"] > .cnl-menu-section[data-cnl-last] {
+	.components-h-stack:has(> h1.components-heading:empty) + [role="list"] > .cnl-menu-section[data-cnl-pinned] {
 		margin-block-start: auto;
 	}
 }

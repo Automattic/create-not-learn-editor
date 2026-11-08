@@ -1,4 +1,4 @@
-import { notFound } from '@wordpress/route';
+import { notFound, redirect } from '@wordpress/route';
 
 /**
  * Internal dependencies
@@ -16,6 +16,15 @@ import {
 
 export const route = {
 	beforeLoad: ( { params } ) => {
+		// Gutenberg's templates list (`includes/gutenberg-routes.php`) opens
+		// a template here, so it's sent on to the editor's template editor.
+		if ( params.type === 'wp_template' && params.id ) {
+			throw redirect( {
+				search: { postId: decodeURIComponent( params.id ) },
+				to: '/wp_template',
+			} );
+		}
+
 		if ( ! getEditablePostType( params.type ) || ! params.id ) {
 			throw notFound();
 		}

@@ -7,7 +7,6 @@ import { withUiTheme } from '../../theme';
 import { getCurrentEditorPath, getStaticScreen } from './screens';
 import { SiteIdentityCanvas, SiteIdentityStage } from './identity';
 import { ColorsStage, DesignStage, FontsStage, StylesCanvas } from './styles';
-import { TemplatesStage } from './templates';
 import { TemplatePartsStage } from './template-parts';
 import { PatternsStage } from './patterns';
 import { MediaStage } from './media';
@@ -23,10 +22,6 @@ function Stage() {
 
 	if ( getCurrentEditorPath() === '/template-parts' ) {
 		return <TemplatePartsStage />;
-	}
-
-	if ( getCurrentEditorPath() === '/templates' ) {
-		return <TemplatesStage />;
 	}
 
 	if ( getCurrentEditorPath() === '/design' ) {

@@ -14,17 +14,20 @@ test.describe( 'Advanced views', () => {
 		await visitEditor( page );
 	} );
 
-	test( 'lists Templates full width', async ( { page } ) => {
+	test( 'lists templates full width, as Gutenberg does', async ( {
+		page,
+	} ) => {
 		await openSidebarLink( page, 'Templates' );
-		await expect( page ).toHaveURL( /p=%2Ftemplates/ );
+		await expect( page ).toHaveURL( /p=%2Ftemplates%2Flist%2Fall/ );
 
-		const stage = getStage( page );
+		// Gutenberg's own screen, without the editor's stage class.
+		const stage = page.locator( '.template-page' );
 
 		await expect(
 			stage.getByRole( 'heading', { name: 'Templates' } )
 		).toBeVisible();
 		await expect(
-			stage.getByRole( 'button', { name: 'Add template' } )
+			stage.getByRole( 'button', { name: 'Add Template' } )
 		).toBeVisible();
 		await expect( stage.locator( '.dataviews-search' ) ).toBeVisible( {
 			timeout: 15000,

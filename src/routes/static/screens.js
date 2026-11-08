@@ -65,15 +65,6 @@ const screens = {
 		status: __( 'Template parts' ),
 		title: __( 'Site parts' ),
 	},
-	'/templates': {
-		description: __(
-			'Templates decide how each kind of page is arranged. Changing one changes every page that uses it.'
-		),
-		icon: 'dashicons-media-document',
-		section: __( 'Advanced' ),
-		status: __( 'Templates' ),
-		title: __( 'Templates' ),
-	},
 };
 
 export function getCurrentEditorPath() {

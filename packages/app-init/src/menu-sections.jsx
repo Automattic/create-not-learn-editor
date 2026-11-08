@@ -5,8 +5,11 @@
  * plugin registers can name a `section` (see `cnl_editor_get_menu_items()`),
  * and a small, all-caps title goes above the first item of each, like
  * CONTENT or DESIGN. Clicking a title folds its section away, or opens it again;
- * what is folded is kept as a preference. Advanced folds again whenever the
- * editor loads, since it is for those who look for it. The screen on show stays listed even in a
+ * what is folded is kept as a preference. Advanced is tucked away at the
+ * bottom, and folds again whenever the editor loads, since it is for those
+ * who look for it. A workspace for those people, like Builder, lists it like
+ * the rest instead, open whenever the workspace is arrived in (the
+ * workspace's `tuckAdvanced`). The screen on show stays listed even in a
  * folded section, so the sidebar never loses track of where you are.
  *
  * A section lists at most three items, with a "…" item after them that
@@ -21,9 +24,9 @@
  *
  * Items with no section, like Home, come first, untitled. While the sidebar
  * is a strip of icons, each title is a thin rule and every item shows, as
- * there is nothing to read and nowhere to unfold it. Advanced is the
- * exception: the strip shows it as one "< >" icon, which opens the sidebar
- * on it, or as the icon of its screen on show.
+ * there is nothing to read and nowhere to unfold it. A tucked Advanced is
+ * the exception: the strip shows it as one "< >" icon, which opens the
+ * sidebar on it, or as the icon of its screen on show.
  *
  * Boot's menu isn't ours to render, so the titles are placed between its
  * items, which are matched to boot's registered items by where they link.
@@ -59,7 +62,7 @@ import {
 	pickShownItems,
 	recordUse,
 } from '../../../src/menu-use';
-import { PREFERENCES_SCOPE } from '../../../src/workspaces';
+import { PREFERENCES_SCOPE, getActiveWorkspace } from '../../../src/workspaces';
 
 /*
  * The sections, in no particular order: the menu items set it. An item
@@ -70,8 +73,12 @@ import { PREFERENCES_SCOPE } from '../../../src/workspaces';
  * registered with `alwaysShown`, like the shop's Products, is never one of
  * the rest, but takes one of the places.
  * `foldsOnLoad` folds the section whenever the editor loads, however it was
- * left. `stripIcon` stands for all of the section's items in the strip of
- * icons, unless one of them is the screen on show, which stands in itself.
+ * left, and `opensOnLoad` opens it. `stripIcon` stands for all of the
+ * section's items in the strip of icons, unless one of them is the screen on
+ * show, which stands in itself. `isPinned` puts the section at the bottom.
+ * `tucked` marks the section a workspace's `tuckAdvanced` lists like the
+ * rest, by leaving out those three, opening it instead and showing all its
+ * items.
  * `help` puts a "?" after the title that says what the section is for.
  * `moreLabel` says what the "…" shows, in place of how many items.
  */
@@ -93,10 +100,39 @@ const SECTIONS = {
 			'Plugins extend what WordPress can do. Each one here leads to its own screens.'
 		),
 	},
-	advanced: { label: __( 'Advanced' ), foldsOnLoad: true, stripIcon: code },
+	advanced: {
+		label: __( 'Advanced' ),
+		tucked: true,
+		foldsOnLoad: true,
+		isPinned: true,
+		stripIcon: code,
+	},
 };
 
 const MAX_SHOWN_ITEMS = 3;
+
+/**
+ * A section's settings in the active workspace.
+ *
+ * @param {string} id Section id.
+ * @return {Object} The section's settings.
+ */
+function getSection( id ) {
+	const section = SECTIONS[ id ];
+
+	if ( ! section?.tucked || getActiveWorkspace().tuckAdvanced ) {
+		return section;
+	}
+
+	return {
+		...section,
+		foldsOnLoad: false,
+		isPinned: false,
+		opensOnLoad: true,
+		shownItems: Infinity,
+		stripIcon: undefined,
+	};
+}
 
 const PREFERENCE_NAME = 'foldedMenuSections';
 
@@ -455,16 +491,47 @@ export function mountMenuSections() {
 		[ PREFERENCE_NAME ]: DEFAULT_FOLDED,
 	} );
 
-	const left = getFolded();
-	const toFold = Object.keys( SECTIONS ).filter(
-		( id ) => SECTIONS[ id ].foldsOnLoad && ! left[ id ]
-	);
-	if ( toFold.length ) {
-		dispatch( preferencesStore ).set( PREFERENCES_SCOPE, PREFERENCE_NAME, {
-			...left,
-			...Object.fromEntries( toFold.map( ( id ) => [ id, true ] ) ),
-		} );
-	}
+	/*
+	 * Fold or open the sections that are set to be on arrival: when the
+	 * editor loads, and when another workspace is picked, as that changes
+	 * which are.
+	 */
+	let arrivedIn;
+	const arrive = () => {
+		const { id: workspaceId } = getActiveWorkspace();
+
+		if ( workspaceId === arrivedIn ) {
+			return;
+		}
+		arrivedIn = workspaceId;
+
+		const left = getFolded();
+		const changes = Object.fromEntries(
+			Object.keys( SECTIONS )
+				.map( ( id ) => {
+					const { foldsOnLoad, opensOnLoad } = getSection( id );
+
+					if ( foldsOnLoad && ! left[ id ] ) {
+						return [ id, true ];
+					}
+					if ( opensOnLoad && left[ id ] ) {
+						return [ id, false ];
+					}
+					return null;
+				} )
+				.filter( Boolean )
+		);
+
+		if ( Object.keys( changes ).length ) {
+			dispatch( preferencesStore ).set(
+				PREFERENCES_SCOPE,
+				PREFERENCE_NAME,
+				{ ...left, ...changes }
+			);
+		}
+	};
+	arrive();
+	subscribe( arrive, preferencesStore );
 
 	const titles = {};
 	const mores = {};
@@ -549,7 +616,7 @@ export function mountMenuSections() {
 
 			if ( items.length && ! expanded.has( id ) ) {
 				shownBySection[ id ] = pickShownItems( items, {
-					limit: SECTIONS[ id ].shownItems ?? MAX_SHOWN_ITEMS,
+					limit: getSection( id ).shownItems ?? MAX_SHOWN_ITEMS,
 					defaults: SECTIONS[ id ].defaults,
 					uses: usesAtLoad,
 					now: loadedAt,
@@ -570,7 +637,7 @@ export function mountMenuSections() {
 			setData(
 				child,
 				'cnlStandsIn',
-				SECTIONS[ section ]?.stripIcon ? '' : undefined
+				section && getSection( section ).stripIcon ? '' : undefined
 			);
 			setData(
 				child,
@@ -612,7 +679,7 @@ export function mountMenuSections() {
 		} );
 
 		Object.entries( standIns ).forEach( ( [ id, standIn ] ) => {
-			if ( ! isPlaced( id ) ) {
+			if ( ! isPlaced( id ) || ! getSection( id ).stripIcon ) {
 				standIn.remove();
 			}
 		} );
@@ -622,7 +689,7 @@ export function mountMenuSections() {
 
 			// The section's strip icon goes between its title and items.
 			let first = before;
-			if ( SECTIONS[ id ].stripIcon ) {
+			if ( getSection( id ).stripIcon ) {
 				standIns[ id ] = standIns[ id ] || createStandIn( id );
 				if ( before.previousElementSibling !== standIns[ id ] ) {
 					before.before( standIns[ id ] );
@@ -634,10 +701,13 @@ export function mountMenuSections() {
 				first.before( titles[ id ] );
 			}
 
+			// Only the last section can sit at the bottom, below the rest.
 			setData(
 				titles[ id ],
-				'cnlLast',
-				index === placements.length - 1 ? '' : undefined
+				'cnlPinned',
+				index === placements.length - 1 && getSection( id ).isPinned
+					? ''
+					: undefined
 			);
 		} );
 

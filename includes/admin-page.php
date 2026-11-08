@@ -176,6 +176,19 @@ function cnl_editor_register_default_routes_and_menu() {
 add_action( CNL_EDITOR_SLUG . '_init', 'cnl_editor_register_default_routes_and_menu', 5 );
 
 /**
+ * Let the Math block load what it renders with.
+ *
+ * The block imports `@wordpress/latex-to-mathml` when it shows, which only
+ * works if the module is in the page's import map. Gutenberg puts it there
+ * from `enqueue_block_editor_assets`, which this page doesn't fire, as its
+ * editor loads later on, so it is enqueued here instead.
+ */
+function cnl_editor_enqueue_latex_to_mathml_loader() {
+	wp_enqueue_script_module( '@wordpress/latex-to-mathml/loader' );
+}
+add_action( CNL_EDITOR_SLUG . '_init', 'cnl_editor_enqueue_latex_to_mathml_loader' );
+
+/**
  * Get the visual theme layered on top of the design system.
  *
  * @return string Theme name: 'modern' or 'default'.
@@ -1026,11 +1039,7 @@ function cnl_editor_get_routes() {
 			'route_module'   => 'create-not-learn-editor/routes/static/route',
 			'content_module' => 'create-not-learn-editor/routes/static/content',
 		),
-		array(
-			'path'           => '/templates',
-			'route_module'   => 'create-not-learn-editor/routes/static/route',
-			'content_module' => 'create-not-learn-editor/routes/static/content',
-		),
+		// `/templates` is Gutenberg's own, see `includes/gutenberg-routes.php`.
 	);
 
 	return array_merge( $routes, cnl_editor_get_shop_routes() );
