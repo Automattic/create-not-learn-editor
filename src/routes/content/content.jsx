@@ -712,7 +712,7 @@ function Stage() {
 			) }
 			{ error && <div className="cnl-editor-empty">{ error }</div> }
 			{ showTemplates ? (
-				<div className="cnl-editor-list routes-post-list__templates">
+				<div className="routes-post-list__templates">
 					{ isLoading && (
 						<div className="cnl-editor-spinner">
 							<Spinner />

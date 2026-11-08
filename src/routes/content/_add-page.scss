@@ -1,0 +1,241 @@
+// "Add a page", from the Pages screen and quick add. The page designs it
+// shows are in `src/pickers/page-designs.jsx`, and their loading state in
+// `src/pickers/preview-loading.jsx`.
+
+// "Add a page". The shell it shares with "Add a section" is in
+// `src/design-picker/style.scss`.
+
+.cnl-add-page-layout-template-select label {
+	white-space: nowrap;
+}
+
+/*
+ * The designs fill the space under "Start from scratch" a page at a time
+ * rather than scrolling, so each preview can scroll on its own. Below a
+ * usable height the whole area scrolls instead of squashing them.
+ */
+.cnl-add-page-layout-results {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	gap: var(--wpds-dimension-padding-lg);
+	min-height: 420px;
+}
+
+.cnl-add-page-layout-main > .cnl-add-page-layout-grid {
+	flex: 1 1 0;
+	min-height: 420px;
+}
+
+.cnl-add-page-layout-pagination {
+	flex: 0 0 auto;
+}
+
+.cnl-add-page-layout-pagination__label {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	white-space: nowrap;
+}
+
+.cnl-add-page-layout-grid {
+	display: grid;
+	grid-template-columns: repeat(var(--cnl-add-page-layout-columns, 2), minmax(0, 1fr));
+	grid-template-rows: repeat(var(--cnl-add-page-layout-rows, 1), minmax(0, 1fr));
+	gap: var(--wpds-dimension-padding-xl);
+	flex: 1 1 0;
+	min-height: 0;
+}
+
+.cnl-add-page-layout-skeleton {
+	height: 100%;
+	border-radius: var(--wpds-border-radius-lg);
+}
+
+.cnl-add-page-layout-card {
+	min-height: 0;
+	cursor: pointer;
+}
+
+.cnl-add-page-layout-card__preview {
+	position: relative;
+	flex: 1 1 0;
+	min-height: 0;
+}
+
+/*
+ * Over the preview, so a click anywhere on it picks the design. The footer's
+ * button is the one to tab to, so this one is left out of the tab order.
+ */
+.cnl-add-page-layout-card__pick {
+	position: absolute;
+	z-index: 1;
+	inset: 0;
+	width: 100%;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	cursor: pointer;
+}
+
+.cnl-add-page-layout-preview-page,
+.cnl-add-page-form__preview-page {
+	width: 100%;
+	height: 100%;
+	overflow-x: hidden;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+
+	.lazy-editor-block-preview__container,
+	.block-editor-block-preview__container,
+	.block-editor-block-preview__content {
+		width: 100%;
+		height: auto;
+		max-height: none !important;
+		min-height: 100%;
+		overflow: visible;
+	}
+
+	iframe {
+		max-height: none !important;
+	}
+}
+
+/*
+ * A page in outline over a preview until it has drawn. It covers the preview,
+ * so it starts at the top of the card as the design will.
+ */
+.cnl-page-preview-loading {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	background: var(--wpds-color-background-surface-neutral-strong);
+	color: var(--wpds-color-background-track-neutral);
+	pointer-events: none;
+
+	svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+		fill: currentcolor;
+	}
+}
+
+.cnl-page-preview-loading__shapes {
+	animation: cnl-loading-pulse 1.6s ease-in-out infinite;
+
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
+}
+
+.cnl-page-preview-loading__footer {
+	opacity: 0.7;
+}
+
+.cnl-add-page-layout-categories-placeholder {
+	width: 100%;
+	padding: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-md);
+}
+
+// Naming the page: the settings on the left, the design it starts from on the
+// right, in the same modal the design was picked in.
+.cnl-add-page-form {
+	display: grid;
+	grid-template-columns: minmax(0, 440px);
+	align-content: start;
+	gap: var(--wpds-dimension-padding-2xl);
+
+	&.has-preview {
+		grid-template-columns: minmax(280px, 400px) minmax(0, 1fr);
+		align-content: stretch;
+	}
+}
+
+.cnl-add-page-form__fields {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-padding-xl);
+	min-width: 0;
+}
+
+.cnl-add-page-form__settings {
+	display: grid;
+	gap: var(--wpds-dimension-padding-lg);
+}
+
+.cnl-add-page-form__checkbox-item {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+
+	.components-base-control {
+		margin-bottom: 0;
+	}
+}
+
+.cnl-add-page-form__checkbox-help {
+	margin: 0;
+	padding-left: 28px;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	line-height: var(--wpds-typography-line-height-md);
+}
+
+.cnl-add-page-form__actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--wpds-dimension-padding-lg);
+	padding-top: var(--wpds-dimension-padding-sm);
+}
+
+.cnl-add-page-form__preview {
+	position: relative;
+	display: flex;
+	min-height: 0;
+	overflow: hidden;
+	border: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
+	border-radius: var(--wpds-border-radius-lg);
+	background: var(--wpds-color-background-surface-neutral-strong);
+}
+
+.cnl-add-page-form__preview-page {
+	border-bottom: 0;
+}
+
+@keyframes cnl-loading-pulse {
+
+	0%,
+	100% {
+		opacity: 1;
+	}
+
+	50% {
+		opacity: 0.48;
+	}
+}
+
+@media (max-width: 782px) {
+
+	.cnl-add-page-layout-results,
+	.cnl-add-page-layout-main > .cnl-add-page-layout-grid {
+		flex: 0 0 auto;
+		min-height: 0;
+	}
+
+	.cnl-add-page-layout-grid {
+		grid-template-columns: 1fr;
+		grid-template-rows: none;
+	}
+
+	.cnl-add-page-layout-card,
+	.cnl-add-page-layout-skeleton {
+		height: 360px;
+	}
+
+	.cnl-add-page-form.has-preview {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.cnl-add-page-form__preview {
+		height: 360px;
+	}
+}

@@ -1,0 +1,118 @@
+// "What are you posting?" (`src/pickers/post-kinds.jsx`).
+
+/*
+ * "What are you posting?" (`src/pickers/post-kinds.jsx`). Each kind is a
+ * soft panel with a drawing of it (`post-kind-sketches.jsx`), named
+ * underneath. A plain post leads as a tall tile, the rest sit beside it in
+ * two rows. A hovered or focused kind takes the brand colour, drawing and
+ * all.
+ */
+.cnl-post-kinds {
+	width: min(760px, calc(100vw - 2 * var(--wpds-dimension-padding-lg)));
+}
+
+.cnl-post-kinds__grid {
+	display: grid;
+	grid-template-columns: 1.2fr repeat(3, 1fr);
+	gap: var(--wpds-dimension-gap-lg) var(--wpds-dimension-gap-md);
+}
+
+.cnl-post-kinds__item.is-lead {
+	grid-row: span 2;
+}
+
+.cnl-post-kinds__kind {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--wpds-color-foreground-content-neutral);
+	font: inherit;
+	text-align: start;
+	cursor: var(--wpds-cursor-control);
+
+	&:focus {
+		outline: none;
+	}
+}
+
+.cnl-post-kinds__panel {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 96px;
+	margin-block-end: var(--wpds-dimension-gap-sm);
+	padding: var(--wpds-dimension-padding-xs);
+	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+	border-radius: var(--wpds-border-radius-lg);
+	background: var(--wpds-color-background-surface-neutral-weak);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	transition:
+		background-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
+		border-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
+		color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+
+	.is-lead & {
+		flex: 1;
+	}
+
+	.cnl-post-kinds__kind:hover &,
+	.cnl-post-kinds__kind:focus-visible & {
+		border-color: var(--wpds-color-stroke-interactive-brand);
+		background: var(--wpds-color-background-interactive-brand-weak-active);
+		color: var(--wpds-color-foreground-interactive-brand);
+	}
+
+	.cnl-post-kinds__kind:focus-visible & {
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+		outline-offset: 2px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
+}
+
+.cnl-post-kinds__sketch {
+	width: 100%;
+	height: 100%;
+}
+
+.cnl-post-kinds__title {
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.cnl-post-kinds__description {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+// Two to a row on a narrow screen, the plain post across the top.
+@media (max-width: 600px) {
+
+	.cnl-post-kinds__grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.cnl-post-kinds__item.is-lead {
+		grid-column: span 2;
+		grid-row: auto;
+	}
+
+	.cnl-post-kinds__item.is-lead .cnl-post-kinds__panel {
+		flex: none;
+		height: 96px;
+	}
+}
+
+// The way out of being asked, under the kinds.
+.cnl-post-kinds__skip {
+	margin-block-start: var(--wpds-dimension-gap-xl);
+}

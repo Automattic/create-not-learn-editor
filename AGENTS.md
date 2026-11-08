@@ -104,7 +104,7 @@ For runtime checks, use the `wp-env` instance from Development Commands above.
 - Shared client settings live in `src/settings.js`.
 - REST helpers live in `src/records.js`.
 - Shared WordPress package imports are centralized in `src/wordpress-packages.js`.
-- Styles live in `src/style.scss`.
+- Styles live beside the code they style, in `_style.scss` or `_<name>.scss` partials. `src/style.scss` only puts them in order, and app-init's `packages/app-init/src/style.scss` loads it with the sidebar's and the other features' stylesheets. Styles more than one screen shares, the stage, the canvas and the DataViews lists, are in `src/styles/`. Add a partial to the index rather than rules to the index itself, and keep its place in the order, since a later rule wins over an earlier one of the same weight.
 - Customisations of the full-screen edit canvas live in the editor layer, `src/editor-layer/`. It hides, adds to and configures core's editor from outside rather than forking it; see its README before working around the editor another way.
 - The block toolbar's rework, after Gutenberg's proposal for it, lives in `src/block-toolbar/`. It works from outside core's toolbar, through its slots and a stylesheet; see its README before changing core's toolbar another way.
 - Pickers used by more than one screen, and by the chat, live in `src/pickers/`. Change a picker there rather than copying it, so the screens and the chat stay the same.

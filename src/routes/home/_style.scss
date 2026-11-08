@@ -1,0 +1,122 @@
+// Home and the shop's hub: the site card in the header and the places to start.
+
+/*
+ * "Your site" hub: places to start working on the site, beside the homepage
+ * preview.
+ */
+.cnl-site-hub {
+	gap: var(--wpds-dimension-gap-xl);
+	padding: var(--wpds-dimension-padding-xl);
+	color: var(--wpds-color-foreground-content-neutral);
+
+	h1,
+	h2 {
+		margin: 0;
+	}
+
+	// The links are the screen here, not a footer to it.
+	.cnl-screen-links {
+		border-top: 0;
+		padding-top: 0;
+	}
+}
+
+.cnl-site-hub__hint {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+/*
+ * Home's header is the site: its logo, its name with how many changes aren't
+ * saved yet, and its address. See `src/routes/home/site-card.jsx`.
+ *
+ * The mark is one size up from the header's usual 24px icon, as it stands
+ * for the whole site. At 32px it is as tall as the title row already is, so
+ * the header is no taller. The header has no class of its own for the slot.
+ */
+[class*="__header-visual"]:has(> .cnl-site-card__mark) {
+	width: var(--wpds-dimension-size-md);
+	height: var(--wpds-dimension-size-md);
+}
+
+// Opens Name & logo. A faint ring and a pencil on hover say it can be clicked.
+.cnl-site-card__mark {
+	position: relative;
+	display: grid;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	border-radius: var(--wpds-border-radius-sm);
+	background: none;
+	cursor: pointer;
+	transition: box-shadow 0.1s ease-out;
+
+	&:hover {
+		box-shadow: 0 0 0 2px var(--wpds-color-background-surface-neutral-strong), 0 0 0 3px var(--wpds-color-stroke-surface-neutral);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
+}
+
+// A pencil over a dimmed logo, shown on hover.
+.cnl-site-card__edit {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	border-radius: var(--wpds-border-radius-sm);
+	background: rgba(0, 0, 0, 0.55);
+	color: #fff;
+	opacity: 0;
+	transition: opacity 0.1s ease-out;
+
+	svg {
+		fill: currentcolor;
+	}
+
+	.cnl-site-card__mark:hover & {
+		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
+}
+
+.cnl-site-card__logo {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	border-radius: var(--wpds-border-radius-sm);
+}
+
+.cnl-site-card__initial {
+	display: grid;
+	place-items: center;
+	border-radius: var(--wpds-border-radius-sm);
+	background: var(--wpds-color-background-surface-neutral-weak);
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: 16px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+// A long name is cut short before the badge is.
+.cnl-site-card__status {
+	flex-shrink: 0;
+	white-space: nowrap;
+}
+
+// While changes are waiting, the badge is a button that opens the review.
+button.cnl-site-card__status {
+	border: 0;
+	font-family: inherit;
+	cursor: pointer;
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+		outline-offset: 1px;
+	}
+}

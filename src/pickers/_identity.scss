@@ -1,0 +1,88 @@
+// Name & logo (`src/pickers/identity.jsx`).
+
+// The logo and browser icon pickers, copied from the media field in core's
+// Identity screen.
+.cnl-editor-media-field__picker {
+	position: relative;
+	display: flex;
+	gap: var(--wpds-dimension-gap-sm);
+	align-items: center;
+	box-sizing: border-box;
+	min-width: 0;
+	min-height: 40px;
+	padding: 4px 8px;
+	border: 1px dashed var(--wp-admin-theme-color);
+	border-radius: var(--wpds-border-radius-sm);
+	color: var(--wp-admin-theme-color);
+	cursor: pointer;
+
+	&:hover {
+		border-color: var(--wp-admin-theme-color-darker-20);
+		background-color: color-mix(in srgb, var(--wp-admin-theme-color) 4%, transparent);
+		color: var(--wp-admin-theme-color-darker-20);
+	}
+
+	&:focus-visible {
+		box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
+		outline: none;
+	}
+
+	&[aria-disabled="true"] {
+		cursor: default;
+		opacity: 0.6;
+	}
+
+	&.has-media {
+		border-color: var(--wpds-color-stroke-interactive-neutral);
+		color: var(--wpds-color-foreground-content-neutral);
+
+		&:hover {
+			background-color: transparent;
+			color: var(--wp-admin-theme-color);
+		}
+	}
+}
+
+.cnl-editor-media-field__placeholder {
+	flex: 1;
+	text-align: center;
+}
+
+.cnl-editor-media-field__item {
+	position: relative;
+	min-width: 0;
+
+	// Leave room for the Remove button.
+	.cnl-editor-media-field__picker {
+		padding-right: 40px;
+	}
+}
+
+.cnl-editor-media-field__thumbnail {
+	flex-shrink: 0;
+	width: 24px;
+	aspect-ratio: 1;
+	border-radius: var(--wpds-border-radius-sm);
+	object-fit: contain;
+}
+
+.cnl-editor-media-field__filename {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cnl-editor-media-field__remove.components-button {
+	position: absolute;
+	top: 50%;
+	right: 8px;
+	transform: translateY(-50%);
+	opacity: 0;
+}
+
+.cnl-editor-media-field__item:hover .cnl-editor-media-field__remove,
+.cnl-editor-media-field__item:focus-within .cnl-editor-media-field__remove {
+	opacity: 1;
+}

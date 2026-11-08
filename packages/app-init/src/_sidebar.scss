@@ -1,0 +1,395 @@
+// The rest of the black sidebar app-init adds to boot's (`sidebar.js`): the
+// heading slot, the top row with the greeting and menu button, the workspace
+// switcher, the strip of icons it folds to and the transition between the two.
+
+@use "../../../src/fonts" as *;
+
+/*
+ * Sidebar heading slot.
+ *
+ * Inside a menu section, boot shows a title row with a Back button and the
+ * section name. At the top level that row is empty, so it is taken out and
+ * the menu starts right below the greeting's row, where it starts when the
+ * sidebar is a strip of icons too.
+ */
+$sidebar-heading-height: 56px;
+
+[class*="__sidebar"] [class*="__title-icon"] {
+	box-sizing: border-box;
+	height: $sidebar-heading-height;
+	padding-block: 0;
+	align-items: center;
+
+	&:not(:has(.components-button)) {
+		display: none;
+	}
+}
+
+/*
+ * The black sidebar's headings, the greeting below and each section's title
+ * (Content, Design, Advanced), in WordPress.org's EB Garamond, larger than
+ * the interface font, whatever the visual theme: one deliberate exception to
+ * stock WPDS. Every other heading follows the design system's defaults.
+ */
+@mixin cnl-sidebar-heading {
+	font-family: $cnl-heading-font-family;
+	font-size: 28px;
+	font-weight: 400;
+	letter-spacing: normal;
+	line-height: 1.2;
+	text-transform: none;
+}
+
+[class*="__sidebar"] [class*="__title-icon"] h1 {
+
+	@include cnl-sidebar-heading;
+	text-wrap: balance;
+}
+
+/*
+ * Boot's Dashboard link. The admin bar above leads to the Dashboard, and
+ * app-init puts the sidebar's menu button in its place.
+ */
+[class*="__sidebar"] [class*="__back-button"] {
+	display: none;
+}
+
+/*
+ * The space below the sidebar's top row sets where the menu starts. It lines
+ * the menu up with the tops of the white surfaces beside it.
+ */
+$sidebar-heading-offset: 3px;
+
+/*
+ * The sidebar's top row, added by app-init in place of boot's Dashboard link:
+ * the greeting, level with the top bar beside it, and the menu button at the
+ * far end.
+ *
+ * The top margin centres the 40px row on the 56px top bar. The bottom margin
+ * makes up the rest of gap-lg plus the offset above.
+ */
+.cnl-sidebar-header {
+	display: flex;
+	align-items: center;
+	min-height: 40px;
+	margin-block: var(--wpds-dimension-gap-sm) calc(var(--wpds-dimension-gap-lg) - var(--wpds-dimension-gap-sm) + #{$sidebar-heading-offset});
+	margin-inline: var(--wpds-dimension-gap-md);
+}
+
+/*
+ * Menu button that expands the sidebar from its strip of icons and folds it
+ * back. Shown only where the sidebar can be a strip; on narrow screens it is
+ * a drawer instead. It sits at the sidebar's far end, so it travels with that
+ * edge as the sidebar expands and folds, and is centred over the icons once
+ * the sidebar is a strip.
+ */
+.cnl-sidebar-toggle {
+	display: none;
+	flex-shrink: 0;
+	margin-inline-start: auto;
+}
+
+.components-button.cnl-sidebar-toggle__button {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+
+	&:hover:not(:disabled),
+	&:focus-visible {
+		color: var(--wpds-color-foreground-content-neutral);
+	}
+
+	@media not (prefers-reduced-motion) {
+		transition: color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+	}
+}
+
+/*
+ * Workspace switcher, added below the main menu by app-init as a section of
+ * its own.
+ */
+$workspace-toggle-inset: var(--wpds-dimension-gap-xs);
+
+/*
+ * The divider runs the full width of the panel. Boot's footer below only has
+ * content while there are unsaved changes, so its padding is dropped while it
+ * is empty to keep the space above and below the toggle even.
+ */
+.cnl-sidebar-workspace {
+	margin-block-start: var(--wpds-dimension-gap-sm);
+	padding-block: var(--wpds-dimension-gap-md);
+	padding-inline: var(--wpds-dimension-padding-xl) var(--wpds-dimension-gap-md);
+	border-block-start: 1px solid var(--wpds-color-stroke-surface-neutral);
+
+	+ [class*="__footer"]:empty {
+		padding: 0;
+	}
+}
+
+/*
+ * Tertiary: knocked back like the menu button until hovered, with the
+ * workspace name a step brighter than its icons.
+ */
+.components-button.cnl-sidebar-workspace__toggle {
+	display: flex;
+	width: 100%;
+	gap: var(--wpds-dimension-gap-xs);
+	margin-inline-start: calc(-1 * #{$workspace-toggle-inset});
+	padding-inline: $workspace-toggle-inset;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+	font-weight: var(--wpds-typography-font-weight-default);
+
+	svg {
+		fill: currentcolor;
+	}
+
+	&:hover:not(:disabled),
+	&:focus-visible,
+	&[aria-expanded="true"] {
+		color: var(--wpds-color-foreground-content-neutral);
+	}
+
+	@media not (prefers-reduced-motion) {
+		transition: color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+	}
+}
+
+.cnl-sidebar-workspace__value {
+	flex: 1;
+	margin-inline-start: var(--wpds-dimension-gap-xs);
+	color: var(--wpds-color-foreground-content-neutral);
+	text-align: start;
+}
+
+/*
+ * Each workspace's icon in the switcher menu, knocked back so the names lead.
+ */
+.cnl-sidebar-workspace__option .components-menu-items__item-icon {
+	fill: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+/*
+ * Greeting at the start of the sidebar's top row, set as the sidebar's
+ * headings are and lined up with the section titles below.
+ */
+.cnl-sidebar-welcome {
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	padding-inline: calc(var(--wpds-dimension-padding-xl) - var(--wpds-dimension-gap-md)) var(--wpds-dimension-gap-sm);
+	overflow: hidden;
+	color: var(--wpds-color-foreground-content-neutral);
+	white-space: nowrap;
+	text-overflow: ellipsis;
+
+	@include cnl-sidebar-heading;
+
+	/*
+	 * Only greet at the top level. Inside a section (Content, Design,
+	 * Advanced) the title row shows a Back button and the section name.
+	 */
+	[class*="__sidebar"]:has([class*="__title-icon"] .components-button) & {
+		visibility: hidden;
+		opacity: 0;
+	}
+
+	@media not (prefers-reduced-motion) {
+		transition:
+			opacity var(--wpds-motion-duration-md) var(--wpds-motion-easing-subtle),
+			visibility var(--wpds-motion-duration-md);
+	}
+}
+
+/*
+ * The sidebar as a strip of icons, which it is unless toggled open. The way
+ * to other areas stays in reach without taking the room. Labels are hidden
+ * visually but kept for screen readers, and app-init shows each one as a
+ * tooltip. The menu button at its top expands it until another screen is
+ * picked. On narrow screens the sidebar is a drawer instead.
+ */
+$sidebar-strip-width: 64px;
+
+@mixin cnl-visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	border: 0;
+	white-space: nowrap;
+}
+
+@media (min-width: 782px) {
+
+	#create-not-learn-editor-app [class*="__layout"] .cnl-sidebar-toggle {
+		display: flex;
+	}
+
+	body:not(.cnl-sidebar-is-expanded) #create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"] {
+		width: $sidebar-strip-width;
+
+		/*
+		 * No greeting, Back button or section title, so the icons start
+		 * right below the menu button.
+		 */
+		[class*="__title-icon"],
+		.cnl-sidebar-welcome,
+		.cnl-sidebar-workspace__toggle > :not(:first-child) {
+			display: none;
+		}
+
+		.cnl-sidebar-header {
+			justify-content: center;
+			margin-inline: 0;
+		}
+
+		.cnl-sidebar-toggle {
+			margin-inline: 0;
+		}
+
+		[class*="__item-wrapper"] > * > * > :not(:first-child) {
+
+			@include cnl-visually-hidden;
+		}
+
+		.cnl-sidebar-workspace {
+			display: flex;
+			justify-content: center;
+			margin-inline: 0;
+			padding-inline: 0;
+		}
+
+		.components-button.cnl-sidebar-workspace__toggle {
+			justify-content: center;
+			width: 40px;
+			margin-inline: 0;
+			padding-inline: 0;
+		}
+
+		[class*="__item-wrapper"] > * > * {
+			justify-content: center;
+		}
+
+		[class*="__item-wrapper"] {
+			box-sizing: border-box;
+			padding-inline: var(--wpds-dimension-gap-sm);
+		}
+
+		// Each item fills its row but for the row's own inset, so the screen
+		// on show is marked by a box nearly as wide as the strip. Boot sizes
+		// items to leave room for margins they no longer have here.
+		[class*="__item-wrapper"] > * {
+			width: 100%;
+			margin-inline: 0;
+			padding-inline: 0;
+		}
+
+		// Each section title is a short rule between groups of icons.
+		.cnl-menu-section {
+			box-sizing: border-box;
+			height: 1px;
+			margin-block: var(--wpds-dimension-gap-sm);
+			margin-inline: var(--wpds-dimension-padding-xl);
+			background: var(--wpds-color-stroke-surface-neutral);
+		}
+
+		.cnl-menu-section::before,
+		.cnl-menu-section__toggle,
+		.cnl-menu-section__help,
+		.cnl-menu-section-more {
+			display: none;
+		}
+
+		/*
+		 * A section with a strip icon, like Advanced, shows that icon in
+		 * place of its items, unless one of them is the screen on show,
+		 * which stands in for them itself.
+		 */
+		[data-cnl-stands-in]:not(:has([aria-current="page"])),
+		[role="list"]:has(> [data-cnl-stands-in] [aria-current="page"]) > .cnl-menu-section-stand-in {
+			display: none;
+		}
+
+		// Shaped like the items around it, in rows of the same height.
+		.cnl-menu-section-stand-in {
+			display: block;
+			box-sizing: border-box;
+			padding: 2px var(--wpds-dimension-gap-sm);
+		}
+
+		.cnl-menu-section-stand-in__button {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 100%;
+			height: 32px;
+			margin: 0;
+			padding: 0;
+			border: 0;
+			border-radius: var(--wpds-border-radius-md);
+			background: transparent;
+			color: inherit;
+			cursor: pointer;
+
+			&:focus-visible {
+				outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+				outline-offset: 0;
+			}
+		}
+	}
+}
+
+/*
+ * Expanding the sidebar or folding it to its strip of icons is one view
+ * transition (`packages/app-init/src/sidebar.js`), not a transition of its
+ * width, which would lay out the menu and the site beside it again on every
+ * frame. The page takes its new shape at once and these pictures of the
+ * before and after are animated instead.
+ *
+ * The sidebar's pictures are drawn at their own size from its start edge,
+ * so it is clipped as it narrows and revealed as it widens, rather than
+ * squeezed, with its labels fading as they go. Its icons and the menu
+ * button are pictured on their own, so they glide to their new places.
+ * Boot styles the stage and canvas the same way for its transitions.
+ *
+ * `html` makes these a step more specific than boot's own rules for those
+ * pictures, which load after this stylesheet.
+ */
+html:root.cnl-sidebar-is-transitioning {
+
+	&::view-transition-group(*) {
+		animation-duration: var(--wpds-motion-duration-lg);
+		animation-timing-function: var(--wpds-motion-easing-expressive);
+	}
+
+	&::view-transition-old(cnl-sidebar),
+	&::view-transition-new(cnl-sidebar) {
+		width: 100%;
+		height: 100%;
+		object-fit: none;
+		object-position: left top;
+	}
+
+	&::view-transition-old(*),
+	&::view-transition-new(*) {
+		animation-timing-function: var(--wpds-motion-easing-subtle);
+	}
+
+	// What goes fades out quickly, so the two never read as one.
+	&::view-transition-old(cnl-sidebar) {
+		animation-duration: var(--wpds-motion-duration-md);
+	}
+
+	// The site is laid out again at its new width, so its lines wrap
+	// differently. Held at its start edge, like the sidebar, its pictures
+	// swap in a quick dissolve at the start, then it slides and widens or
+	// narrows as one, rather than showing both layouts the whole way.
+	&::view-transition-old(boot--canvas),
+	&::view-transition-new(boot--canvas),
+	&::view-transition-old(boot-safari--canvas),
+	&::view-transition-new(boot-safari--canvas) {
+		object-position: left top;
+		animation-duration: var(--wpds-motion-duration-sm);
+	}
+}
