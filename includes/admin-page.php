@@ -251,6 +251,7 @@ function cnl_editor_get_app_settings() {
 		'postTypes'          => cnl_editor_get_content_post_type_data(),
 		'editablePostTypes'  => cnl_editor_get_editable_post_type_data(),
 		'shop'               => cnl_editor_get_shop_settings(),
+		'blogAdmin'          => cnl_editor_get_blog_admin_settings(),
 		'navigationRestBase' => $navigation_post_type && $navigation_post_type->rest_base
 			? $navigation_post_type->rest_base
 			: 'navigation',

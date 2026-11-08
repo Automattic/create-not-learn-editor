@@ -59,6 +59,7 @@ describe( 'WORKSPACES', () => {
 		WORKSPACES.forEach( ( workspace ) => {
 			expect( workspace.home.places.length ).toBeGreaterThan( 0 );
 			expect( workspace.home.hint ).toBeTruthy();
+			expect( Array.isArray( workspace.home.adminLinks ) ).toBe( true );
 			expect( workspace.posts.layout ).toBeTruthy();
 			expect( typeof workspace.writingAids ).toBe( 'boolean' );
 		} );
