@@ -3600,10 +3600,57 @@ $sidebar-strip-width: 64px;
 	}
 }
 
-@media (min-width: 782px) and (not (prefers-reduced-motion)) {
+/*
+ * Expanding the sidebar or folding it to its strip of icons is one view
+ * transition (`packages/app-init/src/sidebar.js`), not a transition of its
+ * width, which would lay out the menu and the site beside it again on every
+ * frame. The page takes its new shape at once and these pictures of the
+ * before and after are animated instead.
+ *
+ * The sidebar's pictures are drawn at their own size from its start edge,
+ * so it is clipped as it narrows and revealed as it widens, rather than
+ * squeezed, with its labels fading as they go. Its icons, the toggle and
+ * the logo are pictured on their own, so they glide to their new places.
+ * Boot styles the stage and canvas the same way for its transitions.
+ *
+ * `html` makes these a step more specific than boot's own rules for those
+ * pictures, which load after this stylesheet.
+ */
+html:root.cnl-sidebar-is-transitioning {
 
-	#create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"] {
-		transition: width var(--wpds-motion-duration-md) var(--wpds-motion-easing-subtle);
+	&::view-transition-group(*) {
+		animation-duration: var(--wpds-motion-duration-lg);
+		animation-timing-function: var(--wpds-motion-easing-expressive);
+	}
+
+	&::view-transition-old(cnl-sidebar),
+	&::view-transition-new(cnl-sidebar) {
+		width: 100%;
+		height: 100%;
+		object-fit: none;
+		object-position: left top;
+	}
+
+	&::view-transition-old(*),
+	&::view-transition-new(*) {
+		animation-timing-function: var(--wpds-motion-easing-subtle);
+	}
+
+	// What goes fades out quickly, so the two never read as one.
+	&::view-transition-old(cnl-sidebar) {
+		animation-duration: var(--wpds-motion-duration-md);
+	}
+
+	// The site is laid out again at its new width, so its lines wrap
+	// differently. Held at its start edge, like the sidebar, its pictures
+	// swap in a quick dissolve at the start, then it slides and widens or
+	// narrows as one, rather than showing both layouts the whole way.
+	&::view-transition-old(boot--canvas),
+	&::view-transition-new(boot--canvas),
+	&::view-transition-old(boot-safari--canvas),
+	&::view-transition-new(boot-safari--canvas) {
+		object-position: left top;
+		animation-duration: var(--wpds-motion-duration-sm);
 	}
 }
 
