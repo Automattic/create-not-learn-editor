@@ -8,10 +8,8 @@ import { afterEach, describe, expect, it } from 'vitest';
  */
 import {
 	DEFAULT_WORKSPACE,
-	HIDDEN_PARENT,
 	WORKSPACES,
 	getAvailableWorkspaces,
-	getMenuItemChanges,
 	getWorkspace,
 } from '../presets';
 import { settings } from '../../settings';
@@ -81,52 +79,6 @@ describe( 'WORKSPACES', () => {
 				workspace.home.places.length
 			);
 		} );
-	} );
-} );
-
-describe( 'getMenuItemChanges', () => {
-	const registered = [
-		{ id: 'home', to: '/' },
-		{ id: 'pages', to: '/types/page', section: 'site' },
-		{ id: 'content-post', to: '/types/post', section: 'advanced' },
-		{ id: 'content-book', to: '/types/book', section: 'advanced' },
-		{ id: 'templates', to: '/templates', section: 'advanced' },
-	];
-	const workspace = {
-		...DEFAULT_WORKSPACE,
-		menuItems: {
-			pages: { parent: HIDDEN_PARENT },
-			'content-post': { section: 'site' },
-		},
-		hiddenMenuSections: [ 'advanced' ],
-	};
-
-	it( 'hides every item in a hidden section', () => {
-		const changes = getMenuItemChanges( workspace, registered );
-
-		expect( changes[ 'content-book' ] ).toEqual( {
-			parent: HIDDEN_PARENT,
-		} );
-		expect( changes.templates ).toEqual( { parent: HIDDEN_PARENT } );
-	} );
-
-	it( 'keeps an item moved out of a hidden section', () => {
-		expect(
-			getMenuItemChanges( workspace, registered )[ 'content-post' ]
-		).toEqual( { section: 'site' } );
-	} );
-
-	it( 'leaves the workspace’s own changes as they are', () => {
-		const changes = getMenuItemChanges( workspace, registered );
-
-		expect( changes.pages ).toEqual( { parent: HIDDEN_PARENT } );
-		expect( changes.home ).toBeUndefined();
-	} );
-
-	it( 'changes nothing for a workspace that hides no sections', () => {
-		expect( getMenuItemChanges( DEFAULT_WORKSPACE, registered ) ).toEqual(
-			{}
-		);
 	} );
 } );
 

@@ -7,7 +7,8 @@
  *
  * Surfaces read the active workspace's configuration rather than checking
  * its id, so a new workspace is a new entry in `WORKSPACES` (`presets.js`),
- * not a new branch in every surface. This module applies the sidebar side.
+ * not a new branch in every surface. The sidebar is the same in every
+ * workspace.
  *
  * The choice is a per-user editor preference, persisted to user meta by the
  * preferences store.
@@ -16,8 +17,7 @@
 /**
  * WordPress dependencies
  */
-import { store as bootStore } from '@wordpress/boot';
-import { dispatch, select, subscribe } from '@wordpress/data';
+import { dispatch, subscribe } from '@wordpress/data';
 import { store as preferencesStore } from '@wordpress/preferences';
 
 /**
@@ -30,7 +30,6 @@ import {
 	WORKSPACES,
 	getActiveWorkspace,
 	getAvailableWorkspaces,
-	getMenuItemChanges,
 	getWorkspace,
 } from './presets';
 
@@ -72,46 +71,12 @@ export function resetRouteToHome() {
 }
 
 /**
- * Apply the active workspace to boot's sidebar, now and whenever it changes.
- *
- * Every item any workspace touches is reset to its registered definition
- * before the active workspace's changes are layered on, so switching back
- * undoes them. Must run after boot has registered its menu items.
+ * Apply the active workspace, now and whenever it changes: mark the body
+ * with its id and set the defaults it gives core's preferences.
  */
 export function mountWorkspaces() {
 	dispatch( preferencesStore ).setDefaults( PREFERENCES_SCOPE, {
 		[ PREFERENCE_NAME ]: DEFAULT_WORKSPACE.id,
-	} );
-
-	/*
-	 * The registered value of every property any workspace changes, per item,
-	 * including properties the item was registered without.
-	 */
-	const registered = select( bootStore ).getMenuItems();
-	const changesByWorkspace = Object.fromEntries(
-		WORKSPACES.map( ( workspace ) => [
-			workspace.id,
-			getMenuItemChanges( workspace, registered ),
-		] )
-	);
-	const originals = {};
-	WORKSPACES.forEach( ( workspace ) => {
-		Object.entries( changesByWorkspace[ workspace.id ] ).forEach(
-			( [ id, changes ] ) => {
-				const item = registered.find(
-					( { id: itemId } ) => itemId === id
-				);
-
-				if ( ! item ) {
-					return;
-				}
-
-				originals[ id ] = originals[ id ] || {};
-				Object.keys( changes ).forEach( ( key ) => {
-					originals[ id ][ key ] = item[ key ];
-				} );
-			}
-		);
 	} );
 
 	let appliedId;
@@ -127,16 +92,6 @@ export function mountWorkspaces() {
 		// Core's own preference, so a choice made on the step itself wins.
 		dispatch( preferencesStore ).setDefaults( 'core', {
 			isPublishSidebarEnabled: workspace.publishStep,
-		} );
-		document.body.classList.toggle(
-			'cnl-pin-last-menu-section',
-			!! workspace.pinLastMenuSection
-		);
-		Object.keys( originals ).forEach( ( id ) => {
-			dispatch( bootStore ).updateMenuItem( id, {
-				...originals[ id ],
-				...changesByWorkspace[ workspace.id ][ id ],
-			} );
 		} );
 	};
 

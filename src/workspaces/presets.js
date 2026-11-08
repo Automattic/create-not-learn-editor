@@ -1,9 +1,9 @@
 /**
  * The workspace presets, and which one is active.
  *
- * Kept apart from `index.js`, which applies them to boot's sidebar, so that
- * screens and the chat can read the active workspace without bringing boot's
- * store along.
+ * Kept apart from `index.js`, which switches between them, so that screens
+ * and the chat can read the active workspace without bringing its side
+ * effects along.
  *
  * A workspace is organised around what someone came to do, not how much they
  * know. Each one is a set of presentation settings. Surfaces read the setting
@@ -30,25 +30,10 @@ export const PREFERENCES_SCOPE = 'create-not-learn-editor';
 export const PREFERENCE_NAME = 'workspace';
 
 /**
- * A parent no menu item has, so an item moved under it is never listed.
- * Boot has no way to remove a menu item once registered. The shop's item is
- * registered under it (`includes/shop.php`), for Selling to lift out.
- */
-export const HIDDEN_PARENT = 'cnl-workspace-hidden';
-
-/**
  * What every workspace starts from.
  *
- * - `menuItems`: changes to boot's registered sidebar items, keyed by item id.
- *   Anything not listed keeps its registered definition. Besides boot's own
- *   properties, `section` moves an item to another titled section, or out of
- *   them.
- * - `pinLastMenuSection`: pins the sidebar's last titled section, like
- *   Advanced, to the bottom of the panel.
- * - `hiddenMenuSections`: sidebar sections whose items are all left out, by
- *   section id. An item moved to another section in `menuItems` goes too.
- *   Each item's section is its `section` (see `cnl_editor_get_menu_items()`),
- *   and the titles come from `packages/app-init/src/menu-sections.jsx`.
+ * The sidebar is the same in every workspace, so none of these change it.
+ *
  * - `home.places`: the places to start on "Home", and in the chat, by id
  *   (see `src/start-places.js`), with `home.copy` rewording any of them. A
  *   place the site has no use for, like a shop on a site without one, is
@@ -72,9 +57,6 @@ export const HIDDEN_PARENT = 'cnl-workspace-hidden';
  *   the person's own choice, from the checkbox on that step, wins.
  */
 const DEFAULTS = {
-	menuItems: {},
-	pinLastMenuSection: false,
-	hiddenMenuSections: [],
 	home: {
 		places: [ 'home', 'pages', 'identity', 'style', 'siteParts', 'shop' ],
 		copy: {},
@@ -110,22 +92,12 @@ const PRESETS = [
 		id: 'simple',
 		label: __( 'Default' ),
 		icon: layout,
-		pinLastMenuSection: true,
 	},
 	{
 		id: 'writing',
 		aliases: [ 'blogging' ],
 		label: __( 'Writing' ),
 		icon: pencil,
-		// Writing first: Home, Posts, then the look of the blog, with no
-		// section titles over so short a list, and the page-building screens
-		// out of the way.
-		menuItems: {
-			'content-post': { section: undefined },
-			colors: { section: undefined },
-			fonts: { section: undefined },
-		},
-		hiddenMenuSections: [ 'content', 'site', 'design', 'advanced' ],
 		home: {
 			// The homepage is the same place, and the same screen, as in
 			// every other workspace.
@@ -159,14 +131,8 @@ const PRESETS = [
 		label: __( 'Selling' ),
 		icon: store,
 		isAvailable: () => !! settings.shop,
-		pinLastMenuSection: true,
-		// The shop first, on Home and at the top of the sidebar, in place of
-		// WooCommerce under Plugins. The rest is as Default has it, so the
-		// site is still built the same way.
-		menuItems: {
-			shop: { parent: undefined },
-			woocommerce: { parent: HIDDEN_PARENT },
-		},
+		// The shop first on Home. The rest is as Default has it, so the site
+		// is still built the same way.
 		home: {
 			places: [
 				'shop',
@@ -182,15 +148,6 @@ const PRESETS = [
 		id: 'builder',
 		label: __( 'Builder' ),
 		icon: tool,
-		// Every site-building destination in reach: Sections, Site parts and
-		// Layouts join Design rather than being folded away in Advanced.
-		// Menus stays out of the way, as it always has here.
-		menuItems: {
-			navigation: { parent: HIDDEN_PARENT },
-			templateParts: { section: 'design' },
-			templates: { section: 'design' },
-			patterns: { section: 'design' },
-		},
 	},
 ];
 
@@ -227,30 +184,6 @@ export function getWorkspace( id ) {
 				workspace.id === id || workspace.aliases?.includes( id )
 		) || DEFAULT_WORKSPACE
 	);
-}
-
-/**
- * The changes a workspace makes to boot's registered sidebar items: its own
- * `menuItems`, and every item in one of its hidden sections moved out of
- * sight.
- *
- * @param {Object}   workspace  Workspace preset.
- * @param {Object[]} registered Boot's registered menu items.
- * @return {Object} Changes keyed by item id.
- */
-export function getMenuItemChanges( workspace, registered ) {
-	const changes = { ...workspace.menuItems };
-
-	registered.forEach( ( item ) => {
-		const own = changes[ item.id ];
-		const section = own && 'section' in own ? own.section : item.section;
-
-		if ( workspace.hiddenMenuSections.includes( section ) ) {
-			changes[ item.id ] = { ...own, parent: HIDDEN_PARENT };
-		}
-	} );
-
-	return changes;
 }
 
 /**
