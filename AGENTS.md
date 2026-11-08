@@ -97,7 +97,8 @@ For runtime checks, use the `wp-env` instance from Development Commands above.
 
 ## Editor Architecture
 
-- PHP full-page shell lives in `includes/admin-page.php`.
+- PHP full-page shell lives in `includes/admin-page.php`. The routes and sidebar items it boots with are registered in `includes/editor-registry.php`, its scripts, modules and styles in `includes/editor-assets.php`, and `window.createNotLearnEditor` is built in `includes/app-settings.php`.
+- Every `includes/*.php` file adds its hooks in a `cnl_editor_register_*_hooks()` function that `cnl_editor_bootstrap()` calls, never when the file loads. Paths and URLs into Gutenberg go through `cnl_editor_get_gutenberg_path()` and `cnl_editor_get_gutenberg_url()`.
 - Route implementations live under `src/routes/`.
 - Build entry wrappers live under root `routes/` for `@wordpress/build`.
 - Shared client settings live in `src/settings.js`.

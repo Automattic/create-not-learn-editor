@@ -260,6 +260,8 @@ export function useForcedBlockEditorSettings( settings ) {
 		() => () => {
 			guardRef.current?.set( null );
 			guardRef.current?.destroy();
+			// A remount, as in StrictMode, starts a guard of its own.
+			guardRef.current = null;
 		},
 		[]
 	);

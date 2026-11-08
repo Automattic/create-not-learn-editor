@@ -450,9 +450,9 @@ function cnl_editor_get_site_overview_template_summary( $template ) {
  * @return string Title, or a placeholder for an untitled post.
  */
 function cnl_editor_get_site_overview_post_title( $post ) {
-	$title = trim( wp_strip_all_tags( get_the_title( $post ) ) );
+	$title = cnl_editor_get_preview_title( $post );
 
-	return '' !== $title ? html_entity_decode( $title, ENT_QUOTES, get_bloginfo( 'charset' ) ) : __( '(no title)', 'create-not-learn-editor' );
+	return '' !== $title ? $title : __( '(no title)', 'create-not-learn-editor' );
 }
 
 /**

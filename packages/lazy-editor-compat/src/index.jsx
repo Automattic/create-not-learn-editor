@@ -4,13 +4,7 @@
 import { parse, store as blocksStore } from '@wordpress/blocks';
 import { store as coreDataStore } from '@wordpress/core-data';
 import { useDispatch, useSelect } from '@wordpress/data';
-import {
-	createElement,
-	memo,
-	useEffect,
-	useMemo,
-	useRef,
-} from '@wordpress/element';
+import { memo, useEffect, useMemo, useRef } from '@wordpress/element';
 
 const upstreamModuleUrl =
 	window.createNotLearnEditor?.lazyEditorModuleUrl || '';
@@ -19,9 +13,7 @@ if ( ! upstreamModuleUrl ) {
 	throw new Error( 'The Gutenberg lazy editor module URL is unavailable.' );
 }
 
-const upstream = await import(
-	/* webpackIgnore: true */ upstreamModuleUrl
-);
+const upstream = await import( /* webpackIgnore: true */ upstreamModuleUrl );
 
 const UpstreamEditor = upstream.Editor;
 
@@ -33,7 +25,10 @@ const UpstreamEditor = upstream.Editor;
  * Released Gutenberg 23.5.1 replaces the resolved styles instead, so remove
  * boot's style override until the upstream fix is available in the dependency.
  *
- * @param {Object} props Editor props.
+ * @param {Object} props          Editor props, passed on to the lazy editor.
+ * @param {number} props.postId   ID of the post being edited.
+ * @param {string} props.postType Type of the post being edited.
+ * @param {Object} props.settings Route-specific editor settings.
  * @return {Element} The released lazy editor with compatible settings.
  */
 function CompatibleEditor( {
@@ -86,11 +81,12 @@ function CompatibleEditor( {
 			}
 
 			const store = select( coreDataStore );
-			const edits = store.getEntityRecordNonTransientEdits(
-				'postType',
-				postType,
-				postId
-			) || {};
+			const edits =
+				store.getEntityRecordNonTransientEdits(
+					'postType',
+					postType,
+					postId
+				) || {};
 			return {
 				hasBlocks: !! store.getEditedEntityRecord(
 					'postType',
@@ -126,11 +122,7 @@ function CompatibleEditor( {
 	}, [ settings ] );
 
 	useEffect( () => {
-		if (
-			! postId ||
-			! postType ||
-			typeof rawContent !== 'string'
-		) {
+		if ( ! postId || ! postType || typeof rawContent !== 'string' ) {
 			return;
 		}
 
@@ -204,13 +196,15 @@ function CompatibleEditor( {
 		return null;
 	}
 
-	return createElement( UpstreamEditor, {
-		...props,
-		key: entityKey,
-		postId,
-		postType,
-		settings: compatibleSettings,
-	} );
+	return (
+		<UpstreamEditor
+			{ ...props }
+			key={ entityKey }
+			postId={ postId }
+			postType={ postType }
+			settings={ compatibleSettings }
+		/>
+	);
 }
 
 /*

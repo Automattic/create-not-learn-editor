@@ -6,6 +6,16 @@ import { decodeEntities } from '@wordpress/html-entities';
 import { __, _n, sprintf } from '@wordpress/i18n';
 
 const EXPLICITLY_UNASSIGNED_NAVIGATION_LOCATION = 'rsm-unassigned';
+
+/**
+ * The template parts query the Menus, Pages and page finder screens share.
+ * Every screen asks with this one object, so core-data fetches it once.
+ */
+export const TEMPLATE_PARTS_QUERY = {
+	context: 'edit',
+	per_page: 100,
+	_fields: 'id,slug,title,area,status,content',
+};
 const EMPTY_ARRAY = [];
 
 /**

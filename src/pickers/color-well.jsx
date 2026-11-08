@@ -27,7 +27,10 @@ import { Icon, Text } from '@wordpress/ui';
 /**
  * Internal dependencies
  */
-import { parseColor } from '../site-canvas/compose/palette-colors';
+import {
+	getPresetSlug,
+	parseColor,
+} from '../site-canvas/compose/palette-colors';
 import { resolveColor } from './resolve-color';
 
 /**
@@ -51,24 +54,6 @@ export function withBlackAndWhite( palette ) {
 			{ color: '#ffffff', name: __( 'White' ) },
 		].filter( ( item ) => ! has( item.color ) ),
 	];
-}
-
-/**
- * A colour's preset slug, from either way a theme writes one.
- *
- * @param {?string} value The colour.
- * @return {?string} The slug.
- */
-function getSlug( value ) {
-	if ( typeof value !== 'string' ) {
-		return null;
-	}
-
-	return (
-		value.match( /^var:preset\|color\|(.+)$/ )?.[ 1 ] ||
-		value.match( /^var\(--wp--preset--color--([^)]+)\)$/ )?.[ 1 ] ||
-		null
-	);
 }
 
 /**
@@ -142,7 +127,7 @@ export default function ColorWell( {
 									: next
 							);
 						} }
-						selectedSlug={ getSlug( value ) || undefined }
+						selectedSlug={ getPresetSlug( value ) || undefined }
 						value={ color }
 					/>
 					{ note && (

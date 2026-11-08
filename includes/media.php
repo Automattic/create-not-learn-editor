@@ -17,14 +17,21 @@
  * @package CreateNotLearnEditor
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * The path of Gutenberg's media editor route, relative to its build.
  */
 const CNL_EDITOR_MEDIA_EDITOR_ROUTE_PATH = 'build/routes/media-editor/';
+
+/**
+ * Register media hooks.
+ */
+function cnl_editor_register_media_hooks() {
+	add_action( CNL_EDITOR_SLUG . '_init', 'cnl_editor_register_media_editor_route' );
+	add_action( CNL_EDITOR_SLUG . '_init', 'cnl_editor_enable_media_experiments' );
+	add_filter( CNL_EDITOR_SLUG . '_prerequisite_script_dependencies', 'cnl_editor_add_media_editor_script_dependencies' );
+}
 
 /**
  * Whether the editor turns on Gutenberg's media experiments on its page.
@@ -49,8 +56,8 @@ function cnl_editor_media_experiments_enabled() {
  */
 function cnl_editor_has_media_editor() {
 	return cnl_editor_media_experiments_enabled()
-		&& file_exists( WP_PLUGIN_DIR . '/gutenberg/' . CNL_EDITOR_MEDIA_EDITOR_ROUTE_PATH . 'route.min.asset.php' )
-		&& file_exists( WP_PLUGIN_DIR . '/gutenberg/' . CNL_EDITOR_MEDIA_EDITOR_ROUTE_PATH . 'content.min.asset.php' );
+		&& file_exists( cnl_editor_get_gutenberg_path( CNL_EDITOR_MEDIA_EDITOR_ROUTE_PATH . 'route.min.asset.php' ) )
+		&& file_exists( cnl_editor_get_gutenberg_path( CNL_EDITOR_MEDIA_EDITOR_ROUTE_PATH . 'content.min.asset.php' ) );
 }
 
 /**
@@ -60,7 +67,7 @@ function cnl_editor_has_media_editor() {
  * @return array Asset metadata.
  */
 function cnl_editor_get_media_editor_asset( $name ) {
-	$asset_file = WP_PLUGIN_DIR . '/gutenberg/' . CNL_EDITOR_MEDIA_EDITOR_ROUTE_PATH . $name . '.min.asset.php';
+	$asset_file = cnl_editor_get_gutenberg_path( CNL_EDITOR_MEDIA_EDITOR_ROUTE_PATH . $name . '.min.asset.php' );
 
 	return file_exists( $asset_file ) ? require $asset_file : array();
 }
@@ -86,7 +93,7 @@ function cnl_editor_register_media_editor_route() {
 
 		wp_register_script_module(
 			$id,
-			plugins_url( 'gutenberg/' . CNL_EDITOR_MEDIA_EDITOR_ROUTE_PATH . $name . $extension ),
+			cnl_editor_get_gutenberg_url( CNL_EDITOR_MEDIA_EDITOR_ROUTE_PATH . $name . $extension ),
 			$asset['module_dependencies'] ?? array(),
 			$asset['version'] ?? CNL_EDITOR_VERSION
 		);
@@ -96,7 +103,6 @@ function cnl_editor_register_media_editor_route() {
 
 	cnl_editor_register_route( '/media-editor/$id', $modules['content'], $modules['route'] );
 }
-add_action( CNL_EDITOR_SLUG . '_init', 'cnl_editor_register_media_editor_route' );
 
 /**
  * Turn on Gutenberg's media experiments for the editor's page.
@@ -119,7 +125,6 @@ function cnl_editor_enable_media_experiments() {
 	wp_add_inline_script( 'cnl-editor-media-experiments', implode( "\n", $flags ) );
 	wp_enqueue_script( 'cnl-editor-media-experiments' );
 }
-add_action( CNL_EDITOR_SLUG . '_init', 'cnl_editor_enable_media_experiments' );
 
 /**
  * Load the classic scripts the media editor route needs before the editor
@@ -140,4 +145,3 @@ function cnl_editor_add_media_editor_script_dependencies( $script_deps ) {
 
 	return array_values( array_unique( $script_deps ) );
 }
-add_filter( CNL_EDITOR_SLUG . '_prerequisite_script_dependencies', 'cnl_editor_add_media_editor_script_dependencies' );

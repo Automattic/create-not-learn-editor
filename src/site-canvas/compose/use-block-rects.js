@@ -10,7 +10,7 @@
 /**
  * Internal dependencies
  */
-import { useEffect, useRef, useState } from '../../wordpress-packages';
+import { useEffect, useMemo, useRef, useState } from '../../wordpress-packages';
 
 const EMPTY_OBJECT = {};
 
@@ -127,9 +127,13 @@ export function useBlockRects( { isActive, layerRef, editorRef, clientIds } ) {
 		return () => window.cancelAnimationFrame( request );
 	}, [ editorRef, isActive, layerRef ] );
 
-	const { frame = null, ...rects } = measured;
+	// Kept the same object until a measurement changes, so effects that
+	// depend on it don't run again on every render.
+	return useMemo( () => {
+		const { frame = null, ...rects } = measured;
 
-	return { frame, rects };
+		return { frame, rects };
+	}, [ measured ] );
 }
 
 /**

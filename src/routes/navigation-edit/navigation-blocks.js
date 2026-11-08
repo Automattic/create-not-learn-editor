@@ -4,6 +4,7 @@
 import { parse } from '@wordpress/block-serialization-default-parser';
 import { createBlock } from '@wordpress/blocks';
 import { decodeEntities } from '@wordpress/html-entities';
+import { __ } from '@wordpress/i18n';
 
 const EMPTY_ARRAY = [];
 
@@ -36,13 +37,13 @@ function getNavigationItemLabel( block ) {
 
 	switch ( getBlockName( block ) ) {
 		case 'core/home-link':
-			return 'Home';
+			return __( 'Home' );
 		case 'core/navigation-submenu':
-			return 'Submenu';
+			return __( 'Submenu' );
 		case 'core/navigation-link':
-			return 'Link';
+			return __( 'Link' );
 		default:
-			return 'Menu item';
+			return __( 'Menu item' );
 	}
 }
 
@@ -199,7 +200,7 @@ function getNavigationPageTitle( page ) {
 		return decodeEntities( title.replace( /<[^>]*>/g, '' ) ).trim();
 	}
 
-	return '(no title)';
+	return __( '(no title)' );
 }
 
 function appendNavigationBlocksToContent( content, blocksToAppend ) {

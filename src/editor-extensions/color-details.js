@@ -10,6 +10,7 @@
  */
 import {
 	getContrast,
+	getPresetSlug,
 	MIN_TEXT_CONTRAST,
 	parseColor,
 } from '../site-canvas/compose/palette-colors';
@@ -27,20 +28,6 @@ const KINDS = {
 	text: { attribute: 'textColor', style: 'text' },
 	background: { attribute: 'backgroundColor', style: 'background' },
 };
-
-/**
- * A colour's preset slug, from either way a block writes one.
- *
- * @param {string} value The colour.
- * @return {?string} The slug.
- */
-function getPresetSlug( value ) {
-	return (
-		value.match( /^var:preset\|color\|(.+)$/ )?.[ 1 ] ||
-		value.match( /^var\(--wp--preset--color--([^)]+)\)$/ )?.[ 1 ] ||
-		null
-	);
-}
 
 /**
  * A block's colour as it is stored, a palette colour as a preset reference.

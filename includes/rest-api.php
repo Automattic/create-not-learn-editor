@@ -13,7 +13,6 @@ defined( 'ABSPATH' ) || exit;
 function cnl_editor_register_rest_hooks() {
 	add_action( 'rest_api_init', 'cnl_editor_register_rest_routes' );
 	add_action( 'rest_api_init', 'cnl_editor_register_comment_count_field' );
-	add_filter( 'show_admin_bar', 'cnl_editor_hide_admin_bar_in_preview', PHP_INT_MAX );
 }
 
 /**
@@ -58,7 +57,9 @@ function cnl_editor_register_rest_routes() {
 			'methods'             => WP_REST_Server::CREATABLE,
 			'callback'            => 'cnl_editor_rest_setup_defaults',
 			'permission_callback' => static function () {
-				return current_user_can( 'edit_theme_options' );
+				// It changes the reading settings, which core guards with
+				// `manage_options`, as well as the site's menus.
+				return current_user_can( 'edit_theme_options' ) && current_user_can( 'manage_options' );
 			},
 		)
 	);
@@ -224,24 +225,4 @@ function cnl_editor_rest_create_auto_draft( $request ) {
 			'status' => $post->post_status,
 		)
 	);
-}
-
-/**
- * Hide the WordPress admin bar inside Create Not Learn preview iframes.
- *
- * @param bool $show_admin_bar Whether to show the admin bar.
- * @return bool Whether to show the admin bar.
- */
-function cnl_editor_hide_admin_bar_in_preview( $show_admin_bar ) {
-	if ( is_admin() ) {
-		return $show_admin_bar;
-	}
-
-	$is_preview = '1' === filter_input(
-		INPUT_GET,
-		'cnl-editor-preview',
-		FILTER_SANITIZE_FULL_SPECIAL_CHARS
-	);
-
-	return $is_preview ? false : $show_admin_bar;
 }

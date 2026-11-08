@@ -5,6 +5,7 @@ import { coreDataStore, useMemo, useSelect } from '../../wordpress-packages';
 import {
 	buildNavigationLocationsMap,
 	createEditedTemplatePartsCache,
+	TEMPLATE_PARTS_QUERY,
 } from '../navigation/navigation-locations';
 import { EMPTY_ARRAY, NAVIGATION_POST_TYPE } from './shared';
 
@@ -15,11 +16,6 @@ const NAVIGATION_MENUS_QUERY = {
 	per_page: 100,
 	status: 'publish,draft',
 	_fields: 'id,title,content,status',
-};
-const TEMPLATE_PARTS_QUERY = {
-	context: 'edit',
-	per_page: 100,
-	_fields: 'id,slug,title,area,status,content',
 };
 
 export function useNavigationLocations( navigationId ) {

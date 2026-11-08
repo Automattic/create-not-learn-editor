@@ -25,9 +25,6 @@ import { getShop } from './shop';
 export const PRODUCT_KIND = 'root';
 export const PRODUCT_NAME = 'wcProduct';
 
-// The most WooCommerce returns at once.
-export const PRODUCTS_PER_PAGE = 100;
-
 function getPostTitle( id ) {
 	const title = id
 		? select( coreDataStore ).getEditedEntityRecord(

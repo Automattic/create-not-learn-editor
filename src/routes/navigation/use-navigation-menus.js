@@ -18,18 +18,13 @@ import {
 	buildNavigationLocationsMap,
 	createEditedTemplatePartsCache,
 	getMainMenu,
+	TEMPLATE_PARTS_QUERY,
 } from './navigation-locations';
 import {
 	EMPTY_ARRAY,
 	NAVIGATION_MENUS_CHANGED_EVENT,
 	getNavigationMenuId,
 } from './menu-helpers';
-
-const TEMPLATE_PARTS_QUERY = {
-	context: 'edit',
-	per_page: 100,
-	_fields: 'id,slug,title,area,status,content',
-};
 
 function useNavigationLocations( menus ) {
 	const fallbackMenuId = menus[ 0 ]?.id;

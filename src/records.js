@@ -20,7 +20,6 @@ export const STORE_NAME = 'create-not-learn-editor/editor';
 const DEFAULT_STATE = {
 	navigationMenus: {
 		error: null,
-		isCreating: false,
 		isLoading: false,
 		records: [],
 	},
@@ -33,12 +32,6 @@ const DEFAULT_STATE = {
 	siteOverview: {
 		error: null,
 		isLoading: false,
-		record: null,
-	},
-	siteSettings: {
-		error: null,
-		isLoading: false,
-		isSaving: false,
 		record: null,
 	},
 };
@@ -68,30 +61,6 @@ function requestKey( key ) {
 }
 
 const actions = {
-	createDefaultNavigationMenu() {
-		return async ( { dispatch } ) => {
-			dispatch.startCreatingNavigationMenu();
-
-			try {
-				const menu = await request( {
-					data: {
-						content: '<!-- wp:page-list /-->',
-						status: 'publish',
-						title: __( 'Main menu' ),
-					},
-					method: 'POST',
-					path: `/wp/v2/${ getNavigationRestBase() }`,
-				} );
-
-				dispatch.receiveCreatedNavigationMenu( menu );
-				return menu;
-			} catch ( error ) {
-				dispatch.receiveNavigationMenusError( error );
-				throw error;
-			}
-		};
-	},
-
 	createAutoDraft( typeName, restNamespace = defaultNamespace ) {
 		return () =>
 			request( {
@@ -108,31 +77,11 @@ const actions = {
 			dispatch.invalidateResolution( 'getNavigationMenus', [] );
 	},
 
-	invalidatePreviewContext( url, restNamespace = defaultNamespace ) {
-		return ( { dispatch } ) =>
-			dispatch.invalidateResolution( 'getPreviewContext', [
-				url,
-				restNamespace,
-			] );
-	},
-
 	invalidateSiteOverview( restNamespace = defaultNamespace ) {
 		return ( { dispatch } ) =>
 			dispatch.invalidateResolution( 'getSiteOverview', [
 				restNamespace,
 			] );
-	},
-
-	invalidateSiteSettings() {
-		return ( { dispatch } ) =>
-			dispatch.invalidateResolution( 'getSiteSettings', [] );
-	},
-
-	receiveCreatedNavigationMenu( menu ) {
-		return {
-			menu,
-			type: 'RECEIVE_CREATED_NAVIGATION_MENU',
-		};
 	},
 
 	receiveNavigationMenus( records ) {
@@ -193,40 +142,6 @@ const actions = {
 		};
 	},
 
-	receiveSiteSettings( record ) {
-		return {
-			record,
-			type: 'RECEIVE_SITE_SETTINGS',
-		};
-	},
-
-	receiveSiteSettingsError( error ) {
-		return {
-			error,
-			type: 'RECEIVE_SITE_SETTINGS_ERROR',
-		};
-	},
-
-	saveSiteSettings( data ) {
-		return async ( { dispatch } ) => {
-			dispatch.startSavingSiteSettings();
-
-			try {
-				const settings = await request( {
-					data,
-					method: 'POST',
-					path: '/wp/v2/settings',
-				} );
-
-				dispatch.receiveSiteSettings( settings );
-				return settings;
-			} catch ( error ) {
-				dispatch.receiveSiteSettingsError( error );
-				throw error;
-			}
-		};
-	},
-
 	setupDefaults( restNamespace = defaultNamespace ) {
 		return async ( { dispatch } ) => {
 			dispatch.startSetupDefaultsRequest();
@@ -243,12 +158,6 @@ const actions = {
 				dispatch.receiveSetupDefaultsError( error );
 				throw error;
 			}
-		};
-	},
-
-	startCreatingNavigationMenu() {
-		return {
-			type: 'START_CREATING_NAVIGATION_MENU',
 		};
 	},
 
@@ -271,21 +180,9 @@ const actions = {
 		};
 	},
 
-	startSavingSiteSettings() {
-		return {
-			type: 'START_SAVING_SITE_SETTINGS',
-		};
-	},
-
 	startSiteOverviewRequest() {
 		return {
 			type: 'START_SITE_OVERVIEW_REQUEST',
-		};
-	},
-
-	startSiteSettingsRequest() {
-		return {
-			type: 'START_SITE_SETTINGS_REQUEST',
 		};
 	},
 };
@@ -319,18 +216,6 @@ const selectors = {
 		return state.siteOverview.error;
 	},
 
-	getSiteSettings( state ) {
-		return state.siteSettings.record;
-	},
-
-	getSiteSettingsError( state ) {
-		return state.siteSettings.error;
-	},
-
-	isCreatingNavigationMenu( state ) {
-		return state.navigationMenus.isCreating;
-	},
-
 	isFetchingNavigationMenus( state ) {
 		return state.navigationMenus.isLoading;
 	},
@@ -343,16 +228,8 @@ const selectors = {
 		return state.siteOverview.isLoading;
 	},
 
-	isFetchingSiteSettings( state ) {
-		return state.siteSettings.isLoading;
-	},
-
 	isRunningSetupDefaults( state ) {
 		return state.setupDefaults.isRunning;
-	},
-
-	isSavingSiteSettings( state ) {
-		return state.siteSettings.isSaving;
 	},
 };
 
@@ -414,51 +291,15 @@ const resolvers = {
 				throw error;
 			}
 		},
-
-	getSiteSettings:
-		() =>
-		async ( { dispatch } ) => {
-			dispatch.startSiteSettingsRequest();
-
-			try {
-				const settings = await request( {
-					path: addQueryArgs( '/wp/v2/settings', {
-						_fields: 'title,description,site_logo,site_icon',
-					} ),
-				} );
-
-				dispatch.receiveSiteSettings( settings );
-			} catch ( error ) {
-				dispatch.receiveSiteSettingsError( error );
-				throw error;
-			}
-		},
 };
 
 function reducer( state = DEFAULT_STATE, action ) {
 	switch ( action.type ) {
-		case 'RECEIVE_CREATED_NAVIGATION_MENU':
-			return {
-				...state,
-				navigationMenus: {
-					error: null,
-					isCreating: false,
-					isLoading: false,
-					records: [
-						action.menu,
-						...state.navigationMenus.records.filter(
-							( menu ) => menu.id !== action.menu?.id
-						),
-					],
-				},
-			};
-
 		case 'RECEIVE_NAVIGATION_MENUS':
 			return {
 				...state,
 				navigationMenus: {
 					error: null,
-					isCreating: false,
 					isLoading: false,
 					records: action.records || [],
 				},
@@ -470,7 +311,6 @@ function reducer( state = DEFAULT_STATE, action ) {
 				navigationMenus: {
 					...state.navigationMenus,
 					error: action.error,
-					isCreating: false,
 					isLoading: false,
 				},
 			};
@@ -525,38 +365,6 @@ function reducer( state = DEFAULT_STATE, action ) {
 				},
 			};
 
-		case 'RECEIVE_SITE_SETTINGS':
-			return {
-				...state,
-				siteSettings: {
-					error: null,
-					isLoading: false,
-					isSaving: false,
-					record: action.record || {},
-				},
-			};
-
-		case 'RECEIVE_SITE_SETTINGS_ERROR':
-			return {
-				...state,
-				siteSettings: {
-					...state.siteSettings,
-					error: action.error,
-					isLoading: false,
-					isSaving: false,
-				},
-			};
-
-		case 'START_CREATING_NAVIGATION_MENU':
-			return {
-				...state,
-				navigationMenus: {
-					...state.navigationMenus,
-					error: null,
-					isCreating: true,
-				},
-			};
-
 		case 'START_NAVIGATION_MENUS_REQUEST':
 			return {
 				...state,
@@ -592,16 +400,6 @@ function reducer( state = DEFAULT_STATE, action ) {
 				},
 			};
 
-		case 'START_SAVING_SITE_SETTINGS':
-			return {
-				...state,
-				siteSettings: {
-					...state.siteSettings,
-					error: null,
-					isSaving: true,
-				},
-			};
-
 		case 'RECEIVE_SITE_OVERVIEW':
 			return {
 				...state,
@@ -627,16 +425,6 @@ function reducer( state = DEFAULT_STATE, action ) {
 				...state,
 				siteOverview: {
 					...state.siteOverview,
-					error: null,
-					isLoading: true,
-				},
-			};
-
-		case 'START_SITE_SETTINGS_REQUEST':
-			return {
-				...state,
-				siteSettings: {
-					...state.siteSettings,
 					error: null,
 					isLoading: true,
 				},

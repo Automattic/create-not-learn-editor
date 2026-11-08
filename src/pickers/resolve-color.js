@@ -1,4 +1,9 @@
 /**
+ * Internal dependencies
+ */
+import { getPresetSlug } from '../site-canvas/compose/palette-colors';
+
+/**
  * Turn a theme.json color reference into a CSS color for swatches.
  *
  * @param {string}   value   A color, `var:preset|color|slug`, or CSS variable.
@@ -10,9 +15,7 @@ export function resolveColor( value, palette ) {
 		return undefined;
 	}
 
-	const slug =
-		value.match( /^var:preset\|color\|(.+)$/ )?.[ 1 ] ||
-		value.match( /^var\(--wp--preset--color--([^)]+)\)$/ )?.[ 1 ];
+	const slug = getPresetSlug( value );
 
 	if ( ! slug ) {
 		return value;
