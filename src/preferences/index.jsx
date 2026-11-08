@@ -31,6 +31,11 @@ import { privateApis as preferencesPrivateApis } from '@wordpress/preferences';
  * Internal dependencies
  */
 import {
+	ADD_PAGE_PREFERENCES_SCOPE,
+	registerAddPagePreferences,
+	SHOW_PAGE_DESIGNS_PREFERENCE,
+} from '../add-page-preferences';
+import {
 	ADMIN_BAR_PREFERENCE,
 	ADMIN_BAR_PREFERENCES_SCOPE,
 } from '../admin-bar';
@@ -95,6 +100,14 @@ function CreateNotLearnSection() {
 				) }
 				label={ __( 'Ask what I’m posting' ) }
 				scope={ POST_KINDS_PREFERENCES_SCOPE }
+			/>
+			<PreferenceToggleControl
+				featureName={ SHOW_PAGE_DESIGNS_PREFERENCE }
+				help={ __(
+					'Adding a page starts with designs to choose from. Turned off, it goes straight to naming a blank page.'
+				) }
+				label={ __( 'Show designs when adding a page' ) }
+				scope={ ADD_PAGE_PREFERENCES_SCOPE }
 			/>
 			{ !! document.getElementById( 'wpadminbar' ) && (
 				<PreferenceToggleControl
@@ -182,6 +195,7 @@ function Preferences() {
  */
 export function mountPreferences() {
 	registerPostKindPreferences();
+	registerAddPagePreferences();
 
 	const container = document.createElement( 'div' );
 	container.className = 'cnl-preferences-root';
