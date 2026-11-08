@@ -209,18 +209,26 @@ export function getAvailableWorkspaces() {
 }
 
 /**
+ * Find a workspace this site can use by id.
+ *
+ * @param {string} id Workspace id, or one it was saved under before.
+ * @return {Object|undefined} Workspace preset, if there is one.
+ */
+export function findWorkspace( id ) {
+	return getAvailableWorkspaces().find(
+		( workspace ) =>
+			workspace.id === id || workspace.aliases?.includes( id )
+	);
+}
+
+/**
  * Get a workspace by id, falling back to the default.
  *
  * @param {string} id Workspace id, or one it was saved under before.
  * @return {Object} Workspace preset.
  */
 export function getWorkspace( id ) {
-	return (
-		getAvailableWorkspaces().find(
-			( workspace ) =>
-				workspace.id === id || workspace.aliases?.includes( id )
-		) || DEFAULT_WORKSPACE
-	);
+	return findWorkspace( id ) || DEFAULT_WORKSPACE;
 }
 
 /**

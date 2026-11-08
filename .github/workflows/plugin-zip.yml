@@ -134,7 +134,12 @@ jobs:
           echo "PLAYGROUND_URL=https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint.json" >> "$GITHUB_ENV"
           echo "PLAYGROUND_BLANK_URL=https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-blank.json" >> "$GITHUB_ENV"
           echo "PLAYGROUND_SHOP_URL=https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-shop.json" >> "$GITHUB_ENV"
-          echo "[Try this build in WordPress Playground](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint.json), [with a WooCommerce shop](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-shop.json), or [on a blank site](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-blank.json)." >> "$GITHUB_STEP_SUMMARY"
+          # Playground's `url` overrides where the blueprint lands, here the
+          # editor with `workspace` added, which switches to that workspace.
+          in_workspace="&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3D"
+          workspaces="Or start in [Writing](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint.json${in_workspace}writing), [Builder](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint.json${in_workspace}builder) or [Selling](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-shop.json${in_workspace}selling)."
+          echo "PLAYGROUND_WORKSPACE_LINKS=${workspaces}" >> "$GITHUB_ENV"
+          echo "[Try this build in WordPress Playground](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint.json), [with a WooCommerce shop](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-shop.json), or [on a blank site](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-blank.json). ${workspaces}" >> "$GITHUB_STEP_SUMMARY"
 
       # Leads the release notes with the Playground links and attaches the zip.
       # Works whether the release was made here or by hand before the tag was
@@ -144,7 +149,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          link="[Try ${GITHUB_REF_NAME} in WordPress Playground](${PLAYGROUND_URL}), [with a WooCommerce shop](${PLAYGROUND_SHOP_URL}), or [on a blank site](${PLAYGROUND_BLANK_URL}). All stay on this release while trunk moves on."
+          link="[Try ${GITHUB_REF_NAME} in WordPress Playground](${PLAYGROUND_URL}), [with a WooCommerce shop](${PLAYGROUND_SHOP_URL}), or [on a blank site](${PLAYGROUND_BLANK_URL}). ${PLAYGROUND_WORKSPACE_LINKS} All stay on this release while trunk moves on."
 
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
             body=$(gh release view "$GITHUB_REF_NAME" --json body --jq .body)
