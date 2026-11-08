@@ -44,14 +44,16 @@ import {
 	sprintf,
 	useCallback,
 	useDispatch,
+	dispatch,
 	useEffect,
 	useMemo,
 	useRef,
 	useState,
 } from '../../wordpress-packages';
 
-const DOT_SPACING = 24;
 const PAN_STEP = 80;
+const HIDE_CHAT_CLASS = 'cnl-chat-is-hidden';
+const CHAT_STORE = 'create-not-learn-editor/chat';
 const DRAG_THRESHOLD = 4;
 const ANIMATION_MS = 280;
 // Space to keep between a page brought into view and the screen's edges.
@@ -500,7 +502,14 @@ export default function Canvas() {
 		[ navigate ]
 	);
 
-	const dotSpacing = DOT_SPACING * view.k * ( view.k < 0.4 ? 4 : 1 );
+	// The assistant has nothing to offer here, so it is closed and its ways in
+	// are hidden while the overview shows.
+	useEffect( () => {
+		document.body.classList.add( HIDE_CHAT_CLASS );
+		dispatch( CHAT_STORE )?.setOpen?.( false );
+
+		return () => document.body.classList.remove( HIDE_CHAT_CLASS );
+	}, [] );
 
 	return (
 		<section className="cnl-editor-canvas cnl-site-overview-canvas">
@@ -509,11 +518,14 @@ export default function Canvas() {
 					<h1 className="cnl-site-overview__title">
 						{ __( 'Site overview' ) }
 					</h1>
-					{ layout && (
-						<p className="cnl-site-overview__summary">
-							{ getSummary( layout.nodes ) }
-						</p>
-					) }
+					<p className="cnl-site-overview__description">
+						{ __( 'Every page on your site, at a glance' ) }
+						{ layout && (
+							<span className="cnl-site-overview__summary">
+								{ getSummary( layout.nodes ) }
+							</span>
+						) }
+					</p>
 				</div>
 				<ZoomControls
 					canZoomIn={ canZoomIn }
@@ -540,10 +552,6 @@ export default function Canvas() {
 					onPointerUp={ onPointerEnd }
 					ref={ viewportRef }
 					role="region"
-					style={ {
-						backgroundPosition: `${ view.x }px ${ view.y }px`,
-						backgroundSize: `${ dotSpacing }px ${ dotSpacing }px`,
-					} }
 					tabIndex={ 0 }
 				>
 					{ layout && (
