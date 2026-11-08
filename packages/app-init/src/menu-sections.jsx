@@ -10,9 +10,9 @@
  * folded section, so the sidebar never loses track of where you are.
  *
  * A section can show only its first few items, with a "…" item after them
- * that lists the rest when clicked: Content shows Pages and Posts, and keeps
- * any other content types behind the "…". They stay listed until the editor
- * is reloaded.
+ * that lists the rest when clicked: Content shows Pages and Posts, and a
+ * shop's Products, and keeps any other content types behind the "…". They
+ * stay listed until the editor is reloaded.
  *
  * Items with no section, like Home, come first, untitled. While the sidebar
  * is a strip of icons, each title is a thin rule and every item shows, as
@@ -30,11 +30,21 @@
 import { store as bootStore } from '@wordpress/boot';
 import { dispatch, select, subscribe, useSelect } from '@wordpress/data';
 import { Button } from '@wordpress/components';
-import { createRoot } from '@wordpress/element';
+import {
+	createRoot,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { chevronDownSmall, code, moreHorizontal } from '@wordpress/icons';
+import {
+	chevronDownSmall,
+	code,
+	help as helpIcon,
+	moreHorizontal,
+} from '@wordpress/icons';
 import { store as preferencesStore } from '@wordpress/preferences';
-import { Icon } from '@wordpress/ui';
+import { Icon, Tooltip, VisuallyHidden } from '@wordpress/ui';
 
 /**
  * Internal dependencies
@@ -44,15 +54,29 @@ import { PREFERENCES_SCOPE } from '../../../src/workspaces';
 /*
  * The sections, in no particular order: the menu items set it. An item
  * naming a section that isn't here is listed as if it had none.
- * `shownItems` is how many items show before the rest go behind a "…".
+ * `shownItems` is how many items show before the rest go behind a "…". An
+ * item registered with `alwaysShown`, like the shop's Products, is never
+ * one of the rest, and isn't counted.
  * `foldsOnLoad` folds the section whenever the editor loads, however it was
  * left. `stripIcon` stands for all of the section's items in the strip of
  * icons, unless one of them is the screen on show, which stands in itself.
+ * `help` puts a "?" after the title that says what the section is for.
+ * `moreLabel` says what the "…" shows, in place of how many items.
  */
 const SECTIONS = {
-	content: { label: __( 'Content' ), shownItems: 2 },
+	content: {
+		label: __( 'Content' ),
+		shownItems: 2,
+		moreLabel: __( 'Show all content types' ),
+	},
 	site: { label: __( 'Site' ) },
 	design: { label: __( 'Design' ) },
+	plugins: {
+		label: __( 'Plugins' ),
+		help: __(
+			'Plugins extend what WordPress can do. Each one here leads to its own screens.'
+		),
+	},
 	advanced: { label: __( 'Advanced' ), foldsOnLoad: true, stripIcon: code },
 };
 
@@ -70,6 +94,12 @@ const ROOT_LIST_SELECTOR =
 const TITLE_CLASS = 'cnl-menu-section';
 
 const MORE_CLASS = 'cnl-menu-section-more';
+
+/*
+ * The "?" and "…" are pointed at to find out what they are, so what they
+ * say shows almost at once.
+ */
+const TOOLTIP_DELAY_MS = 100;
 
 const STAND_IN_CLASS = 'cnl-menu-section-stand-in';
 
@@ -99,28 +129,101 @@ function toggleFolded( id ) {
  * @return {Element} The title's button.
  */
 function SectionTitle( { id } ) {
+	const { help, label } = SECTIONS[ id ];
 	const isFolded = useSelect(
 		( selectFn ) => !! getFolded( selectFn )[ id ],
 		[ id ]
 	);
+	const textRef = useRef();
+	const helpStart = useTextEnd( textRef, !! help );
 
 	return (
-		<button
-			type="button"
-			className={ `${ TITLE_CLASS }__toggle` }
-			aria-expanded={ ! isFolded }
-			onClick={ () => toggleFolded( id ) }
-		>
-			<span className={ `${ TITLE_CLASS }__label` }>
-				{ SECTIONS[ id ].label }
-			</span>
-			<Icon
-				className={ `${ TITLE_CLASS }__chevron` }
-				icon={ chevronDownSmall }
-				size={ 24 }
-			/>
-		</button>
+		<>
+			<button
+				type="button"
+				className={ `${ TITLE_CLASS }__toggle` }
+				aria-expanded={ ! isFolded }
+				onClick={ () => toggleFolded( id ) }
+			>
+				<span className={ `${ TITLE_CLASS }__label` }>
+					<span ref={ textRef }>{ label }</span>
+				</span>
+				<Icon
+					className={ `${ TITLE_CLASS }__chevron` }
+					icon={ chevronDownSmall }
+					size={ 24 }
+				/>
+			</button>
+			{ help && (
+				<Tooltip.Root>
+					<Tooltip.Trigger
+						className={ `${ TITLE_CLASS }__help` }
+						delay={ TOOLTIP_DELAY_MS }
+						render={ <button type="button" /> }
+						style={ { insetInlineStart: helpStart } }
+					>
+						<Icon icon={ helpIcon } />
+						<VisuallyHidden>{ help }</VisuallyHidden>
+					</Tooltip.Trigger>
+					<Tooltip.Popup
+						className={ `${ TITLE_CLASS }__help-popup` }
+						positioner={ <Tooltip.Positioner side="right" /> }
+					>
+						{ help }
+					</Tooltip.Popup>
+				</Tooltip.Root>
+			) }
+		</>
 	);
+}
+
+/**
+ * Where a title's words end, from the title's start, so its "?" can sit just
+ * after them. It can't go in the title's button, which folds the section,
+ * so it sits over the button instead.
+ *
+ * @param {Object}  textRef  The words.
+ * @param {boolean} isNeeded Whether to measure.
+ * @return {number|undefined} Distance in pixels.
+ */
+function useTextEnd( textRef, isNeeded ) {
+	const [ end, setEnd ] = useState();
+
+	useLayoutEffect( () => {
+		const text = textRef.current;
+		const title = text?.closest( `.${ TITLE_CLASS }` );
+
+		if ( ! isNeeded || ! title ) {
+			return;
+		}
+
+		const measure = () => {
+			const textBox = text.getBoundingClientRect();
+
+			// The strip of icons hides the words; measure them once back.
+			if ( ! textBox.width ) {
+				return;
+			}
+
+			const titleBox = title.getBoundingClientRect();
+			const isRtl = window.getComputedStyle( title ).direction === 'rtl';
+
+			setEnd(
+				isRtl
+					? titleBox.right - textBox.left
+					: textBox.right - titleBox.left
+			);
+		};
+		const observer = new window.ResizeObserver( measure );
+
+		measure();
+		observer.observe( text );
+		observer.observe( title );
+
+		return () => observer.disconnect();
+	}, [ textRef, isNeeded ] );
+
+	return end;
 }
 
 function createTitle( id ) {
@@ -135,25 +238,53 @@ function createTitle( id ) {
 /**
  * The "…" item after a section's first few items, which lists the rest.
  *
+ * The button is as wide as the items, so its tooltip is placed beside its
+ * dots rather than beside the whole button.
+ *
  * @param {Object}     props          Props.
  * @param {number}     props.count    How many items it stands for.
+ * @param {?string}    props.label    What it shows, if not how many.
  * @param {() => void} props.onExpand Lists them.
  * @return {Element} The button.
  */
-function MoreItems( { count, onExpand } ) {
+function MoreItems( { count, label, onExpand } ) {
+	const buttonRef = useRef();
+	const text =
+		label ||
+		sprintf(
+			/* translators: %d: How many more items there are. */
+			_n( 'Show %d more item', 'Show %d more items', count ),
+			count
+		);
+
 	return (
-		<Button
-			className={ `${ MORE_CLASS }__button` }
-			icon={ moreHorizontal }
-			label={ sprintf(
-				/* translators: %d: How many more items there are. */
-				_n( 'Show %d more item', 'Show %d more items', count ),
-				count
-			) }
-			onClick={ onExpand }
-			showTooltip
-			tooltipPosition="middle right"
-		/>
+		<Tooltip.Root>
+			<Tooltip.Trigger
+				delay={ TOOLTIP_DELAY_MS }
+				render={
+					<Button
+						className={ `${ MORE_CLASS }__button` }
+						icon={ moreHorizontal }
+						label={ text }
+						onClick={ onExpand }
+						ref={ buttonRef }
+						showTooltip={ false }
+					/>
+				}
+			/>
+			<Tooltip.Popup
+				positioner={
+					<Tooltip.Positioner
+						anchor={ () =>
+							buttonRef.current?.querySelector( 'svg' ) ?? null
+						}
+						side="right"
+					/>
+				}
+			>
+				{ text }
+			</Tooltip.Popup>
+		</Tooltip.Root>
 	);
 }
 
@@ -223,6 +354,36 @@ function getLinkedRoute( element ) {
 	return href
 		? new URL( href, window.location.href ).searchParams.get( 'p' )
 		: null;
+}
+
+/**
+ * Boot marks every item that leads to the screen on show, or to a screen it
+ * is under, as current: on Products, at `/shop/products`, WooCommerce's
+ * `/shop` too. Only the closest is shown as current; the others are marked
+ * outranked, for the stylesheet to draw as any other item.
+ *
+ * @param {Element} list The main menu.
+ */
+function markOutranked( list ) {
+	const current = [ ...list.children ]
+		.filter( ( child ) => child.querySelector( '[aria-current="page"]' ) )
+		.map( ( child ) => ( {
+			child,
+			length: getLinkedRoute( child )?.length ?? 0,
+		} ) );
+	const closest = Math.max( 0, ...current.map( ( { length } ) => length ) );
+
+	[ ...list.children ].forEach( ( child ) =>
+		setData(
+			child,
+			'cnlOutranked',
+			current.some(
+				( entry ) => entry.child === child && entry.length < closest
+			)
+				? ''
+				: undefined
+		)
+	);
 }
 
 function setData( element, key, value ) {
@@ -315,9 +476,12 @@ export function mountMenuSections() {
 				section && folded[ section ] ? '' : undefined
 			);
 
-			counts[ section ] = ( counts[ section ] || 0 ) + 1;
+			if ( ! item?.alwaysShown ) {
+				counts[ section ] = ( counts[ section ] || 0 ) + 1;
+			}
 			const isOverflow =
 				!! section &&
+				! item?.alwaysShown &&
 				! expanded.has( section ) &&
 				counts[ section ] >
 					( SECTIONS[ section ].shownItems ?? Infinity );
@@ -340,6 +504,8 @@ export function mountMenuSections() {
 			}
 			previous = section;
 		} );
+
+		markOutranked( list );
 
 		const isPlaced = ( id ) =>
 			placements.some( ( placement ) => placement.id === id );
@@ -403,6 +569,7 @@ export function mountMenuSections() {
 				more.root.render(
 					<MoreItems
 						count={ count }
+						label={ SECTIONS[ id ].moreLabel }
 						onExpand={ () => {
 							const first = list.querySelector(
 								`[data-cnl-overflow][data-cnl-menu-section-item="${ id }"]`

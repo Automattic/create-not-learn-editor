@@ -31,7 +31,7 @@ jobs:
         run: |
           blueprints="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/refs/playground/${BRANCH}"
           gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file - <<EOF
-          [Try this branch in WordPress Playground](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint.json), or [try it on a blank site](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-blank.json) with WordPress's default theme. Both run the latest build of \`${BRANCH}\` and update with every push, a few minutes after the [Plugin zip](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/plugin-zip.yml) build finishes.
+          [Try this branch in WordPress Playground](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint.json), [with a WooCommerce shop](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-shop.json), or [on a blank site](https://playground.wordpress.net/?blueprint-url=${blueprints}/blueprint-blank.json) with WordPress's default theme. All run the latest build of \`${BRANCH}\` and update with every push, a few minutes after the [Plugin zip](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/plugin-zip.yml) build finishes.
           EOF
 
   cleanup:

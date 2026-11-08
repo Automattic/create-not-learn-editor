@@ -10,6 +10,8 @@
 
 To see how the editor copes with a site that isn't set up for it, [try it on a blank site](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint-blank.json). That runs the same build on a fresh WordPress install with the latest default theme and no demo content.
 
+To try the shop, [open Fernhouse with WooCommerce](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint-shop.json). It adds WooCommerce and a stocked demo shop, and opens on the Shop screen. It takes a minute or two longer, as Playground downloads WooCommerce.
+
 Create Not Learn Editor is a standalone WordPress plugin that experiments with a focused, extensible site-editing experience.
 
 The plugin is intentionally not part of the Gutenberg repository. It consumes released WordPress and Gutenberg packages, declares the released Gutenberg plugin as a WordPress plugin dependency, and can be installed like a normal plugin.
@@ -162,6 +164,16 @@ Agentic Editor asks before running some of its tools, such as publishing a patte
 
 The editor loads Agentic Editor's tools with `agentic_editor_enqueue_abilities()`, which [wpscholar/agentic-editor#30](https://github.com/wpscholar/agentic-editor/pull/30) adds. Until that is merged, map the PR's branch into `wp-env` as described above.
 
+### Shop
+
+With WooCommerce active, Home offers the shop. Map WooCommerce in the same way, activate it, add its pages, then stock the shop with products that cover the awkward cases, like options, stock counts and drafts:
+
+```sh
+npm run wp-env run cli wp plugin activate woocommerce
+npm run wp-env run cli -- wp wc tool run install_pages --user=1
+npm run wp-env run cli -- --env-cwd=wp-content/plugins/<this folder> wp eval-file scripts/demo-site/seed-shop.php
+```
+
 ### Demo site
 
 The development site (not the tests site) is set up as a demo the first time `wp-env` starts. `scripts/setup-demo-site.mjs` runs after every start and calls `scripts/demo-site/seed.php`, which:
@@ -206,22 +218,24 @@ Generated `build/` assets and plugin zips are intentionally ignored by git. The 
 The demo links at the top of this README open [WordPress Playground](https://wordpress.org/playground/) with a blueprint from `demos/`.
 
 - `demos/blueprint.json` installs Gutenberg, this plugin and the Mainstay theme, runs `scripts/demo-site/seed.php` to build Fernhouse, and lands in the editor.
+- `demos/blueprint-shop.json` does the same, then installs WooCommerce, adds its pages, runs `scripts/demo-site/seed-shop.php` to stock the shop, and lands on the Shop screen.
 - `demos/blueprint-blank.json` installs Gutenberg and this plugin and lands in the editor. It adds no theme or content, so the site runs the default theme of whichever WordPress version Playground loads.
 
-Playground can't install from the plugin source, which needs building first, or from workflow artifacts. So on every push to `trunk`, `.github/workflows/plugin-zip.yml` builds the plugin zip and publishes it to the `playground-build` branch, along with a zip of the theme and the seed script. Both blueprints install from that branch, so the demos always run the latest successful build of `trunk`.
+Playground can't install from the plugin source, which needs building first, or from workflow artifacts. So on every push to `trunk`, `.github/workflows/plugin-zip.yml` builds the plugin zip and publishes it to the `playground-build` branch, along with a zip of the theme and the seed scripts. The blueprints install from that branch, so the demos always run the latest successful build of `trunk`.
 
-Keep the Gutenberg version in both blueprints in step with `.wp-env.json`. Canvas is left out, as the plugin doesn't need it.
+Keep the Gutenberg version in every blueprint in step with `.wp-env.json`. Canvas is left out, as the plugin doesn't need it.
 
 #### Branch demos
 
-Every other branch gets demos of its own too. Each push builds them to `refs/playground/<branch>`, with a `blueprint.json` and a `blueprint-blank.json` that install from there. That ref is neither a branch nor a tag, so the demos stay out of the branch and tag lists. The links for `getdave/my-change` are
+Every other branch gets demos of its own too. Each push builds them to `refs/playground/<branch>`, with a `blueprint.json`, a `blueprint-shop.json` and a `blueprint-blank.json` that install from there. That ref is neither a branch nor a tag, so the demos stay out of the branch and tag lists. The links for `getdave/my-change` are
 
 ```text
 https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/refs/playground/getdave/my-change/blueprint.json
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/refs/playground/getdave/my-change/blueprint-shop.json
 https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/refs/playground/getdave/my-change/blueprint-blank.json
 ```
 
-When a pull request opens, `.github/workflows/playground-links.yml` comments both links on it. The demo follows the branch, updating a few minutes after each push, and is deleted with it.
+When a pull request opens, `.github/workflows/playground-links.yml` comments the links on it. The demo follows the branch, updating a few minutes after each push, and is deleted with it.
 
 #### Release demos
 
@@ -232,10 +246,11 @@ git tag v0.2.0
 git push origin v0.2.0
 ```
 
-The workflow builds the tagged commit and publishes its files to a `playground-v0.2.0` tag, with a `blueprint.json` and a `blueprint-blank.json` that install from that tag. Those blueprints also pin WordPress to the version in `scripts/wp-env.mjs`, where the trunk and branch demos take the latest, so the blank site runs that version's default theme. The workflow then creates a GitHub release for `v0.2.0`, or updates one you made already, with the Playground links at the top of the notes and the plugin zip attached. The links are
+The workflow builds the tagged commit and publishes its files to a `playground-v0.2.0` tag, with a `blueprint.json`, a `blueprint-shop.json` and a `blueprint-blank.json` that install from that tag. Those blueprints also pin WordPress to the version in `scripts/wp-env.mjs`, where the trunk and branch demos take the latest, so the blank site runs that version's default theme. The workflow then creates a GitHub release for `v0.2.0`, or updates one you made already, with the Playground links at the top of the notes and the plugin zip attached. The links are
 
 ```text
 https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint.json
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint-shop.json
 https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint-blank.json
 ```
 

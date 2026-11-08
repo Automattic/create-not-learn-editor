@@ -43,6 +43,7 @@ const START_ROUTES = {
 	// Starts a post straight away rather than opening a screen.
 	write: { isAction: true, to: '/types/post/new' },
 	posts: { to: '/types/post/list/all' },
+	shop: { to: '/shop' },
 };
 
 function getStartLinks( workspace, { isAskingKind, onPickPostKind } ) {

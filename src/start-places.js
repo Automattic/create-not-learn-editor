@@ -17,11 +17,13 @@ import {
 	pencil as pencilIcon,
 	postList as postListIcon,
 	siteLogo as siteLogoIcon,
+	store as storeIcon,
 } from '@wordpress/icons';
 
 /**
  * Internal dependencies
  */
+import { settings } from './settings';
 import sitePartsIcon from './site-parts-icon';
 
 /**
@@ -80,7 +82,14 @@ function getAllPlaces() {
 			id: 'siteParts',
 			title: __( 'Header & footer' ),
 		},
-	];
+		// Only a site with a shop has one to run.
+		settings.shop && {
+			description: __( 'Add what you sell and run your shop.' ),
+			icon: storeIcon,
+			id: 'shop',
+			title: __( 'Your shop' ),
+		},
+	].filter( Boolean );
 }
 
 /**
