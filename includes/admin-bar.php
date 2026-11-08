@@ -1,16 +1,13 @@
 <?php
 /**
- * The admin bar above the full-page editor, for those who turn it on.
+ * The admin bar above the full-page editor.
  *
  * WordPress shows the admin bar on every admin screen, and Gutenberg's
- * site-editor-v2 shows it above its editor too. The "Show the admin bar"
- * preference does the same here, so the bar stays put moving between
- * wp-admin and the editor. It's off by default. The bar is always rendered
- * and only shown while the body has the `admin-bar` class, so the editor can
- * turn it on and off without reloading (`src/admin-bar.js`). Where the bar and the
- * editor would offer the same thing twice, the bar's version leads into the
- * editor's own: its search opens the editor's command palette, and its New
- * page and New post open the editor's add flows rather than wp-admin's.
+ * site-editor-v2 shows it above its editor too, so it shows here as well and
+ * stays put moving between wp-admin and the editor. Where the bar and the
+ * editor would offer the same thing twice, the editor's own wins: the bar's
+ * search opens the editor's command palette (`src/admin-bar.js`), and its New
+ * menu is taken off, as the top bar's quick add does that job.
  *
  * @package CreateNotLearnEditor
  */
@@ -29,39 +26,7 @@ function cnl_editor_get_admin_color_class() {
 }
 
 /**
- * Check whether the user has turned on the admin bar in the editor.
- *
- * The preference is one of the editor's own, kept with core's preferences in
- * user meta.
- *
- * @return bool Whether the preference is on.
- */
-function cnl_editor_user_shows_admin_bar() {
-	global $wpdb;
-
-	$preferences = get_user_meta( get_current_user_id(), $wpdb->get_blog_prefix() . 'persisted_preferences', true );
-
-	return ! empty( $preferences[ CNL_EDITOR_SLUG ]['showAdminBar'] );
-}
-
-/**
- * Get an editor URL that opens a screen.
- *
- * @param string $path Route path, with any search params.
- * @return string Editor URL.
- */
-function cnl_editor_get_screen_url( $path ) {
-	return add_query_arg(
-		array(
-			'page' => CNL_EDITOR_SLUG,
-			'p'    => rawurlencode( $path ),
-		),
-		admin_url( 'admin.php' )
-	);
-}
-
-/**
- * Set the admin bar up above the editor, hidden until it's turned on.
+ * Set the admin bar up above the editor.
  *
  * Call after the page's queues are cleared, as it enqueues the bar's assets.
  *
@@ -75,17 +40,14 @@ function cnl_editor_enable_admin_bar() {
 	// The bar's menu toggle opens wp-admin's menu, which this page doesn't have.
 	remove_action( 'admin_bar_menu', 'wp_admin_bar_sidebar_toggle', 0 );
 	add_action( 'admin_bar_menu', 'cnl_editor_admin_bar_command_palette', 56 );
-	add_action( 'admin_bar_menu', 'cnl_editor_admin_bar_new_content', 100 );
+	// Late, after every plugin has added to New, so its items go with it.
+	add_action( 'admin_bar_menu', 'cnl_editor_admin_bar_remove_new_content', PHP_INT_MAX );
 
 	wp_enqueue_script( 'admin-bar' );
 	wp_enqueue_style( 'admin-bar' );
 	wp_enqueue_style( 'colors' );
 
 	$css = <<<CSS
-body:not(.admin-bar) #wpadminbar {
-	display: none;
-}
-
 body.admin-bar #create-not-learn-editor-app {
 	position: fixed;
 	inset: var(--wp-admin--admin-bar--height, 0) 0 0;
@@ -142,35 +104,11 @@ function cnl_editor_admin_bar_command_palette( WP_Admin_Bar $wp_admin_bar ) {
 }
 
 /**
- * Point the bar's New post and New page at the editor's add flows.
+ * Take New off the bar. The top bar's quick add is the editor's way to add
+ * something, so the bar's would only offer it twice.
  *
  * @param WP_Admin_Bar $wp_admin_bar The admin bar.
  */
-function cnl_editor_admin_bar_new_content( WP_Admin_Bar $wp_admin_bar ) {
-	$links = array(
-		'new-post' => cnl_editor_get_screen_url( '/types/post/list/all?add=1' ),
-		'new-page' => cnl_editor_get_screen_url( '/types/page/list/all?add=1' ),
-	);
-
-	foreach ( $links as $id => $href ) {
-		if ( $wp_admin_bar->get_node( $id ) ) {
-			$wp_admin_bar->add_node(
-				array(
-					'id'   => $id,
-					'href' => $href,
-				)
-			);
-		}
-	}
-
-	// The bar's New itself adds a post.
-	$new_content = $wp_admin_bar->get_node( 'new-content' );
-	if ( $new_content && $wp_admin_bar->get_node( 'new-post' ) ) {
-		$wp_admin_bar->add_node(
-			array(
-				'id'   => 'new-content',
-				'href' => $links['new-post'],
-			)
-		);
-	}
+function cnl_editor_admin_bar_remove_new_content( WP_Admin_Bar $wp_admin_bar ) {
+	$wp_admin_bar->remove_node( 'new-content' );
 }
