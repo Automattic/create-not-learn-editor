@@ -72,6 +72,12 @@ function cnl_editor_render_full_page() {
 		wp_die( esc_html__( 'Sorry, you are not allowed to access this page.', 'create-not-learn-editor' ) );
 	}
 
+	// Core sends these from `admin_init` too, but adds them after this
+	// plugin's hook, so the page exits before they run. Without them another
+	// site could frame the editor and trick someone into clicking Save.
+	wp_admin_headers();
+	send_frame_options_header();
+
 	set_current_screen();
 
 	// Sync the user's settings cookie, as admin-header.php does, so the media
