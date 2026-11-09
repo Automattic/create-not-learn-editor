@@ -8,7 +8,7 @@
  * badge, and a file that fails becomes an error Notice in the modal, as
  * the error message pattern asks, with the reason WordPress gave.
  *
- * The Media screen's Upload button and quick add's Upload media both open
+ * The Media screen's Upload button and the admin bar's New > Media both open
  * it, and files dropped on the Media screen open it with those files
  * already uploading. Once every file is in, it closes itself and a snackbar
  * says how many were added. A file that fails keeps it open, so the person
