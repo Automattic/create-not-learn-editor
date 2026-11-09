@@ -146,6 +146,34 @@ function recoverBlock( block ) {
 	return { ...block, innerBlocks };
 }
 
+/**
+ * Parsed blocks as `carriesScript()` can read them: names, attributes and
+ * inner blocks, with rich text, which is a class, as its HTML.
+ *
+ * @param {Object[]} blocks Parsed blocks.
+ * @return {Object[]} Plain objects to check.
+ */
+function toCheckedBlocks( blocks ) {
+	const asPlain = ( value ) =>
+		value &&
+		typeof value === 'object' &&
+		! Array.isArray( value ) &&
+		Object.getPrototypeOf( value ) !== Object.prototype
+			? String( value )
+			: value;
+
+	return blocks.map( ( { name, attributes, innerBlocks } ) => ( {
+		name,
+		attributes: Object.fromEntries(
+			Object.entries( attributes || {} ).map( ( [ key, value ] ) => [
+				key,
+				asPlain( value ),
+			] )
+		),
+		innerBlocks: toCheckedBlocks( innerBlocks || [] ),
+	} ) );
+}
+
 function findUnknownBlock( blocks ) {
 	for ( const block of blocks ) {
 		if ( block.name === 'core/missing' || block.name === 'core/freeform' ) {
@@ -198,7 +226,15 @@ export function writeDesign( {
 		};
 	}
 
-	if ( carriesScript( content ) ) {
+	const markup = serialize( blocks.map( recoverBlock ) );
+
+	// Checked as written, as the blocks read it and as it would be saved, as
+	// reading the blocks undoes escapes that hid a script from the first.
+	if (
+		carriesScript( content ) ||
+		carriesScript( toCheckedBlocks( blocks ) ) ||
+		carriesScript( markup )
+	) {
 		return {
 			error: 'Not shown: this editor does not add raw HTML or scripts.',
 		};
@@ -208,7 +244,7 @@ export function writeDesign( {
 		name: `create-not-learn-editor/written-${ written.size + 1 }`,
 		title: designName || __( 'Written for you' ),
 		description: __( 'Written for you' ),
-		content: serialize( blocks.map( recoverBlock ) ),
+		content: markup,
 		basedOn: basedOn || null,
 	};
 
