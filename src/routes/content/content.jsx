@@ -26,15 +26,19 @@ import {
 	PostListDataViewsLayout,
 	getContentActions,
 	getContentFields,
+	getPostLayouts,
 	usePostAuthors,
+	usePostCategories,
 } from './content-fields';
+import PostTimeline from './post-timeline-view';
 import { getPostViewEmpty, getPostViews } from './post-views';
+import { TIMELINE_LAYOUT } from './post-timeline';
 import useCoreTrashActions from './use-core-trash-actions';
 import PostKindPicker from '../../pickers/post-kinds';
 import { isAskingPostKind } from '../../post-kinds-base';
 import { getTemplateTitle } from './helpers';
 import PagesTable from './pages-table';
-import useContentRecords from './use-content-records';
+import useContentRecords, { LISTED_STATUSES } from './use-content-records';
 import { useDataViews } from '../../use-dataviews';
 import {
 	Breadcrumbs,
@@ -163,7 +167,10 @@ function Stage() {
 	const trashActions = useCoreTrashActions( statusView ? type?.name : null );
 	// Pages lists its pages in menu groups; every other type in DataViews.
 	const dataViews = useDataViews( !! type && ! isPages );
+	const isPosts = type?.name === 'post';
 	const authors = usePostAuthors( isPages ? EMPTY_ARRAY : posts );
+	const isTimeline = isPosts && contentView.type === TIMELINE_LAYOUT;
+	const categories = usePostCategories( isPosts ? posts : EMPTY_ARRAY );
 	const contentFields = useMemo(
 		() =>
 			getContentFields(
@@ -171,20 +178,35 @@ function Stage() {
 					frontPageId,
 					isListedByStatus: !! statusView,
 					isPages,
+					isPosts,
 					menuPages: mainMenu.menuPages,
 					postsPageId,
 				},
-				authors
+				authors,
+				{ categories }
 			),
 		[
 			authors,
+			categories,
 			frontPageId,
 			isPages,
+			isPosts,
 			mainMenu.menuPages,
 			postsPageId,
 			statusView,
 		]
 	);
+	// Posts can also be shown as a timeline, which says who wrote each
+	// only when more than one person did.
+	const hasManyAuthors = authors.size > 1;
+	const contentLayouts = useMemo(
+		() =>
+			isPosts
+				? getPostLayouts( { hasManyAuthors } )
+				: DEFAULT_CONTENT_LAYOUTS,
+		[ hasManyAuthors, isPosts ]
+	);
+
 	const contentActions = useMemo( () => {
 		if ( ! type ) {
 			return [];
@@ -539,12 +561,23 @@ function Stage() {
 		);
 	} else if ( ! isPages ) {
 		const { DataViews } = dataViews;
+		const onClickItem = ( item ) => {
+			if ( item.status === 'trash' ) {
+				return;
+			}
+
+			if ( type.blockEditor ) {
+				openEditor( item.id );
+			} else {
+				selectPost( item.id );
+			}
+		};
 
 		contentList = (
 			<DataViews
 				actions={ contentActions }
 				data={ posts }
-				defaultLayouts={ DEFAULT_CONTENT_LAYOUTS }
+				defaultLayouts={ contentLayouts }
 				empty={ contentEmpty }
 				fields={ contentFields }
 				getItemId={ ( item ) => String( item.id ) }
@@ -554,17 +587,7 @@ function Stage() {
 				}` }
 				onChangeSelection={ () => {} }
 				onChangeView={ onChangeContentView }
-				onClickItem={ ( item ) => {
-					if ( item.status === 'trash' ) {
-						return;
-					}
-
-					if ( type.blockEditor ) {
-						openEditor( item.id );
-					} else {
-						selectPost( item.id );
-					}
-				} }
+				onClickItem={ onClickItem }
 				paginationInfo={ {
 					totalItems: posts.length,
 					totalPages,
@@ -572,7 +595,24 @@ function Stage() {
 				selection={ EMPTY_ARRAY }
 				view={ contentView }
 			>
-				<PostListDataViewsLayout />
+				<PostListDataViewsLayout
+					layout={
+						isTimeline && (
+							<PostTimeline
+								actions={ contentActions }
+								empty={ contentEmpty }
+								onClickItem={ onClickItem }
+								search={ contentView.search }
+								statuses={
+									statusView?.statuses || LISTED_STATUSES
+								}
+								type={ type }
+								view={ contentView }
+								withLinks={ !! statusView }
+							/>
+						)
+					}
+				/>
 			</DataViews>
 		);
 	}

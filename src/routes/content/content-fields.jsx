@@ -3,7 +3,8 @@
  */
 import { getTitleText } from '../../records';
 import { isPageInMenu } from './menu-status';
-import { getStatusLabel } from './helpers';
+import { DEFAULT_CONTENT_VIEW, getStatusLabel } from './helpers';
+import { TIMELINE_LAYOUT } from './post-timeline';
 import { useDataViews } from '../../use-dataviews';
 import {
 	Badge,
@@ -17,6 +18,8 @@ import {
 } from '../../wordpress-packages';
 
 const NO_AUTHORS = new Map();
+const NO_CATEGORIES = { defaultId: 0, names: new Map() };
+const NO_IMAGES = new Map();
 
 export const DEFAULT_CONTENT_LAYOUTS = {
 	list: true,
@@ -30,6 +33,51 @@ export const DEFAULT_CONTENT_LAYOUTS = {
 		},
 	},
 };
+
+/**
+ * The layouts a list of posts can switch between. Each says which fields
+ * it shows, so the timeline's month groups and markers don't follow the
+ * list into a table.
+ *
+ * @param {Object}  options                Options.
+ * @param {boolean} options.hasManyAuthors Whether more than one person
+ *                                         wrote the posts, so the
+ *                                         timeline says who wrote each.
+ * @return {Object} DataViews' `defaultLayouts`.
+ */
+export function getPostLayouts( { hasManyAuthors = false } = {} ) {
+	const plain = {
+		groupBy: undefined,
+		mediaField: undefined,
+	};
+
+	return {
+		list: {
+			...plain,
+			descriptionField: 'excerpt',
+			fields: [ 'date' ],
+		},
+		table: {
+			...DEFAULT_CONTENT_LAYOUTS.table,
+			...plain,
+			descriptionField: undefined,
+			fields: DEFAULT_CONTENT_VIEW.fields,
+		},
+		[ TIMELINE_LAYOUT ]: {
+			descriptionField: 'excerpt',
+			fields: [
+				'status',
+				'date',
+				hasManyAuthors && 'author',
+				'categories',
+				'comments',
+			].filter( Boolean ),
+			groupBy: undefined,
+			layout: { density: 'balanced' },
+			mediaField: 'featured-image',
+		},
+	};
+}
 
 const STATUS_OPTIONS = [
 	{ label: __( 'Published' ), value: 'publish' },
@@ -65,7 +113,13 @@ function getDateLabel( post ) {
 	);
 }
 
-function getStatusIntent( status ) {
+/**
+ * The intent of the badge a post's status shows in a list.
+ *
+ * @param {string} status Post status.
+ * @return {string} A `Badge` intent.
+ */
+export function getStatusIntent( status ) {
 	switch ( status ) {
 		case 'draft':
 		case 'auto-draft':
@@ -157,7 +211,156 @@ export function usePostAuthors( posts ) {
 	);
 }
 
-function getExcerptText( item ) {
+/**
+ * The names of the categories the given posts are in, and the site's
+ * default category, which the timeline leaves unsaid.
+ *
+ * @param {Object[]} posts Post records.
+ * @return {Object} `{ defaultId, names }`, names keyed by term ID.
+ */
+export function usePostCategories( posts ) {
+	const categoryIds = useMemo(
+		() =>
+			[
+				...new Set(
+					posts.flatMap( ( post ) =>
+						Array.isArray( post.categories )
+							? post.categories.map( Number )
+							: []
+					)
+				),
+			]
+				.filter( ( id ) => id > 0 )
+				.sort( ( first, second ) => first - second ),
+		[ posts ]
+	);
+	const categoryIdsKey = categoryIds.join( ',' );
+	const { defaultId, terms } = useSelect(
+		( select ) => {
+			const store = select( coreDataStore );
+
+			return {
+				defaultId:
+					Number(
+						store.getEntityRecord( 'root', 'site' )
+							?.default_category
+					) || 0,
+				terms: categoryIdsKey
+					? store.getEntityRecords( 'taxonomy', 'category', {
+							_fields: 'id,name',
+							context: 'view',
+							include: categoryIdsKey,
+							per_page: 100,
+						} )
+					: null,
+			};
+		},
+		[ categoryIdsKey ]
+	);
+
+	return useMemo(
+		() =>
+			terms
+				? {
+						defaultId,
+						names: new Map(
+							terms.map( ( term ) => [
+								term.id,
+								decodeEntities( term.name ),
+							] )
+						),
+					}
+				: { ...NO_CATEGORIES, defaultId },
+		[ defaultId, terms ]
+	);
+}
+
+/**
+ * The featured images of the given posts, small enough for a list.
+ *
+ * @param {Object[]} posts Post records.
+ * @return {Map<number, Object>} `{ alt, url }` keyed by attachment ID.
+ */
+export function usePostFeaturedImages( posts ) {
+	const mediaIdsKey = useMemo(
+		() =>
+			[
+				...new Set(
+					posts
+						.map( ( post ) => Number( post.featured_media ) )
+						.filter( ( id ) => id > 0 )
+				),
+			]
+				.sort( ( first, second ) => first - second )
+				.join( ',' ),
+		[ posts ]
+	);
+	const media = useSelect(
+		( select ) =>
+			mediaIdsKey
+				? select( coreDataStore ).getEntityRecords(
+						'postType',
+						'attachment',
+						{
+							_fields: 'id,alt_text,source_url,media_details',
+							context: 'view',
+							include: mediaIdsKey,
+							per_page: 100,
+						}
+					)
+				: null,
+		[ mediaIdsKey ]
+	);
+
+	return useMemo(
+		() =>
+			media
+				? new Map(
+						media.map( ( attachment ) => {
+							const sizes = attachment.media_details?.sizes || {};
+
+							return [
+								attachment.id,
+								{
+									alt: attachment.alt_text || '',
+									url:
+										sizes.thumbnail?.source_url ||
+										sizes.medium?.source_url ||
+										attachment.source_url,
+								},
+							];
+						} )
+					)
+				: NO_IMAGES,
+		[ media ]
+	);
+}
+
+/**
+ * The categories a post is filed in, by name, leaving out the site's
+ * default category when it's the only one.
+ *
+ * @param {Object} item       Post record.
+ * @param {Object} categories From `usePostCategories`.
+ * @return {string} Like "News, Plant care", or "".
+ */
+export function getCategoryText( item, categories ) {
+	const ids = Array.isArray( item.categories )
+		? item.categories.map( Number )
+		: [];
+
+	// Only in the default category is as good as not filed anywhere.
+	if ( ids.length === 1 && ids[ 0 ] === categories.defaultId ) {
+		return '';
+	}
+
+	return ids
+		.map( ( id ) => categories.names.get( id ) )
+		.filter( Boolean )
+		.join( ', ' );
+}
+
+export function getExcerptText( item ) {
 	const rendered = item?.excerpt?.rendered || '';
 
 	return decodeEntities( rendered.replace( /<[^>]+>/g, '' ) ).trim();
@@ -173,7 +376,20 @@ function getAuthorName( item, authors ) {
 	return authors.get( authorId ) || '';
 }
 
-export function getContentFields( siteRoles = {}, authors = NO_AUTHORS ) {
+/**
+ * @param {Object} siteRoles              What the listed records are to the
+ *                                        site, and how they're listed.
+ * @param {Map}    authors                From `usePostAuthors`.
+ * @param {Object} options                Options.
+ * @param {Object} options.categories     From `usePostCategories`.
+ * @param {Map}    options.featuredImages From `usePostFeaturedImages`.
+ * @return {Object[]} DataViews fields.
+ */
+export function getContentFields(
+	siteRoles = {},
+	authors = NO_AUTHORS,
+	{ categories = NO_CATEGORIES, featuredImages = NO_IMAGES } = {}
+) {
 	return [
 		{
 			enableGlobalSearch: true,
@@ -239,6 +455,14 @@ export function getContentFields( siteRoles = {}, authors = NO_AUTHORS ) {
 			render: ( { item } ) => Number( item.comment_count ) || 0,
 			type: 'integer',
 		},
+		siteRoles.isPosts && {
+			enableSorting: false,
+			filterBy: false,
+			getValue: ( { item } ) => getCategoryText( item, categories ),
+			id: 'categories',
+			label: __( 'Categories' ),
+			type: 'text',
+		},
 		{
 			enableHiding: false,
 			enableSorting: false,
@@ -259,6 +483,23 @@ export function getContentFields( siteRoles = {}, authors = NO_AUTHORS ) {
 			label: __( 'Date' ),
 			render: ( { item } ) => getDateLabel( item ),
 			type: 'datetime',
+		},
+		siteRoles.isPosts && {
+			enableSorting: false,
+			filterBy: false,
+			getValue: ( { item } ) => Number( item.featured_media ) || 0,
+			id: 'featured-image',
+			label: __( 'Featured image' ),
+			render: ( { item } ) => {
+				const image = featuredImages.get(
+					Number( item.featured_media )
+				);
+
+				return image ? (
+					<img alt={ image.alt } src={ image.url } />
+				) : null;
+			},
+			type: 'media',
 		},
 	].filter( Boolean );
 }
@@ -294,7 +535,13 @@ export function getContentActions( navigate, type ) {
 	];
 }
 
-export function PostListDataViewsLayout() {
+/**
+ * @param {Object}   props        Component props.
+ * @param {?Element} props.layout A layout of the screen's own, drawn in
+ *                                place of DataViews' own for the view.
+ * @return {Element} The list, with its search, options and pages.
+ */
+export function PostListDataViewsLayout( { layout = null } ) {
 	// Only rendered inside `DataViews`, so the module has loaded.
 	const { DataViews } = useDataViews();
 
@@ -312,7 +559,7 @@ export function PostListDataViewsLayout() {
 			</div>
 			<DataViews.FiltersToggled className="routes-post-list__dataviews-filters" />
 			<div className="routes-post-list__dataviews-scroll">
-				<DataViews.Layout />
+				{ layout || <DataViews.Layout /> }
 				<DataViews.Pagination />
 			</div>
 		</div>

@@ -98,6 +98,7 @@ import {
 	chevronDown,
 	chevronRight,
 	chevronRightSmall,
+	chevronLeftSmall,
 	chevronDownSmall,
 	chevronUp,
 	closeSmall,
@@ -166,6 +167,7 @@ import {
 	Badge,
 	Button as UiButton,
 	Card,
+	Collapsible,
 	EmptyState,
 	Icon,
 	IconButton as UiIconButton,
@@ -182,6 +184,7 @@ import {
 	Text,
 	TextareaControl,
 	Tooltip,
+	VisuallyHidden,
 } from '@wordpress/ui';
 import { ThemeProvider } from '@wordpress/theme';
 import { addQueryArgs, getPath, safeDecodeURI } from '@wordpress/url';
@@ -205,6 +208,7 @@ export {
 	brush as brushIcon,
 	Button,
 	Card,
+	Collapsible,
 	category as categoryIcon,
 	caution as cautionIcon,
 	check as checkIcon,
@@ -216,6 +220,7 @@ export {
 	chevronLeft as chevronLeftIcon,
 	chevronRight as chevronRightIcon,
 	chevronRightSmall as chevronRightSmallIcon,
+	chevronLeftSmall as chevronLeftSmallIcon,
 	chevronDownSmall as chevronDownSmallIcon,
 	chevronUp as chevronUpIcon,
 	cloneBlock,
@@ -332,6 +337,7 @@ export {
 	scheduled as scheduledIcon,
 	typography as typographyIcon,
 	UiButton,
+	VisuallyHidden,
 	UiIconButton,
 	UiNotice,
 	undo as undoIcon,

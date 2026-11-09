@@ -9,6 +9,8 @@ import { useParams, useSearch } from '@wordpress/route';
 import { getPostType } from '../../settings';
 import { getActiveWorkspace } from '../../workspaces/presets';
 import { getPostView } from './post-views';
+import { TIMELINE_LAYOUT } from './post-timeline';
+import { getPostLayouts } from './content-fields';
 import { getErrorMessage } from '../../records';
 import { EMPTY_ARRAY } from './page-layouts';
 import {
@@ -26,14 +28,14 @@ import {
 } from '../../wordpress-packages';
 
 // No `content`: nothing shows it, and the server renders it for every record.
-const POST_QUERY_FIELDS =
-	'id,author,link,title,status,type,date,modified,date_gmt,modified_gmt,template,slug,parent,comment_count,excerpt';
+export const POST_QUERY_FIELDS =
+	'id,author,link,title,status,type,date,modified,date_gmt,modified_gmt,template,slug,parent,comment_count,excerpt,categories,featured_media';
 
 /*
  * Lists by status also ask for each post's links, which say
  * what the user may do with it, as core's trash actions need to know.
  */
-const POST_QUERY_FIELDS_WITH_LINKS = `${ POST_QUERY_FIELDS },_links`;
+export const POST_QUERY_FIELDS_WITH_LINKS = `${ POST_QUERY_FIELDS },_links`;
 
 const TEMPLATE_QUERY = {
 	context: 'edit',
@@ -42,7 +44,13 @@ const TEMPLATE_QUERY = {
 		'id,slug,title,description,source,author,theme,type,status,content,is_custom',
 };
 
-const LISTED_STATUSES = [ 'publish', 'draft', 'pending', 'private', 'future' ];
+export const LISTED_STATUSES = [
+	'publish',
+	'draft',
+	'pending',
+	'private',
+	'future',
+];
 
 function getPostQuery( search, statuses = LISTED_STATUSES, withLinks ) {
 	return {
@@ -76,9 +84,8 @@ function getSearchValue( value ) {
 }
 
 /**
- * How a content type is listed to begin with. Posts follow the workspace:
- * a writer's are a list of what they wrote, drafts first, rather than a
- * table of records.
+ * How a content type is listed to begin with. Posts follow the workspace,
+ * which starts them on the timeline unless it says otherwise.
  *
  * @param {?Object} type Post type.
  * @return {Object} `{ fields, type }`, plus `groupBy` and
@@ -90,6 +97,13 @@ function getDefaultContentLayout( type ) {
 	}
 
 	const posts = getActiveWorkspace().posts;
+
+	if ( type?.name === 'post' && posts.layout === TIMELINE_LAYOUT ) {
+		return {
+			...getPostLayouts()[ TIMELINE_LAYOUT ],
+			type: TIMELINE_LAYOUT,
+		};
+	}
 
 	if ( type?.name === 'post' && posts.layout === 'list' ) {
 		return {
@@ -109,6 +123,66 @@ function getInitialContentView( searchParams, type ) {
 		page: searchParams.page ? Number( searchParams.page ) || 1 : 1,
 		search: searchParams.search || '',
 	};
+}
+
+/**
+ * What the user may do with each post, as core's post actions read it
+ * from the post itself. Core-data learns it from the posts' links, so
+ * asking costs nothing more. Kept as a string while selecting, so the
+ * posts are only rebuilt when it changes.
+ *
+ * @param {Object[]} posts Post records, asked for with their links.
+ * @param {?Object}  type  Post type, or null when nothing needs to know.
+ * @return {Object[]} The posts, each with `permissions`.
+ */
+export function usePostPermissions( posts, type ) {
+	const permissionsKey = useSelect(
+		( select ) => {
+			if ( ! type ) {
+				return '';
+			}
+
+			const { canUser } = select( coreDataStore );
+
+			return posts
+				.map( ( post ) => {
+					const resource = {
+						kind: 'postType',
+						name: type.name,
+						id: post.id,
+					};
+
+					return [
+						post.id,
+						canUser( 'delete', resource ) ? 1 : 0,
+						canUser( 'update', resource ) ? 1 : 0,
+					].join( ':' );
+				} )
+				.join( ',' );
+		},
+		[ posts, type ]
+	);
+	return useMemo( () => {
+		if ( ! permissionsKey ) {
+			return posts;
+		}
+
+		const permissions = new Map(
+			permissionsKey.split( ',' ).map( ( entry ) => {
+				const [ id, canDelete, canUpdate ] = entry.split( ':' );
+
+				return [
+					id,
+					{ delete: canDelete === '1', update: canUpdate === '1' },
+				];
+			} )
+		);
+
+		return posts.map( ( post ) => ( {
+			...post,
+			permissions: permissions.get( String( post.id ) ),
+		} ) );
+	}, [ permissionsKey, posts ] );
 }
 
 export default function useContentRecords() {
@@ -165,6 +239,9 @@ export default function useContentRecords() {
 		setContentView( ( currentView ) => ( {
 			...currentView,
 			descriptionField: undefined,
+			// Only posts' timeline groups and marks them.
+			groupBy: undefined,
+			mediaField: undefined,
 			...getDefaultContentLayout( type ),
 		} ) );
 	}, [ type ] );
@@ -229,59 +306,10 @@ export default function useContentRecords() {
 		},
 		[ activeTab, needsPosts, postQuery, type ]
 	);
-	/*
-	 * What the user may do with each post, as core's post actions read it
-	 * from the post itself. Core-data learns it from the posts' links, so
-	 * asking costs nothing more. Kept as a string while selecting, so the
-	 * posts are only rebuilt when it changes.
-	 */
-	const permissionsKey = useSelect(
-		( select ) => {
-			if ( ! hasStatusFilter || ! type ) {
-				return '';
-			}
-
-			const { canUser } = select( coreDataStore );
-
-			return posts
-				.map( ( post ) => {
-					const resource = {
-						kind: 'postType',
-						name: type.name,
-						id: post.id,
-					};
-
-					return [
-						post.id,
-						canUser( 'delete', resource ) ? 1 : 0,
-						canUser( 'update', resource ) ? 1 : 0,
-					].join( ':' );
-				} )
-				.join( ',' );
-		},
-		[ hasStatusFilter, posts, type ]
+	const postsWithPermissions = usePostPermissions(
+		posts,
+		hasStatusFilter ? type : null
 	);
-	const postsWithPermissions = useMemo( () => {
-		if ( ! permissionsKey ) {
-			return posts;
-		}
-
-		const permissions = new Map(
-			permissionsKey.split( ',' ).map( ( entry ) => {
-				const [ id, canDelete, canUpdate ] = entry.split( ':' );
-
-				return [
-					id,
-					{ delete: canDelete === '1', update: canUpdate === '1' },
-				];
-			} )
-		);
-
-		return posts.map( ( post ) => ( {
-			...post,
-			permissions: permissions.get( String( post.id ) ),
-		} ) );
-	}, [ permissionsKey, posts ] );
 	const templates = useMemo(
 		() =>
 			type
