@@ -2,17 +2,17 @@
 
 # Create Not Learn Editor
 
-[![Try the demo in WordPress Playground](https://img.shields.io/badge/Try_the_demo-WordPress_Playground-3858e9?style=for-the-badge&logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint.json) [![Try it on a blank site in WordPress Playground](https://img.shields.io/badge/Try_a_blank_site-WordPress_Playground-3858e9?style=for-the-badge&logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint-blank.json)
+[![Try the demo in WordPress Playground](https://img.shields.io/badge/Try_the_demo-WordPress_Playground-3858e9?style=for-the-badge&logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint.json) [![Try it on a blank site in WordPress Playground](https://img.shields.io/badge/Try_a_blank_site-WordPress_Playground-3858e9?style=for-the-badge&logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-blank.json)
 
 ![The Create Not Learn editor, with the Create your site checklist beside a live preview of the Fernhouse demo site](.wordpress-org/screenshot-1.jpg)
 
-[Try Create Not Learn in your browser](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint.json). The demo opens the latest build of `trunk` in the editor, with the Fernhouse demo site ready to edit. There is nothing to install, and your changes go when you close the tab.
+[Try Create Not Learn in your browser](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint.json). The demo opens the latest build of `trunk` in the editor, with the Fernhouse demo site ready to edit. There is nothing to install, and your changes go when you close the tab.
 
-To see how the editor copes with a site that isn't set up for it, [try it on a blank site](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint-blank.json). That runs the same build on a fresh WordPress install with the latest default theme and no demo content.
+To see how the editor copes with a site that isn't set up for it, [try it on a blank site](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-blank.json). That runs the same build on a fresh WordPress install with the latest default theme and no demo content.
 
-To try the shop, [open Fernhouse with WooCommerce](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint-shop.json). It adds WooCommerce and a stocked demo shop, and opens on the Shop screen. It takes a minute or two longer, as Playground downloads WooCommerce.
+To try the shop, [open Fernhouse with WooCommerce](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-shop.json). It adds WooCommerce and a stocked demo shop, and opens on the Shop screen. It takes a minute or two longer, as Playground downloads WooCommerce.
 
-Each demo opens in the Default workspace. To start in another, open the demo in [Writing](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dwriting) or [Builder](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dbuilder), or the shop demo in [Selling](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint-shop.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dselling).
+Each demo opens in the Default workspace. To start in another, open the demo in [Writing](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dwriting) or [Builder](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dbuilder), or the shop demo in [Selling](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-shop.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dselling).
 
 Create Not Learn Editor is a standalone WordPress plugin that experiments with a focused, extensible site-editing experience.
 
@@ -242,7 +242,7 @@ Keep the Gutenberg version in every blueprint in step with `.wp-env.json`. Canva
 Every demo opens in the Default workspace. Playground's `url` parameter changes where a blueprint lands, so any demo link opens in another workspace with `&url=` and the editor's address, encoded, on the end. This opens the trunk demo in Writing:
 
 ```text
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dwriting
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dwriting
 ```
 
 The workflows below add the Writing, Builder and Selling links wherever they list the demos. Selling needs a shop, so its link uses the shop blueprint.
@@ -252,9 +252,9 @@ The workflows below add the Writing, Builder and Selling links wherever they lis
 Every other branch gets demos of its own too. Each push builds them to `refs/playground/<branch>`, with a `blueprint.json`, a `blueprint-shop.json` and a `blueprint-blank.json` that install from there. That ref is neither a branch nor a tag, so the demos stay out of the branch and tag lists. The links for `getdave/my-change` are
 
 ```text
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/refs/playground/getdave/my-change/blueprint.json
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/refs/playground/getdave/my-change/blueprint-shop.json
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/refs/playground/getdave/my-change/blueprint-blank.json
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/my-change/blueprint.json
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/my-change/blueprint-shop.json
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/my-change/blueprint-blank.json
 ```
 
 When a pull request opens, `.github/workflows/playground-links.yml` comments the links on it. The demo follows the branch, updating a few minutes after each push, and is deleted with it.
@@ -271,9 +271,9 @@ git push origin v0.2.0
 The workflow builds the tagged commit and publishes its files to a `playground-v0.2.0` tag, with a `blueprint.json`, a `blueprint-shop.json` and a `blueprint-blank.json` that install from that tag. Those blueprints also pin WordPress to the version in `scripts/wp-env.mjs`, where the trunk and branch demos take the latest, so the blank site runs that version's default theme. The workflow then creates a GitHub release for `v0.2.0`, or updates one you made already, with the Playground links at the top of the notes and the plugin zip attached. The links are
 
 ```text
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint.json
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint-shop.json
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/getdave/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint-blank.json
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint.json
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint-shop.json
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint-blank.json
 ```
 
 Every release keeps its own links, so testers can stay on one while trunk moves on. Pushing the same tag to a new commit rebuilds that release in place.

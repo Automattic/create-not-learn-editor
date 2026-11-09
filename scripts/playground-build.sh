@@ -31,7 +31,7 @@ kind=$1
 name=$2
 ref=$3
 out=$4
-repo=${GITHUB_REPOSITORY:-getdave/create-not-learn-editor}
+repo=${GITHUB_REPOSITORY:-Automattic/create-not-learn-editor}
 sha=${GITHUB_SHA:-$(git rev-parse HEAD)}
 
 case $kind in

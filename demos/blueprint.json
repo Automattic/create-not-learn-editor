@@ -22,7 +22,7 @@
 			"path": "/wordpress/wp-content/mu-plugins/cnl-playground-canvas-fix.php",
 			"data": {
 				"resource": "url",
-				"url": "https://raw.githubusercontent.com/getdave/create-not-learn-editor/playground-build/playground-canvas-fix.php"
+				"url": "https://raw.githubusercontent.com/Automattic/create-not-learn-editor/playground-build/playground-canvas-fix.php"
 			}
 		},
 		{
@@ -42,7 +42,7 @@
 			"step": "installPlugin",
 			"pluginData": {
 				"resource": "url",
-				"url": "https://raw.githubusercontent.com/getdave/create-not-learn-editor/playground-build/create-not-learn-editor.zip"
+				"url": "https://raw.githubusercontent.com/Automattic/create-not-learn-editor/playground-build/create-not-learn-editor.zip"
 			},
 			"options": {
 				"activate": true
@@ -55,7 +55,7 @@
 			"step": "installTheme",
 			"themeData": {
 				"resource": "url",
-				"url": "https://raw.githubusercontent.com/getdave/create-not-learn-editor/playground-build/mainstay.zip"
+				"url": "https://raw.githubusercontent.com/Automattic/create-not-learn-editor/playground-build/mainstay.zip"
 			},
 			"options": {
 				"activate": true
@@ -69,7 +69,7 @@
 			"path": "/tmp/cnl-demo-site-seed.php",
 			"data": {
 				"resource": "url",
-				"url": "https://raw.githubusercontent.com/getdave/create-not-learn-editor/playground-build/seed.php"
+				"url": "https://raw.githubusercontent.com/Automattic/create-not-learn-editor/playground-build/seed.php"
 			}
 		},
 		{
