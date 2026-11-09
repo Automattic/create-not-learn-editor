@@ -84,6 +84,11 @@ import {
 	useState,
 	useSyncExternalStore,
 } from '@wordpress/element';
+import {
+	dateI18n,
+	getSettings as getDateSettings,
+	humanTimeDiff,
+} from '@wordpress/date';
 import { escapeHTML } from '@wordpress/escape-html';
 import { decodeEntities } from '@wordpress/html-entities';
 import { __, _n, isRTL, sprintf } from '@wordpress/i18n';
@@ -130,6 +135,7 @@ import {
 	lock,
 	mobile,
 	moreVertical,
+	notAllowed,
 	navigation,
 	page,
 	payment,
@@ -239,6 +245,7 @@ export {
 	coreDataStore,
 	createBlock,
 	createReduxStore,
+	dateI18n,
 	decodeEntities,
 	dispatch,
 	displayShortcut,
@@ -259,10 +266,12 @@ export {
 	fullscreen as fullscreenIcon,
 	getBlockType,
 	getBlockVariations,
+	getDateSettings,
 	getPath,
 	hasBlockSupport,
 	header as headerIcon,
 	help as helpIcon,
+	humanTimeDiff,
 	home as homeIcon,
 	Icon,
 	InputControl,
@@ -285,6 +294,7 @@ export {
 	memo,
 	mobile as mobileIcon,
 	moreVertical as moreVerticalIcon,
+	notAllowed as notAllowedIcon,
 	Modal,
 	navigation as compassIcon,
 	noticesStore,

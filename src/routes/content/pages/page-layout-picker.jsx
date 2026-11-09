@@ -16,7 +16,6 @@ import {
 	Icon,
 	memo,
 	Skeleton,
-	Stack,
 	Text,
 	useDispatch,
 	useId,
@@ -61,34 +60,16 @@ function LayoutCard( { isSelected, label, onPick, outline, sectionCount } ) {
 }
 
 /**
- * The layouts a page can use, each drawn with the page's sections in it, so
- * picking one is picking how this page looks. The canvas follows the choice
- * straight away; it is saved with the page.
+ * The layouts a page can use, as options to pick from.
  *
- * Layouts are drawn from their templates rather than rendered. Rendering each
- * one with the page in it, again on every change to the page, made typing on
- * this screen crawl.
- *
- * @param {Object}  props                  Component props.
- * @param {boolean} props.isFrontPage      Whether the page is the homepage.
- * @param {number}  props.pageId           Page ID.
- * @param {number}  props.sectionCount     How many sections the page has.
- * @param {boolean} props.showsLatestPosts Whether the homepage, kept on this
- *                                         page, lists the latest posts.
- * @param {string}  props.slug             Page slug.
- * @param {string}  props.template         The page's chosen template slug, if
- *                                         any.
- * @return {Element} The layout picker.
+ * @param {string}  slug             Page slug.
+ * @param {boolean} isFrontPage      Whether the page is the homepage.
+ * @param {boolean} showsLatestPosts Whether the homepage, kept on this page,
+ *                                   lists the latest posts.
+ * @return {Object} `{ frontPageTemplate, isLoading, options }`, each option
+ *                  `{ label, outline, value }`.
  */
-function PageLayouts( {
-	isFrontPage,
-	pageId,
-	sectionCount,
-	showsLatestPosts,
-	slug,
-	template: current = '',
-} ) {
-	const { editEntityRecord } = useDispatch( coreDataStore );
+function useLayoutOptions( slug, isFrontPage, showsLatestPosts ) {
 	const { custom, defaultTemplate, frontPageTemplate, isLoading, patterns } =
 		usePageLayouts( slug, isFrontPage, showsLatestPosts );
 	const options = useMemo( () => {
@@ -126,6 +107,75 @@ function PageLayouts( {
 				),
 		].filter( Boolean );
 	}, [ custom, defaultTemplate, frontPageTemplate, patterns ] );
+
+	return { frontPageTemplate, isLoading, options };
+}
+
+/**
+ * The name of the layout a page uses.
+ *
+ * @param {Object}  props             Hook options.
+ * @param {boolean} props.isFrontPage Whether the page is the homepage.
+ * @param {string}  props.slug        Page slug.
+ * @param {string}  props.template    The page's chosen template slug, if any.
+ * @return {string} The name, or an empty string until the layouts load.
+ */
+export function usePageLayoutName( { isFrontPage, slug, template = '' } ) {
+	const { frontPageTemplate, isLoading, options } = useLayoutOptions(
+		slug,
+		isFrontPage
+	);
+
+	if ( isLoading ) {
+		return '';
+	}
+
+	if ( frontPageTemplate ) {
+		return options[ 0 ]?.label || '';
+	}
+
+	// A layout that has since gone falls back to the standard one.
+	return (
+		options.find( ( option ) => option.value === template )?.label ||
+		options.find( ( option ) => option.value === '' )?.label ||
+		''
+	);
+}
+
+/**
+ * The layouts a page can use, each drawn with the page's sections in it, so
+ * picking one is picking how this page looks. The canvas follows the choice
+ * straight away; it is saved with the page.
+ *
+ * Layouts are drawn from their templates rather than rendered. Rendering each
+ * one with the page in it, again on every change to the page, made typing on
+ * this screen crawl.
+ *
+ * @param {Object}  props                  Component props.
+ * @param {boolean} props.isFrontPage      Whether the page is the homepage.
+ * @param {number}  props.pageId           Page ID.
+ * @param {number}  props.sectionCount     How many sections the page has.
+ * @param {boolean} props.showsLatestPosts Whether the homepage, kept on this
+ *                                         page, lists the latest posts.
+ * @param {string}  props.slug             Page slug.
+ * @param {string}  props.template         The page's chosen template slug, if
+ *                                         any.
+ * @return {Element} The layout picker.
+ */
+function PageLayouts( {
+	isFrontPage,
+	pageId,
+	sectionCount,
+	showsLatestPosts,
+	slug,
+	template: current = '',
+} ) {
+	const { editEntityRecord } = useDispatch( coreDataStore );
+	const { frontPageTemplate, isLoading, options } = useLayoutOptions(
+		slug,
+		isFrontPage,
+		showsLatestPosts
+	);
 	let body;
 
 	if ( isLoading ) {
@@ -173,19 +223,19 @@ function PageLayouts( {
 	}
 
 	return (
-		<section aria-label={ __( 'Layout' ) } className="cnl-page-layouts">
-			<Stack direction="column" gap="xs">
-				<h3 className="cnl-page-sections__title">{ __( 'Layout' ) }</h3>
-				<Text className="cnl-page-sections__hint" variant="body-sm">
-					{ frontPageTemplate
-						? __(
-								'Your homepage always uses this layout. WordPress calls layouts templates.'
-							)
-						: __(
-								'How the page is set out around its sections, like whether the title shows. WordPress calls these templates.'
-							) }
-				</Text>
-			</Stack>
+		<section
+			aria-label={ __( 'Change layout' ) }
+			className="cnl-page-layouts"
+		>
+			<Text className="cnl-page-sections__hint" variant="body-sm">
+				{ frontPageTemplate
+					? __(
+							'Your homepage always uses this layout. WordPress calls layouts templates.'
+						)
+					: __(
+							'How the page is set out around its sections, like whether the title shows. WordPress calls these templates.'
+						) }
+			</Text>
 			{ body }
 		</section>
 	);
