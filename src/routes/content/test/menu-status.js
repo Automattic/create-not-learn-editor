@@ -49,4 +49,20 @@ describe( 'menu status', () => {
 		expect( isPageInMenu( { id: 1 }, getMenuPages( '' ) ) ).toBe( false );
 		expect( isPageInMenu( { id: 1 }, null ) ).toBe( false );
 	} );
+
+	test( 'leaves out the pages a Page List leaves out, and those under them', () => {
+		const menuPages = getMenuPages(
+			'<!-- wp:page-list {"excludedPageIDs":[2]} /-->'
+		);
+		const pages = [
+			{ id: 1, parent: 0, status: 'publish' },
+			{ id: 2, parent: 0, status: 'publish' },
+			{ id: 3, parent: 2, status: 'publish' },
+		];
+
+		expect( [ ...menuPages.excludedPageIds ] ).toEqual( [ 2 ] );
+		expect( isPageInMenu( pages[ 0 ], menuPages, pages ) ).toBe( true );
+		expect( isPageInMenu( pages[ 1 ], menuPages, pages ) ).toBe( false );
+		expect( isPageInMenu( pages[ 2 ], menuPages, pages ) ).toBe( false );
+	} );
 } );

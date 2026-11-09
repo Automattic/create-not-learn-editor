@@ -167,75 +167,6 @@ function getSiblings( tree, parentId ) {
 	return findNode( tree, parentId )?.node.children || [];
 }
 
-function containsPage( node, pageId ) {
-	return node.children.some(
-		( child ) =>
-			Number( child.page.id ) === pageId || containsPage( child, pageId )
-	);
-}
-
-/**
- * Where a dragged page lands when dropped on another.
- *
- * Dropped on the top or bottom edge of a page, it goes beside it; dropped on
- * the middle, it goes inside, as its last sub-page. Dropping just below a page
- * whose sub-pages are showing puts it first among them, which is where the
- * drop line appears.
- *
- * @param {Object[]} tree       Tree from `buildPageTree`.
- * @param {number}   draggedId  Page being dragged.
- * @param {number}   overId     Page it is dropped on.
- * @param {string}   position   `before`, `after` or `inside`.
- * @param {boolean}  isExpanded Whether the page dropped on shows its sub-pages.
- * @return {Object|null} `{ parent, index }`, or `null` where it can't go.
- */
-export function getPageDropTarget(
-	tree,
-	draggedId,
-	overId,
-	position,
-	isExpanded = true
-) {
-	const dragged = findNode( tree, draggedId );
-	const over = findNode( tree, overId );
-
-	// A page can't go inside itself or its own sub-pages.
-	if (
-		! dragged ||
-		! over ||
-		draggedId === overId ||
-		containsPage( dragged.node, overId )
-	) {
-		return null;
-	}
-
-	if (
-		position === 'inside' ||
-		( position === 'after' && isExpanded && over.node.children.length )
-	) {
-		const children = over.node.children.filter(
-			( child ) => Number( child.page.id ) !== draggedId
-		);
-
-		return {
-			index: position === 'inside' ? children.length : 0,
-			parent: overId,
-		};
-	}
-
-	const siblings = over.siblings.filter(
-		( node ) => Number( node.page.id ) !== draggedId
-	);
-	const overIndex = siblings.findIndex(
-		( node ) => Number( node.page.id ) === overId
-	);
-
-	return {
-		index: overIndex + ( position === 'after' ? 1 : 0 ),
-		parent: over.parentId,
-	};
-}
-
 /**
  * Where a page goes when moved with the keyboard.
  *
@@ -329,30 +260,4 @@ export function getPageMoveChanges( tree, pageId, target ) {
 				( Number( page.parent ) || 0 ) !== change.parent
 			);
 		} );
-}
-
-/**
- * Take a page out of a tree, with its sub-pages, for it to be shown somewhere
- * else.
- *
- * @param {Object[]} tree   Tree from `buildPageTree`.
- * @param {number}   pageId Page to take out.
- * @return {Object} `{ node, tree }`: the page's node, or null if it isn't in
- *                  the tree, and the tree without it.
- */
-export function takePageFromTree( tree, pageId ) {
-	let taken = null;
-	const visit = ( nodes ) =>
-		nodes.reduce( ( result, node ) => {
-			if ( Number( node.page.id ) === Number( pageId ) ) {
-				taken = node;
-			} else {
-				result.push( { ...node, children: visit( node.children ) } );
-			}
-
-			return result;
-		}, [] );
-	const rest = pageId ? visit( tree ) : tree;
-
-	return { node: taken, tree: rest };
 }

@@ -32,18 +32,17 @@ test.describe( 'Pages interactions', () => {
 		).toBeVisible( { timeout: 15000 } );
 	} );
 
-	test( 'the pencil opens a page into its sections, and Pages goes back', async ( {
+	test( 'a page opens into its sections, and Pages goes back', async ( {
 		page,
 		rest,
 	} ) => {
 		const testPage = await rest.createPage();
 		const stage = getStage( page );
 
-		await visitEditor( page, '/types/page' );
-		await getPageItem( page, testPage.title ).hover();
-		await stage
-			.getByRole( 'button', { name: `Edit ${ testPage.title }` } )
-			.click();
+		await visitEditor(
+			page,
+			`/types/page/list/all?postId=${ testPage.id }&previewId=${ testPage.id }`
+		);
 
 		await expect( page ).toHaveURL(
 			new RegExp( `postId%3D${ testPage.id }` )
@@ -68,89 +67,66 @@ test.describe( 'Pages interactions', () => {
 			.getByRole( 'link', { name: 'Pages' } )
 			.click();
 		await expect(
-			stage.getByRole( 'region', {
-				name: 'In your menu',
-				exact: true,
-			} )
+			stage.locator( '.cnl-pages-list-view' ).getByRole( 'treegrid' )
 		).toBeVisible();
 	} );
 
-	test( 'a page goes into the menu, waiting to be saved', async ( {
+	test( 'a page switched off stays out of the menu, waiting to be saved', async ( {
 		page,
 		rest,
 	} ) => {
-		const draft = await rest.createPage( { status: 'draft' } );
-		const stage = getStage( page );
-		const inMenu = stage.getByRole( 'region', {
-			name: 'In your menu',
-			exact: true,
-		} );
-		const notInMenu = stage.getByRole( 'region', {
-			name: 'Not in your menu',
+		const testPage = await rest.createPage();
+		const menuSwitch = getStage( page ).getByRole( 'switch', {
+			name: `Show ${ testPage.title } in your menu`,
 		} );
 
 		await visitEditor( page, '/types/page' );
+		await expect( menuSwitch ).toBeChecked( { timeout: 15000 } );
 
-		// Drafts aren't in a menu that lists every page.
-		await expect(
-			notInMenu.getByRole( 'button', {
-				name: new RegExp( `^${ draft.title }` ),
-			} )
-		).toBeVisible( { timeout: 15000 } );
+		await menuSwitch.click();
 
-		await notInMenu
-			.getByRole( 'button', { name: new RegExp( `^${ draft.title }` ) } )
-			.hover();
-		await notInMenu
-			.getByRole( 'button', {
-				name: `Add ${ draft.title } to your menu`,
-			} )
-			.click();
-
-		await expect(
-			inMenu.getByRole( 'link', { name: draft.title, exact: true } )
-		).toBeVisible();
-		await expect(
-			notInMenu.getByRole( 'button', {
-				name: new RegExp( `^${ draft.title }` ),
-			} )
-		).toHaveCount( 0 );
+		await expect( menuSwitch ).not.toBeChecked();
 		await expect( getSaveControls( page ) ).toContainText(
 			'1 unsaved change'
 		);
+
+		// Switched back on, the menu is as it was.
+		await menuSwitch.click();
+		await expect( menuSwitch ).toBeChecked();
 	} );
 
-	test( 'adds a link to the menu with the link control', async ( {
+	test( 'adding something other than a page opens the menu to add it', async ( {
 		page,
 	} ) => {
-		const url = `https://example.com/${ Date.now() }`;
-		const inMenu = getStage( page ).getByRole( 'region', {
-			name: 'In your menu',
-			exact: true,
-		} );
-
 		await visitEditor( page, '/types/page' );
-		await inMenu
-			.getByRole( 'button', { name: 'Add to your menu' } )
-			.click( { timeout: 15000 } );
-		await page.getByRole( 'menuitem', { name: 'Link' } ).click();
-
-		const urlField = page.getByRole( 'combobox', {
-			name: 'Search or type URL',
-		} );
-		await expect( urlField ).toBeFocused();
-		await urlField.fill( url );
-		await urlField.press( 'Enter' );
-
+		// The menu has loaded once its switches show.
 		await expect(
-			inMenu.getByRole( 'link', {
-				name: url.replace( 'https://', '' ),
-				exact: true,
-			} )
-		).toBeVisible();
-		await expect( getSaveControls( page ) ).toContainText(
-			'1 unsaved change'
-		);
+			getStage( page ).getByRole( 'switch' ).first()
+		).toBeVisible( { timeout: 15000 } );
+		await getStage( page )
+			.getByRole( 'button', { name: 'Add page' } )
+			.click( { timeout: 15000 } );
+		await page
+			.getByRole( 'menuitem', { name: /^Link or something else/ } )
+			.click();
+
+		// A menu that updates by itself asks first.
+		const confirm = page.getByRole( 'dialog', {
+			name: 'Customize your menu?',
+		} );
+
+		if ( await confirm.isVisible() ) {
+			await confirm
+				.getByRole( 'button', { name: 'Customize menu' } )
+				.click();
+		}
+
+		await expect
+			.poll( () => getRoute( page ), { timeout: 15000 } )
+			.toMatch( /^\/navigation\/edit\// );
+		await expect(
+			page.getByRole( 'dialog', { name: 'Add menu items' } )
+		).toBeVisible( { timeout: 15000 } );
 	} );
 
 	test( 'Other menus leads on to the Menus screen', async ( { page } ) => {

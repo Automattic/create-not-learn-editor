@@ -276,15 +276,27 @@ function comparePageListPages( a, b ) {
  * The menu items a Page List block shows: published pages, with sub-pages
  * nested under their parent as submenus, sorted the way Page List sorts them.
  *
+ * Pages the block leaves out aren't listed, and nor are the pages under them.
+ *
  * @param {Object[]} pages        Published pages.
  * @param {number}   parentPageId Only list pages under this page.
+ * @param {number[]} excludedIds  Pages the block leaves out.
  * @return {Object[]} Navigation link and submenu blocks.
  */
-function getPageListNavigationBlocks( pages, parentPageId = 0 ) {
+function getPageListNavigationBlocks(
+	pages,
+	parentPageId = 0,
+	excludedIds = EMPTY_ARRAY
+) {
 	const childrenByParent = new Map();
+	const excluded = new Set( ( excludedIds || EMPTY_ARRAY ).map( Number ) );
 
 	( pages || EMPTY_ARRAY ).forEach( ( page ) => {
 		const parent = Number( page.parent ) || 0;
+
+		if ( excluded.has( Number( page.id ) ) ) {
+			return;
+		}
 
 		if ( ! childrenByParent.has( parent ) ) {
 			childrenByParent.set( parent, [] );
@@ -332,10 +344,13 @@ function hasPageListBlock( blocks ) {
 function expandPageListBlocks( blocks, pages ) {
 	return ( blocks || EMPTY_ARRAY ).flatMap( ( block ) => {
 		if ( getBlockName( block ) === 'core/page-list' ) {
+			const attributes = getBlockAttributes( block );
+
 			return createEditorBlocksFromNavigationBlocks(
 				getPageListNavigationBlocks(
 					pages,
-					getBlockAttributes( block ).parentPageID
+					attributes.parentPageID,
+					attributes.excludedPageIDs
 				)
 			);
 		}
@@ -410,8 +425,37 @@ function normalizeMenuItems( blocks, previousBlocks ) {
 	return normalize( blocks );
 }
 
-function createManualNavigationContentFromPages( pages ) {
-	return serializeNavigationBlocks( getPageListNavigationBlocks( pages ) );
+/**
+ * The pages a menu's Page List blocks leave out.
+ *
+ * @param {Object[]} blocks Parsed or editor blocks.
+ * @return {number[]} Page IDs.
+ */
+function getPageListExcludedIds( blocks ) {
+	const ids = new Set();
+	const visit = ( items ) =>
+		( items || EMPTY_ARRAY ).forEach( ( block ) => {
+			if ( getBlockName( block ) === 'core/page-list' ) {
+				(
+					getBlockAttributes( block ).excludedPageIDs || EMPTY_ARRAY
+				).forEach( ( id ) => ids.add( Number( id ) ) );
+			}
+
+			visit( block.innerBlocks );
+		} );
+
+	visit( blocks );
+
+	return [ ...ids ];
+}
+
+function createManualNavigationContentFromPages(
+	pages,
+	excludedIds = EMPTY_ARRAY
+) {
+	return serializeNavigationBlocks(
+		getPageListNavigationBlocks( pages, 0, excludedIds )
+	);
 }
 
 function createEditorBlockFromNavigationBlock( block ) {
@@ -452,6 +496,7 @@ export {
 	getNavigationContentFromEditedRecord,
 	getNavigationItemLabel,
 	getNavigationPageTitle,
+	getPageListExcludedIds,
 	getPageListNavigationBlocks,
 	getParsedBlocks,
 	hasPageListBlock,

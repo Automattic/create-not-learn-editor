@@ -1,7 +1,7 @@
 /**
  * WordPress dependencies
  */
-import { useNavigate, useParams } from '@wordpress/route';
+import { useNavigate, useParams, useSearch } from '@wordpress/route';
 
 /**
  * Internal dependencies
@@ -28,12 +28,14 @@ import {
 	sprintf,
 	trashIcon,
 	useDispatch,
+	useEffect,
+	useRef,
 	useState,
 	__,
 } from '../../wordpress-packages';
 import { useMenuItemsEditor } from './menu-items-editor';
 import NavigationEditCanvas from './navigation-edit-canvas';
-import { NAVIGATION_POST_TYPE } from './shared';
+import { ADD_MENU_ITEMS_SEARCH, NAVIGATION_POST_TYPE } from './shared';
 
 function NavigationEditStage() {
 	const navigate = useNavigate();
@@ -56,6 +58,27 @@ function NavigationEditStage() {
 		menuTitle,
 		openAddMenuItems,
 	} = useMenuItemsEditor( navigationId );
+	const search = useSearch( { strict: false } );
+	const hasOpenedAdd = useRef( false );
+
+	// Sent here to add something, "Add menu items" opens once it can.
+	useEffect( () => {
+		if (
+			! search[ ADD_MENU_ITEMS_SEARCH ] ||
+			! canAddMenuItems ||
+			hasOpenedAdd.current
+		) {
+			return;
+		}
+
+		hasOpenedAdd.current = true;
+		openAddMenuItems();
+		navigate( {
+			replace: true,
+			search: { ...search, [ ADD_MENU_ITEMS_SEARCH ]: undefined },
+			to: `/navigation/edit/${ encodeURIComponent( navigationId ) }`,
+		} );
+	}, [ canAddMenuItems, navigate, navigationId, openAddMenuItems, search ] );
 
 	const editNavigationMenu = ( edits ) =>
 		editEntityRecord(

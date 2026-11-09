@@ -26,12 +26,8 @@ import {
 } from './homepage-state';
 import {
 	__,
-	blocksStore,
 	Button,
 	coreDataStore,
-	dispatch,
-	getBlockVariations,
-	homeIcon,
 	Modal,
 	noticesStore,
 	select,
@@ -365,37 +361,4 @@ export function useUseAsHomepage( state ) {
 		),
 		request,
 	};
-}
-
-/*
- * ---------------------------------------------------------------------------
- * Home links in lists of menu items.
- * ---------------------------------------------------------------------------
- */
-
-const HOME_LINK_VARIATION = 'cnl-home-link';
-
-/**
- * List a Home link by its label. It has no label of its own in lists, so it
- * would be listed as "Home Link", the block's name, rather than "Home" as
- * visitors see it. Matched only while it has that usual label, and not
- * offered anywhere links are added.
- */
-export function registerHomeLinkVariation() {
-	const existing = getBlockVariations( 'core/home-link' ) || [];
-
-	if ( existing.some( ( { name } ) => name === HOME_LINK_VARIATION ) ) {
-		return;
-	}
-
-	dispatch( blocksStore ).addBlockVariations( 'core/home-link', [
-		{
-			icon: homeIcon,
-			isActive: ( attributes ) =>
-				! attributes.label || attributes.label === __( 'Home' ),
-			name: HOME_LINK_VARIATION,
-			scope: [],
-			title: __( 'Home' ),
-		},
-	] );
 }

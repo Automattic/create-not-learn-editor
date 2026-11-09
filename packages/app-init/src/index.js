@@ -27,6 +27,7 @@ import { registerBlockToolbar } from '../../../src/block-toolbar';
 import { mountChat } from '../../../src/chat';
 import { mountCommands } from '../../../src/commands';
 import { registerBlockBindings } from '../../../src/editor-extensions/block-bindings';
+import { registerPageListExcludedPages } from '../../../src/editor-extensions/page-list-excluded-pages';
 import { registerProductBlocks } from '../../../src/editor-extensions/product-blocks';
 import { registerSectionMenu } from '../../../src/editor-extensions/section-menu';
 import { registerSectionPatterns } from '../../../src/editor-extensions/section-patterns';
@@ -40,6 +41,7 @@ import { mountMenuSections } from './menu-sections';
 import { enhanceSidebar } from './sidebar';
 
 export async function init() {
+	registerPageListExcludedPages();
 	registerBlockBindings();
 	registerSectionPatterns();
 	registerSectionMenu();
