@@ -259,7 +259,7 @@ function Stage() {
 		[ previewTemplates ]
 	);
 
-	// Asked to add one from outside the list, like quick add's Page.
+	// Asked to add one from outside the list, like the admin bar's New > Page.
 	const isAddRequested = !! searchParams.add && !! type;
 	useEffect( () => {
 		if ( ! isAddRequested ) {

@@ -7,7 +7,9 @@
  * stays put moving between wp-admin and the editor. Where the bar and the
  * editor would offer the same thing twice, the editor's own wins: the bar's
  * search opens the editor's command palette (`src/admin-bar.js`), and its New
- * menu is taken off, as the top bar's quick add does that job.
+ * menu's pages, posts and other content open the editor's add flows rather
+ * than wp-admin's. New itself only opens its menu, and adding a user is left
+ * to wp-admin's Users screen.
  *
  * @package CreateNotLearnEditor
  */
@@ -40,8 +42,8 @@ function cnl_editor_enable_admin_bar() {
 	// The bar's menu toggle opens wp-admin's menu, which this page doesn't have.
 	remove_action( 'admin_bar_menu', 'wp_admin_bar_sidebar_toggle', 0 );
 	add_action( 'admin_bar_menu', 'cnl_editor_admin_bar_command_palette', 56 );
-	// Late, after every plugin has added to New, so its items go with it.
-	add_action( 'admin_bar_menu', 'cnl_editor_admin_bar_remove_new_content', PHP_INT_MAX );
+	// Late, after every plugin has added to New, so its items are there to change.
+	add_action( 'admin_bar_menu', 'cnl_editor_admin_bar_new_content', PHP_INT_MAX );
 
 	wp_enqueue_script( 'admin-bar' );
 	wp_enqueue_style( 'admin-bar' );
@@ -104,11 +106,60 @@ function cnl_editor_admin_bar_command_palette( WP_Admin_Bar $wp_admin_bar ) {
 }
 
 /**
- * Take New off the bar. The top bar's quick add is the editor's way to add
- * something, so the bar's would only offer it twice.
+ * Lead the bar's New menu into the editor.
+ *
+ * Each kind of content the editor lists opens that list's add flow, by
+ * asking the list to add one (`?add=1`, see `src/routes/content/content.jsx`),
+ * and `src/admin-bar.js` opens it in place. Media opens the editor's upload
+ * modal, also from `src/admin-bar.js`. User comes off, as adding people isn't
+ * something this editor does.
+ *
+ * New itself goes nowhere, so a click on it only opens its menu (see
+ * `src/admin-bar.js`). Core points it at the first item, which would leave
+ * the editor for wp-admin.
  *
  * @param WP_Admin_Bar $wp_admin_bar The admin bar.
  */
-function cnl_editor_admin_bar_remove_new_content( WP_Admin_Bar $wp_admin_bar ) {
-	$wp_admin_bar->remove_node( 'new-content' );
+function cnl_editor_admin_bar_new_content( WP_Admin_Bar $wp_admin_bar ) {
+	if ( ! $wp_admin_bar->get_node( 'new-content' ) ) {
+		return;
+	}
+
+	$wp_admin_bar->remove_node( 'new-user' );
+
+	// Someone who could only add users has nothing left in the menu.
+	$items = wp_list_filter( (array) $wp_admin_bar->get_nodes(), array( 'parent' => 'new-content' ) );
+
+	if ( ! $items ) {
+		$wp_admin_bar->remove_node( 'new-content' );
+		return;
+	}
+
+	foreach ( cnl_editor_get_content_post_types() as $post_type ) {
+		$id = 'new-' . $post_type->name;
+
+		if ( ! $wp_admin_bar->get_node( $id ) ) {
+			continue;
+		}
+
+		$wp_admin_bar->add_node(
+			array(
+				'id'   => $id,
+				'href' => add_query_arg(
+					array(
+						'page' => 'create-not-learn-editor',
+						'p'    => rawurlencode( '/types/' . $post_type->name . '/list/all?add=1' ),
+					),
+					admin_url( 'admin.php' )
+				),
+			)
+		);
+	}
+
+	$wp_admin_bar->add_node(
+		array(
+			'id'   => 'new-content',
+			'href' => '#',
+		)
+	);
 }

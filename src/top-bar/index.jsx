@@ -1,8 +1,7 @@
 /**
  * Top bar: the strip of boot's dark frame above the stage and canvas.
  *
- * It holds the quick add button (see `quick-add.jsx`) in the top left
- * corner, Go to page, which opens the page finder (see `src/page-finder`),
+ * It holds Go to page, which opens the page finder (see `src/page-finder`),
  * in the middle, and the save controls, the button that opens the chat and
  * the Options menu on the right. The full-screen editor has a header of its
  * own, so the bar is hidden there, and on narrow screens, where
@@ -20,15 +19,11 @@ import { createRoot } from '@wordpress/element';
 import { ChatToggle } from '../chat';
 import { GoToPage } from './go-to-page';
 import { OptionsMenu } from './options-menu';
-import { QuickAdd } from './quick-add';
 import { SaveControls } from './save-controls';
 
 function TopBar() {
 	return (
 		<div className="cnl-top-bar">
-			<div className="cnl-top-bar__start">
-				<QuickAdd />
-			</div>
 			<div className="cnl-top-bar__center">
 				<GoToPage />
 			</div>
