@@ -6,18 +6,18 @@
  * Below the list, "Add a page" opens the Add page modal and "Manage pages"
  * the Pages screen's list.
  *
- * The field keeps focus while the arrow keys move through the list, so typing
- * and picking work together, as in a combobox.
+ * It is a combobox: the search field is the top bar's Go to page, and the
+ * list opens out of it, in the same dark colours, rather than in a popover
+ * with a field of its own. The field keeps focus while the arrow keys move
+ * through the list, so typing and picking work together.
  *
- * Opened from the top bar's Go to page. Imported package by package rather
- * than through `src/wordpress-packages`, as the top bar is mounted from app
- * init.
+ * Imported package by package rather than through `src/wordpress-packages`,
+ * as the top bar is mounted from app init.
  */
 
 /**
  * WordPress dependencies
  */
-import { Dropdown } from '@wordpress/components';
 import { store as coreDataStore } from '@wordpress/core-data';
 import { useSelect } from '@wordpress/data';
 import {
@@ -248,16 +248,33 @@ function usePageEntries() {
 }
 
 /**
- * The finder's contents: the field, the pages and the two ways onward.
+ * The list under the field: the pages and the two ways onward. Only there
+ * while the finder is open, so the pages are fetched the first time it opens
+ * rather than with every screen.
  *
- * @param {Object}   props
- * @param {Function} props.onClose Closes the finder.
+ * The field keeps focus, so the field's keys are handed on here through
+ * `keyDownRef`, and the page the arrow keys mark is reported back with
+ * `onActiveChange` for the field's `aria-activedescendant`.
+ *
+ * @param {Object}               props
+ * @param {string}               props.filter         What's typed in the field.
+ * @param {Object}               props.inputRef       The field.
+ * @param {Object}               props.keyDownRef     Set to the handler for
+ *                                                    the field's keys.
+ * @param {string}               props.listId         ID for the list.
+ * @param {(id: string) => void} props.onActiveChange Called with the marked
+ *                                                    page's ID.
+ * @param {() => void}           props.onClose        Closes the finder.
  * @return {Element} The panel.
  */
-export function PageFinderPanel( { onClose } ) {
-	const id = useId();
-	const listId = `cnl-page-finder-list-${ id }`;
-	const [ filter, setFilter ] = useState( '' );
+function PageFinderPanel( {
+	filter,
+	inputRef,
+	keyDownRef,
+	listId,
+	onActiveChange,
+	onClose,
+} ) {
 	const [ activeIndex, setActiveIndex ] = useState( -1 );
 	const [ isShowingAll, setIsShowingAll ] = useState( false );
 	const { all, main, homepageId, isLoading } = usePageEntries();
@@ -288,6 +305,15 @@ export function PageFinderPanel( { onClose } ) {
 			.map( ( entry ) => ( { ...entry, depth: 0, showsParent: true } ) );
 	}, [ all, isShowingAll, main, term ] );
 
+	// What's typed starts the marking afresh.
+	useEffect( () => setActiveIndex( -1 ), [ term ] );
+
+	const optionId = ( index ) => `${ listId }-${ index }`;
+
+	useEffect( () => {
+		onActiveChange( activeIndex >= 0 ? optionId( activeIndex ) : '' );
+	} );
+
 	let heading = __( 'Main pages' );
 
 	if ( term ) {
@@ -297,7 +323,7 @@ export function PageFinderPanel( { onClose } ) {
 	}
 
 	// The button goes once clicked, so typing carries on in the field.
-	const inputRef = useRef();
+	const listRef = useRef();
 	const toggleShowingAll = () => {
 		setIsShowingAll( ( isShowing ) => ! isShowing );
 		setActiveIndex( -1 );
@@ -306,7 +332,6 @@ export function PageFinderPanel( { onClose } ) {
 	};
 
 	// Keep the page the arrow keys mark in view, but not one pointed at.
-	const listRef = useRef();
 	const isMovingByKey = useRef( false );
 	useEffect( () => {
 		if ( ! isMovingByKey.current ) {
@@ -324,7 +349,7 @@ export function PageFinderPanel( { onClose } ) {
 		openPage( entry.id );
 	};
 
-	const onKeyDown = ( event ) => {
+	keyDownRef.current = ( event ) => {
 		if ( event.key === 'ArrowDown' || event.key === 'ArrowUp' ) {
 			event.preventDefault();
 
@@ -350,36 +375,14 @@ export function PageFinderPanel( { onClose } ) {
 		}
 	};
 
-	const optionId = ( index ) => `${ listId }-${ index }`;
-
 	return (
-		<div className="cnl-page-finder">
-			<div className="cnl-page-finder__search">
-				<Icon
-					className="cnl-page-finder__search-icon"
-					icon={ search }
-				/>
-				<input
-					aria-activedescendant={
-						activeIndex >= 0 ? optionId( activeIndex ) : undefined
-					}
-					aria-autocomplete="list"
-					aria-controls={ listId }
-					aria-expanded
-					aria-label={ __( 'Find or go to any page…' ) }
-					className="cnl-page-finder__input"
-					onChange={ ( event ) => {
-						setFilter( event.target.value );
-						setActiveIndex( -1 );
-					} }
-					onKeyDown={ onKeyDown }
-					placeholder={ __( 'Find or go to any page…' ) }
-					ref={ inputRef }
-					role="combobox"
-					type="search"
-					value={ filter }
-				/>
-			</div>
+		// Pressing anywhere in the panel leaves focus in the field, so the
+		// finder stays open and typing carries on.
+		// eslint-disable-next-line jsx-a11y/no-static-element-interactions
+		<div
+			className="cnl-page-finder__panel"
+			onMouseDown={ ( event ) => event.preventDefault() }
+		>
 			<div className="cnl-page-finder__group">
 				<div className="cnl-page-finder__heading">
 					<h2 id={ `${ listId }-h` }>{ heading }</h2>
@@ -509,26 +512,115 @@ export function PageFinderPanel( { onClose } ) {
 }
 
 /**
- * The finder in a popover, opened by whatever `renderToggle` draws.
+ * The finder: a search field that opens the list out of itself.
  *
- * @param {Object}   props
- * @param {string}   props.className    Class for the dropdown's wrapper.
- * @param {Object}   props.popoverProps Passed on to the popover.
- * @param {Function} props.renderToggle Draws the toggle, given
- *                                      `{ isOpen, onToggle }`.
- * @return {Element} The dropdown.
+ * Opens when the field is clicked, focused or typed in, and closes on Escape,
+ * on picking something, or once focus leaves the field and the list.
+ *
+ * @param {Object} props
+ * @param {string} props.className   Class for the wrapper.
+ * @param {string} props.placeholder What the empty field says.
+ * @return {Element} The finder.
  */
-export function PageFinder( { className, popoverProps, renderToggle } ) {
+export function PageFinder( { className, placeholder } ) {
+	const id = useId();
+	const listId = `cnl-page-finder-list-${ id }`;
+	const [ isOpen, setIsOpen ] = useState( false );
+	const [ filter, setFilter ] = useState( '' );
+	const [ activeDescendant, setActiveDescendant ] = useState( '' );
+	const inputRef = useRef();
+	const keyDownRef = useRef();
+
+	const open = () => setIsOpen( true );
+
+	// Picking something or Escape: the field empties, ready for next time.
+	const close = () => {
+		setIsOpen( false );
+		setFilter( '' );
+		setActiveDescendant( '' );
+	};
+
+	// Done with: focus goes back to the page.
+	const finish = () => {
+		close();
+		inputRef.current?.blur();
+	};
+
+	const onKeyDown = ( event ) => {
+		if ( event.key === 'Escape' ) {
+			if ( isOpen ) {
+				event.preventDefault();
+				event.stopPropagation();
+				close();
+			} else {
+				inputRef.current?.blur();
+			}
+
+			return;
+		}
+
+		if ( ! isOpen ) {
+			if ( event.key === 'ArrowDown' || event.key === 'ArrowUp' ) {
+				event.preventDefault();
+				open();
+			}
+
+			return;
+		}
+
+		keyDownRef.current?.( event );
+	};
+
 	return (
-		<Dropdown
-			className={ className }
-			contentClassName="cnl-page-finder__popover"
-			focusOnMount="firstInputElement"
-			popoverProps={ { placement: 'bottom', offset: 8, ...popoverProps } }
-			renderContent={ ( { onClose } ) => (
-				<PageFinderPanel onClose={ onClose } />
+		<div
+			className={ [ 'cnl-page-finder', className, isOpen && 'is-open' ]
+				.filter( Boolean )
+				.join( ' ' ) }
+			onBlur={ ( event ) => {
+				if ( ! event.currentTarget.contains( event.relatedTarget ) ) {
+					close();
+				}
+			} }
+		>
+			<div className="cnl-page-finder__field">
+				<Icon
+					className="cnl-page-finder__search-icon"
+					icon={ search }
+					size={ 20 }
+				/>
+				<input
+					aria-activedescendant={ activeDescendant || undefined }
+					aria-autocomplete="list"
+					aria-controls={ isOpen ? listId : undefined }
+					aria-expanded={ isOpen }
+					aria-label={ __( 'Find or go to any page' ) }
+					autoComplete="off"
+					className="cnl-page-finder__input"
+					onChange={ ( event ) => {
+						setFilter( event.target.value );
+						open();
+					} }
+					onClick={ open }
+					onFocus={ open }
+					onKeyDown={ onKeyDown }
+					placeholder={ placeholder }
+					ref={ inputRef }
+					role="combobox"
+					spellCheck={ false }
+					type="search"
+					value={ filter }
+				/>
+			</div>
+			{ isOpen && (
+				<PageFinderPanel
+					filter={ filter }
+					inputRef={ inputRef }
+					keyDownRef={ keyDownRef }
+					listId={ listId }
+					onActiveChange={ setActiveDescendant }
+					onClose={ finish }
+				/>
 			) }
-			renderToggle={ renderToggle }
-		/>
+		</div>
 	);
 }
