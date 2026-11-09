@@ -76,6 +76,19 @@ describe( 'carriesScript', () => {
 		[ { content: '<img src=x onerror=alert(1)>' } ],
 		[ { url: 'javascript:alert(1)' } ],
 		[ { blocks: [ { name: 'core/html', attributes: {} } ] } ],
+		[ '<!-- wp:html --><p>Hi</p><!-- /wp:html -->' ],
+		[ '<a href="jav&#x61;script:alert(1)">Go</a>' ],
+		[ '<a href="jav&#97;script&colon;alert(1)">Go</a>' ],
+		[ '<a href="java\tscript:alert(1)">Go</a>' ],
+		[ '<a href="java&Tab;script:alert(1)">Go</a>' ],
+		[ '<!-- wp:button {"url":"javascript\\u003aalert(1)"} /-->' ],
+		[ { url: ' JAVASCRIPT:alert(1)' } ],
+		[ { url: 'vbscript:msgbox(1)' } ],
+		[ { url: 'data:text/html,<p>Hi</p>' } ],
+		[ '<meta http-equiv="refresh" content="0;url=https://example.com">' ],
+		[ '<form action="https://example.com"><input name="p"></form>' ],
+		[ '<base href="https://example.com/">' ],
+		[ '<frameset><frame src="https://example.com"></frameset>' ],
 	] )( 'finds script in %j', ( args ) => {
 		expect( carriesScript( args ) ).toBe( true );
 	} );
@@ -89,6 +102,18 @@ describe( 'carriesScript', () => {
 				},
 			} )
 		).toBe( false );
+	} );
+
+	test.each( [
+		[
+			'<!-- wp:paragraph --><p>Read our <a href="https://example.com/a&#38;b">guide</a>.</p><!-- /wp:paragraph -->',
+		],
+		[ { url: 'mailto:hello@example.com' } ],
+		[ { url: '/contact' } ],
+		[ '<!-- wp:image {"url":"data:image/png;base64,AAAA"} /-->' ],
+		[ 'We use a linked list and a formal format.' ],
+	] )( 'lets %j through', ( args ) => {
+		expect( carriesScript( args ) ).toBe( false );
 	} );
 } );
 

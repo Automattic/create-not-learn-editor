@@ -281,14 +281,50 @@ export function getSkillRequest( tool, args, typed ) {
 }
 
 /*
- * Script tags, embedding tags, inline event handlers and `javascript:` URLs,
- * as Agentic Editor's own chat looks for them. A call carrying any of them,
- * or a raw HTML block, isn't run: Agentic Editor asks first, and this chat
- * has nowhere to ask.
+ * Script tags, embedding tags, tags that send the visitor or their typing
+ * somewhere else, inline event handlers and raw HTML blocks. A call carrying
+ * any of them isn't run: Agentic Editor asks first, and this chat has
+ * nowhere to ask.
  */
 const SCRIPT_LIKE =
-	/<\s*(?:script|iframe|object|embed)\b|<[^>]*[\s/"']on[a-z]+\s*=|javascript\s*:/i;
+	/<\s*(?:script|i?frame|frameset|object|embed|applet|meta|base|link|form)\b|<[^>]*[\s/"']on[a-z]+\s*=|<!--\s*wp:(?:core\/)?html\b/i;
 const RAW_HTML_BLOCKS = [ 'core/html', 'core/freeform' ];
+
+/*
+ * URLs that run a script or show a document of their own, looked for once
+ * the text is read the way a browser reads a URL. See `asBrowserReadsUrl()`.
+ */
+const SCRIPT_URL = /(?:java|vb)script:|data:text\/html/i;
+
+/**
+ * Text as a browser reads it in a URL, so a hidden `javascript:` shows.
+ *
+ * Block comments escape characters as `:`, HTML escapes them as
+ * `&#x3a;`, `&#58;` or `&colon;`, and browsers drop tabs, line breaks and
+ * other control characters from a URL. Each of those would otherwise get
+ * a `javascript:` URL past a plain search.
+ *
+ * @param {string} text Text that may be, or hold, a URL.
+ * @return {string} The text with escapes read and spaces dropped.
+ */
+function asBrowserReadsUrl( text ) {
+	const fromCode = ( code ) =>
+		code >= 0 && code <= 0x10ffff ? String.fromCodePoint( code ) : '';
+
+	return text
+		.replace( /\\u([0-9a-f]{4})/gi, ( _, hex ) =>
+			fromCode( parseInt( hex, 16 ) )
+		)
+		.replace( /&#x0*([0-9a-f]{1,6});?/gi, ( _, hex ) =>
+			fromCode( parseInt( hex, 16 ) )
+		)
+		.replace( /&#0*(\d{1,7});?/g, ( _, decimal ) =>
+			fromCode( parseInt( decimal, 10 ) )
+		)
+		.replace( /&colon;/gi, ':' )
+		.replace( /&(?:tab|newline);/gi, '' )
+		.replace( /[\x00-\x20\x7f]+/g, '' );
+}
 
 /**
  * @param {*}      value What a tool was called with, or part of it.
@@ -301,7 +337,10 @@ export function carriesScript( value, depth = 0 ) {
 	}
 
 	if ( typeof value === 'string' ) {
-		return SCRIPT_LIKE.test( value );
+		return (
+			SCRIPT_LIKE.test( value ) ||
+			SCRIPT_URL.test( asBrowserReadsUrl( value ) )
+		);
 	}
 
 	if ( Array.isArray( value ) ) {
