@@ -28,6 +28,7 @@ import {
 	MODE_BROWSE,
 	MODE_COMPOSE,
 	MODE_EDIT,
+	setCanvasMode,
 	useCanvasMode,
 } from '../../../site-canvas/mode';
 import {
@@ -39,6 +40,7 @@ import {
 import { getErrorMessage } from '../../../records';
 import {
 	getPageTitle,
+	PAGE_TEMPLATES_QUERY,
 	PAGES_QUERY,
 	usePageSections,
 	usePreviewStructure,
@@ -64,6 +66,7 @@ import {
 	externalIcon,
 	homeIcon,
 	Icon,
+	layoutIcon,
 	linkIcon,
 	MenuGroup,
 	MenuItem,
@@ -422,15 +425,128 @@ function getPagePath( link ) {
 }
 
 /**
- * The menu on the page's name: Rename for any page, as its title isn't on
- * every layout, and its address once it has one.
+ * The layout a page is shown in: the homepage's own, when the theme has one,
+ * as it always wins, then the one the page picked, then the one it gets by
+ * default. The page's unsaved pick counts, so the layout opened is the one on
+ * show.
  *
- * @param {Object}  props        Component props.
- * @param {string}  props.link   The page's address, when it has one to show.
- * @param {?number} props.pageId The page, when there is one to rename.
+ * @param {number}  pageId     Page ID.
+ * @param {boolean} isHomepage Whether the page is the homepage.
+ * @return {?string} The layout's ID, or `null` until it is known.
+ */
+function usePageLayoutId( pageId, isHomepage ) {
+	return useSelect(
+		( select ) => {
+			const store = select( coreDataStore );
+
+			if ( isHomepage ) {
+				const frontId = store.getDefaultTemplateId( {
+					slug: 'front-page',
+				} );
+				const front = frontId
+					? store.getEntityRecord(
+							'postType',
+							'wp_template',
+							frontId
+						)
+					: null;
+
+				if ( front?.slug === 'front-page' ) {
+					return front.id;
+				}
+			}
+
+			// Not known until the page has loaded, or every page would get
+			// the default layout for a moment.
+			if ( ! store.getEntityRecord( 'postType', 'page', pageId ) ) {
+				return null;
+			}
+
+			const page = store.getEditedEntityRecord(
+				'postType',
+				'page',
+				pageId
+			);
+			const picked =
+				page?.template && page.template !== 'default'
+					? page.template
+					: '';
+
+			if ( picked ) {
+				const layouts = store.getEntityRecords(
+					'postType',
+					'wp_template',
+					PAGE_TEMPLATES_QUERY
+				);
+				const layout = layouts?.find( ( { slug } ) => slug === picked );
+
+				// Not known until the page's layouts have loaded.
+				if ( ! layouts || layout ) {
+					return layout?.id || null;
+				}
+			}
+
+			return (
+				store.getDefaultTemplateId( {
+					slug: page?.slug ? `page-${ page.slug }` : 'page',
+				} ) || null
+			);
+		},
+		[ isHomepage, pageId ]
+	);
+}
+
+/**
+ * Edit layout, in the page's menu: opens the layout the page is shown in on
+ * Pages' Layouts, in Edit, with a way back to the page. Only looked up once
+ * the menu opens.
+ *
+ * @param {Object}     props            Component props.
+ * @param {boolean}    props.isHomepage Whether the page is the homepage.
+ * @param {() => void} props.onClose    Closes the menu.
+ * @param {number}     props.pageId     Page ID.
+ * @return {Element} The menu item.
+ */
+function EditLayoutItem( { isHomepage, onClose, pageId } ) {
+	const navigate = useNavigate();
+	const layoutId = usePageLayoutId( pageId, isHomepage );
+
+	return (
+		<MenuItem
+			disabled={ ! layoutId }
+			icon={ layoutIcon }
+			onClick={ async () => {
+				onClose();
+				await navigate( {
+					search: {
+						content: 'templates',
+						layoutFor: isHomepage ? HOMEPAGE : pageId,
+						postIds: [ String( layoutId ) ],
+					},
+					to: LIST_PATH,
+				} );
+				// Only once the page's canvas has gone, as it would take
+				// Edit to mean opening the page.
+				setCanvasMode( MODE_EDIT );
+			} }
+		>
+			{ __( 'Edit layout' ) }
+		</MenuItem>
+	);
+}
+
+/**
+ * The menu on the page's name: Rename for any page, as its title isn't on
+ * every layout, Edit layout, and its address once it has one.
+ *
+ * @param {Object}  props            Component props.
+ * @param {boolean} props.isHomepage Whether the page is the homepage.
+ * @param {string}  props.link       The page's address, when it has one to
+ *                                   show.
+ * @param {?number} props.pageId     The page, when there is one to rename.
  * @return {?Element} The menu.
  */
-function PageOptions( { link, pageId } ) {
+function PageOptions( { isHomepage, link, pageId } ) {
 	const { createSuccessNotice } = useDispatch( noticesStore );
 	const [ isRenaming, setIsRenaming ] = useState( false );
 	const canRename = Boolean( pageId );
@@ -457,6 +573,13 @@ function PageOptions( { link, pageId } ) {
 							>
 								{ __( 'Rename' ) }
 							</MenuItem>
+						) }
+						{ pageId > 0 && (
+							<EditLayoutItem
+								isHomepage={ isHomepage }
+								onClose={ onClose }
+								pageId={ pageId }
+							/>
 						) }
 						{ link && (
 							<MenuItem
@@ -566,6 +689,19 @@ function isPassedToPreview( change, select ) {
 }
 
 /**
+ * The search part of the route in the browser's address, rather than the
+ * router's. See `getOpenedInAddress` for why.
+ *
+ * @return {URLSearchParams} The route's search.
+ */
+function getAddressSearch() {
+	const route =
+		new URL( window.location.href ).searchParams.get( 'p' ) || '/';
+
+	return new URLSearchParams( route.split( '?' )[ 1 ] || '' );
+}
+
+/**
  * The page open in the sidebar according to the browser's address, rather
  * than the router. Opening a page from `/types/page` moves to the list's own
  * route, and the old route's canvas stays on show for a moment with the old
@@ -575,11 +711,17 @@ function isPassedToPreview( change, select ) {
  * @return {string|number} `HOMEPAGE`, a page ID, or 0.
  */
 function getOpenedInAddress() {
-	const route =
-		new URL( window.location.href ).searchParams.get( 'p' ) || '/';
-	const query = route.split( '?' )[ 1 ] || '';
+	return parseTarget( getAddressSearch().get( 'postId' ) );
+}
 
-	return parseTarget( new URLSearchParams( query ).get( 'postId' ) );
+/**
+ * Whether the browser's address is already on Pages' Layouts, where a page's
+ * Edit layout goes, in Edit, while this canvas is still on show.
+ *
+ * @return {boolean} Whether Layouts is in the address.
+ */
+function isLayoutsInAddress() {
+	return getAddressSearch().get( 'content' ) === 'templates';
 }
 
 function PageDocument( { homepage, page } ) {
@@ -612,7 +754,11 @@ function PageDocument( { homepage, page } ) {
 				</div>
 				<p className="cnl-editor-homepage-document__meta">{ meta }</p>
 			</div>
-			<PageOptions link={ path ? link : '' } pageId={ page?.id } />
+			<PageOptions
+				isHomepage={ Boolean( homepage ) }
+				link={ path ? link : '' }
+				pageId={ page?.id }
+			/>
 		</div>
 	);
 }
@@ -920,7 +1066,12 @@ function PagesCanvas() {
 	// list away.
 	const wasEditing = useRef( isEditing );
 	useEffect( () => {
-		if ( isEditing && ! drilled && ! getOpenedInAddress() ) {
+		if (
+			isEditing &&
+			! drilled &&
+			! getOpenedInAddress() &&
+			! isLayoutsInAddress()
+		) {
 			if ( wasEditing.current ) {
 				canvas.requestMode( MODE_BROWSE );
 			} else if ( ! canvas.isShowingChange() ) {

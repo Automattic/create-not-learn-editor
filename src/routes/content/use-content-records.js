@@ -310,14 +310,21 @@ export default function useContentRecords() {
 		posts,
 		hasStatusFilter ? type : null
 	);
+	const requestedTemplateId = getSearchValue( searchParams.postIds );
 	const templates = useMemo(
 		() =>
 			type
-				? rawTemplates.filter( ( template ) =>
-						templateMatchesPostType( template, type.name )
+				? rawTemplates.filter(
+						( template ) =>
+							templateMatchesPostType( template, type.name ) ||
+							// A page's Edit layout opens the layout it uses,
+							// even a custom one like Blank.
+							( activeTab === 'templates' &&
+								String( template.id ) ===
+									String( requestedTemplateId ) )
 					)
 				: EMPTY_ARRAY,
-		[ rawTemplates, type ]
+		[ activeTab, rawTemplates, requestedTemplateId, type ]
 	);
 	const previewTemplates = templates;
 

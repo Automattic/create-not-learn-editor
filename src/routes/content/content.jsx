@@ -16,6 +16,7 @@ import { getActiveWorkspace } from '../../workspaces/presets';
 import useMainMenu from './use-main-menu';
 import { PageDetailStage } from './pages/stage';
 import { parseTarget, useHomepageState } from './pages/homepage';
+import { getPageTitle } from './pages/data';
 import { HOMEPAGE } from './pages/homepage-state';
 import HomepageStage from './pages/homepage-stage';
 import PagesMenuGroups from './pages/menu-groups';
@@ -119,6 +120,24 @@ function Stage() {
 	const searchParams = useSearch( { strict: false } );
 	const siteTrail = useSiteTrail();
 	const postsTrip = usePostsTrip();
+	// The page whose Edit layout opened Layouts, to lead back to.
+	const layoutFor = parseTarget( searchParams.layoutFor );
+	const layoutForTitle = useSelect(
+		( select ) => {
+			if ( ! layoutFor || layoutFor === HOMEPAGE ) {
+				return layoutFor ? __( 'Homepage' ) : '';
+			}
+
+			return getPageTitle(
+				select( coreDataStore ).getEditedEntityRecord(
+					'postType',
+					'page',
+					layoutFor
+				)
+			);
+		},
+		[ layoutFor ]
+	);
 	// Where a page being added goes: in the menu, out of it, or the user picks.
 	const [ addingPage, setAddingPage ] = useState( null );
 	const [ isPickingPostKind, setIsPickingPostKind ] = useState( false );
@@ -655,6 +674,19 @@ function Stage() {
 										} ) }`
 									: listPath,
 							},
+							...( isLayoutsStep && layoutFor
+								? [
+										{
+											label: layoutForTitle,
+											to: `${ listPath }?${ new URLSearchParams(
+												{
+													postId: layoutFor,
+													previewId: layoutFor,
+												}
+											) }`,
+										},
+									]
+								: [] ),
 							{ label: subScreenLabel },
 						] }
 					/>
