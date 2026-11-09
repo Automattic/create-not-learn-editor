@@ -16,11 +16,13 @@ import { useNavigate } from '@wordpress/route';
 /**
  * Internal dependencies
  */
+import { GlobalScope } from '../global-scope';
 import { unlock } from '../lock-unlock';
 import { getErrorMessage } from '../records';
 import {
 	__,
 	blockEditorStore,
+	Fragment,
 	Notice,
 	Spinner,
 	useEffect,
@@ -101,6 +103,12 @@ export function SiteCanvas( {
 	const isPreviewing = canvas.isPreviewing;
 	const isEditing = mode === MODE_EDIT;
 	const isExpanded = useCanvasExpansion();
+	// A layout, like an archive's, changes every page made with it, so Edit
+	// is in the purple of what every page shares. See `src/global-scope`.
+	const EditScope =
+		canvas.canvasEntity?.postType === 'wp_template'
+			? GlobalScope
+			: Fragment;
 	// Writing, like a post, has no sections to work on in Edit. See
 	// `writing-mode.js`.
 	const isWriting = isWritingType( editorEntity?.postType );
@@ -184,16 +192,18 @@ export function SiteCanvas( {
 		>
 			<header className="cnl-editor-canvas__toolbar cnl-editor-homepage-toolbar">
 				<div className="cnl-editor-homepage-toolbar__left">
-					<ExpandButton
-						isExpanded={ isExpanded }
-						onToggle={ () => {
-							if ( ! isExpanded && isPreviewing ) {
-								canvas.requestMode( MODE_EDIT );
-							}
+					<EditScope>
+						<ExpandButton
+							isExpanded={ isExpanded }
+							onToggle={ () => {
+								if ( ! isExpanded && isPreviewing ) {
+									canvas.requestMode( MODE_EDIT );
+								}
 
-							expandCanvas( ! isExpanded );
-						} }
-					/>
+								expandCanvas( ! isExpanded );
+							} }
+						/>
+					</EditScope>
 					{ ! isPreviewing && <EditHistory /> }
 					{ ! isPreviewing && editorEntity && (
 						<DocumentOverviewToggle />

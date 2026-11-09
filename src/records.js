@@ -56,6 +56,44 @@ function request( options ) {
 	return apiFetch( options );
 }
 
+/**
+ * The layout a page with nothing of its own to edit is made by, like an
+ * archive's or the search results', as what Edit changes there.
+ *
+ * The site answers this itself: asked for a page with `_wp-find-template`,
+ * WordPress replies with the template it would render it with, as core's
+ * Site Editor once asked when it followed a link (`locate_block_template()`).
+ * Only for block themes; anything else, or a failure, leaves the page with
+ * nothing to edit, as before.
+ *
+ * @param {string} url Page URL, as the site has it.
+ * @return {Promise<Object>} Preview context to merge in, empty without one.
+ */
+async function getLayoutContext( url ) {
+	try {
+		const { data, success } = await apiFetch( {
+			url: addQueryArgs( url, { '_wp-find-template': true } ),
+		} );
+
+		if ( ! success || ! data?.id ) {
+			return {};
+		}
+
+		return {
+			editPostId: data.id,
+			editPostType: 'wp_template',
+			previewCanEdit: true,
+			previewLabel: data.title || __( 'Layout' ),
+			previewStatusLabel: __( 'Changes everywhere it is used' ),
+			previewTone: 'global',
+			previewType: 'template',
+			previewTypeLabel: __( 'Layout' ),
+		};
+	} catch {
+		return {};
+	}
+}
+
 function requestKey( key ) {
 	return String( key || '' );
 }
@@ -262,11 +300,20 @@ const resolvers = {
 			dispatch.startPreviewContextRequest( url );
 
 			try {
-				const context = await request( {
+				let context = await request( {
 					path: addQueryArgs( `/${ restNamespace }/preview-context`, {
 						url,
 					} ),
 				} );
+
+				// A page that isn't a post or page of its own is changed by
+				// changing its layout.
+				if ( context?.previewType === 'preview' && url ) {
+					context = {
+						...context,
+						...( await getLayoutContext( url ) ),
+					};
+				}
 
 				dispatch.receivePreviewContext( url, context );
 			} catch ( error ) {

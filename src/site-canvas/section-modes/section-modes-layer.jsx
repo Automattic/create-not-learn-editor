@@ -2608,7 +2608,7 @@ export function SectionModesLayer( {
 
 						// More control is for getting on with the section's
 						// blocks, so the canvas expands to fill the editor
-						// too, and stays so until its Exit.
+						// too, and stays so until its back arrow.
 						expandCanvas( true );
 
 						// Writing has no Freeform, as Edit hands its blocks

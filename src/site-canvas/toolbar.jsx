@@ -21,7 +21,6 @@ import {
 	chevronLeftIcon,
 	chevronRightIcon,
 	codeIcon,
-	closeSmallIcon,
 	coreDataStore,
 	desktopIcon,
 	dispatch,
@@ -74,8 +73,9 @@ function getDeviceOptions() {
 }
 
 /**
- * Edit, which expands the canvas to fill the editor, and Exit, which puts it
- * back beside the sidebar and the screen. Editing is already on wherever
+ * Edit, which expands the canvas to fill the editor, and then a back arrow,
+ * which puts it back beside the sidebar and the screen, as the back arrow of
+ * boot's full-screen editor leaves that. Editing is already on wherever
  * Browse isn't, so all Edit adds is the room; from Browse it edits too.
  *
  * @param {Object}   props
@@ -84,21 +84,34 @@ function getDeviceOptions() {
  * @return {Element} The button.
  */
 export function ExpandButton( { isExpanded, onToggle } ) {
+	if ( isExpanded ) {
+		return (
+			<Button
+				__next40pxDefaultSize
+				className="cnl-site-canvas__expand-toggle is-back"
+				icon={ isRTL() ? chevronRightIcon : chevronLeftIcon }
+				label={ __( 'Back' ) }
+				onClick={ onToggle }
+				showTooltip
+			/>
+		);
+	}
+
 	return (
 		<Button
 			__next40pxDefaultSize
 			className="cnl-site-canvas__expand-toggle"
-			icon={ isExpanded ? closeSmallIcon : pencilIcon }
-			label={
-				isExpanded
-					? __( 'Back to the sidebar' )
-					: __( 'Change this page with more room' )
-			}
+			// Named by the word on it, so it can be asked for by that word,
+			// as voice control does. What it does is its description, and
+			// its tooltip.
+			description={ __( 'Change this page with more room' ) }
+			icon={ pencilIcon }
+			label={ __( 'Edit' ) }
 			onClick={ onToggle }
 			showTooltip
-			variant={ isExpanded ? 'secondary' : 'primary' }
+			variant="primary"
 		>
-			{ isExpanded ? __( 'Exit' ) : __( 'Edit' ) }
+			{ __( 'Edit' ) }
 		</Button>
 	);
 }

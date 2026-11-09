@@ -116,9 +116,9 @@ body[data-cnl-workspace="agent"] #create-not-learn-editor-app [class*="__layout"
 /*
  * The canvas expanded by its Edit button: it fills the editor, so the
  * sidebar, the screen beside it and the top bar, with Quick add, Go to page
- * and Save, are out of the way until Exit. Only the admin bar stays above it,
- * and boot's thin dark frame around it. See
- * `useCanvasExpansion` in `src/site-canvas/site-canvas.jsx`. Only where boot
+ * and Save, are out of the way until its back arrow. Only the admin bar
+ * stays above it, and boot's thin dark frame around it. See
+ * `src/site-canvas/expansion.js`. Only where boot
  * has a canvas on show, so a screen without one never goes blank. The stage
  * rule is shaped as the Agent workspace's above, to outrank the chat's.
  */
