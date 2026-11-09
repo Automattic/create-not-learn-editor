@@ -24,6 +24,7 @@ import { store as preferencesStore } from '@wordpress/preferences';
 /**
  * Internal dependencies
  */
+import { sparkleIcon } from '../chat/icons';
 import { settings } from '../settings';
 
 export const PREFERENCES_SCOPE = 'create-not-learn-editor';
@@ -185,6 +186,14 @@ const PRESETS = [
 		// Templates, template parts and patterns are what these people
 		// came for, so they're out with the rest.
 		tuckAdvanced: false,
+	},
+	{
+		id: 'agent',
+		label: __( 'Agent' ),
+		icon: sparkleIcon,
+		// The site canvas is the point, so it gets the room:
+		// `src/styles/_stage.scss` hides the stage wherever a screen has a
+		// canvas to show instead. The sidebar is the same as everywhere else.
 	},
 ];
 
