@@ -79,46 +79,6 @@ const LABELS = {
 };
 
 /**
- * A page's address as people read it: no `https://`, and no trailing slash
- * after the domain on its own.
- *
- * @param {string} link Page URL.
- * @return {string} The address.
- */
-function getDisplayAddress( link ) {
-	if ( ! link ) {
-		return '';
-	}
-
-	try {
-		const url = new URL( link );
-		const path = decodeURI( url.pathname + url.search );
-
-		return url.host + ( path === '/' ? '' : path );
-	} catch {
-		return link;
-	}
-}
-
-/**
- * Where a page is, or will be once published: its permalink template filled
- * in with its slug, or its link without one.
- *
- * @param {Object} props      Component props.
- * @param {Object} props.item Page record.
- * @return {string} The address.
- */
-function AddressView( { item } ) {
-	const slug = item.slug || item.generated_slug;
-	const link =
-		item.permalink_template && slug
-			? item.permalink_template.replace( /%(?:page|post)name%/, slug )
-			: item.link;
-
-	return getDisplayAddress( link );
-}
-
-/**
  * Core's page fields, in plain words, with a Layout row of our own that leads
  * to Change layout.
  *
@@ -151,10 +111,6 @@ function usePageFields( layoutName, onOpenLayouts ) {
 							( element ) => element.value !== 'trash'
 						),
 					};
-				}
-
-				if ( field.id === 'slug' ) {
-					next = { ...next, render: AddressView };
 				}
 
 				return next;
