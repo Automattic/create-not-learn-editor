@@ -218,12 +218,15 @@ function PageLayoutResultsPlaceholder( { columns, rows } ) {
 }
 
 function getAddToMenuHelp( {
+	addToMenu,
 	menuListsAllPages,
 	menuTitle,
 	publishImmediately,
 } ) {
 	if ( menuListsAllPages ) {
-		return __( 'Your menu already lists every published page.' );
+		return addToMenu
+			? __( 'Your menu updates by itself, so new pages join it.' )
+			: __( 'It stays out of your menu.' );
 	}
 
 	if ( ! publishImmediately ) {
@@ -454,7 +457,10 @@ export default function AddPageFlow( {
 			}
 
 			if ( mainMenu.menuId ) {
-				if ( menuPlacement === 'not-in-menu' ) {
+				if (
+					menuPlacement === 'not-in-menu' ||
+					( ! menuPlacement && ! addToMenu )
+				) {
 					await keepPagesOutOfMenu( mainMenu.menuId, [ newPage.id ] );
 				} else if ( menuPlacement === 'menu' || addToMenu ) {
 					await addPageToMenu( mainMenu.menuId, newPage );
@@ -548,13 +554,14 @@ export default function AddPageFlow( {
 						{ mainMenu.menuId && ! menuPlacement && (
 							<div className="cnl-add-page-form__checkbox-item">
 								<CheckboxControl
-									checked={ menuListsAllPages || addToMenu }
-									disabled={ isBusy || menuListsAllPages }
+									checked={ addToMenu }
+									disabled={ isBusy }
 									label={ __( 'Add to my menu' ) }
 									onChange={ setAddToMenu }
 								/>
 								<p className="cnl-add-page-form__checkbox-help">
 									{ getAddToMenuHelp( {
+										addToMenu,
 										menuListsAllPages,
 										menuTitle: mainMenu.menuTitle,
 										publishImmediately,

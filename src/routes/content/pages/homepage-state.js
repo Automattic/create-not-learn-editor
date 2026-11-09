@@ -251,22 +251,6 @@ export function replacePageLinksWithHomeLinks( blocks, pageId, label ) {
 }
 
 /**
- * Remove the homepage's page from a list of pages, so it isn't listed as a
- * page as well as the homepage. Pages under it stay.
- *
- * @param {Object[]} pages  Page records.
- * @param {number}   pageId The page the homepage shows, or 0.
- * @return {Object[]} The other pages.
- */
-export function withoutHomepagePage( pages, pageId ) {
-	if ( ! pageId ) {
-		return pages;
-	}
-
-	return pages.filter( ( page ) => Number( page.id ) !== Number( pageId ) );
-}
-
-/**
  * The page "A page" goes to: the one the homepage showed last, or else a page
  * called Home. Without either, a page has to be started.
  *

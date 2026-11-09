@@ -18,7 +18,8 @@ import { PageDetailStage } from './pages/stage';
 import { parseTarget, useHomepageState } from './pages/homepage';
 import { HOMEPAGE } from './pages/homepage-state';
 import HomepageStage from './pages/homepage-stage';
-import PagesMenuGroups from './pages/menu-groups';
+import PagesList from './pages/pages-list';
+import useAddMenuItem, { AddOptions } from './pages/use-add-menu-item';
 import AddPageFlow from './add-page-flow';
 import Canvas from './canvas';
 import {
@@ -137,6 +138,8 @@ function Stage() {
 	} = useContentRecords();
 	const mainMenu = useMainMenu();
 	const homepage = useHomepageState();
+	// Pages adds to the main menu too: anything but a page goes on Menus.
+	const menuItemAdder = useAddMenuItem( mainMenu.menuId );
 	const { frontPageId, postsPageId } = useSelect( ( select ) => {
 		const site = select( coreDataStore ).getEditedEntityRecord(
 			'root',
@@ -397,9 +400,38 @@ function Stage() {
 			to: `/types/${ type.name }/new`,
 		} );
 	};
+	// Pages can add to the main menu too, so Add page is a menu while there is
+	// one, or might be: it doesn't change under the pointer as the menu loads.
+	const hasAddMenu =
+		type.name === 'page' && ( mainMenu.isLoading || !! mainMenu.menuId );
 	const pageActions = (
 		<div className="routes-post-list__page-actions">
-			{ type.canCreate && (
+			{ type.canCreate && hasAddMenu && (
+				<DropdownMenu
+					icon={ null }
+					label={ addLabel }
+					popoverProps={ { placement: 'bottom-end' } }
+					text={ addLabel }
+					toggleProps={ {
+						__next40pxDefaultSize: true,
+						showTooltip: false,
+						variant: 'primary',
+					} }
+				>
+					{ ( { onClose } ) => (
+						<AddOptions
+							onAddMenuItem={
+								mainMenu.menuId
+									? menuItemAdder.addMenuItem
+									: undefined
+							}
+							onAddPage={ openCreateFlow }
+							onClose={ onClose }
+						/>
+					) }
+				</DropdownMenu>
+			) }
+			{ type.canCreate && ! hasAddMenu && (
 				<Button
 					__next40pxDefaultSize
 					onClick={ openCreateFlow }
@@ -544,8 +576,11 @@ function Stage() {
 		pagesList = isPagesTable ? (
 			<PagesTable listPath={ listPath } mainMenu={ mainMenu } />
 		) : (
-			<PagesMenuGroups
+			<PagesList
 				canCreate={ type.canCreate }
+				onAddMenuItem={
+					mainMenu.menuId ? menuItemAdder.addMenuItem : undefined
+				}
 				onAddPage={ openCreateFlow }
 			/>
 		);
@@ -674,7 +709,7 @@ function Stage() {
 				subTitle:
 					( type.name === 'page' &&
 						__(
-							'Every page on your site. Pick one to see it, or edit it to change what is on it.'
+							'Every page on your site. Pick one to see it, and switch it on to show it in your menu.'
 						) ) ||
 					postsSettings?.description ||
 					type.description ||
@@ -863,6 +898,7 @@ function Stage() {
 					templates={ templates }
 				/>
 			) }
+			{ menuItemAdder.modal }
 		</Page>
 	);
 }

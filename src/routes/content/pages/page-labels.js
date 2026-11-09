@@ -1,17 +1,11 @@
 /**
- * How a page is labelled in lists: its icon, its role on the site and a badge
- * for its status.
+ * How a page is labelled in lists: a badge for its status.
  */
 
 /**
  * Internal dependencies
  */
-import {
-	__,
-	homeIcon,
-	pageIcon,
-	postListIcon,
-} from '../../../wordpress-packages';
+import { __ } from '../../../wordpress-packages';
 
 /**
  * A page's status as a badge, for the statuses visitors can't see.
@@ -33,28 +27,4 @@ export function getStatusBadge( status ) {
 		default:
 			return null;
 	}
-}
-
-export function getPageIcon( page, { frontPageId, postsPageId } ) {
-	if ( Number( page.id ) === frontPageId ) {
-		return homeIcon;
-	}
-
-	if ( Number( page.id ) === postsPageId ) {
-		return postListIcon;
-	}
-
-	return pageIcon;
-}
-
-export function getPageRole( page, { frontPageId, postsPageId } ) {
-	if ( Number( page.id ) === frontPageId ) {
-		return __( 'Homepage' );
-	}
-
-	if ( Number( page.id ) === postsPageId ) {
-		return __( 'Blog' );
-	}
-
-	return '';
 }

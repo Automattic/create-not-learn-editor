@@ -107,7 +107,7 @@ async function openPageLayouts( page ) {
  * @return {import('@playwright/test').Locator} The page's item.
  */
 function getPageItem( page, title ) {
-	const list = getStage( page ).locator( '.cnl-pages-menu, .cnl-pages-tree' );
+	const list = getStage( page ).locator( '.cnl-pages-list-view' );
 
 	return list
 		.getByRole( 'link', { name: title, exact: true } )
@@ -563,6 +563,28 @@ async function writeParityScreenshot( locator, folder, name ) {
 	} );
 }
 
+/**
+ * Open the Add a page dialog from the Pages screen. With a main menu, Add page
+ * is a menu, and Page is one of its options.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function openAddPage( page ) {
+	const stage = getStage( page );
+	await stage
+		.getByRole( 'button', { name: 'Add page' } )
+		.click( { timeout: 15000 } );
+
+	const pageItem = page.getByRole( 'menuitem', { name: /^Page/ } );
+	const dialog = page.getByRole( 'dialog', { name: 'Add a page' } );
+
+	await pageItem.or( dialog ).first().waitFor();
+
+	if ( await pageItem.isVisible() ) {
+		await pageItem.click();
+	}
+}
+
 module.exports = {
 	editorUrl,
 	expectBlockEditor,
@@ -579,6 +601,7 @@ module.exports = {
 	getSaveControls,
 	getSitePreview,
 	getStage,
+	openAddPage,
 	openPageLayouts,
 	openReviewChanges,
 	openSidebarLink,

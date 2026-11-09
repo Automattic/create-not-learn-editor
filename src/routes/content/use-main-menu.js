@@ -1,7 +1,6 @@
 /**
  * Internal dependencies
  */
-import { getEditedEntityRecords } from '../../edited-records';
 import { cnlEditorStore } from '../../records';
 import {
 	buildNavigationLocationsMap,
@@ -9,22 +8,20 @@ import {
 	TEMPLATE_PARTS_QUERY,
 } from '../navigation/navigation-locations';
 import {
-	MENU_PAGES_QUERY,
-	showMenuSetByHandNotice,
-} from '../navigation-edit/list-view';
-import {
 	appendNavigationBlocksToContent,
 	createNavigationLinkBlockFromPage,
-	expandPageListBlocks,
 	getNavigationContentFromEditedRecord,
-	getParsedBlocks,
-	hasPageListBlock,
 	serializeNavigationBlocks,
 } from '../navigation-edit/navigation-blocks';
 import { getMenuPages } from './menu-status';
 import {
+	getExcludedPageIds,
+	getMenuBlocks,
+	hasPageList,
+	setPageExcluded,
+} from './pages/menu-items';
+import {
 	coreDataStore,
-	noticesStore,
 	resolveSelect,
 	select,
 	useDispatch,
@@ -182,7 +179,8 @@ export default function useMainMenu() {
 
 /**
  * Add a link to a page at the end of a menu, as a change to review and save
- * with the rest. A menu that lists every page picks the page up by itself.
+ * with the rest. A menu that lists every page picks the page up by itself, so
+ * there it only stops leaving the page out, if it was.
  *
  * @return {Function} Callback taking the menu ID and the page record.
  */
@@ -191,8 +189,19 @@ export function useAddPageToMenu() {
 
 	return async ( menuId, page ) => {
 		const content = await getEditedMenuContent( menuId );
+		const blocks = getMenuBlocks( content );
 
-		if ( getMenuPages( content ).listsAllPages ) {
+		if ( hasPageList( blocks ) ) {
+			if ( getExcludedPageIds( blocks ).has( Number( page.id ) ) ) {
+				editEntityRecord( 'postType', 'wp_navigation', menuId, {
+					blocks: undefined,
+					content: serializeNavigationBlocks(
+						setPageExcluded( blocks, page.id, false )
+					),
+					selection: undefined,
+				} );
+			}
+
 			return;
 		}
 
@@ -207,46 +216,32 @@ export function useAddPageToMenu() {
 }
 
 /**
- * Keep pages out of a menu that lists every page, by turning it into links to
- * the pages it lists now, as a change to review and save with the rest.
+ * Keep pages out of a menu that lists every page, by having it leave them
+ * out, as a change to review and save with the rest. The menu still updates
+ * itself. A menu of links doesn't take new pages, so it is left as it is.
  *
  * @return {Function} Callback taking the menu ID and the page IDs to leave out.
  */
 export function useKeepPagesOutOfMenu() {
 	const { editEntityRecord } = useDispatch( coreDataStore );
-	const { createSuccessNotice } = useDispatch( noticesStore );
 
 	return async ( menuId, pageIds ) => {
 		const content = await getEditedMenuContent( menuId );
-		const blocks = getParsedBlocks( content );
+		const blocks = getMenuBlocks( content );
 
-		if ( ! hasPageListBlock( blocks ) ) {
+		if ( ! hasPageList( blocks ) ) {
 			return;
 		}
-
-		const leaveOut = new Set( pageIds.map( Number ) );
-		const pageArgs = [ 'postType', 'page', MENU_PAGES_QUERY ];
-
-		await resolveSelect( coreDataStore ).getEntityRecords( ...pageArgs );
-
-		// The links take the pages' titles as they are now, saved or not.
-		const pages = (
-			getEditedEntityRecords( select( coreDataStore ), ...pageArgs ) ||
-			EMPTY_ARRAY
-		).filter( ( page ) => ! leaveOut.has( Number( page.id ) ) );
 
 		editEntityRecord( 'postType', 'wp_navigation', menuId, {
 			blocks: undefined,
 			content: serializeNavigationBlocks(
-				expandPageListBlocks( blocks, pages )
+				pageIds.reduce(
+					( next, pageId ) => setPageExcluded( next, pageId, true ),
+					blocks
+				)
 			),
 			selection: undefined,
-		} );
-		showMenuSetByHandNotice( {
-			createSuccessNotice,
-			editEntityRecord,
-			navigationId: menuId,
-			previousContent: content,
 		} );
 	};
 }

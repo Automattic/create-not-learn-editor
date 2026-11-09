@@ -12,7 +12,7 @@ const {
 } = require( '../utils' );
 
 test.describe( 'Pages view', () => {
-	test( 'lists pages in and out of the main menu beside a preview', async ( {
+	test( 'lists every page, with a menu switch on each, beside a preview', async ( {
 		page,
 		rest,
 	} ) => {
@@ -27,23 +27,18 @@ test.describe( 'Pages view', () => {
 		).toBeVisible();
 		// Layouts open from the options menu rather than a tab.
 		await expect( stage.getByRole( 'tab' ) ).toHaveCount( 0 );
-		await expect(
-			stage.getByRole( 'region', {
-				name: 'In your menu',
-				exact: true,
-			} )
-		).toBeVisible( { timeout: 15000 } );
-		await expect(
-			stage.getByRole( 'region', { name: 'Not in your menu' } )
-		).toBeVisible();
 		await expect( getPageItem( page, testPage.title ) ).toBeVisible( {
 			timeout: 15000,
 		} );
 		await expect(
-			stage.getByRole( 'button', { name: `Edit ${ testPage.title }` } )
-		).toBeAttached();
+			stage.getByRole( 'switch', {
+				name: `Show ${ testPage.title } in your menu`,
+			} )
+		).toBeVisible();
 		await expect(
-			stage.getByRole( 'button', { name: `Delete ${ testPage.title }` } )
+			stage.getByRole( 'button', {
+				name: `Options for ${ testPage.title }`,
+			} )
 		).toBeAttached();
 
 		// The site is on show in Browse before any page is picked.
@@ -152,9 +147,9 @@ test.describe( 'Pages view', () => {
 		await visitEditor( page, '/types/page' );
 
 		// One Homepage row, in the menu or out of it, whatever it shows.
-		await expect(
-			stage.getByRole( 'button', { name: 'Edit Homepage' } )
-		).toHaveCount( 1, { timeout: 15000 } );
+		await expect( getPageItem( page, 'Homepage' ) ).toHaveCount( 1, {
+			timeout: 15000,
+		} );
 
 		await stage
 			.getByRole( 'button', { name: 'Page options', exact: true } )

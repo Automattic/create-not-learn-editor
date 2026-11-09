@@ -25,6 +25,12 @@ export const FROM_SITE_SEARCH = { from: 'site' };
 const NAVIGATION_FROM = 'navigation';
 
 /**
+ * Search params the Pages screen adds to the menu it opens, so the menu leads
+ * back to Pages.
+ */
+export const FROM_PAGES_SEARCH = { from: 'pages' };
+
+/**
  * Search params the Menus screen adds to the edit screen it opens.
  *
  * @return {Object} Search params.
@@ -58,7 +64,8 @@ export function useTrailSearch() {
 /**
  * The breadcrumbs leading back to where the visit began: "Home". Visits
  * from the Menus screen lead back there instead, since it isn't linked from
- * "Home". Empty for visits that began anywhere else.
+ * "Home", and menus opened from Pages lead back to Pages. Empty for visits
+ * that began anywhere else.
  *
  * @return {Object[]} Breadcrumb items, to put before the screen's own.
  */
@@ -72,6 +79,10 @@ export function useSiteTrail() {
 
 		if ( from === NAVIGATION_FROM ) {
 			return [ { label: __( 'Menus' ), to: '/navigation' } ];
+		}
+
+		if ( from === FROM_PAGES_SEARCH.from ) {
+			return [ { label: __( 'Pages' ), to: '/types/page/list/all' } ];
 		}
 
 		return EMPTY_ARRAY;

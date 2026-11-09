@@ -1,5 +1,6 @@
 const {
 	expect,
+	openAddPage,
 	getFrameTexts,
 	getPageItem,
 	test,
@@ -29,7 +30,7 @@ test.describe( 'Add a page interactions', () => {
 
 	test.beforeEach( async ( { page } ) => {
 		await visitEditor( page, '/types/page' );
-		await page.getByRole( 'button', { name: 'Add page' } ).click();
+		await openAddPage( page );
 
 		picker = page.getByRole( 'dialog', { name: 'Add a page' } );
 		await expect(
