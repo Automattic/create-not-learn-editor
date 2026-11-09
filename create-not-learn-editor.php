@@ -8,6 +8,7 @@
  * Requires Plugins: gutenberg
  * Author: Create Not Learn
  * Text Domain: create-not-learn-editor
+ * Update URI: false
  *
  * @package CreateNotLearnEditor
  */
