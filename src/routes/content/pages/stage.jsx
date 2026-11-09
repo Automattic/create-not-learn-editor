@@ -35,6 +35,7 @@ import {
 	Page,
 	settingsIcon,
 	sprintf,
+	useCallback,
 	useMemo,
 	useSelect,
 } from '../../../wordpress-packages';
@@ -104,8 +105,14 @@ export function PageDetailStage( {
 		} ),
 	};
 	const view = viewTitles[ searchParams.view ] ? searchParams.view : null;
-	const openView = ( next ) =>
-		navigate( { search: { ...searchParams, view: next }, to: LIST_PATH } );
+	const openLayouts = useCallback(
+		() =>
+			navigate( {
+				search: { ...searchParams, view: LAYOUT_VIEW },
+				to: LIST_PATH,
+			} ),
+		[ navigate, searchParams ]
+	);
 
 	const editPage = () => navigate( { to: `/types/page/edit/${ pageId }` } );
 	const actions = (
@@ -132,9 +139,8 @@ export function PageDetailStage( {
 		body = (
 			<PageDetails
 				layoutName={ layoutName }
-				onOpenLayouts={ () => openView( LAYOUT_VIEW ) }
-				page={ page }
-				pages={ pages }
+				onOpenLayouts={ openLayouts }
+				pageId={ pageId }
 			/>
 		);
 	} else if ( view === HOMEPAGE_VIEW ) {
@@ -142,7 +148,7 @@ export function PageDetailStage( {
 	} else {
 		body = (
 			<>
-				<PageSummary page={ page } />
+				<PageSummary pageId={ pageId } />
 				{ intro }
 				<ScreenLinks
 					label={ __( 'More about this page' ) }

@@ -22,7 +22,7 @@ const loader = createModuleLoader(
 /**
  * @param {boolean} [shouldLoad=true] Whether the caller shows a list now.
  *                                    Pass `false` to wait until it does.
- * @return {?Object} The dataviews module, with `DataViews`,
+ * @return {?Object} The dataviews module, with `DataForm`, `DataViews`,
  *                   `DataViewsPicker` and `filterSortAndPaginate`, or
  *                   `null` until it has loaded.
  */

@@ -73,15 +73,21 @@ test.describe( 'Pages view', () => {
 			stage.getByRole( 'button', { name: 'Page options' } )
 		).toBeVisible();
 
-		// The summary says whether visitors can see it, and where.
-		const summary = stage.getByRole( 'definition' );
-		await expect( summary ).toHaveCount( 2 );
-		await expect( stage.getByText( 'Status' ) ).toBeVisible();
-		await expect( stage.getByText( 'Address' ) ).toBeVisible();
+		// The summary says whether visitors can see it, and where, and
+		// changes either with core's own fields.
+		const summary = stage.getByRole( 'region', {
+			name: 'About this page',
+		} );
+		await expect(
+			summary.getByRole( 'button', { name: 'Edit Status' } )
+		).toBeVisible( { timeout: 15000 } );
+		await expect(
+			summary.getByRole( 'button', { name: 'Edit Address' } )
+		).toBeVisible();
 
 		// Its sections aren't listed, even while composing.
 		await setCanvasMode( page, 'Compose' );
-		await expect( stage.getByText( 'Status' ) ).toBeVisible();
+		await expect( summary ).toBeVisible();
 		await expect(
 			stage.getByRole( 'heading', { name: 'On this page' } )
 		).toHaveCount( 0 );
@@ -111,8 +117,13 @@ test.describe( 'Pages view', () => {
 		await expect(
 			stage.getByRole( 'heading', { level: 1, name: 'See all details' } )
 		).toBeVisible();
-		await expect( stage.getByText( 'Last edited' ) ).toBeVisible();
-		await expect( stage.getByText( 'Author' ) ).toBeVisible();
+		const details = stage.getByRole( 'region', {
+			name: 'See all details',
+		} );
+		await expect(
+			details.getByRole( 'button', { name: 'Edit Author' } )
+		).toBeVisible( { timeout: 15000 } );
+		await expect( details.getByText( /^Last edited/ ) ).toBeVisible();
 
 		await expect(
 			getEditorCanvas( page, '.cnl-site-canvas' ).getByText(
