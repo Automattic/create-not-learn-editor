@@ -1,12 +1,17 @@
 /**
  * The site canvas's mode, shared by every canvas.
  *
- * - Browse, the default: the saved site as visitors see it.
- * - Edit: the page in the editor, with every block open to change.
+ * - Edit, the default: the page in the editor, with every block open to
+ *   change.
+ * - Browse: the saved site as visitors see it, turned on beside the device.
  * - Compose: the same editor zoomed out, to work on the page's sections.
  *
  * Kept outside any one canvas so the mode carries over from page to page and
- * screen to screen. Nothing is saved, so every visit starts in Browse.
+ * screen to screen. Nothing is saved, so every visit starts in Edit.
+ *
+ * Whether the canvas is expanded to fill the editor, hiding the sidebar and
+ * the screen beside it, is kept here too, for the same reasons. Expanding is
+ * the canvas's Edit button; it changes the room the canvas has, not its mode.
  *
  * The section Compose has picked is kept beside it, for the chat: Compose's
  * pick is its own, not core's block selection. So is the header or footer
@@ -53,7 +58,8 @@ if ( ! select( STORE_NAME ) ) {
 		createReduxStore( STORE_NAME, {
 			reducer(
 				state = {
-					mode: MODE_BROWSE,
+					mode: MODE_EDIT,
+					isExpanded: false,
 					openPart: null,
 					partRequest: null,
 					pickedSection: null,
@@ -64,6 +70,8 @@ if ( ! select( STORE_NAME ) ) {
 				switch ( action.type ) {
 					case 'SET_CANVAS_MODE':
 						return { ...state, mode: action.mode };
+					case 'SET_EXPANDED':
+						return { ...state, isExpanded: action.isExpanded };
 					case 'SET_OPEN_PART':
 						return { ...state, openPart: action.openPart };
 					case 'SET_PICKED_SECTION':
@@ -80,6 +88,10 @@ if ( ! select( STORE_NAME ) ) {
 				setCanvasMode: ( mode ) => ( {
 					mode,
 					type: 'SET_CANVAS_MODE',
+				} ),
+				setExpanded: ( isExpanded ) => ( {
+					isExpanded,
+					type: 'SET_EXPANDED',
 				} ),
 				setOpenPart: ( openPart ) => ( {
 					openPart,
@@ -100,6 +112,7 @@ if ( ! select( STORE_NAME ) ) {
 			},
 			selectors: {
 				getCanvasMode: ( state ) => state.mode,
+				isExpanded: ( state ) => state.isExpanded,
 				getOpenPart: ( state ) => state.openPart,
 				getPickedSection: ( state ) => state.pickedSection,
 				getPartRequest: ( state ) => state.partRequest,
@@ -135,6 +148,28 @@ export function setCanvasMode( next ) {
 export function useCanvasMode() {
 	return useSelect(
 		( selectStore ) => selectStore( STORE_NAME ).getCanvasMode(),
+		[]
+	);
+}
+
+/**
+ * Expand the canvas to fill the editor, or put it back beside the sidebar
+ * and the screen.
+ *
+ * @param {boolean} next Whether to expand it.
+ */
+export function setCanvasExpanded( next ) {
+	if ( next !== select( STORE_NAME ).isExpanded() ) {
+		dispatch( STORE_NAME ).setExpanded( next );
+	}
+}
+
+/**
+ * @return {boolean} Whether the canvas fills the editor, kept up to date.
+ */
+export function useIsCanvasExpanded() {
+	return useSelect(
+		( selectStore ) => selectStore( STORE_NAME ).isExpanded(),
 		[]
 	);
 }

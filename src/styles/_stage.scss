@@ -112,3 +112,57 @@ body[data-cnl-workspace="agent"] #create-not-learn-editor-app [class*="__layout"
 		flex-shrink: 0;
 	}
 }
+
+/*
+ * The canvas expanded by its Edit button: it fills the editor, so the
+ * sidebar, the screen beside it and the top bar, with Quick add, Go to page
+ * and Save, are out of the way until Exit. Only the admin bar stays above it,
+ * and boot's thin dark frame around it. See
+ * `useCanvasExpansion` in `src/site-canvas/site-canvas.jsx`. Only where boot
+ * has a canvas on show, so a screen without one never goes blank. The stage
+ * rule is shaped as the Agent workspace's above, to outrank the chat's.
+ */
+body.cnl-canvas-is-expanded #create-not-learn-editor-app [class*="__layout"][class*="has-canvas"] > [class*="__sidebar"],
+body.cnl-canvas-is-expanded #create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"])[class*="has-canvas"] [class*="__stage"] {
+	display: none;
+}
+
+body.cnl-canvas-is-expanded #create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"])[class*="has-canvas"] {
+
+	.cnl-top-bar-host {
+		display: none;
+	}
+
+	// The same thin frame above the canvas as boot leaves at its sides.
+	[class*="__surfaces"] {
+		margin-block-start: var(--wpds-dimension-gap-sm);
+	}
+}
+
+/*
+ * Expanding the canvas and putting it back is one view transition, a little
+ * slower than the browser's default so the canvas is seen growing into the
+ * room. The canvas's pictures are held at their top start corner, as the
+ * sidebar's own transition holds them, so its content doesn't stretch.
+ * `html` outranks boot's rules for the same pictures.
+ */
+html:root.cnl-canvas-is-transitioning {
+
+	&::view-transition-group(*) {
+		animation-duration: var(--wpds-motion-duration-xl);
+		animation-timing-function: var(--wpds-motion-easing-expressive);
+	}
+
+	&::view-transition-old(*),
+	&::view-transition-new(*) {
+		animation-duration: var(--wpds-motion-duration-lg);
+		animation-timing-function: var(--wpds-motion-easing-subtle);
+	}
+
+	&::view-transition-old(boot--canvas),
+	&::view-transition-new(boot--canvas),
+	&::view-transition-old(boot-safari--canvas),
+	&::view-transition-new(boot-safari--canvas) {
+		object-position: left top;
+	}
+}

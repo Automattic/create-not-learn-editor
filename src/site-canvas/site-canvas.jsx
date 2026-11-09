@@ -31,13 +31,15 @@ import { BrowseHints } from './browse-hints';
 import { useComposeZoom } from './compose/use-compose-zoom';
 import { EDITOR_DEVICES } from './constants';
 import { useEditSectionControls } from './edit-section-controls';
-import { MODE_COMPOSE, MODE_EDIT } from './mode';
+import { MODE_BROWSE, MODE_COMPOSE, MODE_EDIT } from './mode';
+import { expandCanvas, useCanvasExpansion } from './expansion';
 import { SectionModesLayer } from './section-modes/section-modes-layer';
 import {
+	BrowseToggle,
 	CanvasMoreMenu,
 	DocumentOverviewToggle,
 	EditHistory,
-	ModeToggle,
+	ExpandButton,
 	PreviewHistory,
 	ViewMenu,
 	ZoomOutToggle,
@@ -98,6 +100,7 @@ export function SiteCanvas( {
 	const { device, editorDevice, editorEntity, frame, mode } = canvas;
 	const isPreviewing = canvas.isPreviewing;
 	const isEditing = mode === MODE_EDIT;
+	const isExpanded = useCanvasExpansion();
 	// Writing, like a post, has no sections to work on in Edit. See
 	// `writing-mode.js`.
 	const isWriting = isWritingType( editorEntity?.postType );
@@ -181,10 +184,15 @@ export function SiteCanvas( {
 		>
 			<header className="cnl-editor-canvas__toolbar cnl-editor-homepage-toolbar">
 				<div className="cnl-editor-homepage-toolbar__left">
-					<ModeToggle
-						canEdit={ canvas.canEdit }
-						mode={ mode }
-						onChange={ canvas.requestMode }
+					<ExpandButton
+						isExpanded={ isExpanded }
+						onToggle={ () => {
+							if ( ! isExpanded && isPreviewing ) {
+								canvas.requestMode( MODE_EDIT );
+							}
+
+							expandCanvas( ! isExpanded );
+						} }
 					/>
 					{ ! isPreviewing && <EditHistory /> }
 					{ ! isPreviewing && editorEntity && (
@@ -212,6 +220,15 @@ export function SiteCanvas( {
 					{ document }
 				</div>
 				<div className="cnl-editor-homepage-toolbar__right">
+					<BrowseToggle
+						canEdit={ canvas.canEdit }
+						isBrowsing={ isPreviewing }
+						onChange={ ( browse ) =>
+							canvas.requestMode(
+								browse ? MODE_BROWSE : MODE_EDIT
+							)
+						}
+					/>
 					<ViewMenu
 						device={ device }
 						isComposing={ isComposing }

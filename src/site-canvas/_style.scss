@@ -55,6 +55,25 @@
 }
 
 /*
+ * Browse, a switch beside the View menu, with room either side so it doesn't
+ * run into the device icon.
+ */
+.cnl-site-canvas__browse-toggle {
+	display: flex;
+	align-items: center;
+	padding-inline: var(--wpds-dimension-padding-md);
+	white-space: nowrap;
+
+	.components-toggle-control .components-base-control__field {
+		margin: 0;
+	}
+}
+
+.cnl-site-canvas__expand-toggle.components-button {
+	flex-shrink: 0;
+}
+
+/*
  * Zoom out and back in from the canvas's corner, as on a map: drawn as
  * core's popovers are, over the editor and its section layer.
  */

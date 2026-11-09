@@ -378,42 +378,6 @@ function isPassedToPreview( change, select ) {
 	);
 }
 
-/**
- * The search part of the route in the browser's address, rather than the
- * router's. See `getOpenedInAddress` for why.
- *
- * @return {URLSearchParams} The route's search.
- */
-function getAddressSearch() {
-	const route =
-		new URL( window.location.href ).searchParams.get( 'p' ) || '/';
-
-	return new URLSearchParams( route.split( '?' )[ 1 ] || '' );
-}
-
-/**
- * The page open in the sidebar according to the browser's address, rather
- * than the router. Opening a page from `/types/page` moves to the list's own
- * route, and the old route's canvas stays on show for a moment with the old
- * address, which has no page open. Switching to Edit in that moment would
- * otherwise open the homepage over the page just opened.
- *
- * @return {string|number} `HOMEPAGE`, a page ID, or 0.
- */
-function getOpenedInAddress() {
-	return parseTarget( getAddressSearch().get( 'postId' ) );
-}
-
-/**
- * Whether the browser's address is already on Pages' Layouts, where a page's
- * Edit layout goes, in Edit, while this canvas is still on show.
- *
- * @return {boolean} Whether Layouts is in the address.
- */
-function isLayoutsInAddress() {
-	return getAddressSearch().get( 'content' ) === 'templates';
-}
-
 function PageDocument( { homepage, page } ) {
 	const isPublished = page?.status === 'publish';
 	let link = page?.link;
@@ -663,38 +627,11 @@ function PagesCanvas() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ previewPageId ] );
 
-	// The sidebar follows the canvas's mode. Editing the page on show opens
-	// it in the sidebar, and going back to the list browses again, as does
-	// arriving at the list from another screen while editing. A change made
-	// in the list, to the menu say, shows in the editor without taking the
-	// list away.
-	const wasEditing = useRef( isEditing );
-	useEffect( () => {
-		if (
-			isEditing &&
-			! drilled &&
-			! getOpenedInAddress() &&
-			! isLayoutsInAddress()
-		) {
-			if ( wasEditing.current ) {
-				canvas.requestMode( MODE_BROWSE );
-			} else if ( ! canvas.isShowingChange() ) {
-				navigate( {
-					search: {
-						...searchParams,
-						postId: target,
-						previewId: target,
-					},
-					to: LIST_PATH,
-				} );
-			}
-		}
-
-		wasEditing.current = isEditing;
-		// Only a move between the list and a page, or between modes, should
-		// switch the other.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ drilled, isEditing ] );
+	/*
+	 * The sidebar no longer follows the canvas's mode: Edit is on by default,
+	 * on the list as on a page, and Browse is a switch beside the device.
+	 * Opening a page in the sidebar is the sidebar's own business.
+	 */
 
 	if ( homepage.isLoading ) {
 		return null;
