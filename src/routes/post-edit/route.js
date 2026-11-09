@@ -7,10 +7,7 @@ import { getEditablePostType } from '../../settings';
 import {
 	__,
 	coreDataStore,
-	dispatch,
-	parseBlocks,
 	resolveSelect,
-	select,
 	sprintf,
 } from '../../wordpress-packages';
 
@@ -37,35 +34,18 @@ export const route = {
 			( type?.singular || params.type ).toLowerCase()
 		);
 	},
+	/*
+	 * The editor parses the post's content into blocks itself, once their
+	 * types are registered (`useEntityBlockEditor`). Parsing here, before
+	 * they are, stored an empty list of blocks in place of the post's.
+	 */
 	async canvas( { params } ) {
-		const post = await resolveSelect( coreDataStore ).getEntityRecord(
+		await resolveSelect( coreDataStore ).getEntityRecord(
 			'postType',
 			params.type,
 			params.id,
 			{ context: 'edit' }
 		);
-		const editedPost = select( coreDataStore ).getEditedEntityRecord(
-			'postType',
-			params.type,
-			params.id
-		);
-
-		if (
-			! editedPost?.blocks?.length &&
-			typeof post?.content?.raw === 'string' &&
-			post.content.raw.trim()
-		) {
-			await dispatch( coreDataStore ).editEntityRecord(
-				'postType',
-				params.type,
-				params.id,
-				{
-					blocks: parseBlocks( post.content.raw ),
-					content: post.content.raw,
-				},
-				{ undoIgnore: true }
-			);
-		}
 
 		return {
 			postType: params.type,
