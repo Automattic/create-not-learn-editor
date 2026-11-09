@@ -5,27 +5,30 @@
  * Discarding everything is asked about first, in the same dialog, because it
  * cannot be undone.
  *
- * A change that shows on every page, like the header, has its name in purple
- * with a globe and a purple Discard, as the editor marks anything shared, and
- * says so in a tooltip. See `src/global-scope`.
+ * Changes come in two groups, each saying what its changes reach. Those that
+ * show on every page, like the header, come first, under a purple heading
+ * with a globe and with purple Discard buttons, as the editor marks anything
+ * shared. Those that change only the page or post they were made on follow,
+ * unmarked. See `src/global-scope`.
  */
 
 /**
  * WordPress dependencies
  */
-import { Button, Modal, VisuallyHidden } from '@wordpress/components';
+import { Button, Modal } from '@wordpress/components';
 import { useDispatch } from '@wordpress/data';
 import {
 	Fragment,
 	useEffect,
+	useId,
 	useLayoutEffect,
 	useRef,
 	useState,
 } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { globe as globeIcon } from '@wordpress/icons';
+import { globe as globeIcon, page as pageIcon } from '@wordpress/icons';
 import { store as noticesStore } from '@wordpress/notices';
-import { Icon, Stack, Text, Tooltip } from '@wordpress/ui';
+import { Icon, Stack, Text } from '@wordpress/ui';
 
 /**
  * Internal dependencies
@@ -33,91 +36,82 @@ import { Icon, Stack, Text, Tooltip } from '@wordpress/ui';
 import { GlobalScope } from '../global-scope';
 import { useChanges } from './use-changes';
 
-// Quicker than the usual pause, as the tooltip explains the purple.
-const SITE_WIDE_TOOLTIP_DELAY_MS = 150;
+const GROUPS = [
+	{
+		id: 'site-wide',
+		isSiteWide: true,
+		icon: globeIcon,
+		title: __( 'Site-wide changes' ),
+		description: __( 'These change every page of your site.' ),
+	},
+	{
+		id: 'page',
+		isSiteWide: false,
+		icon: pageIcon,
+		title: __( 'Page changes' ),
+		description: __(
+			'These change only the page or post they were made on.'
+		),
+	},
+];
 
-/*
- * A change's name. One that shows on every page has a globe after it, and
- * hovering or focusing either says what saving it does, as does a screen
- * reader.
- */
-function ChangeName( { change } ) {
-	const name = (
-		<Text className="cnl-review-changes__label">{ change.label }</Text>
-	);
-
-	if ( ! change.isSiteWide ) {
-		return name;
-	}
-
-	const note = __( 'This change shows on every page of your site.' );
+function ChangeGroup( { group, changes, onDiscard } ) {
+	const headingId = useId();
+	// Purple, from the heading to the Discard buttons, for what every page
+	// shares.
+	const Scope = group.isSiteWide ? GlobalScope : Fragment;
 
 	return (
-		<Tooltip.Root>
-			<Tooltip.Trigger
-				className="cnl-review-changes__site-wide"
-				delay={ SITE_WIDE_TOOLTIP_DELAY_MS }
-				render={ <span /> }
-				tabIndex={ 0 }
+		<Scope>
+			<section
+				className={ `cnl-review-changes__group is-${ group.id }` }
+				aria-labelledby={ headingId }
 			>
-				{ name }
-				<Icon
-					className="cnl-review-changes__globe"
-					icon={ globeIcon }
-					size={ 16 }
-				/>
-				<VisuallyHidden> { note }</VisuallyHidden>
-			</Tooltip.Trigger>
-			<Tooltip.Popup>{ note }</Tooltip.Popup>
-		</Tooltip.Root>
-	);
-}
-
-/*
- * A discarded change's row goes, and its button with it, so focus moves to
- * the Discard button now in the same place, or the last one if it was last.
- */
-function ChangeList( { changes, onDiscard } ) {
-	const listRef = useRef();
-	const discardedIndex = useRef( null );
-
-	useLayoutEffect( () => {
-		if ( discardedIndex.current === null ) {
-			return;
-		}
-
-		const buttons = listRef.current?.querySelectorAll( 'button' ) ?? [];
-		buttons[
-			Math.min( discardedIndex.current, buttons.length - 1 )
-		]?.focus();
-		discardedIndex.current = null;
-	}, [ changes.length ] );
-
-	return (
-		<ul className="cnl-review-changes__list" ref={ listRef }>
-			{ changes.map( ( change, index ) => {
-				// Purple Discard for a change that shows on every page.
-				const Scope = change.isSiteWide ? GlobalScope : Fragment;
-
-				return (
-					<li key={ change.id } className="cnl-review-changes__item">
-						<div className="cnl-review-changes__text">
-							<ChangeName change={ change } />
-							<Text
-								className="cnl-review-changes__detail"
-								variant="body-sm"
-							>
-								{ change.detail }
-							</Text>
-						</div>
-						<Scope>
+				<div className="cnl-review-changes__group-header">
+					<Icon
+						className="cnl-review-changes__group-icon"
+						icon={ group.icon }
+						size={ 20 }
+					/>
+					<div>
+						<Text
+							id={ headingId }
+							render={ <h3 /> }
+							variant="heading-sm"
+							className="cnl-review-changes__group-title"
+						>
+							{ group.title }
+						</Text>
+						<Text
+							className="cnl-review-changes__group-description"
+							variant="body-sm"
+						>
+							{ group.description }
+						</Text>
+					</div>
+				</div>
+				<ul className="cnl-review-changes__list">
+					{ changes.map( ( change ) => (
+						<li
+							key={ change.id }
+							className="cnl-review-changes__item"
+						>
+							<div className="cnl-review-changes__text">
+								<Text className="cnl-review-changes__label">
+									{ change.label }
+								</Text>
+								<Text
+									className="cnl-review-changes__detail"
+									variant="body-sm"
+								>
+									{ change.detail }
+								</Text>
+							</div>
 							<Button
+								className="cnl-review-changes__discard"
 								variant="tertiary"
 								size="compact"
-								onClick={ () => {
-									discardedIndex.current = index;
-									onDiscard( change );
-								} }
+								onClick={ () => onDiscard( change ) }
 								aria-label={ sprintf(
 									/* translators: %s: What was changed, like "Site name". */
 									__( 'Discard change to %s' ),
@@ -126,11 +120,63 @@ function ChangeList( { changes, onDiscard } ) {
 							>
 								{ __( 'Discard' ) }
 							</Button>
-						</Scope>
-					</li>
-				);
-			} ) }
-		</ul>
+						</li>
+					) ) }
+				</ul>
+			</section>
+		</Scope>
+	);
+}
+
+/*
+ * The groups, site-wide first, leaving out one with nothing in it.
+ *
+ * A discarded change's row goes, and its button with it, so focus moves to
+ * the Discard button now in the same place, or the last one if it was last,
+ * even when that is in the other group.
+ */
+function ChangeGroups( { changes, onDiscard } ) {
+	const ref = useRef();
+	const discardedIndex = useRef( null );
+
+	const grouped = GROUPS.map( ( group ) => ( {
+		group,
+		changes: changes.filter(
+			( change ) => !! change.isSiteWide === group.isSiteWide
+		),
+	} ) ).filter( ( { changes: groupChanges } ) => groupChanges.length );
+	const ordered = grouped.flatMap(
+		( { changes: groupChanges } ) => groupChanges
+	);
+
+	useLayoutEffect( () => {
+		if ( discardedIndex.current === null ) {
+			return;
+		}
+
+		const buttons =
+			ref.current?.querySelectorAll( '.cnl-review-changes__discard' ) ??
+			[];
+		buttons[
+			Math.min( discardedIndex.current, buttons.length - 1 )
+		]?.focus();
+		discardedIndex.current = null;
+	}, [ changes.length ] );
+
+	return (
+		<div className="cnl-review-changes__groups" ref={ ref }>
+			{ grouped.map( ( { group, changes: groupChanges } ) => (
+				<ChangeGroup
+					key={ group.id }
+					group={ group }
+					changes={ groupChanges }
+					onDiscard={ ( change ) => {
+						discardedIndex.current = ordered.indexOf( change );
+						onDiscard( change );
+					} }
+				/>
+			) ) }
+		</div>
 	);
 }
 
@@ -232,7 +278,7 @@ export function ReviewChanges( { onClose } ) {
 						'Visitors see these once you save them. Discard any you don’t want to keep.'
 					) }
 				</Text>
-				<ChangeList changes={ changes } onDiscard={ discard } />
+				<ChangeGroups changes={ changes } onDiscard={ discard } />
 				<div className="cnl-review-changes__footer">
 					<Button
 						__next40pxDefaultSize

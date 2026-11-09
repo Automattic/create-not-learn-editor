@@ -264,6 +264,38 @@ $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 /*
  * Review changes dialog.
  */
+.cnl-review-changes__groups {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xl);
+}
+
+.cnl-review-changes__group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-md);
+}
+
+.cnl-review-changes__group-header {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+.cnl-review-changes__group-icon {
+	flex: none;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	fill: currentcolor;
+}
+
+.cnl-review-changes__group-title {
+	margin: 0;
+}
+
+.cnl-review-changes__group-description {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
 .cnl-review-changes__list {
 	margin: 0;
 	padding: 0;
@@ -284,29 +316,23 @@ $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 	}
 }
 
-// Shows on every page, so its name is in the purple of what every page
-// shares, beside a globe. See `src/global-scope`.
-.cnl-review-changes__site-wide {
-	display: inline-flex;
-	align-items: center;
-	align-self: flex-start;
-	gap: var(--wpds-dimension-gap-xs);
-	max-width: 100%;
-	border-radius: var(--wpds-border-radius-xs);
-	color: $cnl-global;
+// Shows on every page, so the heading, its globe and the list's edge are in
+// the purple of what every page shares; `GlobalScope` turns the brand tokens
+// purple. The rows stay white. See `src/global-scope`.
+.cnl-review-changes__group.is-site-wide {
 
-	.cnl-review-changes__label {
-		color: inherit;
+	.cnl-review-changes__group-icon,
+	.cnl-review-changes__group-title {
+		color: var(--wpds-color-foreground-interactive-brand);
 	}
 
-	&:focus-visible {
-		outline: var(--wpds-border-width-focus) solid $cnl-global;
-		outline-offset: 2px;
+	.cnl-review-changes__list {
+		border-color: var(--wpds-color-stroke-surface-brand);
 	}
-}
 
-.cnl-review-changes__globe {
-	flex: none;
+	.cnl-review-changes__item + .cnl-review-changes__item {
+		border-block-start-color: var(--wpds-color-stroke-surface-brand);
+	}
 }
 
 .cnl-review-changes__text {
