@@ -35,6 +35,7 @@ import { MODE_COMPOSE, MODE_EDIT } from './mode';
 import { SectionModesLayer } from './section-modes/section-modes-layer';
 import {
 	CanvasMoreMenu,
+	DocumentOverviewToggle,
 	EditHistory,
 	ModeToggle,
 	PreviewHistory,
@@ -183,6 +184,9 @@ export function SiteCanvas( {
 						onChange={ canvas.requestMode }
 					/>
 					{ ! isPreviewing && <EditHistory /> }
+					{ ! isPreviewing && editorEntity && (
+						<DocumentOverviewToggle />
+					) }
 					{ isPreviewing && (
 						<PreviewHistory
 							history={ frame.history }

@@ -8,10 +8,12 @@
  * WordPress dependencies
  */
 import { Tooltip as ComponentsTooltip } from '@wordpress/components';
+import { store as keyboardShortcutsStore } from '@wordpress/keyboard-shortcuts';
 
 /**
  * Internal dependencies
  */
+import { unlock } from '../lock-unlock';
 import {
 	__,
 	Button,
@@ -19,10 +21,12 @@ import {
 	chevronRightIcon,
 	coreDataStore,
 	desktopIcon,
+	dispatch,
 	displayShortcut,
 	externalIcon,
 	fullscreenIcon,
 	isRTL,
+	listViewIcon,
 	Menu,
 	mobileIcon,
 	DropdownMenu,
@@ -39,6 +43,8 @@ import {
 	useSelect,
 } from '../wordpress-packages';
 import { MODE_BROWSE, MODE_EDIT } from './mode';
+
+const EDITOR_STORE = 'core/editor';
 
 const DEVICE_ICONS = {
 	desktop: desktopIcon,
@@ -146,6 +152,47 @@ export function EditHistory() {
 				onClick: redo,
 				shortcut: displayShortcut.primaryShift( 'z' ),
 			} }
+		/>
+	);
+}
+
+/**
+ * Document Overview, core's own toggle for its list view, as its editor's
+ * header has it after undo and redo. The list opens in the editor's own
+ * sidebar, at the canvas's left.
+ *
+ * The open state is core's, so the full-screen editor and the canvas share it,
+ * as core's editors do.
+ *
+ * @return {Element} The button.
+ */
+export function DocumentOverviewToggle() {
+	const { isOpen, shortcut, toggleRef } = useSelect( ( select ) => {
+		const editor = select( EDITOR_STORE );
+
+		return {
+			isOpen: Boolean( editor?.isListViewOpened?.() ),
+			shortcut: select(
+				keyboardShortcutsStore
+			).getShortcutRepresentation( 'core/editor/toggle-list-view' ),
+			// Core hands focus back here when the list is closed from inside.
+			toggleRef: editor && unlock( editor ).getListViewToggleRef?.(),
+		};
+	}, [] );
+	return (
+		<Button
+			__next40pxDefaultSize
+			aria-expanded={ isOpen }
+			className="cnl-site-canvas__document-overview-toggle"
+			icon={ listViewIcon }
+			isPressed={ isOpen }
+			label={ __( 'Document Overview' ) }
+			onClick={ () =>
+				dispatch( EDITOR_STORE )?.setIsListViewOpened?.( ! isOpen )
+			}
+			ref={ toggleRef }
+			shortcut={ shortcut }
+			showTooltip
 		/>
 	);
 }
