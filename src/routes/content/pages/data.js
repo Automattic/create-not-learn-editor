@@ -285,7 +285,7 @@ export function usePreviewStructure() {
 	}, [ postContentId, sectionIds, theme ] );
 }
 
-const PAGE_TEMPLATES_QUERY = { per_page: -1, post_type: 'page' };
+export const PAGE_TEMPLATES_QUERY = { per_page: -1, post_type: 'page' };
 
 /**
  * The layouts a page can use: the one it gets by default, and the theme's
