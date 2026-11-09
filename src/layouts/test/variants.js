@@ -43,7 +43,7 @@ import { cloneBlock } from '@wordpress/blocks';
 /**
  * Internal dependencies
  */
-import { getSectionArrangements } from '../variants';
+import { getFamilyArrangements, getSectionArrangements } from '../variants';
 
 const LAYOUTS = join( __dirname, '../../../patterns/layouts' );
 const THEME = join( __dirname, '../../../themes/mainstay/patterns' );
@@ -251,18 +251,18 @@ function getClientIds( block ) {
 }
 
 function names( block ) {
-	return getSectionArrangements( block ).options.map(
+	return getFamilyArrangements( block ).options.map(
 		( option ) => option.name
 	);
 }
 
 function apply( block, name ) {
-	return getSectionArrangements( block ).options.find(
+	return getFamilyArrangements( block ).options.find(
 		( option ) => option.name === name
 	).block;
 }
 
-describe( 'getSectionArrangements', () => {
+describe( 'getFamilyArrangements', () => {
 	it( 'works the same whatever pattern a section came from', () => {
 		const section = layout( 'image-text' );
 
@@ -278,7 +278,7 @@ describe( 'getSectionArrangements', () => {
 
 	it.each( NOTHING )( 'has nothing for the %s %s', ( source, slug ) => {
 		expect(
-			getSectionArrangements( loadSection( source, slug ) )
+			getFamilyArrangements( loadSection( source, slug ) )
 		).toBeNull();
 	} );
 
@@ -324,7 +324,7 @@ describe( 'getSectionArrangements', () => {
 			[ ...section.innerBlocks ].reverse()
 		);
 
-		expect( getSectionArrangements( swapped ).current ).toBe(
+		expect( getFamilyArrangements( swapped ).current ).toBe(
 			'image-right'
 		);
 	} );
@@ -479,7 +479,7 @@ describe( 'getSectionArrangements', () => {
 	} );
 
 	it( 'marks nothing current for a count it does not offer', () => {
-		const arrangements = getSectionArrangements( layout( 'logo-strip' ) );
+		const arrangements = getFamilyArrangements( layout( 'logo-strip' ) );
 
 		expect( arrangements.current ).toBeNull();
 		expect( names( layout( 'logo-strip' ) ) ).toEqual( [
@@ -508,7 +508,7 @@ describe( 'getSectionArrangements', () => {
 		] ),
 	] )( 'the %s %s', ( source, slug, current ) => {
 		const section = loadSection( source, slug );
-		const arrangements = getSectionArrangements( section );
+		const arrangements = getFamilyArrangements( section );
 
 		it( 'is recognised as it ships', () => {
 			expect( arrangements.current ).toBe( current );
@@ -525,7 +525,7 @@ describe( 'getSectionArrangements', () => {
 
 		it( 'recognises every arrangement it makes', () => {
 			arrangements.options.forEach( ( option ) => {
-				expect( getSectionArrangements( option.block ).current ).toBe(
+				expect( getFamilyArrangements( option.block ).current ).toBe(
 					option.name
 				);
 			} );
@@ -582,4 +582,146 @@ describe( 'getSectionArrangements', () => {
 			}
 		);
 	} );
+} );
+
+// The words, links and pictures in a section, in a stable order. Layouts
+// made from content take buttons out of their rows and leave spacing out, so
+// only what holds content is counted.
+function getWords( block ) {
+	return getContent( block ).filter(
+		( entry ) => ! /^core\/(buttons|spacer|separator)\|/.test( entry )
+	);
+}
+
+function allNames( block ) {
+	return getSectionArrangements( block ).options.map(
+		( option ) => option.name
+	);
+}
+
+const SHIPPED = [
+	...Object.entries( LAYOUTS_SHIPPED ).map( ( [ slug, current ] ) => [
+		'layout',
+		slug,
+		current,
+	] ),
+	...Object.entries( THEME_SHIPPED ).map( ( [ slug, current ] ) => [
+		'theme',
+		slug,
+		current,
+	] ),
+];
+
+describe( 'getSectionArrangements', () => {
+	it.each( SHIPPED )(
+		'offers the families’ arrangements first for the %s %s',
+		( source, slug, current ) => {
+			const section = loadSection( source, slug );
+			const family = getFamilyArrangements( section );
+			const all = getSectionArrangements( section );
+
+			expect( all.current ).toBe( current );
+			const sameAs = ( { name, label, block } ) => ( {
+				name,
+				label,
+				block: strip( block ),
+			} );
+
+			expect(
+				all.options.slice( 0, family.options.length ).map( sameAs )
+			).toEqual( family.options.map( sameAs ) );
+			all.options
+				.slice( family.options.length )
+				.forEach( ( option ) =>
+					expect( option.name ).toMatch( /^content:/ )
+				);
+		}
+	);
+
+	it.each( NOTHING )(
+		'offers layouts made from content for the %s %s',
+		( source, slug ) => {
+			const section = loadSection( source, slug );
+			const { current, options } = getSectionArrangements( section );
+
+			expect( current ).toBe( 'as-it-is' );
+			expect( options[ 0 ].name ).toBe( 'as-it-is' );
+			expect( strip( options[ 0 ].block ) ).toEqual( strip( section ) );
+			expect( options.length ).toBeGreaterThan( 1 );
+		}
+	);
+
+	it( 'leaves out what the image and text family offers already', () => {
+		const offered = allNames( layout( 'image-text' ) );
+
+		[
+			'content:picture-moved',
+			'content:split-left',
+			'content:split-right',
+			'content:cover',
+		].forEach( ( name ) => expect( offered ).not.toContain( name ) );
+		expect( offered ).toContain( 'content:stacked' );
+	} );
+
+	it( 'leaves out the counts a grid offers already', () => {
+		const offered = allNames( theme( 'team-grid' ) );
+
+		expect(
+			offered.filter( ( name ) =>
+				/^content:(columns|grid)-\d/.test( name )
+			)
+		).toEqual( [] );
+	} );
+
+	it( 'has nothing for a section with no content', () => {
+		expect(
+			getSectionArrangements(
+				cloneBlock( {
+					name: 'core/group',
+					attributes: {},
+					innerBlocks: [],
+				} )
+			)
+		).toBeNull();
+	} );
+
+	describe.each( [ ...SHIPPED, ...NOTHING ] )(
+		'the %s %s',
+		( source, slug ) => {
+			const section = loadSection( source, slug );
+			const { options } = getSectionArrangements( section );
+			const fromContent = options.filter( ( option ) =>
+				option.name.startsWith( 'content:' )
+			);
+
+			it( 'never offers the same blocks twice', () => {
+				const shapes = options.map( ( option ) =>
+					JSON.stringify( strip( option.block ) )
+				);
+
+				expect( new Set( shapes ).size ).toBe( shapes.length );
+			} );
+
+			it( 'keeps the content and the pattern name in every layout made from content', () => {
+				fromContent.forEach( ( option ) => {
+					expect( getWords( option.block ) ).toEqual(
+						getWords( section )
+					);
+					expect( option.block.attributes.metadata ).toEqual(
+						section.attributes.metadata
+					);
+				} );
+			} );
+
+			it( 'gives every block a fresh client ID', () => {
+				const ids = getClientIds( section );
+
+				options.forEach( ( option ) => {
+					getClientIds( option.block ).forEach( ( id ) =>
+						expect( ids ).not.toContain( id )
+					);
+				} );
+			} );
+		}
+	);
 } );
