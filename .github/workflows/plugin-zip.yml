@@ -42,9 +42,11 @@ concurrency:
   group: plugin-zip-${{ github.ref }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
-# Write access is only for publishing the Playground build and the release.
+# Read-only by default. Only the publish job, which runs no npm code, can
+# write, so a compromised dependency's install script can't push to the
+# Playground refs, move tags or edit releases.
 permissions:
-  contents: write
+  contents: read
 
 env:
   ZIP_NAME: create-not-learn-editor.zip
@@ -60,6 +62,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -101,6 +105,36 @@ jobs:
           ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
         run: |
           echo "Download [${ZIP_NAME}](${ARTIFACT_URL}) built from \`${GITHUB_SHA::7}\`." >> "$GITHUB_STEP_SUMMARY"
+
+  # Publishes the zip the build job made. It never installs or runs npm
+  # packages, so nothing from node_modules runs while it holds write access.
+  publish:
+    name: Publish Playground build
+    needs: build
+    # The same refs PLAYGROUND_KIND names: branches and `v*` tags.
+    if: startsWith(github.ref, 'refs/heads/') || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # For the theme, the seed scripts, the canvas fix and the blueprints.
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      # Downloaded as the zip it is, not unpacked.
+      - name: Download plugin zip
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.ZIP_NAME }}
+          skip-decompress: true
+
+      - name: Check the plugin zip
+        run: |
+          test -f "$ZIP_NAME" || { echo "::error::$ZIP_NAME was not downloaded"; ls -la; exit 1; }
+          unzip -l "$ZIP_NAME" > "$RUNNER_TEMP/zip-contents.txt"
+          grep -q " create-not-learn-editor/create-not-learn-editor.php$" "$RUNNER_TEMP/zip-contents.txt" || { echo "::error::$ZIP_NAME is not the plugin zip"; exit 1; }
 
       # Playground can't install from workflow artifacts or release assets,
       # which don't allow cross-origin downloads, but it can fetch from
