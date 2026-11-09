@@ -2,9 +2,22 @@
 // layouts.
 
 @use "./add-page";
+@use "./post-timeline";
+
+// The list scrolls under its search and options, not the whole screen.
+.routes-post-list__dataviews {
+	display: flex;
+	flex-direction: column;
+}
 
 // The list's table and grid line up with the toolbar above them.
 .routes-post-list__dataviews-scroll {
+	// Read by what sticks to the top while the list scrolls, which sticks
+	// below this padding unless it reaches up into it.
+	--routes-post-list-scroll-padding-top: 12px;
+
+	flex: 1;
+	padding-block-start: var(--routes-post-list-scroll-padding-top);
 
 	.dataviews-view-table {
 

@@ -91,6 +91,8 @@ export function getStatusLabel( status ) {
 			return __( 'Pending review' );
 		case 'private':
 			return __( 'Private' );
+		case 'trash':
+			return __( 'Trash' );
 		default:
 			return status || __( 'Unknown' );
 	}

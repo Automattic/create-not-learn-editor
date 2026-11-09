@@ -48,7 +48,8 @@ export const PREFERENCE_NAME = 'workspace';
  * - `home.preview`: what Home's canvas opens on. `home` is the homepage;
  *   `posts` is wherever the blog's posts are listed.
  * - `posts`: how the Posts screen lists posts and says what it is for.
- *   `layout` is a DataViews layout; `statusFilter` puts a row of buttons for
+ *   `layout` is a DataViews layout, where `activity` is the posts timeline
+ *   (`src/routes/content/post-timeline-view.jsx`); `statusFilter` puts a row of buttons for
  *   core's statuses (All, Published, Drafts, Trash...) under the Posts tab.
  * - `writeInFocus`: whether writing a post opens the editor with everything
  *   but the writing out of the way.
@@ -80,7 +81,7 @@ const DEFAULTS = {
 		addLabel: null,
 		statusFilter: false,
 		description: __( 'Your blog posts, newest first.' ),
-		layout: 'table',
+		layout: 'activity',
 	},
 	writeInFocus: false,
 	writingAids: false,
@@ -135,7 +136,6 @@ const PRESETS = [
 			description: __(
 				'Everything you’ve written. Pick up a draft, or change something you’ve published.'
 			),
-			layout: 'list',
 		},
 		writeInFocus: true,
 		writingAids: true,

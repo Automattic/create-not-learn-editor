@@ -1,0 +1,498 @@
+// The posts timeline. See `post-timeline-view.jsx`.
+// Each row is three columns: the date, the line with the post's dot, and
+// the post. Type comes from `Text` and spacing from `Stack`, so this only
+// draws the line, the dots, colour and the layout of the columns. The line
+// and dots are sized as DataViews' own Activity layout sizes its line and
+// bullets, and dots take their colour from their post's badge. Dots are
+// drawn with stroke tokens as borders, as DataViews fills its bullets with
+// them: a full border is a filled dot, a thin one a ring.
+
+.cnl-post-timeline {
+	--cnl-timeline-surface: var(--wpds-color-background-surface-neutral-strong);
+	--cnl-timeline-line: var(--wpds-color-stroke-surface-neutral);
+	--cnl-timeline-future: var(--wpds-color-stroke-surface-info-strong);
+	--cnl-timeline-now: var(--wpds-color-stroke-surface-brand-strong);
+	--cnl-timeline-line-width: var(--wpds-border-width-xs);
+	--cnl-timeline-dot: calc(var(--wpds-dimension-size-4xs) + var(--wpds-border-width-xs));
+	// Level with the middle of a post's first line of title.
+	--cnl-timeline-dot-top: calc(var(--wpds-dimension-padding-md) + var(--wpds-typography-line-height-sm) / 2);
+	--cnl-timeline-image: calc(var(--wpds-dimension-size-md) * 2);
+
+	box-sizing: border-box;
+	list-style: none;
+	margin: 0 auto;
+	max-width: var(--wpds-dimension-surface-width-xl);
+	padding: 0 0 var(--wpds-dimension-padding-3xl);
+
+	// Refreshing pulses as DataViews' own layouts do.
+	&.is-refreshing {
+		opacity: 0.5;
+		pointer-events: none;
+
+		@media not (prefers-reduced-motion) {
+			animation: dataviews-pulse 1s ease-in-out infinite;
+			opacity: 1;
+		}
+	}
+
+	&.is-compact {
+		--cnl-timeline-dot-top: calc(var(--wpds-dimension-padding-sm) + var(--wpds-typography-line-height-sm) / 2);
+	}
+
+	&.is-comfortable {
+		--cnl-timeline-dot-top: calc(var(--wpds-dimension-padding-lg) + var(--wpds-typography-line-height-sm) / 2);
+		--cnl-timeline-image: calc(var(--wpds-dimension-size-md) * 3);
+	}
+}
+
+.cnl-post-timeline__loading {
+	display: flex;
+	justify-content: center;
+	padding: var(--wpds-dimension-padding-3xl);
+}
+
+.cnl-post-timeline__row {
+	--cnl-timeline-rail-start: 50%;
+
+	column-gap: var(--wpds-dimension-gap-sm);
+	display: grid;
+	grid-template-columns: calc(var(--wpds-dimension-size-lg) + var(--wpds-dimension-size-4xs)) var(--wpds-dimension-size-sm) minmax(0, 1fr);
+	margin: 0;
+}
+
+// The line, through every row.
+.cnl-post-timeline__rail {
+	grid-column: 2;
+	position: relative;
+
+	&::before {
+		border-inline-start: var(--cnl-timeline-line-width) solid var(--cnl-timeline-line);
+		bottom: 0;
+		content: "";
+		inset-inline-start: calc(50% - var(--cnl-timeline-line-width) / 2);
+		position: absolute;
+		top: 0;
+	}
+}
+
+// What's scheduled runs on a dashed line in the colour of what's to come.
+.cnl-post-timeline__row.is-future .cnl-post-timeline__rail::before {
+	border-inline-start-color: var(--cnl-timeline-future);
+	border-inline-start-style: dashed;
+}
+
+// Months break the line, like chapters, so a month that stays in view
+// while its posts scroll by doesn't draw a line of its own over theirs.
+.cnl-post-timeline__month .cnl-post-timeline__rail::before {
+	display: none;
+}
+
+// The line starts at the first dot, and fades out after the last.
+.cnl-post-timeline__row.is-before-start .cnl-post-timeline__rail::before {
+	display: none;
+}
+
+.cnl-post-timeline__row.is-start .cnl-post-timeline__rail::before {
+	top: var(--cnl-timeline-rail-start);
+}
+
+.cnl-post-timeline__post.is-end .cnl-post-timeline__rail::before {
+	mask-image: linear-gradient(to bottom, #000 var(--cnl-timeline-dot-top), transparent);
+}
+
+.cnl-post-timeline__dot {
+	background: var(--cnl-timeline-surface);
+	border: var(--wpds-border-width-sm) solid var(--wpds-color-stroke-surface-neutral-strong);
+	border-radius: 50%;
+	box-shadow: 0 0 0 var(--wpds-border-width-md) var(--cnl-timeline-surface);
+	box-sizing: border-box;
+	height: var(--cnl-timeline-dot);
+	inset-inline-start: 50%;
+	position: absolute;
+	top: var(--cnl-timeline-dot-top);
+	transform: translate(-50%, -50%);
+	width: var(--cnl-timeline-dot);
+	z-index: 1;
+
+	[dir="rtl"] & {
+		transform: translate(50%, -50%);
+	}
+}
+
+// Months divide the line as today does, in the same small capitals and
+// rule, but in grey, and stay in view while their posts scroll by.
+.cnl-post-timeline__month {
+	background: var(--cnl-timeline-surface);
+	position: sticky;
+	// Up to the list's top edge, over its padding, so nothing shows above.
+	top: calc(-1 * var(--routes-post-list-scroll-padding-top, 0px));
+	// Above the dots and menus of the posts scrolling under it.
+	z-index: 2;
+
+	.cnl-post-timeline__month-label {
+		align-items: center;
+		color: var(--wpds-color-foreground-content-neutral-weak);
+		display: flex;
+		gap: var(--wpds-dimension-gap-md);
+		grid-column: 3;
+		padding: var(--wpds-dimension-padding-xl) 0 var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-md);
+
+		&::after {
+			border-block-start: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral);
+			content: "";
+			flex: 1;
+		}
+	}
+
+	&:first-child .cnl-post-timeline__month-label {
+		padding-block-start: var(--wpds-dimension-padding-sm);
+	}
+}
+
+// Today: where the dashed line of what's to come turns solid.
+.cnl-post-timeline__today {
+	align-items: center;
+	padding-block: var(--wpds-dimension-padding-md);
+
+	.cnl-post-timeline__when {
+		color: var(--wpds-color-foreground-content-neutral);
+	}
+
+	.cnl-post-timeline__rail {
+		align-self: stretch;
+
+		&::before {
+			border-inline-start-color: var(--cnl-timeline-future);
+			border-inline-start-style: dashed;
+			bottom: 50%;
+		}
+
+		&::after {
+			border-inline-start: var(--cnl-timeline-line-width) solid var(--cnl-timeline-line);
+			bottom: 0;
+			content: "";
+			inset-inline-start: calc(50% - var(--cnl-timeline-line-width) / 2);
+			position: absolute;
+			top: 50%;
+		}
+	}
+
+	.cnl-post-timeline__dot {
+		border-color: var(--cnl-timeline-now);
+		border-width: calc(var(--cnl-timeline-dot) / 2);
+		box-shadow:
+			0 0 0 var(--wpds-border-width-sm) var(--cnl-timeline-surface),
+			0 0 0 var(--wpds-border-width-md) var(--wpds-color-stroke-surface-brand);
+		top: 50%;
+	}
+
+	// With nothing to come, the line starts at today; with nothing gone
+	// by, it stops there.
+	&.is-start .cnl-post-timeline__rail::before,
+	&.is-end .cnl-post-timeline__rail::after {
+		display: none;
+	}
+}
+
+.cnl-post-timeline__today-date {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	padding-inline-start: var(--wpds-dimension-padding-md);
+
+	&::after {
+		border-block-start: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-brand);
+		content: "";
+		flex: 1;
+	}
+}
+
+// A post: its date, its dot and the post itself.
+.cnl-post-timeline__post {
+	--cnl-timeline-rail-start: var(--cnl-timeline-dot-top);
+
+	.cnl-post-timeline__when {
+		padding-block-start: calc(var(--cnl-timeline-dot-top) - var(--wpds-typography-line-height-md) / 2);
+		text-align: end;
+	}
+
+	&.is-future .cnl-post-timeline__day {
+		color: var(--wpds-color-foreground-content-info);
+	}
+}
+
+// What's scheduled hasn't happened yet, so it sits back until it's pointed
+// at, focused or has its menu open. The line and dot stay as they are.
+.cnl-post-timeline__post.is-future {
+
+	.cnl-post-timeline__when,
+	.cnl-post-timeline__card {
+		opacity: 0.6;
+
+		@media not (prefers-reduced-motion) {
+			transition:
+				opacity var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
+				background-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+		}
+	}
+
+	&:hover,
+	&:focus-within,
+	&:has([data-popup-open]) {
+
+		.cnl-post-timeline__when,
+		.cnl-post-timeline__card {
+			opacity: 1;
+		}
+	}
+}
+
+.cnl-post-timeline__day {
+	color: var(--wpds-color-foreground-content-neutral);
+	font-variant-numeric: tabular-nums;
+}
+
+.cnl-post-timeline__weekday {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+// Where each post stands, by its dot. Its colour is its badge's: the
+// intent `getStatusIntent` gives the post, in the colour `Badge` gives that
+// intent. Posts that have gone out, published or private, are filled;
+// what's scheduled, unfinished or in the trash is a ring.
+.cnl-post-timeline__post {
+	--cnl-timeline-dot-colour: var(--wpds-color-stroke-surface-neutral-strong);
+
+	&.has-informational-intent {
+		--cnl-timeline-dot-colour: var(--wpds-color-stroke-surface-info-strong);
+	}
+
+	// Trashed posts badge with no intent, which `Badge` outlines in the
+	// lighter stroke.
+	&.is-trash {
+		--cnl-timeline-dot-colour: var(--wpds-color-stroke-surface-neutral);
+	}
+
+	.cnl-post-timeline__dot {
+		border-color: var(--cnl-timeline-dot-colour);
+	}
+
+	&.is-published,
+	&.is-private {
+
+		.cnl-post-timeline__dot {
+			border-width: calc(var(--cnl-timeline-dot) / 2);
+		}
+	}
+}
+
+.cnl-post-timeline__card {
+	border-radius: var(--wpds-border-radius-md);
+	margin-block: var(--wpds-dimension-gap-xs);
+	padding: var(--wpds-dimension-padding-md);
+	position: relative;
+	transition: background-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+
+	.is-compact & {
+		padding-block: var(--wpds-dimension-padding-sm);
+	}
+
+	.is-comfortable & {
+		padding-block: var(--wpds-dimension-padding-lg);
+	}
+
+	&:hover {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+	}
+
+	&:has(.cnl-post-timeline__title-button:focus-visible) {
+		box-shadow: 0 0 0 var(--wpds-border-width-focus) var(--wpds-color-stroke-focus);
+	}
+}
+
+.cnl-post-timeline__text {
+	flex: 1;
+	min-width: 0;
+}
+
+.cnl-post-timeline__title {
+	color: var(--wpds-color-foreground-content-neutral);
+
+	.is-trash & {
+		color: var(--wpds-color-foreground-content-neutral-weak);
+	}
+}
+
+// The title opens the post, and so does anywhere else on the post.
+.cnl-post-timeline__title-button {
+	appearance: none;
+	background: none;
+	border: 0;
+	color: inherit;
+	cursor: var(--wpds-cursor-control);
+	font: inherit;
+	padding: 0;
+	text-align: start;
+
+	&::after {
+		border-radius: var(--wpds-border-radius-md);
+		content: "";
+		inset: 0;
+		position: absolute;
+	}
+
+	&:focus {
+		outline: none;
+	}
+
+	.cnl-post-timeline__card:hover & {
+		color: var(--wpds-color-foreground-interactive-brand);
+	}
+}
+
+.cnl-post-timeline__excerpt {
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	display: -webkit-box;
+	overflow: hidden;
+
+	.is-compact & {
+		display: none;
+	}
+}
+
+.cnl-post-timeline__meta {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	margin-block-start: var(--wpds-dimension-gap-xs);
+	row-gap: var(--wpds-dimension-gap-xs);
+
+	&:empty {
+		display: none;
+	}
+}
+
+.cnl-post-timeline__meta-item + .cnl-post-timeline__meta-item::before {
+	// Seen, not read out.
+	content: "·" / "";
+	margin-inline-end: var(--wpds-dimension-gap-sm);
+}
+
+.cnl-post-timeline__image {
+	aspect-ratio: 1;
+	border-radius: var(--wpds-border-radius-sm);
+	flex: none;
+	object-fit: cover;
+	width: var(--cnl-timeline-image);
+
+	.is-compact & {
+		display: none;
+	}
+}
+
+// Above the post, so it opens its menu rather than the post.
+.cnl-post-timeline__actions.cnl-post-timeline__actions {
+	flex: none;
+	margin-block-start: calc((var(--wpds-typography-line-height-sm) - var(--wpds-dimension-size-md)) / 2);
+	position: relative;
+	z-index: 1;
+}
+
+// While the first posts load: a day, a title and a line, in grey.
+.cnl-post-timeline__post.is-skeleton {
+
+	.cnl-post-timeline__dot {
+		border-color: var(--wpds-color-stroke-surface-neutral);
+	}
+}
+
+.cnl-post-timeline__skeleton-day {
+	border-radius: var(--wpds-border-radius-sm);
+	height: var(--wpds-typography-line-height-md);
+	width: var(--wpds-dimension-size-md);
+}
+
+.cnl-post-timeline__skeleton-title,
+.cnl-post-timeline__skeleton-line {
+	border-radius: var(--wpds-border-radius-md);
+	height: var(--wpds-typography-line-height-sm);
+}
+
+.cnl-post-timeline__skeleton-title {
+	width: 60%;
+}
+
+.cnl-post-timeline__skeleton-line {
+	width: 90%;
+}
+
+// An earlier year, folded into one row on the line: the year where the
+// days go, a chevron where the dots go, and how many posts it has on a
+// rule, as months and today have theirs. It opens to its months.
+.cnl-post-timeline__year {
+	margin: 0;
+}
+
+.cnl-post-timeline__year-trigger {
+	align-items: center;
+	appearance: none;
+	background: none;
+	border: 0;
+	border-radius: var(--wpds-border-radius-md);
+	color: inherit;
+	cursor: var(--wpds-cursor-control);
+	font: inherit;
+	margin-block-start: var(--wpds-dimension-gap-sm);
+	padding: var(--wpds-dimension-padding-md) 0;
+	text-align: start;
+	width: 100%;
+
+	@media not (prefers-reduced-motion) {
+		transition: background-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+	}
+
+	&:hover {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+	}
+
+	&:focus-visible {
+		box-shadow: 0 0 0 var(--wpds-border-width-focus) var(--wpds-color-stroke-focus);
+		outline: none;
+	}
+
+	.cnl-post-timeline__when {
+		color: var(--wpds-color-foreground-content-neutral);
+	}
+
+	// Years break the line, as months do.
+	.cnl-post-timeline__rail {
+		align-items: center;
+		align-self: stretch;
+		color: var(--wpds-color-foreground-content-neutral-weak);
+		display: flex;
+		justify-content: center;
+
+		&::before {
+			display: none;
+		}
+	}
+}
+
+.cnl-post-timeline__year-count {
+	align-items: center;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	display: flex;
+	gap: var(--wpds-dimension-gap-md);
+	padding-inline-start: var(--wpds-dimension-padding-md);
+
+	&::after {
+		border-block-start: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral);
+		content: "";
+		flex: 1;
+	}
+}
+
+// An opened year's rows, inside the timeline.
+.cnl-post-timeline__nested {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
