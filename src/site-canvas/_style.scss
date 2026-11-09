@@ -80,6 +80,7 @@
 	}
 }
 
+.cnl-site-canvas__document-overview-toggle.components-button.has-icon,
 .cnl-site-canvas__view-menu-toggle.components-button.has-icon,
 .cnl-site-canvas__zoom-out-toggle.components-button.has-icon,
 .cnl-site-canvas__more-menu-toggle.components-button.has-icon {
@@ -89,7 +90,8 @@
 	color: var(--wpds-color-foreground-content-neutral);
 }
 
-// Pressed while zoomed out, in core's own pressed colours.
+// Pressed while open or zoomed out, in core's own pressed colours.
+.cnl-site-canvas__document-overview-toggle.components-button.has-icon.is-pressed,
 .cnl-site-canvas__zoom-out-toggle.components-button.has-icon.is-pressed {
 	color: #fff;
 }
@@ -117,10 +119,18 @@
 	}
 
 	.interface-interface-skeleton__header,
-	.interface-interface-skeleton__secondary-sidebar,
 	.interface-interface-skeleton__sidebar,
 	.interface-interface-skeleton__footer,
 	.interface-interface-skeleton__actions {
+		display: none;
+	}
+
+	/*
+	 * The secondary sidebar shows only for Document Overview, the toolbar's
+	 * list view toggle. Core also opens its inserter there, which the canvas
+	 * leaves to Add and the section picker.
+	 */
+	.interface-interface-skeleton__secondary-sidebar:not(:has(.editor-list-view-sidebar)) {
 		display: none;
 	}
 }
@@ -270,11 +280,17 @@
 
 /*
  * A desktop's width for the editor while core measures it, before zooming
- * out. See `use-compose-zoom.js`. Hidden meanwhile, so the page laid out
+ * out, plus the Document Overview's when it is open. See
+ * `use-compose-zoom.js`. Hidden meanwhile, so the page laid out
  * wider than the canvas never shows.
  */
 .cnl-site-canvas__editor.is-compose-widening {
 	right: auto;
-	width: 1280px;
+	width: calc(1280px + var(--cnl-compose-sidebar-width, 0px));
 	visibility: hidden;
+}
+
+// A pixel narrower for a frame or two, so core measures the canvas again.
+.cnl-site-canvas__editor.is-compose-remeasuring {
+	right: 1px;
 }

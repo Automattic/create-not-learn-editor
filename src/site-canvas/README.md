@@ -1,6 +1,6 @@
 # Site canvas
 
-The canvas beside Home, Pages and Design. A Browse | Edit toggle at the left of its toolbar switches between looking at the site and changing it, and undo and redo follow it while editing. On the right, as in core's editor, the View menu picks the device the page is shown on, Desktop, Tablet or Mobile, its button showing the device's icon, and while editing, Zoom out beside it steps back to work on the page's sections.
+The canvas beside Home, Pages and Design. A Browse | Edit toggle at the left of its toolbar switches between looking at the site and changing it, and undo and redo follow it while editing, then Document Overview, core's own list view toggle, which opens core's List View and Outline in the editor's sidebar at the canvas's left, as in core's editor. On the right, as in core's editor, the View menu picks the device the page is shown on, Desktop, Tablet or Mobile, its button showing the device's icon, and while editing, Zoom out beside it steps back to work on the page's sections.
 
 - **Browse**, the default. The saved site in an iframe, as visitors see it. Links can be followed to other pages. Because it looks just like Edit, it hints at Edit where someone reaches for a change: the page's words have the arrow, not the text cursor, a section rested on for a moment is outlined faintly with an Edit tag (purple for the header and footer), a click on anything that isn't a link or button highlights its section the same way, and a second click on it asks "Want to change this?". Edit from the tag or the question, or a double click, opens Edit with that section picked. See "Browse's hints" below.
 - **Edit**. The page in core's editor, with our own layer over it. A section is worked on a click at a time: the first click picks it, a click on a row of cards opens the row, and the next reaches the words or picture clicked. See "Edit's section layer" below. Each section made of other blocks starts content-only. A layout, like Single Post, opens unlocked, as its sections are mostly a post's title, image and content. "Open in full editor", in the toolbar's More options menu, opens the full-screen editor for anything the canvas doesn't suit.
@@ -22,7 +22,7 @@ Moving to Browse with unsaved changes asks to save or discard them, because the 
 | `use-site-canvas.js` | `useSiteCanvas()`: the canvas's state and the rules for moving between modes. |
 | `mode.js` | The shared mode: `useCanvasMode()`, `getCanvasMode()`, `setCanvasMode()`. |
 | `writing-mode.js` | Which content types are in writing mode, which blocks are containers, and how runs of text between them are grouped into sections: for writing when zoomed out, and for pages always. |
-| `toolbar.js` | The Browse \| Edit toggle, undo and redo, the preview's history, the View menu (the device), Zoom out (Compose), and the More options menu, with the way to the full-screen editor. |
+| `toolbar.js` | The Browse \| Edit toggle, undo and redo, Document Overview, the preview's history, the View menu (the device), Zoom out (Compose), and the More options menu, with the way to the full-screen editor. |
 | `zoom-controls.jsx` | Compose from the canvas itself: a zoom in and zoom out pair in its corner, as on a map, and a pinch on a trackpad, or Ctrl or ⌘ with the scroll wheel. One gesture moves one step. |
 | `browse-hints.jsx` | Browse's hints that the page is changed in Edit, laid over the preview. |
 | `preview-blocks.js` | Finding, in the editor, the block a spot in the preview shows. |
@@ -107,7 +107,7 @@ Core's zoom-out is used for its zoom alone. Core can't scale the canvas without 
 
 | File | What it does |
 | --- | --- |
-| `use-compose-zoom.js` | Zooms the editor out and back in. Widens the editor to a desktop's width while core measures it, so the page is laid out as on a desktop and shrinks to fit. Waits for core's zoom animation to end, for a scroll that would otherwise be lost. |
+| `use-compose-zoom.js` | Zooms the editor out and back in. Widens the editor to a desktop's width while core measures it, plus the Document Overview's when it is open, so the page is laid out as on a desktop and shrinks to fit. Once the zoom has settled, has core measure the canvas again, as core keeps the scale it worked out for the widened editor. Waits for core's zoom animation to end, for a scroll that would otherwise be lost. |
 | `use-compose-structure.js` | The page's sections, the blocks of core's section root, and what the template adds around them, like the header, title and footer, and which of those the page can change. |
 | `use-block-rects.js` | Where those blocks are on screen, measured every frame, and scrolling the canvas to one. |
 | `section-styles.js` | The theme's section styles, as a section's colours. |
