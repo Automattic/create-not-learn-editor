@@ -81,3 +81,18 @@
 	min-height: 120px;
 	color: var(--wpds-color-foreground-content-neutral-weak);
 }
+
+/*
+ * The Agent workspace: the site canvas is the point, so the stage never
+ * shows wherever there is a canvas to show instead. Boot marks that with
+ * `has-canvas` on its layout, so this reuses it rather than guessing per
+ * screen. A screen with no canvas of its own, like Site overview, keeps its
+ * stage, as hiding it would leave nothing on screen.
+ *
+ * `:not([class*="__has-full-canvas"])` does nothing itself (that mode hides
+ * the stage already) but makes this outrank the chat's layout rule for a
+ * stage holding the "Need help?" card (`src/chat/style.scss`).
+ */
+body[data-cnl-workspace="agent"] #create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"])[class*="has-canvas"] [class*="__stage"] {
+	display: none;
+}
