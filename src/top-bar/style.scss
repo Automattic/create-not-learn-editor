@@ -123,55 +123,10 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	}
 }
 
-/*
- * Go to page. Dressed as a search field so it reads as somewhere to type,
- * but it is a button: the page finder it opens is where the typing happens.
- */
+// Go to page fills the middle track. The page finder styles it; see
+// `src/page-finder/style.scss`.
 .cnl-go-to-page {
-	display: block;
 	width: 100%;
-}
-
-.cnl-go-to-page__toggle {
-	display: flex;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-sm);
-	box-sizing: border-box;
-	width: 100%;
-	height: 32px;
-	padding-inline: var(--wpds-dimension-padding-sm);
-	border: 1px solid transparent;
-	border-radius: var(--wpds-border-radius-md);
-	background: rgba(255, 255, 255, 0.08);
-	color: var(--wpds-color-foreground-content-neutral-weak);
-	font: inherit;
-	font-size: var(--wpds-typography-font-size-md);
-	text-align: start;
-	cursor: pointer;
-
-	&:hover,
-	&[aria-expanded="true"] {
-		background: rgba(255, 255, 255, 0.12);
-		color: var(--wpds-color-foreground-content-neutral);
-	}
-
-	&:focus-visible {
-		outline: var(--wpds-border-width-focus) solid var(--wp-admin-theme-color);
-		outline-offset: 1px;
-	}
-
-	@media not (prefers-reduced-motion) {
-		transition:
-			background var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
-			color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
-	}
-}
-
-.cnl-go-to-page__label {
-	flex: 1;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
 }
 
 .cnl-save-controls {

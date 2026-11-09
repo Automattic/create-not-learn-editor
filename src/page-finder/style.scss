@@ -1,64 +1,144 @@
 /*
- * Page finder. The top bar's Go to page opens it; its toggle is styled in
- * `src/top-bar/style.scss`.
+ * Page finder: the top bar's Go to page field, and the list that opens out of
+ * it. The list isn't in a popover but in the field's own wrapper, so it takes
+ * the dark frame's colours, and the field and the list read as one box: the
+ * list starts under the field and grows down from it.
  */
 
-.cnl-page-finder__popover .components-popover__content {
-	width: 320px;
-	padding: 0;
-}
+$field-height: 32px;
+$panel-gap: 4px;
+
+// The dark frame's own surface tokens, a step up from the bar.
+$panel-background: var(--wpds-color-background-surface-neutral-strong);
+$divider: var(--wpds-color-stroke-surface-neutral);
+
+// The field's own faint fill: the frame's tokens are too close to the panel.
+$row-hover: rgba(255, 255, 255, 0.08);
 
 .cnl-page-finder {
-	display: flex;
-	flex-direction: column;
-	max-height: min(560px, 70vh);
+	position: relative;
+	// The browser's own bits, like the field's clear button, drawn for dark.
+	color-scheme: dark;
 	color: var(--wpds-color-foreground-content-neutral);
 	font-size: var(--wpds-typography-font-size-md);
 }
 
-.cnl-page-finder__search {
+.cnl-page-finder__field {
 	position: relative;
-	flex-shrink: 0;
-	padding: var(--wpds-dimension-padding-sm);
-	border-block-end: 1px solid var(--wpds-color-stroke-surface-neutral);
+	z-index: 1;
 }
 
 .cnl-page-finder__search-icon {
 	position: absolute;
 	inset-block-start: 50%;
-	inset-inline-start: calc(var(--wpds-dimension-padding-sm) + 8px);
+	inset-inline-start: var(--wpds-dimension-padding-sm);
 	transform: translateY(-50%);
-	fill: var(--wpds-color-foreground-content-neutral-weak);
+	fill: currentcolor;
+	color: var(--wpds-color-foreground-content-neutral-weak);
 	pointer-events: none;
+
+	.cnl-page-finder.is-open & {
+		color: var(--wpds-color-foreground-content-neutral);
+	}
 }
 
 .cnl-page-finder__input[type="search"] {
 	box-sizing: border-box;
 	width: 100%;
-	height: 40px;
+	height: $field-height;
+	min-height: 0;
 	margin: 0;
 	padding-block: 0;
-	padding-inline: 36px var(--wpds-dimension-padding-sm);
-	border: 1px solid var(--wpds-color-stroke-interactive-neutral);
-	border-radius: var(--wpds-border-radius-sm);
-	background: var(--wpds-color-background-surface-neutral-strong);
+	padding-inline: calc(var(--wpds-dimension-padding-sm) + 28px) var(--wpds-dimension-padding-sm);
+	border: 0;
+	border-radius: var(--wpds-border-radius-md);
+	background: rgba(255, 255, 255, 0.08);
 	color: inherit;
 	font: inherit;
 	box-shadow: none;
+	cursor: pointer;
+
+	&::placeholder {
+		color: var(--wpds-color-foreground-content-neutral-weak);
+		opacity: 1;
+	}
+
+	&:hover,
+	.cnl-page-finder.is-open & {
+		background: rgba(255, 255, 255, 0.12);
+
+		&::placeholder {
+			color: var(--wpds-color-foreground-content-neutral);
+		}
+	}
 
 	&:focus {
-		border-color: var(--wp-admin-theme-color);
 		outline: none;
-		box-shadow: 0 0 0 1px var(--wp-admin-theme-color);
+		box-shadow: none;
+	}
+
+	// Focus that hasn't opened the list, after Escape.
+	.cnl-page-finder:not(.is-open) &:focus {
+		outline: var(--wpds-border-width-focus) solid var(--wp-admin-theme-color);
+		outline-offset: 1px;
+	}
+
+	.cnl-page-finder.is-open & {
+		cursor: text;
+
+		&::placeholder {
+			color: var(--wpds-color-foreground-content-neutral-weak);
+		}
 	}
 
 	&::-webkit-search-cancel-button {
 		cursor: pointer;
 	}
+
+	@media not (prefers-reduced-motion) {
+		transition: background var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+	}
+}
+
+/*
+ * The list's box starts behind the field and runs on below it, so the field
+ * sits in the top of it, as the box's own search.
+ */
+.cnl-page-finder__panel {
+	position: absolute;
+	inset-block-start: -$panel-gap;
+	inset-inline: -$panel-gap;
+	display: flex;
+	flex-direction: column;
+	min-width: 280px;
+	max-height: min(560px, 70vh);
+	padding-block-start: $field-height + $panel-gap * 2;
+	border: 1px solid $divider;
+	border-radius: calc(var(--wpds-border-radius-md) + #{$panel-gap});
+	background: $panel-background;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+
+	@media not (prefers-reduced-motion) {
+		animation: cnl-page-finder-open var(--wpds-motion-duration-md) var(--wpds-motion-easing-subtle);
+	}
+}
+
+// Grows down out of the field.
+@keyframes cnl-page-finder-open {
+
+	from {
+		clip-path: inset(0 0 calc(100% - #{$field-height + $panel-gap * 2}) 0 round calc(var(--wpds-border-radius-md) + #{$panel-gap}));
+	}
+
+	to {
+		clip-path: inset(0 0 0 0 round calc(var(--wpds-border-radius-md) + #{$panel-gap}));
+	}
 }
 
 .cnl-page-finder__group {
 	overflow-y: auto;
+	margin-block-start: $panel-gap;
+	border-block-start: 1px solid $divider;
 	// Clear of the sticky heading when a page is scrolled into view.
 	scroll-padding-block-start: 34px;
 	padding-block-end: var(--wpds-dimension-padding-sm);
@@ -75,7 +155,7 @@
 	gap: var(--wpds-dimension-gap-sm);
 	padding-block: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-xs);
 	padding-inline: var(--wpds-dimension-padding-lg);
-	background: var(--wpds-color-background-surface-neutral-strong);
+	background: $panel-background;
 
 	h2 {
 		margin: 0;
@@ -98,7 +178,7 @@
 	border: 0;
 	border-radius: var(--wpds-border-radius-sm);
 	background: none;
-	color: var(--wp-admin-theme-color);
+	color: var(--wpds-color-foreground-interactive-brand);
 	font: inherit;
 	font-size: var(--wpds-typography-font-size-sm);
 	cursor: pointer;
@@ -144,7 +224,7 @@
 	cursor: pointer;
 
 	&.is-active {
-		color: var(--wp-admin-theme-color);
+		background: $row-hover;
 	}
 
 	&.is-current .cnl-page-finder__title {
@@ -163,9 +243,6 @@
 	flex-shrink: 0;
 	color: var(--wpds-color-foreground-content-neutral-weak);
 
-	.cnl-page-finder__option.is-active & {
-		color: inherit;
-	}
 }
 
 // The parent's name, beside a page found by searching. Gives way first.
@@ -177,10 +254,6 @@
 	white-space: nowrap;
 	text-overflow: ellipsis;
 
-	.cnl-page-finder__option.is-active & {
-		color: inherit;
-		opacity: 0.7;
-	}
 }
 
 .cnl-page-finder__status {
@@ -197,7 +270,7 @@
 .cnl-page-finder__footer {
 	flex-shrink: 0;
 	padding-block: var(--wpds-dimension-padding-xs);
-	border-block-start: 1px solid var(--wpds-color-stroke-surface-neutral);
+	border-block-start: 1px solid $divider;
 }
 
 .cnl-page-finder__action {
@@ -222,7 +295,7 @@
 	}
 
 	&:hover {
-		color: var(--wp-admin-theme-color);
+		background: $row-hover;
 	}
 
 	&:focus-visible {
