@@ -11,8 +11,8 @@
  * - `/styles`: the full global styles editor, with typography, colors,
  *   layout, styles for each block, revisions, the style book and custom CSS.
  *   The editor's own Design screen leads with whole-site looks and keeps to
- *   colors and fonts; this is for people who want everything. Builder's
- *   Home links to it.
+ *   colors and fonts; this is for people who want everything. The
+ *   sidebar's Advanced section and Builder's Home link to it.
  * - `/font-list`: the font library, where fonts are installed from Google
  *   Fonts, uploaded and removed, in tabs. It's WordPress's Fonts screen
  *   under Appearance. The editor's Fonts screen links to each tab.
