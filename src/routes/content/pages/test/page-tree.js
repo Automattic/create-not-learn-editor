@@ -12,6 +12,7 @@ import {
 	filterPageTree,
 	getPageAncestorTitles,
 	getPageKeyboardTarget,
+	getLevelChanges,
 	getPageMoveChanges,
 } from '../page-tree';
 
@@ -93,16 +94,41 @@ describe( 'page tree', () => {
 			expect( getPageKeyboardTarget( tree, 5, 'ArrowLeft' ) ).toBeNull();
 		} );
 
-		test( 'numbers the pages beside a moved page as they now appear', () => {
+		test( 'changes only the moved page when it can', () => {
 			// Design moves out of Services, to sit between About and Services.
+			// Orphan, whose parent is gone, keeps it.
 			expect(
-				getPageMoveChanges( tree, 4, { index: 3, parent: 0 } )
-			).toEqual( [
-				{ id: 6, menu_order: 1, parent: 0 },
-				{ id: 2, menu_order: 2, parent: 0 },
-				{ id: 4, menu_order: 3, parent: 0 },
-				{ id: 1, menu_order: 4, parent: 0 },
-			] );
+				getPageMoveChanges(
+					tree,
+					4,
+					{ index: 3, parent: 0 },
+					{ frontPageId: 5 }
+				)
+			).toEqual( [ { id: 4, menu_order: 1, parent: 0 } ] );
+		} );
+
+		test( 'numbers a level afresh when one page can’t go in place', () => {
+			const level = [ 'A', 'B', 'C', 'D' ].map( ( title, index ) => ( {
+				id: index + 1,
+				menu_order: 0,
+				parent: 0,
+				title,
+			} ) );
+			const wanted = [ 2, 4, 1, 3 ];
+			const changes = getLevelChanges(
+				wanted.map( ( id ) => level[ id - 1 ] ),
+				0,
+				{ previousIds: [ 1, 2, 3, 4 ] }
+			);
+			const saved = level.map( ( page ) => ( {
+				...page,
+				...changes.find( ( change ) => change.id === page.id ),
+			} ) );
+
+			expect(
+				buildPageTree( saved ).map( ( node ) => node.page.id )
+			).toEqual( wanted );
+			expect( changes.length ).toBeGreaterThan( 1 );
 		} );
 	} );
 } );

@@ -1,15 +1,13 @@
 /**
  * Moving pages: a new parent or a new place among the pages beside them.
  *
- * A move is saved straight away, with a way to undo it, as the order of pages
- * is the site's structure rather than a draft of one page. The pages show
- * where they went before the save comes back.
+ * A move waits to be saved with the rest of the changes, with a way to undo
+ * it. The pages come with their changes, so they show where they went at once.
  */
 
 /**
  * Internal dependencies
  */
-import { getErrorMessage } from '../../../records';
 import { getPageTitle } from './data';
 import { buildPageTree } from './page-tree';
 import {
@@ -18,9 +16,7 @@ import {
 	noticesStore,
 	sprintf,
 	useDispatch,
-	useEffect,
 	useMemo,
-	useState,
 } from '../../../wordpress-packages';
 
 /**
@@ -73,114 +69,41 @@ function getMoveMessage( changes, byId ) {
 }
 
 /**
- * Pages as they stand, moves not yet saved included, and a way to move them.
+ * Pages as they stand, changes not yet saved included, and a way to move them.
  *
  * @param {Object}   args             Arguments.
  * @param {number}   args.frontPageId The homepage's page, which leads.
- * @param {Object[]} args.pages       Every page.
- * @return {Object} `{ effectivePages, movePages, tree }`.
+ * @param {Object[]} args.pages       Every page, with its changes.
+ * @return {Object} `{ effectivePages, frontPageId, movePages, tree }`.
  */
 export default function usePageOrder( { frontPageId, pages } ) {
-	const { saveEntityRecord } = useDispatch( coreDataStore );
-	const { createErrorNotice, createSuccessNotice } =
-		useDispatch( noticesStore );
-	// Moves shown before the saved pages come back, keyed by page ID.
-	const [ overrides, setOverrides ] = useState( {} );
-	const effectivePages = useMemo(
-		() =>
-			pages.map( ( page ) =>
-				overrides[ page.id ]
-					? { ...page, ...overrides[ page.id ] }
-					: page
-			),
-		[ overrides, pages ]
-	);
+	const { editEntityRecord } = useDispatch( coreDataStore );
+	const { createSuccessNotice } = useDispatch( noticesStore );
 	const tree = useMemo(
-		() => buildPageTree( effectivePages, { frontPageId } ),
-		[ effectivePages, frontPageId ]
+		() => buildPageTree( pages, { frontPageId } ),
+		[ frontPageId, pages ]
 	);
 
-	// Forget a move once the saved page reflects it.
-	useEffect( () => {
-		setOverrides( ( current ) => {
-			const pending = Object.entries( current ).filter(
-				( [ id, override ] ) => {
-					const page = pages.find(
-						( item ) => Number( item.id ) === Number( id )
-					);
-
-					return (
-						page &&
-						( ( Number( page.parent ) || 0 ) !== override.parent ||
-							( Number( page.menu_order ) || 0 ) !==
-								override.menu_order )
-					);
-				}
-			);
-
-			return pending.length === Object.keys( current ).length
-				? current
-				: Object.fromEntries( pending );
-		} );
-	}, [ pages ] );
-
-	const saveChanges = async ( changes ) => {
-		setOverrides( ( current ) => {
-			const next = { ...current };
-
-			changes.forEach( ( change ) => {
-				next[ change.id ] = {
-					menu_order: change.menu_order,
-					parent: change.parent,
-				};
-			} );
-
-			return next;
-		} );
-
-		try {
-			await Promise.all(
-				changes.map( ( change ) =>
-					saveEntityRecord(
-						'postType',
-						'page',
-						{
-							id: change.id,
-							menu_order: change.menu_order,
-							parent: change.parent,
-						},
-						{ throwOnError: true }
-					)
-				)
-			);
-
-			return true;
-		} catch ( error ) {
-			setOverrides( ( current ) => {
-				const next = { ...current };
-
-				changes.forEach( ( change ) => delete next[ change.id ] );
-
-				return next;
-			} );
-			createErrorNotice( getErrorMessage( error ), { type: 'snackbar' } );
-
-			return false;
-		}
-	};
+	const applyChanges = ( changes ) =>
+		changes.forEach( ( change ) =>
+			editEntityRecord( 'postType', 'page', change.id, {
+				menu_order: change.menu_order,
+				parent: change.parent,
+			} )
+		);
 
 	/**
-	 * Save some moves, with a way to undo them.
+	 * Make some moves, to save with the rest, with a way to undo them.
 	 *
 	 * @param {Object[]} changes `{ id, parent, menu_order }` for each page.
 	 */
-	const movePages = async ( changes ) => {
+	const movePages = ( changes ) => {
 		if ( ! changes.length ) {
 			return;
 		}
 
 		const byId = new Map(
-			effectivePages.map( ( page ) => [ Number( page.id ), page ] )
+			pages.map( ( page ) => [ Number( page.id ), page ] )
 		);
 		const previous = changes.map( ( change ) => ( {
 			id: change.id,
@@ -188,19 +111,18 @@ export default function usePageOrder( { frontPageId, pages } ) {
 			parent: Number( byId.get( change.id )?.parent ) || 0,
 		} ) );
 
-		if ( await saveChanges( changes ) ) {
-			createSuccessNotice( getMoveMessage( changes, byId ), {
-				actions: [
-					{
-						label: __( 'Undo' ),
-						onClick: () => saveChanges( previous ),
-					},
-				],
-				id: 'cnl-page-moved',
-				type: 'snackbar',
-			} );
-		}
+		applyChanges( changes );
+		createSuccessNotice( getMoveMessage( changes, byId ), {
+			actions: [
+				{
+					label: __( 'Undo' ),
+					onClick: () => applyChanges( previous ),
+				},
+			],
+			id: 'cnl-page-moved',
+			type: 'snackbar',
+		} );
 	};
 
-	return { effectivePages, movePages, tree };
+	return { effectivePages: pages, frontPageId, movePages, tree };
 }

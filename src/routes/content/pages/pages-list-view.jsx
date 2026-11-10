@@ -4,9 +4,9 @@
  * to reorder them or to put them under another page.
  *
  * Each page is a menu item block in a block editor of its own, which is never
- * saved. A drag becomes page moves, saved straight away. Each row ends with
- * the page's options and, with a main menu, a switch for whether the page is
- * in it.
+ * saved. A drag becomes page moves, which wait to be saved with the rest of
+ * the changes. Each row ends with the page's options and, with a main menu, a
+ * switch for whether the page is in it.
  */
 
 /**
@@ -50,6 +50,7 @@ import {
 	useMemo,
 	useRef,
 	useSelect,
+	useShortcutEventMatch,
 } from '../../../wordpress-packages';
 
 /*
@@ -379,7 +380,7 @@ export default function PagesListView( {
 	previewedId,
 	search,
 } ) {
-	const { effectivePages, movePages, tree } = pageOrder;
+	const { effectivePages, frontPageId, movePages, tree } = pageOrder;
 	const homePageId = homepage.pageId || 0;
 	const needle = search.trim().toLowerCase();
 	const isSearching = Boolean( needle );
@@ -446,9 +447,11 @@ export default function PagesListView( {
 	const onChange = useCallback(
 		( nextValue ) =>
 			movePages(
-				getPageBlockChanges( nextValue[ 0 ]?.innerBlocks || [], tree )
+				getPageBlockChanges( nextValue[ 0 ]?.innerBlocks || [], tree, {
+					frontPageId,
+				} )
 			),
-		[ movePages, tree ]
+		[ frontPageId, movePages, tree ]
 	);
 
 	// Move up and down among the pages beside it, which in a menu that updates
@@ -466,13 +469,19 @@ export default function PagesListView( {
 				disabled: ! up,
 				label: __( 'Move up' ),
 				onClick: () =>
-					movePages( getPageMoveChanges( tree, pageId, up ) ),
+					movePages(
+						getPageMoveChanges( tree, pageId, up, { frontPageId } )
+					),
 			},
 			{
 				disabled: ! down,
 				label: __( 'Move down' ),
 				onClick: () =>
-					movePages( getPageMoveChanges( tree, pageId, down ) ),
+					movePages(
+						getPageMoveChanges( tree, pageId, down, {
+							frontPageId,
+						} )
+					),
 			},
 		];
 	};
@@ -525,6 +534,7 @@ function PagesListViewContent( {
 } ) {
 	const { clearSelectedBlock, selectBlock } = useDispatch( blockEditorStore );
 	const { getSelectedBlockClientId } = useSelect( blockEditorStore );
+	const isShortcut = useShortcutEventMatch();
 	const rootClientId = useSelect(
 		( select ) => select( blockEditorStore ).getBlockOrder()[ 0 ] || '',
 		[]
@@ -613,14 +623,37 @@ function PagesListViewContent( {
 			activatedAt.current = Date.now();
 		}
 	};
+	/*
+	 * A page only leaves the list by Move to Trash, which asks first. A row
+	 * removes its block on Backspace, Delete, the remove shortcut or Cut, and
+	 * skips any of them already handled, so they are marked handled here.
+	 * Without this, the page would vanish from the list, though not from the
+	 * site, and the pages after it would be renumbered.
+	 */
+	const keepPages = ( event ) => {
+		if (
+			event.target.closest?.( '[role=row]' ) &&
+			( event.type === 'cut' ||
+				event.key === 'Backspace' ||
+				event.key === 'Delete' ||
+				isShortcut( 'core/block-editor/remove', event ) )
+		) {
+			event.preventDefault();
+		}
+	};
 
 	return (
-		// The rows handle the keyboard; this only listens in.
+		// The rows handle the keyboard; this listens in, and keeps them from
+		// removing pages.
 
 		<div
 			className="routes-navigation-edit-list-view cnl-pages-list-view"
 			onClickCapture={ markActivated }
-			onKeyDownCapture={ markActivated }
+			onCutCapture={ keepPages }
+			onKeyDownCapture={ ( event ) => {
+				keepPages( event );
+				markActivated( event );
+			} }
 		>
 			{ iconStyles && <style>{ iconStyles }</style> }
 			<PrivateListView

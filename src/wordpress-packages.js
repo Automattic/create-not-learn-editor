@@ -165,6 +165,11 @@ import {
 	update,
 	upload,
 } from '@wordpress/icons';
+import {
+	/* eslint-disable @wordpress/no-unsafe-wp-apis -- Matches keys to shortcuts the way the vendored ListView does, so the Pages list can catch the ones that would remove a row. */
+	__unstableUseShortcutEventMatch as useShortcutEventMatch,
+	/* eslint-enable @wordpress/no-unsafe-wp-apis */
+} from '@wordpress/keyboard-shortcuts';
 import { displayShortcut } from '@wordpress/keycodes';
 import { useEditorAssets, useEditorSettings } from '@wordpress/lazy-editor';
 import { MediaUpload, uploadMedia } from '@wordpress/media-utils';
@@ -377,6 +382,7 @@ export {
 	useRef,
 	useRegistry,
 	useSelect,
+	useShortcutEventMatch,
 	useState,
 	useSyncExternalStore,
 	__,

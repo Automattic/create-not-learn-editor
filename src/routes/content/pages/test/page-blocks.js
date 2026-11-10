@@ -52,25 +52,71 @@ describe( 'getPageTreeBlocks', () => {
 			remove: true,
 		} );
 	} );
+
+	// The block editor won't move a block locked against removal to another
+	// parent, so a locked page couldn't be dragged under another page.
+	test( 'leaves pages free to move under other pages', () => {
+		const [ home, about ] = getPageTreeBlocks( tree, options );
+
+		expect( home.attributes.lock ).toBeUndefined();
+		expect( about.innerBlocks[ 0 ].attributes.lock ).toBeUndefined();
+	} );
+
+	test( 'fixes pages in place while only some are listed', () => {
+		const [ home, about ] = getPageTreeBlocks( tree, {
+			...options,
+			isLocked: true,
+		} );
+
+		expect( home.attributes.lock ).toEqual( { move: true, remove: true } );
+		expect( about.innerBlocks[ 0 ].attributes.lock ).toEqual( {
+			move: true,
+			remove: true,
+		} );
+	} );
 } );
 
 describe( 'getPageBlockChanges', () => {
 	const blocks = getPageTreeBlocks( tree, { ...options, hasHomeLink: true } );
 
+	/*
+	 * The tree the pages make once the changes are saved, to check they put
+	 * each page where it was dropped.
+	 */
+	function applyChanges( records, changes ) {
+		return buildPageTree(
+			records.map( ( page ) => ( {
+				...page,
+				...changes.find( ( change ) => change.id === page.id ),
+			} ) )
+		);
+	}
+
+	function treeIds( nodes ) {
+		return nodes.map( ( node ) =>
+			node.children.length
+				? { [ node.page.id ]: treeIds( node.children ) }
+				: node.page.id
+		);
+	}
+
 	test( 'is empty when nothing moved', () => {
 		expect( getPageBlockChanges( blocks, tree ) ).toEqual( [] );
 	} );
 
-	test( 'renumbers a level a page moved within', () => {
+	test( 'changes one page to move a page within a level', () => {
 		const moved = [ blocks[ 0 ], blocks[ 1 ], blocks[ 3 ], blocks[ 2 ] ];
+		const changes = getPageBlockChanges( moved, tree );
 
-		expect( getPageBlockChanges( moved, tree ) ).toEqual( [
-			{ id: 4, menu_order: 1, parent: 0 },
-			{ id: 2, menu_order: 2, parent: 0 },
+		expect( changes ).toHaveLength( 1 );
+		expect( treeIds( applyChanges( pages, changes ) ) ).toEqual( [
+			1,
+			4,
+			{ 2: [ 3 ] },
 		] );
 	} );
 
-	test( 'moves a page under another', () => {
+	test( 'moves a page under another, changing only that page', () => {
 		const contact = blocks[ 3 ];
 		const about = {
 			...blocks[ 2 ],
@@ -79,6 +125,26 @@ describe( 'getPageBlockChanges', () => {
 
 		expect(
 			getPageBlockChanges( [ blocks[ 0 ], blocks[ 1 ], about ], tree )
-		).toEqual( [ { id: 4, menu_order: 1, parent: 2 } ] );
+		).toEqual( [ { id: 4, menu_order: 2, parent: 2 } ] );
+	} );
+
+	test( 'leaves the pages beside a moved page alone when none are in order', () => {
+		// As on a new site, where pages are in title order.
+		const unordered = [
+			{ id: 1, menu_order: 0, parent: 0, title: 'Alpha' },
+			{ id: 2, menu_order: 0, parent: 0, title: 'Bravo' },
+			{ id: 3, menu_order: 0, parent: 0, title: 'Charlie' },
+			{ id: 4, menu_order: 0, parent: 0, title: 'Delta' },
+		];
+		const unorderedTree = buildPageTree( unordered );
+		const [ alpha, bravo, charlie, delta ] = getPageTreeBlocks(
+			unorderedTree,
+			options
+		);
+		const nested = [ { ...alpha, innerBlocks: [ delta ] }, bravo, charlie ];
+
+		expect( getPageBlockChanges( nested, unorderedTree ) ).toEqual( [
+			{ id: 4, menu_order: 0, parent: 1 },
+		] );
 	} );
 } );

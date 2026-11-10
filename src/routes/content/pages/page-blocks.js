@@ -7,9 +7,18 @@
  * and reorder its pages with the same list as Menus.
  */
 
+/**
+ * Internal dependencies
+ */
+import { getLevelChanges } from './page-tree';
+
 const EMPTY_ARRAY = [];
 
-const PAGE_ITEM_LOCK = { remove: true };
+/*
+ * Pages aren't locked against removal, as the block editor won't move a block
+ * locked that way to another parent, so it couldn't go under another page. The
+ * list keeps them from being removed instead.
+ */
 const FIXED_ITEM_LOCK = { move: true, remove: true };
 
 /**
@@ -37,7 +46,7 @@ function getPageBlock( node, options ) {
 				id === options.homeId
 					? options.homeName
 					: options.getTitle( node.page ),
-			lock: options.isLocked ? FIXED_ITEM_LOCK : PAGE_ITEM_LOCK,
+			...( options.isLocked && { lock: FIXED_ITEM_LOCK } ),
 			type: 'page',
 			url: node.page.link || '',
 		},
@@ -85,21 +94,23 @@ function getPageId( block ) {
 }
 
 /**
- * The page moves a change to the blocks makes: a new parent, and a menu order
- * for every page beside it there, numbered as they now appear. Levels whose
+ * The page moves a change to the blocks makes: a new parent, and menu orders
+ * that put each page in its place, changing as few pages as can. Levels whose
  * pages are as they were are left alone.
  *
- * @param {Object[]} blocks Blocks after the change.
- * @param {Object[]} tree   Tree from `buildPageTree`, before it.
+ * @param {Object[]} blocks                Blocks after the change.
+ * @param {Object[]} tree                  Tree from `buildPageTree`, before it.
+ * @param {Object}   [options]
+ * @param {number}   [options.frontPageId] ID of the page set as the homepage.
  * @return {Object[]} `{ id, parent, menu_order }` for each page that changes.
  */
-export function getPageBlockChanges( blocks, tree ) {
+export function getPageBlockChanges( blocks, tree, { frontPageId = 0 } = {} ) {
 	const before = new Map();
 	const pages = new Map();
 	const visitTree = ( nodes, parent ) => {
 		before.set(
 			parent,
-			nodes.map( ( node ) => Number( node.page.id ) ).join( ',' )
+			nodes.map( ( node ) => Number( node.page.id ) )
 		);
 		nodes.forEach( ( node ) => {
 			pages.set( Number( node.page.id ), node.page );
@@ -114,18 +125,16 @@ export function getPageBlockChanges( blocks, tree ) {
 		const ids = ( items || EMPTY_ARRAY )
 			.map( getPageId )
 			.filter( ( id ) => pages.has( id ) );
+		const previous = before.get( parent ) || EMPTY_ARRAY;
 
-		if ( ids.join( ',' ) !== ( before.get( parent ) || '' ) ) {
-			ids.forEach( ( id, index ) => {
-				const page = pages.get( id );
-
-				if (
-					( Number( page.menu_order ) || 0 ) !== index ||
-					( Number( page.parent ) || 0 ) !== parent
-				) {
-					changes.push( { id, menu_order: index, parent } );
-				}
-			} );
+		if ( ids.join( ',' ) !== previous.join( ',' ) ) {
+			changes.push(
+				...getLevelChanges(
+					ids.map( ( id ) => pages.get( id ) ),
+					parent,
+					{ frontPageId, previousIds: previous }
+				)
+			);
 		}
 
 		( items || EMPTY_ARRAY ).forEach( ( block ) => {
