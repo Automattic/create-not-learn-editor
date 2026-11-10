@@ -35,23 +35,8 @@ if ( ! defined( 'CNL_EDITOR_UI_THEME' ) ) {
 
 require_once CNL_EDITOR_PATH . 'includes/dependencies.php';
 
-register_activation_hook( CNL_EDITOR_FILE, 'cnl_editor_activate' );
 add_action( 'admin_notices', 'cnl_editor_render_dependency_notice' );
 add_action( 'plugins_loaded', 'cnl_editor_bootstrap', 20 );
-
-/**
- * Create and assign the default Home page on activation, the same way core
- * seeds Sample Page and Privacy Policy Page when a site is first installed.
- */
-function cnl_editor_activate() {
-	if ( ! cnl_editor_is_gutenberg_ready() ) {
-		return;
-	}
-
-	require_once CNL_EDITOR_PATH . 'includes/setup-defaults.php';
-
-	cnl_editor_setup_site_defaults();
-}
 
 /**
  * Bootstrap the plugin after all active plugins have loaded.

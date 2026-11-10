@@ -192,8 +192,9 @@ test.describe( 'Pages view', () => {
 				.getByRole( 'navigation', { name: 'Breadcrumbs' } )
 				.getByText( 'Homepage' )
 		).toBeVisible();
+		// What it shows is changed in the homepage setup dialog.
 		await expect(
-			stage.getByRole( 'region', { name: 'Your homepage shows' } )
+			stage.getByRole( 'button', { name: /^Configure homepage/ } )
 		).toBeVisible();
 		await expect(
 			page.locator( '.cnl-editor-homepage-document__title' )

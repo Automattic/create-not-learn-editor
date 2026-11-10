@@ -294,11 +294,7 @@ function Stage() {
 	if ( drilled === HOMEPAGE || ( drilled && drilled === homepage.pageId ) ) {
 		return (
 			<>
-				<HomepageStage
-					onStartNewPage={ () =>
-						setAddingPage( { menuPlacement: 'homepage' } )
-					}
-				/>
+				<HomepageStage />
 				{ addingPage && (
 					<AddPageFlow
 						mainMenu={ mainMenu }

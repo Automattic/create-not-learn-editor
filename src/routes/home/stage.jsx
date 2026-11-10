@@ -10,6 +10,7 @@ import { getActiveWorkspace } from '../../workspaces/presets';
 import { isAskingPostKind } from '../../post-kinds-base';
 import PostKindPicker from '../../pickers/post-kinds';
 import BlogAdmin from './blog-admin';
+import HomepageNotice from './homepage-notice';
 import { SiteAddress, SiteMark, SiteStatus, useSite } from './site-card';
 import {
 	Page,
@@ -109,6 +110,7 @@ export default function Stage() {
 			visual={ <SiteMark { ...site } /> }
 		>
 			<div className="cnl-editor-stage cnl-site-hub">
+				<HomepageNotice />
 				<Stack direction="column" gap="sm">
 					<ScreenLinks
 						label={ __( 'Start working on your site' ) }
