@@ -1,10 +1,10 @@
 /**
  * Internal dependencies
  */
+import { startHomeTrip } from '../../home-trip';
 import ScreenLinks from '../../screen-links';
 import { getStartPlaces } from '../../start-places';
 import { MODE_EDIT, setCanvasMode } from '../../site-canvas/mode';
-import { FROM_SITE_SEARCH } from '../../site-trail';
 import { requestDistractionFreeEntry } from '../../editor-layer/distraction-free';
 import { getActiveWorkspace } from '../../workspaces/presets';
 import { isAskingPostKind } from '../../post-kinds-base';
@@ -23,7 +23,7 @@ import {
 /*
  * Where each place to start opens. People don't build a site in any set
  * order, so the places are offered as equal choices rather than numbered
- * steps, and nothing is marked done. Each screen's breadcrumbs lead back here.
+ * steps, and nothing is marked done. Each screen's Back leads back here.
  */
 const START_ROUTES = {
 	home: {
@@ -31,7 +31,7 @@ const START_ROUTES = {
 		// its sections and its layout all live. `home` stands for it there
 		// (`HOMEPAGE` in the Pages screen), whatever it shows.
 		onSelect: () => setCanvasMode( MODE_EDIT ),
-		search: { postId: 'home', previewId: 'home', ...FROM_SITE_SEARCH },
+		search: { postId: 'home', previewId: 'home' },
 		to: '/types/page/list/all',
 	},
 	pages: { to: '/types/page/list/default' },
@@ -53,10 +53,15 @@ const START_ROUTES = {
 
 function getStartLinks( workspace, { isAskingKind, onPickPostKind } ) {
 	return getStartPlaces( workspace.home ).map( ( place ) => {
+		const route = START_ROUTES[ place.id ];
 		const link = {
 			...place,
-			search: FROM_SITE_SEARCH,
-			...START_ROUTES[ place.id ],
+			...route,
+			// Back on whatever this opens leads straight back here.
+			onSelect: () => {
+				startHomeTrip();
+				route?.onSelect?.();
+			},
 		};
 
 		if ( place.id !== 'write' ) {
@@ -70,7 +75,10 @@ function getStartLinks( workspace, { isAskingKind, onPickPostKind } ) {
 
 		// A new post opens with nothing but the writing on show.
 		if ( workspace.writeInFocus ) {
-			link.onSelect = requestDistractionFreeEntry;
+			link.onSelect = () => {
+				startHomeTrip();
+				requestDistractionFreeEntry();
+			};
 		}
 
 		return link;
@@ -91,6 +99,8 @@ export default function Stage() {
 			className="cnl-editor-stage cnl-editor-content-page"
 			hasPadding={ false }
 			headingLevel={ 1 }
+			// Above every other screen, so it has no Back.
+			isRoot
 			badges={ <SiteStatus /> }
 			subTitle={
 				<SiteAddress fallbackLabel={ workspace.home.viewLabel } />

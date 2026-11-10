@@ -1,32 +1,14 @@
 /**
- * WordPress dependencies
- */
-import { useSearch } from '@wordpress/route';
-
-/**
  * Internal dependencies
  */
-import { useSiteTrail } from '../../site-trail';
 import { SHOP_PATH } from './shop';
 import { Breadcrumbs, Page, __ } from '../../wordpress-packages';
 
 /**
- * Search params that keep a visit's trail as it moves between the shop's
- * screens, so a visit begun at "Your site" still leads back there.
- *
- * @return {Object} Search params.
- */
-export function useShopSearch() {
-	const { from } = useSearch( { strict: false } );
-
-	return from ? { from } : {};
-}
-
-/**
  * A shop screen in the design system's page, like Home and Pages: a title or
  * breadcrumbs, a sentence and the screen's actions in its header, then the
- * screen. The shop itself is titled "Shop", or has breadcrumbs back to
- * "Home" when opened from there; the screens inside it lead back to the shop.
+ * screen. The shop itself is titled "Shop"; the screens inside it lead back
+ * to the shop.
  *
  * @param {Object}   props             Component props.
  * @param {Element}  props.actions     The screen's actions, like adding.
@@ -48,9 +30,8 @@ export function ShopPage( {
 	description,
 	hasPadding = true,
 } ) {
-	const trail = useSiteTrail();
 	const shopCrumb = { label: __( 'Shop' ), to: SHOP_PATH };
-	const items = [ ...trail, shopCrumb, ...crumbs ];
+	const items = [ shopCrumb, ...crumbs ];
 	const isTitled = items.length === 1;
 
 	return (

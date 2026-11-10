@@ -37,10 +37,13 @@ import { registerLayoutWireframes } from '../../../src/layouts';
 import { mountTopBar } from '../../../src/top-bar';
 import { mountWorkspaces } from '../../../src/workspaces';
 import { mountPreferences } from '../../../src/preferences';
+import { trackHomeTrip } from '../../../src/home-trip';
 import { mountMenuSections } from './menu-sections';
 import { enhanceSidebar } from './sidebar';
 
 export async function init() {
+	// Back leads straight to Home from anything reached through it.
+	trackHomeTrip();
 	registerPageListExcludedPages();
 	registerBlockBindings();
 	registerSectionPatterns();

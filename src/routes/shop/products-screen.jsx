@@ -30,7 +30,7 @@ import { useNavigate, useSearch } from '@wordpress/route';
  * Internal dependencies
  */
 import SitePreviewCanvas from '../static/site-preview';
-import { ShopPage, useShopSearch } from './heading';
+import { ShopPage } from './heading';
 import {
 	PRODUCT_KIND,
 	PRODUCT_NAME,
@@ -524,11 +524,10 @@ function ProductsActions() {
 
 function useOpenTable() {
 	const navigate = useNavigate();
-	const search = useShopSearch();
 
 	return () =>
 		navigate( {
-			search: { ...search, content: 'all' },
+			search: { content: 'all' },
 			to: PRODUCTS_PATH,
 		} );
 }

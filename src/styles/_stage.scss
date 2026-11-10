@@ -96,3 +96,19 @@
 body[data-cnl-workspace="agent"] #create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"])[class*="has-canvas"] [class*="__stage"] {
 	display: none;
 }
+
+// Back leads each screen's header, before its title or breadcrumbs, as in
+// core's Styles panel. Admin UI only takes it in with the breadcrumbs, so it
+// is moved to the front of the row, after the sidebar toggle small screens
+// show there.
+[class*="__header-lockup"]:has(> .cnl-stage-back) {
+
+	> [class*="__sidebar-toggle-slot"] {
+		order: -2;
+	}
+
+	> .cnl-stage-back {
+		order: -1;
+		flex-shrink: 0;
+	}
+}

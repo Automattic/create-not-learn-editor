@@ -18,7 +18,6 @@ import { useNavigate, useSearch } from '@wordpress/route';
  * Internal dependencies
  */
 import ScreenLinks from '../../../screen-links';
-import { FROM_PAGES_SEARCH } from '../../../site-trail';
 import useMainMenu from '../use-main-menu';
 import { usePages } from './data';
 import { parseTarget, useHomepageState } from './homepage';
@@ -199,7 +198,6 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 								'Your menu has links too. Change them here.'
 							),
 							icon: compassIcon,
-							search: FROM_PAGES_SEARCH,
 							title: __( 'Everything in your menu' ),
 							to: `/navigation/edit/${ encodeURIComponent(
 								menuId
