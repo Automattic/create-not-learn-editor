@@ -1,7 +1,6 @@
 /**
  * WordPress dependencies
  */
-import { parse, store as blocksStore } from '@wordpress/blocks';
 import { store as coreDataStore } from '@wordpress/core-data';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { memo, useEffect, useMemo, useRef } from '@wordpress/element';
@@ -106,11 +105,6 @@ function CompatibleEditor( {
 		},
 		[ postId, postType ]
 	);
-	// Parsing before the editor registers the block types loses every block.
-	const hasBlockTypes = useSelect(
-		( select ) => !! select( blocksStore ).getBlockType( 'core/group' ),
-		[]
-	);
 	const { editEntityRecord } = useDispatch( coreDataStore );
 	const compatibleSettings = useMemo( () => {
 		if ( ! settings || ! Object.hasOwn( settings, 'styles' ) ) {
@@ -159,31 +153,18 @@ function CompatibleEditor( {
 			return () => window.clearTimeout( timeout );
 		}
 
-		if ( ! rawContent.trim() ) {
-			initializedEntities.current.add( entityKey );
-			return;
-		}
-
-		if ( ! hasBlockTypes ) {
-			return;
-		}
-
-		const timeout = window.setTimeout( () => {
-			initializedEntities.current.add( entityKey );
-			editEntityRecord(
-				'postType',
-				postType,
-				postId,
-				{ blocks: parse( rawContent ), content: rawContent },
-				{ undoIgnore: true }
-			);
-		}, 750 );
-		return () => window.clearTimeout( timeout );
+		/*
+		 * No blocks in the record is how core starts: the editor parses the
+		 * content itself and only stores blocks once they are changed
+		 * (`useEntityBlockEditor`). Writing a parse of our own here gave every
+		 * block new client IDs while the editor was still mounting the first
+		 * ones, so their block list settings landed on blocks that had gone.
+		 */
+		initializedEntities.current.add( entityKey );
 	}, [
 		editEntityRecord,
 		entityKey,
 		hasBlocks,
-		hasBlockTypes,
 		hasUndefinedContentEdit,
 		postId,
 		postType,

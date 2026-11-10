@@ -1,7 +1,8 @@
 /**
- * The site canvas toolbar's controls: Browse or Edit, undo and redo while
- * editing, stepping through pages visited in Browse, the View menu with the
- * device, Zoom out for Compose, and the way out to the full-screen editor.
+ * The site canvas toolbar's controls: Edit, which expands the canvas, undo
+ * and redo while editing, stepping through pages visited in Browse, the
+ * Browse switch, the View menu with the device, Zoom out for Compose, and the
+ * way out to the full-screen editor.
  */
 
 /**
@@ -23,6 +24,7 @@ import {
 	coreDataStore,
 	desktopIcon,
 	dispatch,
+	fullscreenExitIcon,
 	displayShortcut,
 	externalIcon,
 	isRTL,
@@ -33,16 +35,16 @@ import {
 	MenuGroup,
 	MenuItem,
 	moreVerticalIcon,
+	pencilIcon,
 	redoIcon,
+	select as selectFromStore,
 	squareIcon,
 	tabletIcon,
-	ToggleGroupControl,
-	ToggleGroupControlOption,
+	ToggleControl,
 	undoIcon,
 	useDispatch,
 	useSelect,
 } from '../wordpress-packages';
-import { MODE_BROWSE, MODE_EDIT } from './mode';
 
 const EDITOR_STORE = 'core/editor';
 
@@ -73,49 +75,88 @@ function getDeviceOptions() {
 }
 
 /**
- * Look at the site or change it: Browse or Edit.
- *
- * Compose is editing from further away, so it isn't a choice here; while it
- * is on, the toggle stays on Edit. Controlled, so a switch the canvas holds
- * back, to ask about unsaved changes first, leaves it where it was.
+ * Edit, which expands the canvas to fill the editor, and then a back arrow,
+ * which puts it back beside the sidebar and the screen, as the back arrow of
+ * boot's full-screen editor leaves that. In Browse it is Collapse instead, with
+ * the arrows of leaving full screen, as a back arrow beside Browse's own back
+ * and forward would read as one more step through the site's pages. Editing
+ * is already on wherever Browse isn't, so all Edit adds is the room; from
+ * Browse it edits too.
  *
  * @param {Object}   props
- * @param {boolean}  props.canEdit  Whether what is on show can be edited.
- * @param {string}   props.mode     The current mode.
- * @param {Function} props.onChange Called with the mode picked.
- * @return {Element} The toggle.
+ * @param {boolean}  props.isBrowsing Whether Browse is on.
+ * @param {boolean}  props.isExpanded Whether the canvas fills the editor.
+ * @param {Function} props.onToggle   Expands the canvas or puts it back.
+ * @return {Element} The button.
  */
-export function ModeToggle( { canEdit, mode, onChange } ) {
+export function ExpandButton( { isBrowsing, isExpanded, onToggle } ) {
+	if ( isExpanded ) {
+		let backIcon = isRTL() ? chevronRightIcon : chevronLeftIcon;
+		if ( isBrowsing ) {
+			backIcon = fullscreenExitIcon;
+		}
+
+		return (
+			<Button
+				__next40pxDefaultSize
+				className="cnl-site-canvas__expand-toggle is-back"
+				icon={ backIcon }
+				label={ isBrowsing ? __( 'Collapse' ) : __( 'Back' ) }
+				onClick={ onToggle }
+				showTooltip
+			/>
+		);
+	}
+
 	return (
-		<ToggleGroupControl
-			__nextHasNoMarginBottom
-			className="cnl-site-canvas__mode-toggle"
-			hideLabelFromVision
-			label={ __( 'Mode' ) }
-			onChange={ onChange }
-			value={ mode === MODE_BROWSE ? MODE_BROWSE : MODE_EDIT }
+		<Button
+			__next40pxDefaultSize
+			className="cnl-site-canvas__expand-toggle"
+			// Named by the word on it, so it can be asked for by that word,
+			// as voice control does. What it does is its description, and
+			// its tooltip.
+			description={ __( 'Change this page with more room' ) }
+			icon={ pencilIcon }
+			label={ __( 'Edit' ) }
+			onClick={ onToggle }
+			showTooltip
+			variant="primary"
 		>
-			{ /* A word or two on what each does, beyond its name. */ }
-			<ComponentsTooltip
-				placement="bottom"
-				text={ __( 'View your site' ) }
-			>
-				<ToggleGroupControlOption
+			{ __( 'Edit' ) }
+		</Button>
+	);
+}
+
+/**
+ * Browse, a switch beside the device: on, the canvas shows the saved site
+ * as visitors see it, with links to follow; off, the page is open to change.
+ * Compose is editing too, so Browse is off while it is on. Controlled, so a
+ * switch the canvas holds back, to ask about unsaved changes first, leaves
+ * it where it was.
+ *
+ * @param {Object}   props
+ * @param {boolean}  props.canEdit    Whether what is on show can be edited.
+ *                                    Browse can't be turned off without.
+ * @param {boolean}  props.isBrowsing Whether Browse is on.
+ * @param {Function} props.onChange   Called with whether to browse.
+ * @return {Element} The switch.
+ */
+export function BrowseToggle( { canEdit, isBrowsing, onChange } ) {
+	return (
+		<ComponentsTooltip
+			placement="bottom"
+			text={ __( 'View your site as visitors see it' ) }
+		>
+			<div className="cnl-site-canvas__browse-toggle">
+				<ToggleControl
+					__nextHasNoMarginBottom
+					checked={ isBrowsing }
+					disabled={ isBrowsing && ! canEdit }
 					label={ __( 'Browse' ) }
-					value={ MODE_BROWSE }
+					onChange={ onChange }
 				/>
-			</ComponentsTooltip>
-			<ComponentsTooltip
-				placement="bottom"
-				text={ __( 'Change this page' ) }
-			>
-				<ToggleGroupControlOption
-					disabled={ ! canEdit }
-					label={ __( 'Edit' ) }
-					value={ MODE_EDIT }
-				/>
-			</ComponentsTooltip>
-		</ToggleGroupControl>
+			</div>
+		</ComponentsTooltip>
 	);
 }
 
@@ -157,12 +198,22 @@ export function EditHistory() {
 }
 
 /**
+ * Close Document Overview's list, if it is open.
+ */
+export function closeDocumentOverview() {
+	if ( selectFromStore( EDITOR_STORE )?.isListViewOpened?.() ) {
+		dispatch( EDITOR_STORE ).setIsListViewOpened( false );
+	}
+}
+
+/**
  * Document Overview, core's own toggle for its list view, as its editor's
  * header has it after undo and redo. The list opens in the editor's own
  * sidebar, at the canvas's left.
  *
  * The open state is core's, so the full-screen editor and the canvas share it,
- * as core's editors do.
+ * as core's editors do. The canvas only offers it while expanded, and closes
+ * the list with `closeDocumentOverview` when it goes back.
  *
  * @return {Element} The button.
  */

@@ -98,9 +98,7 @@ export function ShopPagesStage() {
 	return (
 		<ShopPage
 			crumbs={ [ { label: __( 'Shop pages' ) } ] }
-			description={ __(
-				'Pick a page to see it. Switch to Edit to change how it looks.'
-			) }
+			description={ __( 'Pick a page to change how it looks.' ) }
 		>
 			<ul className="cnl-shop-products">
 				{ pages.map( ( page ) => (

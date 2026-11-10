@@ -23,7 +23,7 @@
  * WordPress dependencies
  */
 import { Button, Spinner, VisuallyHidden } from '@wordpress/components';
-import { subscribe } from '@wordpress/data';
+import { select, subscribe } from '@wordpress/data';
 import { createRoot, useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import {
@@ -39,6 +39,10 @@ import { Icon } from '@wordpress/ui';
  * Internal dependencies
  */
 import { preloadDeferred, useDeferred } from '../app-init-deferred';
+import {
+	STORE_NAME as CANVAS_STORE,
+	useIsCanvasExpanded,
+} from '../site-canvas/mode';
 import { isAtFoot } from './at-foot';
 import { sparkleIcon } from './icons';
 import {
@@ -147,6 +151,9 @@ function ChatBodyFallback( { error, retry } ) {
  */
 function OpenChatPanel( { hasMessages, placement } ) {
 	const { deferred, error, retry } = useDeferred();
+	// The canvas expanded to fill the editor hides the stage, so the chat is
+	// docked beside it, wherever it is placed otherwise, until it is put back.
+	const isCanvasExpanded = useIsCanvasExpanded();
 
 	return (
 		<ThemeProvider color={ getSurfaceColors() }>
@@ -166,7 +173,9 @@ function OpenChatPanel( { hasMessages, placement } ) {
 								{ __( 'New chat' ) }
 							</Button>
 						) }
-						<PlacementToggle placement={ placement } />
+						{ ! isCanvasExpanded && (
+							<PlacementToggle placement={ placement } />
+						) }
 						<Button
 							icon={ closeIcon }
 							label={ __( 'Close' ) }
@@ -334,7 +343,12 @@ export function mountChat() {
 			anyStage.append( help );
 		}
 
-		const stage = getChat().getPlacement() === PLACEMENT_STAGE && anyStage;
+		// The canvas expanded to fill the editor hides the stage, so the chat
+		// is docked meanwhile.
+		const stage =
+			getChat().getPlacement() === PLACEMENT_STAGE &&
+			! select( CANVAS_STORE )?.isExpanded() &&
+			anyStage;
 
 		if ( stage ) {
 			if ( container.parentElement !== stage ) {
@@ -363,6 +377,7 @@ export function mountChat() {
 		subtree: true,
 	} );
 	subscribe( schedule, STORE_NAME );
+	subscribe( schedule, CANVAS_STORE );
 
 	place();
 }

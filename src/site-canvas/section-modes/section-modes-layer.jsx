@@ -97,6 +97,7 @@ import {
 	setPickedSection as setSharedPickedSection,
 	setPostsTrip,
 } from '../mode';
+import { expandCanvas } from '../expansion';
 import { useEditorSpotlight } from '../part-spotlight';
 import { useCanvasDocument } from '../use-canvas-document';
 import { useCanvasStyles } from '../use-canvas-styles';
@@ -2604,6 +2605,11 @@ export function SectionModesLayer( {
 					onClose={ isPartOpen ? undefined : exitMode }
 					onFreeform={ () => {
 						const { id } = active;
+
+						// More control is for getting on with the section's
+						// blocks, so the canvas expands to fill the editor
+						// too, and stays so until its back arrow.
+						expandCanvas( true );
 
 						// Writing has no Freeform, as Edit hands its blocks
 						// to core's own tools: the section is selected there.

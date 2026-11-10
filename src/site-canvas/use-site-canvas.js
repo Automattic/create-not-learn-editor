@@ -573,6 +573,7 @@ export function useSiteCanvas( {
 
 	return {
 		canEdit,
+		canvasEntity,
 		device,
 		dialog: {
 			isOpen: isDialogOpen,

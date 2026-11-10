@@ -73,7 +73,7 @@ const DEFAULTS = {
 		copy: {},
 		adminLinks: [],
 		hint: __(
-			'Tip: follow links on the page to visit the rest of your site. Switch to Edit to change what is on it, then zoom out to add and arrange its sections.'
+			'Tip: change the page right where it is, or press Edit for more room. Zoom out to add and arrange its sections, and turn on Browse to follow links around your site.'
 		),
 		preview: 'home',
 		viewLabel: __( 'View site' ),
