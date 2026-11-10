@@ -16,8 +16,10 @@ import { EMPTY_ARRAY } from './page-layouts';
 import {
 	DEFAULT_CONTENT_VIEW,
 	getActiveTab,
+	isTemplateTab,
 	templateMatchesPostType,
 } from './helpers';
+import { getSystemPageTemplates } from './pages/system-pages';
 import {
 	coreDataStore,
 	useEffect,
@@ -248,7 +250,9 @@ export default function useContentRecords() {
 
 	// Pages lists its pages from `usePages`. Its own records are only wanted
 	// for its Layouts, to show a layout on one of them.
+	// System pages are shown at the site's address, so need none.
 	const needsPosts = type?.name !== 'page' || activeTab === 'templates';
+	const listsTemplates = isTemplateTab( activeTab );
 	const { error, isLoading, posts, rawTemplates } = useSelect(
 		( select ) => {
 			if ( ! type ) {
@@ -288,44 +292,45 @@ export default function useContentRecords() {
 				'getEntityRecords',
 				templateArgs
 			);
-			const activeError =
-				activeTab === 'templates' ? templateError : postError;
+			const activeError = listsTemplates ? templateError : postError;
 
 			return {
 				error: activeError ? getErrorMessage( activeError ) : null,
-				isLoading:
-					activeTab === 'templates'
-						? ! hasResolvedTemplates || isResolvingTemplates
-						: ! hasResolvedPosts ||
-							! hasResolvedTemplates ||
-							isResolvingPosts ||
-							isResolvingTemplates,
+				isLoading: listsTemplates
+					? ! hasResolvedTemplates || isResolvingTemplates
+					: ! hasResolvedPosts ||
+						! hasResolvedTemplates ||
+						isResolvingPosts ||
+						isResolvingTemplates,
 				posts: resolvedPosts,
 				rawTemplates: resolvedTemplates,
 			};
 		},
-		[ activeTab, needsPosts, postQuery, type ]
+		[ activeTab, listsTemplates, needsPosts, postQuery, type ]
 	);
 	const postsWithPermissions = usePostPermissions(
 		posts,
 		hasStatusFilter ? type : null
 	);
 	const requestedTemplateId = getSearchValue( searchParams.postIds );
-	const templates = useMemo(
-		() =>
-			type
-				? rawTemplates.filter(
-						( template ) =>
-							templateMatchesPostType( template, type.name ) ||
-							// A page's Edit layout opens the layout it uses,
-							// even a custom one like Blank.
-							( activeTab === 'templates' &&
-								String( template.id ) ===
-									String( requestedTemplateId ) )
-					)
-				: EMPTY_ARRAY,
-		[ activeTab, rawTemplates, requestedTemplateId, type ]
-	);
+	const templates = useMemo( () => {
+		if ( ! type ) {
+			return EMPTY_ARRAY;
+		}
+
+		if ( activeTab === 'system' ) {
+			return getSystemPageTemplates( rawTemplates );
+		}
+
+		return rawTemplates.filter(
+			( template ) =>
+				templateMatchesPostType( template, type.name ) ||
+				// A page's Edit layout opens the layout it uses,
+				// even a custom one like Blank.
+				( activeTab === 'templates' &&
+					String( template.id ) === String( requestedTemplateId ) )
+		);
+	}, [ activeTab, rawTemplates, requestedTemplateId, type ] );
 	const previewTemplates = templates;
 
 	const selectedId =

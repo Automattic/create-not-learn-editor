@@ -123,20 +123,52 @@ test.describe( 'Pages interactions', () => {
 		).toBeVisible( { timeout: 15000 } );
 	} );
 
-	test( 'Other menus leads on to the Menus screen', async ( { page } ) => {
+	test( 'Manage all menus leads on to the Menus screen', async ( {
+		page,
+	} ) => {
 		await visitEditor( page, '/types/page' );
 
-		const otherMenus = getStage( page )
-			.getByRole( 'navigation', { name: 'More menu options' } )
-			.getByRole( 'button', { name: /^Other menus/ } );
+		const allMenus = getStage( page )
+			.getByRole( 'navigation', { name: 'More options' } )
+			.getByRole( 'button', { name: /^Manage all menus/ } );
 
-		await expect( otherMenus ).toBeVisible( { timeout: 15000 } );
-		await otherMenus.click();
+		await expect( allMenus ).toBeVisible( { timeout: 15000 } );
+		await allMenus.click();
 		await expect
 			.poll( () => getRoute( page ), { timeout: 15000 } )
 			.toBe( '/navigation' );
 		await expect(
-			getStage( page ).getByRole( 'heading', { name: 'Menus' } )
+			getStage( page ).getByRole( 'heading', {
+				exact: true,
+				name: 'Menus',
+			} )
+		).toBeVisible();
+	} );
+
+	test( 'System pages lists the pages the site makes for itself', async ( {
+		page,
+	} ) => {
+		await visitEditor( page, '/types/page' );
+
+		const stage = getStage( page );
+		const systemPages = stage
+			.getByRole( 'navigation', { name: 'More options' } )
+			.getByRole( 'button', { name: /^System pages/ } );
+
+		await expect( systemPages ).toBeVisible( { timeout: 15000 } );
+		await systemPages.click();
+		await expect
+			.poll( () => getRoute( page ), { timeout: 15000 } )
+			.toBe( '/types/page/list/all?content=system' );
+
+		const notFound = stage.getByRole( 'button', {
+			name: /^Page not found/,
+		} );
+
+		await expect( notFound ).toBeVisible( { timeout: 15000 } );
+		await expect( notFound ).toHaveAttribute( 'aria-pressed', 'true' );
+		await expect(
+			stage.getByRole( 'button', { name: /^Search results/ } )
 		).toBeVisible();
 	} );
 

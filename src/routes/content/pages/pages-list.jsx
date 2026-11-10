@@ -26,12 +26,14 @@ import { useMenuSwitches } from './menu-switches';
 import { countPageTree } from './page-tree';
 import { LIST_PATH, usePageTrash } from './page-tree-list';
 import PagesListView from './pages-list-view';
+import { SYSTEM_PAGES_CONTENT } from './system-pages';
 import usePageOrder from './use-page-order';
 import {
 	__,
 	compassIcon,
 	EmptyState,
 	pageIcon,
+	pagesIcon,
 	SearchControl,
 	Skeleton,
 	Stack,
@@ -65,7 +67,7 @@ function ListSkeleton() {
 }
 
 /**
- * The line under "Other menus", saying what other menus the site has.
+ * The line under "Manage all menus", saying what other menus the site has.
  *
  * @param {string[]} otherMenuAreas Where other menus show.
  * @return {string} Description.
@@ -189,10 +191,10 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 					search={ search }
 				/>
 			</div>
-			{ menuId && (
-				<ScreenLinks
-					label={ __( 'More menu options' ) }
-					links={ [
+			<ScreenLinks
+				label={ __( 'More options' ) }
+				links={ [
+					menuId &&
 						menu?.hasMoreThanPages && {
 							description: __(
 								'Your menu has links too. Change them here.'
@@ -203,17 +205,26 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 								menuId
 							) }`,
 						},
-						{
-							description: getOtherMenusDescription(
-								mainMenu.otherMenuAreas
-							),
-							icon: compassIcon,
-							title: __( 'Other menus' ),
-							to: '/navigation',
-						},
-					].filter( Boolean ) }
-				/>
-			) }
+					// Pages that are templates in WordPress, a step down.
+					{
+						description: __(
+							'Change pages your site makes for itself, like the 404 page.'
+						),
+						icon: pagesIcon,
+						search: { content: SYSTEM_PAGES_CONTENT },
+						title: __( 'System pages' ),
+						to: LIST_PATH,
+					},
+					menuId && {
+						description: getOtherMenusDescription(
+							mainMenu.otherMenuAreas
+						),
+						icon: compassIcon,
+						title: __( 'Manage all menus' ),
+						to: '/navigation',
+					},
+				].filter( Boolean ) }
+			/>
 			{ trash.modal }
 		</div>
 	);

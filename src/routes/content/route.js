@@ -18,7 +18,8 @@ export const route = {
 	},
 	async canvas( { params, search } ) {
 		// A Layouts tab shows the layout picked there in a site canvas.
-		if ( search.content === 'templates' ) {
+		// So do Pages' system pages.
+		if ( [ 'templates', 'system' ].includes( search.content ) ) {
 			return null;
 		}
 
