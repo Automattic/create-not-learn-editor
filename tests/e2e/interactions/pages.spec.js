@@ -7,6 +7,7 @@ const {
 	getSaveControls,
 	getStage,
 	openPageLayouts,
+	openReviewChanges,
 	test,
 	visitEditor,
 } = require( '../utils' );
@@ -166,6 +167,116 @@ test.describe( 'Pages interactions', () => {
 		await expect( getSaveControls( page ) ).toContainText(
 			'1 unsaved change'
 		);
+	} );
+
+	test( 'drags a page under another page, and back out, waiting to be saved', async ( {
+		page,
+		rest,
+	} ) => {
+		const stamp = Date.now();
+		// Titles that list the sub-page straight after its parent.
+		const parent = await rest.createPage( {
+			title: `Nest parent ${ stamp }`,
+		} );
+		const child = await rest.createPage( {
+			title: `Nest sub-page ${ stamp }`,
+		} );
+		const getParent = async () =>
+			( await rest.fetch( `/wp/v2/pages/${ child.id }` ) ).parent;
+		const getRow = ( title ) =>
+			getStage( page )
+				.locator( '.cnl-pages-list-view [data-block]' )
+				.filter( { hasText: title } );
+		// Rows move aside as a page is dragged, so where it goes is given as
+		// a row and a spot on it, measured once the drag has started.
+		const drag = async ( title, getPoint ) => {
+			// A moved page's row is redrawn once a save brings back its new
+			// address, which can drop a drag just started, so start again
+			// until it takes.
+			await expect( async () => {
+				const from = await getPageItem(
+					page,
+					child.title
+				).boundingBox();
+
+				await page.mouse.move( from.x + 40, from.y + from.height / 2 );
+				await page.mouse.down();
+				await page.mouse.move( from.x + 50, from.y + from.height / 2, {
+					steps: 5,
+				} );
+
+				if (
+					! ( await getRow( child.title ).getAttribute( 'class' ) )
+						.split( ' ' )
+						.includes( 'is-dragging' )
+				) {
+					await page.mouse.up();
+					throw new Error( 'The drag didn’t start.' );
+				}
+			} ).toPass( { timeout: 10000 } );
+
+			const to = getPoint( await getRow( title ).boundingBox() );
+
+			// The list works out where a drop goes a little after each move.
+			for ( let step = 0; step < 10; step++ ) {
+				await page.mouse.move( to.x + ( step % 2 ), to.y, {
+					steps: 2,
+				} );
+				await page.waitForTimeout( 60 );
+			}
+
+			await page.mouse.up();
+		};
+
+		await visitEditor( page, '/types/page' );
+		await getRow( child.title ).scrollIntoViewIfNeeded();
+
+		// Low on the parent's row and well to the right puts it underneath.
+		await drag( parent.title, ( row ) => ( {
+			x: row.x + 120,
+			y: row.y + row.height * 0.8,
+		} ) );
+		await expect(
+			page
+				.getByTestId( 'snackbar' )
+				.getByText(
+					`Moved “${ child.title }” under “${ parent.title }”.`
+				)
+		).toBeVisible();
+		await expect( getRow( child.title ) ).toHaveAttribute(
+			'aria-level',
+			'2'
+		);
+
+		// The move waits for Save, like any other change.
+		await expect( getSaveControls( page ) ).toContainText(
+			'1 unsaved change'
+		);
+		expect( await getParent() ).toBe( 0 );
+
+		const review = await openReviewChanges( page );
+
+		await review.getByRole( 'button', { name: 'Save 1 change' } ).click();
+		await expect( getSaveControls( page ) ).toContainText(
+			'All changes saved',
+			{ timeout: 15000 }
+		);
+		expect( await getParent() ).toBe( parent.id );
+
+		// High on the parent's row and to the far left brings it back out,
+		// above its parent.
+		await drag( parent.title, ( row ) => ( {
+			x: row.x + 4,
+			y: row.y + row.height * 0.25,
+		} ) );
+		await expect( getRow( child.title ) ).toHaveAttribute(
+			'aria-level',
+			'1'
+		);
+		await expect( getSaveControls( page ) ).toContainText(
+			'unsaved change'
+		);
+		expect( await getParent() ).toBe( parent.id );
 	} );
 
 	test( 'opens a page layout in the block editor', async ( { page } ) => {

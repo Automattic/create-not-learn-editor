@@ -219,24 +219,169 @@ export function getPageKeyboardTarget( tree, pageId, key ) {
 }
 
 /**
- * The changes to make for a page to move: its new parent, and a menu order for
- * every page beside it there, numbered as they now appear.
+ * The pages that moved within a level: those outside the longest run of pages
+ * still in the order they were.
  *
- * @param {Object[]} tree   Tree from `buildPageTree`.
- * @param {number}   pageId Page being moved.
- * @param {Object}   target `{ parent, index }`.
+ * @param {number[]} before IDs in the level before.
+ * @param {number[]} after  IDs in the level after.
+ * @return {number[]} IDs of the pages that moved.
+ */
+function getMovedIds( before, after ) {
+	// Lengths of the longest common runs, from each pair of places onwards.
+	const lengths = before.map( () => new Array( after.length + 1 ).fill( 0 ) );
+
+	lengths.push( new Array( after.length + 1 ).fill( 0 ) );
+
+	for ( let i = before.length - 1; i >= 0; i-- ) {
+		for ( let j = after.length - 1; j >= 0; j-- ) {
+			lengths[ i ][ j ] =
+				before[ i ] === after[ j ]
+					? lengths[ i + 1 ][ j + 1 ] + 1
+					: Math.max( lengths[ i + 1 ][ j ], lengths[ i ][ j + 1 ] );
+		}
+	}
+
+	const kept = new Set();
+
+	for ( let i = 0, j = 0; i < before.length && j < after.length; ) {
+		if ( before[ i ] === after[ j ] ) {
+			kept.add( after[ j ] );
+			i++;
+			j++;
+		} else if ( lengths[ i + 1 ][ j ] >= lengths[ i ][ j + 1 ] ) {
+			i++;
+		} else {
+			j++;
+		}
+	}
+
+	return after.filter( ( id ) => ! kept.has( id ) );
+}
+
+/**
+ * The changes that put one level of pages in the order wanted: a menu order
+ * that sorts each page there, and the level's parent for pages new to it.
+ *
+ * As few pages change as can, as each one waits in the list of changes to
+ * save. A page that falls in place keeps its menu order. Otherwise one page
+ * takes a menu order beside its neighbours, trying the pages that moved
+ * first, and only when no one page can do it is the level numbered afresh.
+ * A page that was already there keeps its parent, even one the tree couldn't
+ * find, which it shows at the top level.
+ *
+ * @param {Object[]} pages                 The level's pages, in the order
+ *                                         wanted.
+ * @param {number}   parent                The level's parent page, or 0.
+ * @param {Object}   [options]
+ * @param {number}   [options.frontPageId] ID of the page set as the homepage.
+ * @param {number[]} [options.previousIds] IDs of the level's pages before, in
+ *                                         order.
+ * @param {number[]} [options.movedIds]    Pages that moved, to change first.
+ *                                         Worked out from `previousIds` when
+ *                                         not given.
  * @return {Object[]} `{ id, parent, menu_order }` for each page that changes.
  */
-export function getPageMoveChanges( tree, pageId, target ) {
+export function getLevelChanges(
+	pages,
+	parent,
+	{ frontPageId = 0, previousIds = [], movedIds } = {}
+) {
+	const ids = pages.map( ( page ) => Number( page.id ) );
+	const moved = movedIds || getMovedIds( previousIds, ids );
+	const isNew = ( id ) => ! previousIds.includes( id );
+	const placed = pages.map( ( page ) => ( {
+		...page,
+		menu_order: Number( page.menu_order ) || 0,
+	} ) );
+	const isInOrder = ( candidate ) =>
+		candidate
+			.slice()
+			.sort( ( a, b ) => compareSiblings( a, b, frontPageId ) )
+			.every( ( page, index ) => Number( page.id ) === ids[ index ] );
+	const getChanges = ( candidate ) =>
+		candidate
+			.filter(
+				( page, index ) =>
+					isNew( ids[ index ] ) ||
+					page.menu_order !==
+						( Number( pages[ index ].menu_order ) || 0 )
+			)
+			.map( ( page ) => ( {
+				id: Number( page.id ),
+				menu_order: page.menu_order,
+				parent: isNew( Number( page.id ) )
+					? parent
+					: Number( page.parent ) || 0,
+			} ) );
+
+	if ( isInOrder( placed ) ) {
+		return getChanges( placed );
+	}
+
+	const movedFirst = placed
+		.map( ( page, index ) => index )
+		.sort(
+			( a, b ) =>
+				Number( moved.includes( ids[ b ] ) ) -
+				Number( moved.includes( ids[ a ] ) )
+		);
+
+	for ( const index of movedFirst ) {
+		const before = placed[ index - 1 ]?.menu_order;
+		const after = placed[ index + 1 ]?.menu_order;
+		const values = [];
+
+		if ( before !== undefined ) {
+			values.push( before, before + 1 );
+		}
+
+		if ( after !== undefined ) {
+			values.push( after, after - 1 );
+		}
+
+		for ( const value of values ) {
+			const candidate = placed.map( ( page, i ) =>
+				i === index ? { ...page, menu_order: value } : page
+			);
+
+			if ( isInOrder( candidate ) ) {
+				return getChanges( candidate );
+			}
+		}
+	}
+
+	return getChanges(
+		placed.map( ( page, index ) => ( { ...page, menu_order: index } ) )
+	);
+}
+
+/**
+ * The changes to make for a page to move: its new parent, and the menu orders
+ * that put it in its place there.
+ *
+ * @param {Object[]} tree                  Tree from `buildPageTree`.
+ * @param {number}   pageId                Page being moved.
+ * @param {Object}   target                `{ parent, index }`.
+ * @param {Object}   [options]
+ * @param {number}   [options.frontPageId] ID of the page set as the homepage.
+ * @return {Object[]} `{ id, parent, menu_order }` for each page that changes.
+ */
+export function getPageMoveChanges(
+	tree,
+	pageId,
+	target,
+	{ frontPageId = 0 } = {}
+) {
 	const moved = findNode( tree, pageId );
 
 	if ( ! moved ) {
 		return [];
 	}
 
-	const siblings = getSiblings( tree, target.parent )
-		.map( ( node ) => node.page )
-		.filter( ( page ) => Number( page.id ) !== pageId );
+	const level = getSiblings( tree, target.parent ).map(
+		( node ) => node.page
+	);
+	const siblings = level.filter( ( page ) => Number( page.id ) !== pageId );
 
 	siblings.splice(
 		Math.max( 0, Math.min( target.index, siblings.length ) ),
@@ -244,20 +389,9 @@ export function getPageMoveChanges( tree, pageId, target ) {
 		moved.node.page
 	);
 
-	return siblings
-		.map( ( page, index ) => ( {
-			id: Number( page.id ),
-			menu_order: index,
-			parent: target.parent,
-		} ) )
-		.filter( ( change ) => {
-			const page = siblings.find(
-				( item ) => Number( item.id ) === change.id
-			);
-
-			return (
-				( Number( page.menu_order ) || 0 ) !== change.menu_order ||
-				( Number( page.parent ) || 0 ) !== change.parent
-			);
-		} );
+	return getLevelChanges( siblings, target.parent, {
+		frontPageId,
+		movedIds: [ pageId ],
+		previousIds: level.map( ( page ) => Number( page.id ) ),
+	} );
 }
