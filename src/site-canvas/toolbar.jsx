@@ -24,6 +24,7 @@ import {
 	coreDataStore,
 	desktopIcon,
 	dispatch,
+	fullscreenExitIcon,
 	displayShortcut,
 	externalIcon,
 	isRTL,
@@ -36,6 +37,7 @@ import {
 	moreVerticalIcon,
 	pencilIcon,
 	redoIcon,
+	select as selectFromStore,
 	squareIcon,
 	tabletIcon,
 	ToggleControl,
@@ -75,22 +77,31 @@ function getDeviceOptions() {
 /**
  * Edit, which expands the canvas to fill the editor, and then a back arrow,
  * which puts it back beside the sidebar and the screen, as the back arrow of
- * boot's full-screen editor leaves that. Editing is already on wherever
- * Browse isn't, so all Edit adds is the room; from Browse it edits too.
+ * boot's full-screen editor leaves that. In Browse it is Collapse instead, with
+ * the arrows of leaving full screen, as a back arrow beside Browse's own back
+ * and forward would read as one more step through the site's pages. Editing
+ * is already on wherever Browse isn't, so all Edit adds is the room; from
+ * Browse it edits too.
  *
  * @param {Object}   props
+ * @param {boolean}  props.isBrowsing Whether Browse is on.
  * @param {boolean}  props.isExpanded Whether the canvas fills the editor.
  * @param {Function} props.onToggle   Expands the canvas or puts it back.
  * @return {Element} The button.
  */
-export function ExpandButton( { isExpanded, onToggle } ) {
+export function ExpandButton( { isBrowsing, isExpanded, onToggle } ) {
 	if ( isExpanded ) {
+		let backIcon = isRTL() ? chevronRightIcon : chevronLeftIcon;
+		if ( isBrowsing ) {
+			backIcon = fullscreenExitIcon;
+		}
+
 		return (
 			<Button
 				__next40pxDefaultSize
 				className="cnl-site-canvas__expand-toggle is-back"
-				icon={ isRTL() ? chevronRightIcon : chevronLeftIcon }
-				label={ __( 'Back' ) }
+				icon={ backIcon }
+				label={ isBrowsing ? __( 'Collapse' ) : __( 'Back' ) }
 				onClick={ onToggle }
 				showTooltip
 			/>
@@ -187,12 +198,22 @@ export function EditHistory() {
 }
 
 /**
+ * Close Document Overview's list, if it is open.
+ */
+export function closeDocumentOverview() {
+	if ( selectFromStore( EDITOR_STORE )?.isListViewOpened?.() ) {
+		dispatch( EDITOR_STORE ).setIsListViewOpened( false );
+	}
+}
+
+/**
  * Document Overview, core's own toggle for its list view, as its editor's
  * header has it after undo and redo. The list opens in the editor's own
  * sidebar, at the canvas's left.
  *
  * The open state is core's, so the full-screen editor and the canvas share it,
- * as core's editors do.
+ * as core's editors do. The canvas only offers it while expanded, and closes
+ * the list with `closeDocumentOverview` when it goes back.
  *
  * @return {Element} The button.
  */

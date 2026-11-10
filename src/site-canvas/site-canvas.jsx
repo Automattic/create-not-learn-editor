@@ -39,6 +39,7 @@ import { SectionModesLayer } from './section-modes/section-modes-layer';
 import {
 	BrowseToggle,
 	CanvasMoreMenu,
+	closeDocumentOverview,
 	DocumentOverviewToggle,
 	EditHistory,
 	ExpandButton,
@@ -103,6 +104,13 @@ export function SiteCanvas( {
 	const isPreviewing = canvas.isPreviewing;
 	const isEditing = mode === MODE_EDIT;
 	const isExpanded = useCanvasExpansion();
+	// Document Overview is for working with the whole editor, so it is only
+	// offered while the canvas fills it, and its list closes as it goes back.
+	useEffect( () => {
+		if ( ! isExpanded ) {
+			closeDocumentOverview();
+		}
+	}, [ isExpanded ] );
 	// A layout, like an archive's, changes every page made with it, so Edit
 	// is in the purple of what every page shares. See `src/global-scope`.
 	const EditScope =
@@ -194,6 +202,7 @@ export function SiteCanvas( {
 				<div className="cnl-editor-homepage-toolbar__left">
 					<EditScope>
 						<ExpandButton
+							isBrowsing={ isPreviewing }
 							isExpanded={ isExpanded }
 							onToggle={ () => {
 								if ( ! isExpanded && isPreviewing ) {
@@ -205,7 +214,7 @@ export function SiteCanvas( {
 						/>
 					</EditScope>
 					{ ! isPreviewing && <EditHistory /> }
-					{ ! isPreviewing && editorEntity && (
+					{ isExpanded && ! isPreviewing && editorEntity && (
 						<DocumentOverviewToggle />
 					) }
 					{ isPreviewing && (
