@@ -48,32 +48,29 @@ import { isContainerBlock, isWritingType } from './writing-mode';
 import { useZoomGestures, ZoomControls } from './zoom-controls';
 
 /**
- * @param {Object}   props
- * @param {Object}   props.canvas         Result of `useSiteCanvas`.
- * @param {string}   props.className      Extra class for the canvas.
- * @param {Element}  props.document       What is on show, for the toolbar.
- * @param {Element}  props.editorChildren Shown over the editor while it is
- *                                        on show.
- * @param {Object}   props.editorRef      Ref to the editor's container, if
- *                                        the caller needs one.
- * @param {Element}  props.emptyPreview   Shown when there is nothing to
- *                                        preview.
- * @param {?string}  props.focusId        The one section, header or footer a
- *                                        canvas about it works on, in the
- *                                        editor's client IDs. Edit's section
- *                                        layer offers nothing else on the
- *                                        page. See `SectionModesLayer`.
- * @param {boolean}  props.canCompose     Whether Compose is offered. A canvas
- *                                        about one part of the site, not a
- *                                        page's sections, does without.
- * @param {boolean}  props.hasSections    Whether what is edited is built from
- *                                        sections. Without, like a product
- *                                        in its locked layout, Edit has no
- *                                        section layer and clicks reach the
- *                                        blocks, and there is no Compose.
- * @param {Function} props.useComposeSync A hook linking Compose to a list of
- *                                        the same sections elsewhere, while
- *                                        composing. See `SectionModesLayer`.
+ * @param {Object}  props
+ * @param {Object}  props.canvas         Result of `useSiteCanvas`.
+ * @param {string}  props.className      Extra class for the canvas.
+ * @param {Element} props.document       What is on show, for the toolbar.
+ * @param {Element} props.editorChildren Shown over the editor while it is
+ *                                       on show.
+ * @param {Object}  props.editorRef      Ref to the editor's container, if
+ *                                       the caller needs one.
+ * @param {Element} props.emptyPreview   Shown when there is nothing to
+ *                                       preview.
+ * @param {?string} props.focusId        The one section, header or footer a
+ *                                       canvas about it works on, in the
+ *                                       editor's client IDs. Edit's section
+ *                                       layer offers nothing else on the
+ *                                       page. See `SectionModesLayer`.
+ * @param {boolean} props.canCompose     Whether Compose is offered. A canvas
+ *                                       about one part of the site, not a
+ *                                       page's sections, does without.
+ * @param {boolean} props.hasSections    Whether what is edited is built from
+ *                                       sections. Without, like a product
+ *                                       in its locked layout, Edit has no
+ *                                       section layer and clicks reach the
+ *                                       blocks, and there is no Compose.
  * @return {Element} The canvas.
  */
 export function SiteCanvas( {
@@ -86,7 +83,6 @@ export function SiteCanvas( {
 	emptyPreview = null,
 	focusId = null,
 	hasSections = true,
-	useComposeSync,
 } ) {
 	const canCompose = canComposeSections && hasSections;
 	const navigate = useNavigate();
@@ -264,7 +260,6 @@ export function SiteCanvas( {
 							onExitCompose={ () =>
 								canvas.requestMode( MODE_EDIT )
 							}
-							useSync={ useComposeSync }
 						/>
 					) }
 				{ canZoom && (

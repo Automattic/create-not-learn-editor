@@ -5,7 +5,6 @@
 /**
  * WordPress dependencies
  */
-import { getBlockType } from '@wordpress/blocks';
 import { decodeEntities } from '@wordpress/html-entities';
 import { __, _n, sprintf } from '@wordpress/i18n';
 
@@ -60,30 +59,6 @@ function walk( blocks, visit, depth = 0 ) {
 		visit( block, depth );
 		walk( getInnerBlocks( block ), visit, depth + 1 );
 	} );
-}
-
-// Blocks that hold other blocks but still read as one thing, not a layout.
-const SINGLE_BLOCKS = [
-	'core/buttons',
-	'core/list',
-	'core/quote',
-	'core/pullquote',
-	'core/social-links',
-];
-
-/**
- * Whether a top-level block is a single block, like a heading or an image,
- * rather than a section laid out from several. A single block is shown by its
- * block icon; a section by a sketch of its layout.
- *
- * @param {Object} block Top-level block.
- * @return {boolean} Whether it is a single block.
- */
-export function isSingleBlockSection( block ) {
-	return (
-		! getInnerBlocks( block ).length ||
-		SINGLE_BLOCKS.includes( block?.name )
-	);
 }
 
 /**
@@ -303,127 +278,6 @@ export function getSectionSummary( block ) {
 	}
 
 	return facts.slice( 0, 3 ).join( ' · ' );
-}
-
-/**
- * The key a template element goes by wherever the sidebar and canvas point
- * one another to it: a site part's area, since editing a page never swaps out
- * its header for a different one, or its client ID otherwise.
- *
- * @param {Object} element `{ area, clientId }` from `usePreviewStructure`.
- * @return {string} Key.
- */
-export function getTemplateElementKey( element ) {
-	return element.area || element.clientId;
-}
-
-/**
- * The plain-language name for a piece of the template around the page: its
- * header or footer, or anything else the layout adds, like a title or a
- * featured image.
- *
- * @param {Object} element `{ area, name }` from `usePreviewStructure`.
- * @return {string} Label.
- */
-export function getTemplateElementLabel( element ) {
-	if ( element.area === 'header' ) {
-		return __( 'Header' );
-	}
-
-	if ( element.area === 'footer' ) {
-		return __( 'Footer' );
-	}
-
-	return getBlockType( element.name )?.title || __( 'Section' );
-}
-
-/**
- * A rough shape of a section, for drawing a thumbnail sketch of it.
- *
- * @param {Object} block Top-level block.
- * @return {Object} Sketch description.
- */
-export function getSectionSketch( block ) {
-	const contents = getSectionContents( block );
-	const attributes = getAttributes( block );
-	const hasBackground = Boolean(
-		attributes.backgroundColor ||
-		attributes.gradient ||
-		attributes.style?.color?.background ||
-		attributes.style?.color?.gradient
-	);
-	let media = null;
-
-	if ( block?.name === 'core/cover' ) {
-		media = 'cover';
-	} else if ( block?.name === 'core/media-text' ) {
-		media = 'side';
-	} else if ( contents.columns < 2 && contents.images >= 3 ) {
-		media = 'grid';
-	} else if ( contents.columns < 2 && contents.images ) {
-		media = 'block';
-	}
-
-	return {
-		button: contents.buttons > 0,
-		columns: Math.min( contents.columns, 4 ),
-		columnImages: contents.columns > 1 && contents.images > 0,
-		heading: contents.headings > 0,
-		media,
-		text: contents.texts > 0,
-		tone: media === 'cover' || hasBackground ? 'filled' : 'plain',
-	};
-}
-
-/**
- * Move an item to a new position.
- *
- * @param {Array}  list Items.
- * @param {number} from Index of the item to move.
- * @param {number} to   Index it should end up at.
- * @return {Array} A new array.
- */
-export function moveItem( list, from, to ) {
-	if (
-		from === to ||
-		from < 0 ||
-		from >= list.length ||
-		to < 0 ||
-		to >= list.length
-	) {
-		return list;
-	}
-
-	const next = list.slice();
-	const [ item ] = next.splice( from, 1 );
-	next.splice( to, 0, item );
-
-	return next;
-}
-
-/**
- * Insert items at a position.
- *
- * @param {Array}  list  Items.
- * @param {number} index Where to insert.
- * @param {Array}  items Items to insert.
- * @return {Array} A new array.
- */
-export function insertItems( list, index, items ) {
-	const at = Math.max( 0, Math.min( index, list.length ) );
-
-	return [ ...list.slice( 0, at ), ...items, ...list.slice( at ) ];
-}
-
-/**
- * Remove the item at a position.
- *
- * @param {Array}  list  Items.
- * @param {number} index Index to remove.
- * @return {Array} A new array.
- */
-export function removeItem( list, index ) {
-	return list.filter( ( _, itemIndex ) => itemIndex !== index );
 }
 
 /**

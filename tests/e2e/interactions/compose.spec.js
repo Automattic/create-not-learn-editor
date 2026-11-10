@@ -9,7 +9,6 @@ const {
 	expect,
 	getCanvasEditor,
 	expectCanvasMode,
-	getStage,
 	closeViewMenu,
 	openViewMenu,
 	pickSectionTemplate,
@@ -357,32 +356,5 @@ test.describe( 'Compose', () => {
 		await setCanvasMode( page, 'Compose' );
 		await page.keyboard.press( 'Escape' );
 		await expectCanvasMode( page, 'Edit' );
-	} );
-
-	test( 'lists the page’s sections in the sidebar only while composing', async ( {
-		page,
-		rest,
-	} ) => {
-		const testPage = await rest.createPage();
-
-		await visitEditor(
-			page,
-			`/types/page/list/all?previewId=${ testPage.id }&postId=${ testPage.id }`
-		);
-
-		const onThisPage = getStage( page ).getByRole( 'heading', {
-			name: 'On this page',
-		} );
-
-		await expect(
-			getStage( page ).getByRole( 'heading', { name: 'Layout' } )
-		).toBeVisible( { timeout: 15000 } );
-		await expect( onThisPage ).toHaveCount( 0 );
-
-		await setCanvasMode( page, 'Compose' );
-		await expect( onThisPage ).toBeVisible();
-
-		await setCanvasMode( page, 'Edit' );
-		await expect( onThisPage ).toHaveCount( 0 );
 	} );
 } );

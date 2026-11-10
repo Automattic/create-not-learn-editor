@@ -28,8 +28,7 @@ import {
 	findDefaultHomepagePage,
 	isFrontPageTemplateId,
 } from './homepage-state';
-import { HOMEPAGE_VIEW } from './homepage-view';
-import { getPageSearchString } from './sections-view';
+import { getPageSearchString, HOMEPAGE_VIEW } from './page-views';
 import PostsPerPage from './posts-per-page';
 import { PageDetailStage } from './stage';
 import {
@@ -511,7 +510,7 @@ function LatestPostsBody( { canConfigure, homepage, searchParams } ) {
 							...trailSearch,
 							...layout.search,
 						},
-						title: __( 'Layout' ),
+						title: __( 'Change layout' ),
 						to: layout.to,
 					},
 					{

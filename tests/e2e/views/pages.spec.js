@@ -48,7 +48,7 @@ test.describe( 'Pages view', () => {
 		await expectCanvasMode( page, 'Browse' );
 	} );
 
-	test( 'shows a page’s details, layout and sections', async ( {
+	test( 'shows a page’s summary, with its layout and details a step in', async ( {
 		page,
 		rest,
 	} ) => {
@@ -72,9 +72,38 @@ test.describe( 'Pages view', () => {
 		await expect(
 			stage.getByRole( 'button', { name: 'Page options' } )
 		).toBeVisible();
-		const layouts = stage
-			.getByRole( 'region', { name: 'Layout' } )
-			.getByRole( 'list', { name: 'Layouts' } );
+
+		// The summary says whether visitors can see it, where, and in which
+		// menus, and changes each in place.
+		const summary = stage.getByRole( 'region', {
+			name: 'About this page',
+		} );
+		await expect(
+			summary.getByRole( 'button', { name: 'Edit Status' } )
+		).toBeVisible( { timeout: 15000 } );
+		await expect(
+			summary.getByRole( 'button', { name: 'Edit Address' } )
+		).toBeVisible();
+		await expect(
+			summary.getByRole( 'button', { name: 'Edit Menus' } )
+		).toBeVisible();
+
+		// Its sections aren't listed, even while composing.
+		await setCanvasMode( page, 'Compose' );
+		await expect( summary ).toBeVisible();
+		await expect(
+			stage.getByRole( 'heading', { name: 'On this page' } )
+		).toHaveCount( 0 );
+		await expect(
+			stage.getByRole( 'button', { name: /Edit sections/ } )
+		).toHaveCount( 0 );
+
+		// The layouts are a step in.
+		await stage.getByRole( 'button', { name: /^Change layout/ } ).click();
+		await expect(
+			stage.getByRole( 'heading', { level: 1, name: 'Change layout' } )
+		).toBeVisible();
+		const layouts = stage.getByRole( 'list', { name: 'Layouts' } );
 		await expect(
 			layouts.getByRole( 'button', { name: 'Standard' } )
 		).toBeVisible();
@@ -82,21 +111,22 @@ test.describe( 'Pages view', () => {
 			layouts.getByRole( 'button', { pressed: true } )
 		).toHaveCount( 1 );
 
-		// The page's sections are listed while composing it.
-		await setCanvasMode( page, 'Compose' );
-
-		// Its one paragraph is the only section that isn't on every page.
-		const sections = stage.getByRole( 'list', {
-			name: 'The page, top to bottom',
+		// The page's crumb leads back to its summary, and on to every detail.
+		await stage
+			.getByRole( 'navigation', { name: 'Breadcrumbs' } )
+			.getByRole( 'link', { name: testPage.title } )
+			.click();
+		await stage.getByRole( 'button', { name: /^See all details/ } ).click();
+		await expect(
+			stage.getByRole( 'heading', { level: 1, name: 'See all details' } )
+		).toBeVisible();
+		const details = stage.getByRole( 'region', {
+			name: 'See all details',
 		} );
 		await expect(
-			sections.getByRole( 'button', {
-				name: new RegExp( `^${ testPage.body }` ),
-			} )
+			details.getByRole( 'button', { name: 'Edit Author' } )
 		).toBeVisible( { timeout: 15000 } );
-		await expect(
-			sections.locator( '.cnl-page-section:not(.is-template-element)' )
-		).toHaveCount( 1 );
+		await expect( details.getByText( /^Last edited/ ) ).toBeVisible();
 
 		await expect(
 			getEditorCanvas( page, '.cnl-site-canvas' ).getByText(

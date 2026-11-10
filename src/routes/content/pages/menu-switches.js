@@ -94,6 +94,38 @@ function removeAll( blocks, match ) {
 }
 
 /**
+ * Whether a page, or the homepage, is in a menu: linked from it, or listed by
+ * a menu that updates by itself and doesn't leave it out.
+ *
+ * @param {Object[]}      blocks           The menu's blocks.
+ * @param {number|string} target           Page ID, or `HOMEPAGE`.
+ * @param {Object}        context          What else it depends on.
+ * @param {Object}        context.homepage Result of `useHomepageState`.
+ * @param {Object[]}      context.pages    Every page.
+ * @return {boolean} Whether it is in the menu.
+ */
+export function isTargetInMenu( blocks, target, { homepage, pages } ) {
+	const homeContext = getHomeLinkContext( homepage );
+	const match =
+		target === HOMEPAGE
+			? ( block ) => isHomeMenuItem( block, homeContext )
+			: ( block ) => isPageItem( block, target );
+
+	if ( findItemPath( blocks, match ) ) {
+		return true;
+	}
+
+	const id = target === HOMEPAGE ? homepage.pageId || 0 : Number( target );
+	const page = pages.find( ( item ) => Number( item.id ) === id );
+
+	return (
+		hasPageList( blocks ) &&
+		Boolean( id ) &&
+		! isPageExcluded( page, getExcludedPageIds( blocks ), pages )
+	);
+}
+
+/**
  * The main menu's switches, and ways to change the menu from the page list.
  *
  * @param {Object}   args          Arguments.
@@ -151,19 +183,8 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 			? ( block ) => isHomeMenuItem( block, homeContext )
 			: ( block ) => isPageItem( block, target );
 
-	const isOn = ( target ) => {
-		const id = target === HOMEPAGE ? homePageId : Number( target );
-
-		if ( findItemPath( blocks, getMatch( target ) ) ) {
-			return true;
-		}
-
-		return (
-			isAutomatic &&
-			Boolean( id ) &&
-			! isPageExcluded( pagesById.get( id ), excludedIds, pages )
-		);
-	};
+	const isOn = ( target ) =>
+		isTargetInMenu( blocks, target, { homepage, pages } );
 
 	/**
 	 * Make a change to the menu, to save with the rest, with a way to undo it.
@@ -213,7 +234,10 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 	 * What a row's switch shows, and a note to say more when it's needed.
 	 *
 	 * @param {number|string} target Page ID, or `HOMEPAGE`.
-	 * @return {Object} `{ checked, disabled, note }`.
+	 * @return {Object} `{ checked, disabled, isWaitingToPublish, note }`.
+	 *                  `isWaitingToPublish` says the note is only that the
+	 *                  page shows once published, for places that say so
+	 *                  their own way.
 	 */
 	const getSwitch = ( target ) => {
 		const id = target === HOMEPAGE ? homePageId : Number( target );
@@ -258,7 +282,12 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 			}
 		}
 
-		return { checked, disabled: false, note };
+		return {
+			checked,
+			disabled: false,
+			isWaitingToPublish: Boolean( checked && isDraft ),
+			note,
+		};
 	};
 
 	const toggle = ( target ) => {

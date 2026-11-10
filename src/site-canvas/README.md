@@ -8,7 +8,7 @@ The canvas beside Home, Pages and Design. A Browse | Edit toggle at the left of 
 
 Posts are written rather than designed, so they are in writing mode (`writing-mode.js`). Edit has no section layer for them: a click reaches the words, with core's full block tools. Zoom out is only offered once a post has a container block, like a group or a cover, as there is nothing to arrange without one. Zoomed out, each container is a section, and each run of other blocks between them is one "Text" section, with no Edit design. The layer groups them, never the saved content. For now the content types in writing mode are listed in that file. Later, a type should say so itself when it is registered.
 
-Pages keep the section layer in Edit, but their runs of plain blocks are grouped the same way, so a page that is mostly words, like a privacy policy, is one "Text" section rather than a section for every paragraph. The first click picks it and the next reaches the words, as for any section. It has Add and its moves, but no Edit design. The Pages sidebar's list of sections groups them too. A layout's blocks aren't grouped, as they are mostly a post's title, image and content.
+Pages keep the section layer in Edit, but their runs of plain blocks are grouped the same way, so a page that is mostly words, like a privacy policy, is one "Text" section rather than a section for every paragraph. The first click picks it and the next reaches the words, as for any section. It has Add and its moves, but no Edit design. A layout's blocks aren't grouped, as they are mostly a post's title, image and content.
 
 The mode is shared by every canvas, so it carries over from page to page and screen to screen. It lives in a small data store (`mode.js`), because app init and each route are built separately. Nothing is saved, so every visit starts in Browse.
 
@@ -115,5 +115,3 @@ Core's zoom-out is used for its zoom alone. Core can't scale the canvas without 
 | `section-colors.js` | The colours a section can take, from either, and putting one on. |
 
 A section's layouts come from `src/layouts/variants/`: arrangements of the same content, worked out from the shape of the section's blocks, so they work for theme patterns as well as our layouts. Its colours are the theme's section styles, saved as core saves a block style. A theme without any gets sets made from its palette instead (soft, the page's colours swapped, and its strongest colours with readable text), saved with core's own colour settings by preset, so they follow the palette. A header's or footer's designs are the theme's patterns for its area, applied as core's Design panel does, and its colours are the same as a section's.
-
-On the Pages screen, the sidebar's "On this page" list shows only in Compose, and points at and picks the same sections as the layer.
