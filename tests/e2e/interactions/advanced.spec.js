@@ -6,9 +6,78 @@ const {
 	expectBlockEditor,
 	getRoute,
 	getStage,
+	getCanvasEditor,
+	getModeToggle,
+	openSidebarLink,
 	test,
 	visitEditor,
 } = require( '../utils' );
+
+// Posts' Layouts, which opens on the theme's single post layout. The default
+// theme's places patterns in it, which core makes content-only sections.
+const POST_LAYOUTS = '/types/post/list/all?content=templates';
+
+/**
+ * The editing modes of the blocks patterns put in what the editor has open,
+ * the pattern's own blocks and everything in them. Not in a header or
+ * footer, which keep core's lock.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @return {Promise<string[]>} The modes, one per block.
+ */
+function getPatternBlockModes( page ) {
+	return page.evaluate( () => {
+		const store = window.wp.data.select( 'core/block-editor' );
+
+		return store
+			.getClientIdsWithDescendants()
+			.filter(
+				( clientId ) =>
+					store.getBlockAttributes( clientId )?.metadata
+						?.patternName &&
+					! store.getBlockParentsByBlockName(
+						clientId,
+						'core/template-part'
+					).length
+			)
+			.flatMap( ( clientId ) => [
+				clientId,
+				...store.getClientIdsOfDescendants( clientId ),
+			] )
+			.map( ( clientId ) => store.getBlockEditingMode( clientId ) );
+	} );
+}
+
+/**
+ * Open Posts' Layouts in Edit. Not with `setCanvasMode`, which reads Zoom
+ * out, and a layout has no Zoom out.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function editPostLayout( page ) {
+	await visitEditor( page, POST_LAYOUTS );
+
+	const edit = getModeToggle( page ).getByRole( 'radio', { name: 'Edit' } );
+
+	await expect( edit ).toBeEnabled( { timeout: 15000 } );
+	await edit.click();
+	await expect( getCanvasEditor( page ) ).toBeVisible( { timeout: 15000 } );
+}
+
+/**
+ * Whether core's editor and block editor are set to open up patterns.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @return {Promise<boolean[]>} The editor's setting, then the block editor's.
+ */
+function getPatternsOpened( page ) {
+	return page.evaluate( () => [
+		!! window.wp.data.select( 'core/editor' ).getEditorSettings()
+			.disableContentOnlyForUnsyncedPatterns,
+		!! window.wp.data.select( 'core/block-editor' ).getSettings()
+			.disableContentOnlyForUnsyncedPatterns,
+	] );
+}
 
 /**
  * The `postId` in the route, for routes like `/wp_template?postId=…`.
@@ -160,5 +229,37 @@ test.describe( 'Advanced interactions', () => {
 		await expect(
 			stage.getByRole( 'button', { name: pattern.title } ).first()
 		).toBeVisible( { timeout: 15000 } );
+	} );
+
+	test( "edits the blocks a layout's patterns add with core's full tools", async ( {
+		page,
+	} ) => {
+		await editPostLayout( page );
+
+		await expect
+			.poll( async () => ( await getPatternBlockModes( page ) ).length, {
+				timeout: 15000,
+			} )
+			.toBeGreaterThan( 0 );
+		await expect
+			.poll( async () => [
+				...new Set( await getPatternBlockModes( page ) ),
+			] )
+			.toEqual( [ 'default' ] );
+	} );
+
+	test( "hands patterns back to core's lock after a layout", async ( {
+		page,
+	} ) => {
+		await editPostLayout( page );
+		await expect
+			.poll( () => getPatternsOpened( page ), { timeout: 15000 } )
+			.toEqual( [ true, true ] );
+
+		await openSidebarLink( page, 'Pages' );
+
+		await expect
+			.poll( () => getPatternsOpened( page ), { timeout: 15000 } )
+			.toEqual( [ false, false ] );
 	} );
 } );

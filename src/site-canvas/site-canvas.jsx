@@ -43,6 +43,7 @@ import {
 	ZoomOutToggle,
 } from './toolbar';
 import { UnsavedChangesDialog } from './unsaved-changes-dialog';
+import { useOwnEditorSettings } from './use-own-editor-settings';
 import { useSectionLock } from './use-section-lock';
 import { isContainerBlock, isWritingType } from './writing-mode';
 import { useZoomGestures, ZoomControls } from './zoom-controls';
@@ -56,6 +57,10 @@ import { useZoomGestures, ZoomControls } from './zoom-controls';
  *                                       on show.
  * @param {Object}  props.editorRef      Ref to the editor's container, if
  *                                       the caller needs one.
+ * @param {?Object} props.editorSettings Core editor settings for what is
+ *                                       edited, handed back when the canvas
+ *                                       goes. See `use-own-editor-settings`.
+ *                                       Keep the reference stable.
  * @param {Element} props.emptyPreview   Shown when there is nothing to
  *                                       preview.
  * @param {?string} props.focusId        The one section, header or footer a
@@ -80,6 +85,7 @@ export function SiteCanvas( {
 	document,
 	editorChildren,
 	editorRef: givenEditorRef,
+	editorSettings = null,
 	emptyPreview = null,
 	focusId = null,
 	hasSections = true,
@@ -152,6 +158,7 @@ export function SiteCanvas( {
 			! isWriting
 	);
 	useEditSectionControls( isEditing && Boolean( editorEntity ) );
+	useOwnEditorSettings( editorSettings );
 
 	// Published for the stylesheet, which hides core chrome by block.
 	const selectedBlockName = useSelect(
@@ -241,6 +248,7 @@ export function SiteCanvas( {
 							key={ `${ editorEntity.postType }:${ editorEntity.postId }` }
 							postId={ editorEntity.postId }
 							postType={ editorEntity.postType }
+							settings={ editorSettings || undefined }
 						/>
 					) }
 					{ isEditing && editorChildren }
