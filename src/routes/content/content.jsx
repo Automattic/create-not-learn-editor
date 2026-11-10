@@ -7,7 +7,6 @@ import { withCanvasRecovery } from '../../canvas-recovery';
 import { withScreenKey } from '../../screen-key';
 import { getCurrentEditorPath } from '../static/screens';
 import { withUiTheme } from '../../theme';
-import { useSiteTrail } from '../../site-trail';
 import { usePostsTrip } from '../../site-canvas/mode';
 import { getTemplateDisplayDescription } from '../../records';
 import { EMPTY_ARRAY } from './page-layouts';
@@ -119,7 +118,6 @@ function TabLabel( { icon, label } ) {
 function Stage() {
 	const navigate = useNavigate();
 	const searchParams = useSearch( { strict: false } );
-	const siteTrail = useSiteTrail();
 	const postsTrip = usePostsTrip();
 	// The page whose Edit layout opened Layouts, to lead back to.
 	const layoutFor = parseTarget( searchParams.layoutFor );
@@ -685,13 +683,10 @@ function Stage() {
 
 	const title = type.menuName || type.label;
 	// Opened from a section's Edit posts, the list leads back to its page.
-	// Opened from the "Home" screen, or the Header or Footer screen,
-	// Pages leads back there.
-	let siteCrumbs = siteTrail;
-
-	if ( postsTrip?.postType === type.name ) {
-		siteCrumbs = [ { label: postsTrip.label, to: postsTrip.to } ];
-	}
+	const siteCrumbs =
+		postsTrip?.postType === type.name
+			? [ { label: postsTrip.label, to: postsTrip.to } ]
+			: [];
 	const pageHeader = subScreenLabel
 		? {
 				ariaLabel: subScreenLabel,
@@ -699,16 +694,7 @@ function Stage() {
 					<Breadcrumbs
 						items={ [
 							...siteCrumbs,
-							{
-								label: title,
-								// Back up keeps the way back to where the
-								// visit began.
-								to: searchParams.from
-									? `${ listPath }?${ new URLSearchParams( {
-											from: searchParams.from,
-										} ) }`
-									: listPath,
-							},
+							{ label: title, to: listPath },
 							...( isLayoutsStep && layoutFor
 								? [
 										{
@@ -787,10 +773,6 @@ function Stage() {
 						label={ __( 'Show posts' ) }
 						onChange={ ( slug ) =>
 							navigate( {
-								// Keeps the way back to where the visit began.
-								search: searchParams.from
-									? { from: searchParams.from }
-									: undefined,
 								to: `/types/${ type.name }/list/${ slug }`,
 							} )
 						}
@@ -900,14 +882,7 @@ function Stage() {
 							a: (
 								<Button
 									onClick={ () =>
-										navigate( {
-											// Keeps the way back to where the
-											// visit began.
-											search: searchParams.from
-												? { from: searchParams.from }
-												: undefined,
-											to: '/templates',
-										} )
+										navigate( { to: '/templates' } )
 									}
 									variant="link"
 								/>

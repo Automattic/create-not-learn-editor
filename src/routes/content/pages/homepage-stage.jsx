@@ -16,7 +16,6 @@ import { useSearch } from '@wordpress/route';
  * Internal dependencies
  */
 import ScreenLinks from '../../../screen-links';
-import { useSiteTrail, useTrailSearch } from '../../../site-trail';
 import useMainMenu from '../use-main-menu';
 import { getPageTitle, usePages } from './data';
 import {
@@ -484,8 +483,6 @@ function getLayoutDestination( templateId ) {
  * @return {Element} The body.
  */
 function LatestPostsBody( { canConfigure, homepage, searchParams } ) {
-	// Screens opened from here lead back to where the visit began, too.
-	const trailSearch = useTrailSearch();
 	const layout = homepage.latestPostsTemplateId
 		? getLayoutDestination( homepage.latestPostsTemplateId )
 		: null;
@@ -506,17 +503,13 @@ function LatestPostsBody( { canConfigure, homepage, searchParams } ) {
 							'Change how your posts are displayed'
 						),
 						icon: layoutIcon,
-						search: layout.search && {
-							...trailSearch,
-							...layout.search,
-						},
+						search: layout.search,
 						title: __( 'Change layout' ),
 						to: layout.to,
 					},
 					{
 						description: __( 'Write, edit and publish blog posts' ),
 						icon: postIcon,
-						search: trailSearch,
 						title: __( 'Edit your posts' ),
 						to: '/types/post/list/all',
 					},
@@ -543,7 +536,6 @@ function LatestPostsBody( { canConfigure, homepage, searchParams } ) {
  */
 export default function HomepageStage( { onStartNewPage } ) {
 	const homepage = useHomepageState();
-	const siteTrail = useSiteTrail();
 	const searchParams = useSearch( { strict: false } );
 	const startNewPage = useCallback(
 		() => onStartNewPage?.(),
@@ -574,7 +566,6 @@ export default function HomepageStage( { onStartNewPage } ) {
 			breadcrumbs={
 				<Breadcrumbs
 					items={ [
-						...siteTrail,
 						{ label: __( 'Pages' ), to: LIST_PATH },
 						...( isConfiguring
 							? [

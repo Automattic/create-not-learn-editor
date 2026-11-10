@@ -34,6 +34,8 @@ import {
 	resetRouteToHome,
 	setActiveWorkspace,
 } from '../../../src/workspaces';
+import { openRoute } from '../../../src/open-route';
+import { OPEN_SIDEBAR_HOME_EVENT } from '../../../src/open-sidebar-home';
 
 /*
  * What can be pointed at in the sidebar while it is a strip of icons, the
@@ -472,6 +474,20 @@ function returnHomeWithSidebar() {
 	} );
 }
 
+/**
+ * Back on a top-level screen in the stage, like Pages or Design, leads up to
+ * where every such screen is listed: Home, with the sidebar open.
+ */
+function openSidebarHomeOnBack() {
+	window.addEventListener( OPEN_SIDEBAR_HOME_EVENT, () => {
+		if ( getRoutePath() !== '/' ) {
+			isFollowingSidebar = true;
+			openRoute( '/' );
+		}
+		expansion.set( true );
+	} );
+}
+
 function createWorkspaceSwitcher() {
 	const container = document.createElement( 'div' );
 	container.className = 'cnl-sidebar-workspace';
@@ -492,7 +508,8 @@ function createWorkspaceSwitcher() {
  * - A workspace switcher in its own section below the menu, outside boot's
  *   navigation screens so it stays put when drilling in and out.
  * - A tooltip naming each icon while the sidebar is a strip of icons.
- * - Going back to the sidebar's top level takes the stage home too.
+ * - Going back to the sidebar's top level takes the stage home too, and
+ *   Back on a top-level screen in the stage opens the sidebar at home.
  * - Clicking an icon in the strip that opens a menu section expands the
  *   sidebar to show it.
  * - Opening the chat folds the sidebar to its strip, and expanding or
@@ -511,6 +528,7 @@ export function enhanceSidebar( { userName } = {} ) {
 
 	mountStripTooltip();
 	returnHomeWithSidebar();
+	openSidebarHomeOnBack();
 	expandOnStripDrilldown();
 	shareRoomWithChat();
 

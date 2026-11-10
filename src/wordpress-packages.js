@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { Breadcrumbs, Page } from '@wordpress/admin-ui';
+import { Breadcrumbs } from '@wordpress/admin-ui';
 import {
 	cloneBlock,
 	createBlock,
@@ -194,6 +194,12 @@ import {
 } from '@wordpress/ui';
 import { ThemeProvider } from '@wordpress/theme';
 import { addQueryArgs, getPath, safeDecodeURI } from '@wordpress/url';
+
+/**
+ * Internal dependencies
+ */
+// Admin UI's page, with Back added to its header.
+import { Page } from './stage-page';
 
 export {
 	addSubmenu as addSubmenuIcon,

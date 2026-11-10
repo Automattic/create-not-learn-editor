@@ -12,7 +12,7 @@
  */
 import ScreenLinks from '../../screen-links';
 import SitePreviewCanvas from '../static/site-preview';
-import { ShopPage, useShopSearch } from './heading';
+import { ShopPage } from './heading';
 import { PRODUCTS_PATH, SHOP_PAGES_PATH, getShop } from './shop';
 import {
 	Link,
@@ -59,7 +59,6 @@ function getAdminLinks() {
 }
 
 export function ShopStage() {
-	const search = useShopSearch();
 	const { adminUrls, can } = getShop();
 	const adminLinks = getAdminLinks();
 
@@ -78,7 +77,6 @@ export function ShopStage() {
 								'Add what you sell, with photos and prices.'
 							),
 							icon: tagIcon,
-							search,
 							title: __( 'Products' ),
 							to: PRODUCTS_PATH,
 						},
@@ -87,7 +85,6 @@ export function ShopStage() {
 								'How your shop, product, cart and checkout pages look.'
 							),
 							icon: storeIcon,
-							search,
 							title: __( 'Shop pages' ),
 							to: SHOP_PAGES_PATH,
 						},

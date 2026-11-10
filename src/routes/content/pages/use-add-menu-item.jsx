@@ -15,7 +15,6 @@ import { useNavigate } from '@wordpress/route';
  * Internal dependencies
  */
 import { getEditedEntityRecords } from '../../../edited-records';
-import { FROM_PAGES_SEARCH } from '../../../site-trail';
 import {
 	MENU_PAGES_QUERY,
 	showMenuSetByHandNotice,
@@ -95,7 +94,7 @@ export default function useAddMenuItem( menuId ) {
 
 	const openMenu = () =>
 		navigate( {
-			search: { ...FROM_PAGES_SEARCH, [ ADD_MENU_ITEMS_SEARCH ]: 1 },
+			search: { [ ADD_MENU_ITEMS_SEARCH ]: 1 },
 			to: `/navigation/edit/${ encodeURIComponent( menuId ) }`,
 		} );
 

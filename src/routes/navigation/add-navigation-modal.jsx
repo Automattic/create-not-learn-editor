@@ -6,7 +6,6 @@ import { useNavigate } from '@wordpress/route';
 /**
  * Internal dependencies
  */
-import { getFromNavigationSearch } from '../../site-trail';
 import { cnlEditorStore, getErrorMessage } from '../../records';
 import {
 	Button,
@@ -81,7 +80,6 @@ export function AddNavigationModal( { onClose } ) {
 
 			if ( savedRecord?.id ) {
 				navigate( {
-					search: getFromNavigationSearch(),
 					to: `/navigation/edit/${ encodeURIComponent(
 						savedRecord.id
 					) }`,

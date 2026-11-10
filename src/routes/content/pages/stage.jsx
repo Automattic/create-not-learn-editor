@@ -11,7 +11,6 @@ import { useNavigate, useSearch } from '@wordpress/route';
 /**
  * Internal dependencies
  */
-import { useSiteTrail } from '../../../site-trail';
 import ScreenLinks from '../../../screen-links';
 import { getPageTitle, usePages, usePageSections } from './data';
 import { getPageAncestorTitles } from './page-tree';
@@ -63,7 +62,6 @@ export function PageDetailStage( {
 } ) {
 	const navigate = useNavigate();
 	const searchParams = useSearch( { strict: false } );
-	const siteTrail = useSiteTrail();
 	const { pages } = usePages();
 	const { blocks } = usePageSections( pageId );
 	// Each run of text is one section, as on the canvas.
@@ -193,19 +191,7 @@ export function PageDetailStage( {
 			breadcrumbs={
 				<Breadcrumbs
 					items={ [
-						// Opened from the "Home" screen, a page leads
-						// back to it.
-						...siteTrail,
-						{
-							label: __( 'Pages' ),
-							// Only the visit's origin carries over: the rest
-							// is this page's own view state, not the list's.
-							to: searchParams.from
-								? `${ LIST_PATH }?from=${ encodeURIComponent(
-										searchParams.from
-									) }`
-								: LIST_PATH,
-						},
+						{ label: __( 'Pages' ), to: LIST_PATH },
 						...ancestors.map( ( label ) => ( { label } ) ),
 						// A view drilled into leads back to the summary.
 						...( view

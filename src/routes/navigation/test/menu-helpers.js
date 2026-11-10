@@ -84,7 +84,7 @@ describe( 'menu helpers', () => {
 		).toMatch( /^0 items · / );
 	} );
 
-	test( 'opens a menu on its own screen, linking back to Menus', () => {
+	test( 'opens a menu on its own screen', () => {
 		vi.useFakeTimers();
 		const navigate = vi.fn();
 
@@ -95,7 +95,6 @@ describe( 'menu helpers', () => {
 		expect( navigate.mock.calls[ 0 ][ 0 ].to ).toBe(
 			'/navigation/edit/a%20b'
 		);
-		expect( navigate.mock.calls[ 0 ][ 0 ].search ).toBeTruthy();
 		vi.useRealTimers();
 	} );
 } );

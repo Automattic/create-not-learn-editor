@@ -1,7 +1,6 @@
 /**
  * Internal dependencies
  */
-import { getFromNavigationSearch } from '../../site-trail';
 import { getNavigationMenuItemCount, getTitleText } from '../../records';
 import { __, _n, sprintf } from '../../wordpress-packages';
 import { getLocationsSummary } from './navigation-locations';
@@ -75,10 +74,8 @@ export function navigateToNavigationEditRoute( navigate, menuOrId ) {
 	}
 
 	const route = `/navigation/edit/${ encodeURIComponent( menuId ) }`;
-	// So the edit screen's breadcrumb can lead back to the Menus list.
-	const search = getFromNavigationSearch();
 
-	navigate( { search, to: route } );
+	navigate( { to: route } );
 	window.setTimeout( () => {
 		const currentUrl = new URL( window.location.href );
 		const currentRoute = currentUrl.searchParams.get( 'p' ) || '';
@@ -87,11 +84,7 @@ export function navigateToNavigationEditRoute( navigate, menuOrId ) {
 			return;
 		}
 
-		const routeSearch = new URLSearchParams( search ).toString();
-		currentUrl.searchParams.set(
-			'p',
-			routeSearch ? `${ route }?${ routeSearch }` : route
-		);
+		currentUrl.searchParams.set( 'p', route );
 		window.location.assign( currentUrl.toString() );
 	}, 100 );
 }

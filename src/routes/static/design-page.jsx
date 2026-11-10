@@ -1,60 +1,29 @@
 /**
  * Internal dependencies
  */
-import { useSiteTrail, useTrailSearch } from '../../site-trail';
 import { Breadcrumbs, Page, __ } from '../../wordpress-packages';
 
 /**
- * A screen under Design. Screens linked from Design lead with a breadcrumb
- * back to it, as there is no sidebar item to return by. Opened from the
- * "Home" screen, they lead back there instead, and so does Design
- * itself. Screens only Design links to, like Colors, keep Design in the trail
- * after "Home", as that is the way they were reached.
+ * A screen under Design. Screens under Design lead with a breadcrumb back to
+ * it, as there is no sidebar item to return by. Back retraces the way the
+ * screen was reached, wherever that began.
  *
  * @param {Object}  props             Component props.
  * @param {Node}    props.children    The screen's contents.
  * @param {string}  props.description Sentence under the title.
  * @param {boolean} props.isTopLevel  Whether this is the Design screen itself.
- * @param {boolean} props.isInDesign  Whether the screen is reached only from
- *                                    Design.
  * @param {string}  props.title       Screen title.
  * @return {Node} The screen.
  */
-export function DesignPage( {
-	children,
-	description,
-	isInDesign,
-	isTopLevel,
-	title,
-} ) {
-	const trail = useSiteTrail();
-	const trailSearch = useTrailSearch();
-	let breadcrumbs;
-
-	if ( isTopLevel && trail.length ) {
-		breadcrumbs = <Breadcrumbs items={ [ ...trail, { label: title } ] } />;
-	} else if ( ! isTopLevel ) {
-		breadcrumbs = (
-			<Breadcrumbs
-				items={ [
-					...trail,
-					...( ! trail.length || isInDesign
-						? [
-								{
-									label: __( 'Design' ),
-									to: trailSearch
-										? `/design?${ new URLSearchParams(
-												trailSearch
-											) }`
-										: '/design',
-								},
-							]
-						: [] ),
-					{ label: title },
-				] }
-			/>
-		);
-	}
+export function DesignPage( { children, description, isTopLevel, title } ) {
+	const breadcrumbs = isTopLevel ? undefined : (
+		<Breadcrumbs
+			items={ [
+				{ label: __( 'Design' ), to: '/design' },
+				{ label: title },
+			] }
+		/>
+	);
 
 	return (
 		<Page

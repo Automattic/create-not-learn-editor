@@ -15,7 +15,6 @@ import { useNavigate } from '@wordpress/route';
 /**
  * Internal dependencies
  */
-import { useShopSearch } from './heading';
 import {
 	EMPTY_ARRAY,
 	ProductsEmpty,
@@ -58,12 +57,11 @@ function ProductsListLayout( { DataViews } ) {
  */
 export default function ProductsList( { selectedId } ) {
 	const navigate = useNavigate();
-	const search = useShopSearch();
 	const [ view, setView ] = useState( DEFAULT_VIEW );
 	const fields = useMemo( () => getProductFields(), [] );
 	const { data, isLoading, totalItems, totalPages } = useProductsPage( view );
 	const openProduct = ( id ) =>
-		navigate( { search: { ...search, product: id }, to: PRODUCTS_PATH } );
+		navigate( { search: { product: id }, to: PRODUCTS_PATH } );
 	const selection = useMemo(
 		() => ( selectedId ? [ String( selectedId ) ] : EMPTY_ARRAY ),
 		[ selectedId ]

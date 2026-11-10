@@ -14,7 +14,6 @@ import {
 	FONT_LIBRARY_TABS,
 	selectFontLibraryTab,
 } from '../../font-library';
-import { useTrailSearch } from '../../site-trail';
 import {
 	FontPicker,
 	LookPicker,
@@ -89,7 +88,6 @@ function FullStylesLink() {
  * @return {?Node} The rows, once it's known which this person can use.
  */
 function FontLibraryLinks() {
-	const trailSearch = useTrailSearch();
 	const { canAddFonts, collection } = useSelect( ( select ) => {
 		const core = select( coreDataStore );
 		// The font library's own query, so a collection whose fonts can't be
@@ -113,7 +111,6 @@ function FontLibraryLinks() {
 	const link = ( tabId, fields ) => ( {
 		...fields,
 		onSelect: () => selectFontLibraryTab( tabId ),
-		search: trailSearch,
 		to: FONT_LIBRARY_PATH,
 	} );
 	const links = [
@@ -149,8 +146,6 @@ function FontLibraryLinks() {
  * @param {Object}  props             Component props.
  * @param {Node}    props.children    The screen's options, once loaded.
  * @param {string}  props.description Sentence under the title.
- * @param {boolean} props.isInDesign  Whether the screen is reached only from
- *                                    Design.
  * @param {boolean} props.isLoading   Whether the theme's styles are still loading.
  * @param {boolean} props.isTopLevel  Whether this is the Design screen itself.
  * @param {Node}    props.moreLink    The way out, below the options. The full
@@ -161,7 +156,6 @@ function FontLibraryLinks() {
 function StylesScreen( {
 	children,
 	description,
-	isInDesign,
 	isLoading,
 	isTopLevel,
 	moreLink = <FullStylesLink />,
@@ -170,7 +164,6 @@ function StylesScreen( {
 	return (
 		<DesignPage
 			description={ description }
-			isInDesign={ isInDesign }
 			isTopLevel={ isTopLevel }
 			title={ title }
 		>
@@ -187,8 +180,6 @@ function StylesScreen( {
 
 export function DesignStage() {
 	const { isLoading } = useStylesData();
-	// The screens it links to lead back to where the visit began, too.
-	const trailSearch = useTrailSearch();
 
 	return (
 		<StylesScreen
@@ -200,10 +191,7 @@ export function DesignStage() {
 			<LookPicker />
 			<ScreenLinks
 				label={ __( 'More design options' ) }
-				links={ DESIGN_LINKS.map( ( link ) => ( {
-					...link,
-					search: trailSearch,
-				} ) ) }
+				links={ DESIGN_LINKS }
 			/>
 		</StylesScreen>
 	);
@@ -227,7 +215,6 @@ export function ColorsStage() {
 					'Changes the whole site at once. Your theme, %s, provides these palettes.'
 				)
 			) }
-			isInDesign
 			isLoading={ isLoading }
 			title={ __( 'Colors' ) }
 		>
@@ -248,7 +235,6 @@ export function FontsStage() {
 					'Changes the whole site at once. Your theme, %s, provides these pairings.'
 				)
 			) }
-			isInDesign
 			isLoading={ isLoading }
 			moreLink={ <FontLibraryLinks /> }
 			title={ __( 'Fonts' ) }
