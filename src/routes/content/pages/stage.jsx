@@ -16,12 +16,7 @@ import { getPageTitle, usePages, usePageSections } from './data';
 import { getPageAncestorTitles } from './page-tree';
 import { groupSections } from './page-sections';
 import { LIST_PATH } from './page-tree-list';
-import {
-	DETAILS_VIEW,
-	getPageSearchString,
-	HOMEPAGE_VIEW,
-	LAYOUT_VIEW,
-} from './page-views';
+import { DETAILS_VIEW, getPageSearchString, LAYOUT_VIEW } from './page-views';
 import { PageDetails, PageSummary } from './page-details';
 import { PageOptions } from './page-options';
 import { MemoizedPageLayouts, usePageLayoutName } from './page-layout-picker';
@@ -46,16 +41,17 @@ import {
  * The homepage's page opens as the homepage, with what the homepage shows
  * above the page's own details.
  *
- * @param {Object}  props                Component props.
- * @param {Element} props.configurePanel What the homepage shows, for the
- *                                       homepage.
- * @param {Element} props.intro          Shown first, for the homepage.
- * @param {boolean} props.isHomepage     Whether the page is the homepage.
- * @param {number}  props.pageId         Page ID.
+ * @param {Object}    props                     Component props.
+ * @param {?Function} props.onConfigureHomepage Opens the homepage setup, for
+ *                                              the homepage.
+ * @param {Element}   props.intro               Shown first, for the homepage.
+ * @param {boolean}   props.isHomepage          Whether the page is the
+ *                                              homepage.
+ * @param {number}    props.pageId              Page ID.
  * @return {Element} The page stage.
  */
 export function PageDetailStage( {
-	configurePanel = null,
+	onConfigureHomepage = null,
 	intro = null,
 	isHomepage = false,
 	pageId,
@@ -98,9 +94,6 @@ export function PageDetailStage( {
 	const viewTitles = {
 		[ DETAILS_VIEW ]: __( 'See all details' ),
 		[ LAYOUT_VIEW ]: __( 'Change layout' ),
-		...( configurePanel && {
-			[ HOMEPAGE_VIEW ]: __( 'Configure homepage' ),
-		} ),
 	};
 	const view = viewTitles[ searchParams.view ] ? searchParams.view : null;
 	const openLayouts = useCallback(
@@ -141,8 +134,6 @@ export function PageDetailStage( {
 				pageId={ pageId }
 			/>
 		);
-	} else if ( view === HOMEPAGE_VIEW ) {
-		body = configurePanel;
 	} else {
 		body = (
 			<>
@@ -171,12 +162,11 @@ export function PageDetailStage( {
 							title: __( 'See all details' ),
 							to: LIST_PATH,
 						},
-						configurePanel && {
+						onConfigureHomepage && {
 							description: __( 'Choose what visitors see first' ),
 							icon: settingsIcon,
-							search: { ...searchParams, view: HOMEPAGE_VIEW },
+							onOpen: onConfigureHomepage,
 							title: __( 'Configure homepage' ),
-							to: LIST_PATH,
 						},
 					].filter( Boolean ) }
 				/>
