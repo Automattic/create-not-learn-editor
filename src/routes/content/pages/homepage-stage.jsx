@@ -24,6 +24,7 @@ import PostsPerPage from './posts-per-page';
 import HomepageSetup from '../../../pickers/homepage-setup';
 import useOnHomepageSetupDone from '../../../pickers/homepage-setup/use-on-done';
 import { PageDetailStage } from './stage';
+import { getActiveWorkspace } from '../../../workspaces/presets';
 import {
 	__,
 	Breadcrumbs,
@@ -35,6 +36,7 @@ import {
 	settingsIcon,
 	sprintf,
 	Text,
+	useSelect,
 	useState,
 } from '../../../wordpress-packages';
 
@@ -232,6 +234,8 @@ function LatestPostsBody( { canConfigure, homepage, onConfigure } ) {
 export default function HomepageStage() {
 	const homepage = useHomepageState();
 	const { menuId } = useMainMenu();
+	// What this workspace expects, which the setup recommends.
+	const recommends = useSelect( getActiveWorkspace, [] ).home.expectsHomepage;
 	const [ isConfiguring, setIsConfiguring ] = useState( false );
 	const onDone = useOnHomepageSetupDone( () => setIsConfiguring( false ) );
 	const canConfigure = homepage.canSwitch && homepage.shows !== 'theme';
@@ -242,6 +246,7 @@ export default function HomepageStage() {
 			menuId={ menuId }
 			onClose={ () => setIsConfiguring( false ) }
 			onDone={ onDone }
+			recommends={ recommends }
 		/>
 	);
 

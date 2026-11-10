@@ -2,10 +2,11 @@
  * Set up the homepage the way a workspace expects: a page of its own with
  * the posts on another, or the latest posts first.
  *
- * A guided dialog, one step per screen. Each step says what it does, whether
- * it's needed and why people usually do it, with the sensible choice already
- * made, so most people only press Continue. Finishing saves straight away
- * (`apply.js`), rather than waiting for Save with the rest.
+ * A guided dialog, one question per screen, each answered by picking one of
+ * a few choices, the sensible one already picked, so most people only press
+ * Continue. Steps with nothing to choose aren't shown. The last button says
+ * what it does, and saves straight away (`apply.js`), rather than waiting for
+ * Save with the rest.
  *
  * Opened from the notice on Home (`src/routes/home/homepage-notice.jsx`).
  * Imported package by package, like the other pickers, so the chat could
@@ -17,9 +18,7 @@
  */
 import {
 	Button,
-	CheckboxControl,
 	ExternalLink,
-	Icon,
 	Modal,
 	SelectControl,
 	TextControl,
@@ -27,14 +26,8 @@ import {
 } from '@wordpress/components';
 import { store as coreDataStore } from '@wordpress/core-data';
 import { useSelect } from '@wordpress/data';
-import {
-	createInterpolateElement,
-	useId,
-	useRef,
-	useState,
-} from '@wordpress/element';
+import { useId, useRef, useState } from '@wordpress/element';
 import { decodeEntities } from '@wordpress/html-entities';
-import { home as homeIcon, page as pageIcon } from '@wordpress/icons';
 import { __, sprintf } from '@wordpress/i18n';
 import { Badge, Notice, Stack, Text } from '@wordpress/ui';
 
@@ -44,7 +37,7 @@ import { Badge, Notice, Stack, Text } from '@wordpress/ui';
 import { getMenuBlocks } from '../../routes/content/pages/menu-items';
 import { settings } from '../../settings';
 import { applyHomepageSetup } from './apply';
-import { getHomepageSetupPlan } from './plan';
+import { getHomepageSetupPlan, isPageInMenu } from './plan';
 
 // The same pages, in the same order, as the Pages screen asks for, so they
 // come from the same request.
@@ -56,7 +49,6 @@ const PAGES_QUERY = {
 	status: 'publish,draft,pending,private,future',
 	_fields: 'id,title,status,parent,menu_order,link,modified,slug,template',
 };
-const NEW_PAGE = 'new';
 
 /**
  * A page's title as plain text.
@@ -143,6 +135,47 @@ function withOldPageChoices( old, chosen = {} ) {
 }
 
 /**
+ * Every page but the one offered as the homepage, for anyone who wants
+ * another.
+ *
+ * @param {Object} plan  Result of `getHomepageSetupPlan`.
+ * @param {Array}  pages Every page.
+ * @return {Object[]} The pages.
+ */
+function getOtherPages( plan, pages ) {
+	const offered = plan.homepage.page?.id;
+	const others = pages.filter(
+		( page ) => ! offered || Number( page.id ) !== Number( offered )
+	);
+	const isPublished = ( page ) => page.status === 'publish';
+
+	// Published pages first, as one of those is the likely choice.
+	return [
+		...others.filter( isPublished ),
+		...others.filter( ( page ) => ! isPublished( page ) ),
+	];
+}
+
+/**
+ * The page chosen as the homepage from the other pages: the one picked, or
+ * else the first.
+ *
+ * @param {Object}  plan  Result of `getHomepageSetupPlan`.
+ * @param {Array}   pages Every page.
+ * @param {?string} id    The page picked, if any.
+ * @return {?Object} The page.
+ */
+function getOtherHomepage( plan, pages, id ) {
+	const others = getOtherPages( plan, pages );
+
+	return (
+		others.find( ( page ) => String( page.id ) === String( id ) ) ||
+		others[ 0 ] ||
+		null
+	);
+}
+
+/**
  * The plan, with whatever the person changed along the way.
  *
  * @param {Object} plan    Result of `getHomepageSetupPlan`.
@@ -165,17 +198,9 @@ function withChoices( plan, choices, pages ) {
 		};
 	}
 
-	let homepage = plan.homepage.page;
-
-	if ( choices.homepageId === NEW_PAGE ) {
-		homepage = null;
-	} else if ( choices.homepageId ) {
-		homepage =
-			pages.find(
-				( page ) => String( page.id ) === String( choices.homepageId )
-			) || homepage;
-	}
-
+	const homepage = choices.isOtherHomepage
+		? getOtherHomepage( plan, pages, choices.homepageId )
+		: plan.homepage.page;
 	const postsPage =
 		plan.posts.page && plan.posts.page.id === homepage?.id
 			? null
@@ -195,224 +220,68 @@ function withChoices( plan, choices, pages ) {
 	};
 }
 
-// WordPress's own guides, for anyone who wants to read more. Never needed
-// to finish.
-const DOCS = {
-	menus: 'https://wordpress.org/documentation/article/navigation-block/',
-	reading:
-		'https://wordpress.org/documentation/article/settings-reading-screen/',
-	staticHomepage:
-		'https://wordpress.org/documentation/article/create-a-static-front-page/',
-};
+// WordPress's own guide to homepages, for anyone who wants to read more.
+// Never needed to finish.
+const HOMEPAGE_DOCS =
+	'https://wordpress.org/documentation/article/create-a-static-front-page/';
 
 /**
- * A quiet link to WordPress's own guide on a step, opening in a new tab.
+ * A step's question, and a line on why it's asked.
  *
- * @param {Object}  props
- * @param {string}  props.href     The guide.
- * @param {Element} props.children The link's words.
- * @return {Element} The link.
- */
-function DocLink( { href, children } ) {
-	return (
-		<Text className="cnl-homepage-setup__doc" variant="body-sm">
-			<ExternalLink href={ href }>{ children }</ExternalLink>
-		</Text>
-	);
-}
-
-/**
- * A step's heading, with whether it's needed.
- *
- * @param {Object}  props
- * @param {string}  props.title      Heading.
- * @param {boolean} props.isOptional Whether the step can be skipped.
+ * @param {Object} props
+ * @param {string} props.title       The question.
+ * @param {string} props.description Why it's asked, in a line.
  * @return {Element} The heading.
  */
-function StepHeading( { title, isOptional } ) {
+function StepHeading( { title, description } ) {
 	return (
-		<Stack align="center" direction="row" gap="sm">
-			<Text render={ <h2 /> } variant="heading-md">
+		<Stack direction="column" gap="xs">
+			<Text render={ <h2 /> } variant="heading-lg">
 				{ title }
 			</Text>
-			{ isOptional === undefined ? null : (
-				<Badge intent={ isOptional ? 'none' : 'informational' }>
-					{ isOptional ? __( 'Optional' ) : __( 'Needed' ) }
-				</Badge>
+			{ description && (
+				<Text
+					className="cnl-homepage-setup__description"
+					render={ <p /> }
+				>
+					{ description }
+				</Text>
 			) }
 		</Stack>
 	);
 }
 
 /**
- * Plain text, as a paragraph.
- *
- * @param {Object}  props
- * @param {Element} props.children Text.
- * @return {Element} The paragraph.
- */
-function Para( { children } ) {
-	return (
-		<Text className="cnl-homepage-setup__text" render={ <p /> }>
-			{ children }
-		</Text>
-	);
-}
-
-/**
- * The page the homepage will be, as a small card: a page icon, its name and
- * the address it will have, which is the site's own, in full.
- *
- * @param {Object}  props
- * @param {string}  props.title Page title.
- * @param {?Object} props.badge `{ label, intent }`, said beside the name.
- * @param {Element} props.note  Said under the card.
- * @return {Element} The card.
- */
-function HomepageCard( { title, badge, note } ) {
-	return (
-		<>
-			<div className="cnl-homepage-setup__page-card">
-				<Icon icon={ pageIcon } />
-				<Stack direction="column" gap="xs">
-					<Stack align="center" direction="row" gap="sm">
-						<Text variant="heading-md">{ title }</Text>
-						{ badge && (
-							<Badge intent={ badge.intent }>
-								{ badge.label }
-							</Badge>
-						) }
-					</Stack>
-					<Text
-						className="cnl-homepage-setup__page-address"
-						variant="body-sm"
-					>
-						{ settings.homeUrl }
-					</Text>
-				</Stack>
-			</div>
-			{ note && <Para>{ note }</Para> }
-		</>
-	);
-}
-
-function HomepageStep( { plan, pages, choices, setChoices } ) {
-	const [ isPicking, setIsPicking ] = useState( false );
-	const page = plan.homepage.page;
-
-	return (
-		<>
-			<StepHeading
-				isOptional={ false }
-				title={ __( 'Choose your homepage' ) }
-			/>
-			<Para>
-				{ __(
-					'This is the page visitors land on first. Many websites open on a page that says who they are and what they do, with posts on their own pages (e.g. /blog).'
-				) }
-			</Para>
-			<Para>
-				{ createInterpolateElement(
-					page
-						? __(
-								'WordPress will set the following page as your homepage. You can edit it later under <home /> in the sidebar.'
-							)
-						: __(
-								'WordPress will create the following page for you and set it as your homepage. You can edit it later under <home /> in the sidebar.'
-							),
-					{ home: <SidebarHome /> }
-				) }
-			</Para>
-			{ page ? (
-				<HomepageCard
-					badge={
-						page.status !== 'publish' && {
-							intent: 'draft',
-							label: __( 'Not published yet' ),
-						}
-					}
-					note={
-						page.status !== 'publish' &&
-						__(
-							'It will be published, as visitors need to see it.'
-						)
-					}
-					title={ getLabel( page ) }
-				/>
-			) : (
-				<HomepageCard
-					badge={ { intent: 'none', label: __( 'New page' ) } }
-					title={ plan.homepage.newTitle }
-				/>
-			) }
-			{ isPicking ? (
-				<SelectControl
-					__next40pxDefaultSize
-					__nextHasNoMarginBottom
-					label={ __( 'Page for your homepage' ) }
-					onChange={ ( value ) =>
-						setChoices( { ...choices, homepageId: value } )
-					}
-					options={ [
-						{
-							label: sprintf(
-								/* translators: %s: page title, like Home. */
-								__( 'A new page called “%s”' ),
-								plan.homepage.newTitle
-							),
-							value: NEW_PAGE,
-						},
-						...pages.map( ( item ) => ( {
-							label:
-								item.status === 'publish'
-									? getLabel( item )
-									: sprintf(
-											/* translators: %s: page title. */
-											__( '%s (not published yet)' ),
-											getLabel( item )
-										),
-							value: String( item.id ),
-						} ) ),
-					] }
-					value={ page ? String( page.id ) : NEW_PAGE }
-				/>
-			) : (
-				<div>
-					<Button
-						onClick={ () => setIsPicking( true ) }
-						variant="link"
-					>
-						{ page
-							? __( 'Use a different page' )
-							: __( 'Use a page you already have' ) }
-					</Button>
-				</div>
-			) }
-			<DocLink href={ DOCS.staticHomepage }>
-				{ __( 'Learn more about homepages' ) }
-			</DocLink>
-		</>
-	);
-}
-
-/**
  * One choice in a group of radio buttons, built as core's RadioControl
  * builds its options, so it looks the same, with room under its label for
- * what goes with it.
+ * a line of help and anything that goes with it. The choice most people
+ * make says so beside its label, so nobody has to know it already.
  *
  * @param {Object}   props
- * @param {string}   props.id       The input's ID.
- * @param {string}   props.name     The group's name.
- * @param {boolean}  props.checked  Whether it's chosen.
- * @param {string}   props.label    Its label.
- * @param {Function} props.onChange Called when it's chosen.
- * @param {Element}  props.children Shown under its label.
+ * @param {string}   props.id            The input's ID.
+ * @param {string}   props.name          The group's name.
+ * @param {boolean}  props.checked       Whether it's chosen.
+ * @param {string}   props.label         Its label.
+ * @param {string}   props.help          A line under the label.
+ * @param {boolean}  props.isRecommended Whether it's the usual choice.
+ * @param {Function} props.onChange      Called when it's chosen.
+ * @param {Element}  props.children      Shown under its label once chosen.
  * @return {Element} The choice.
  */
-function RadioOption( { id, name, checked, label, onChange, children } ) {
+function RadioOption( {
+	id,
+	name,
+	checked,
+	label,
+	help,
+	isRecommended,
+	onChange,
+	children,
+} ) {
 	return (
 		<div className="components-radio-control__option">
 			<input
+				aria-describedby={ help ? `${ id }-help` : undefined }
 				checked={ checked }
 				className="components-radio-control__input"
 				id={ id }
@@ -420,15 +289,165 @@ function RadioOption( { id, name, checked, label, onChange, children } ) {
 				onChange={ onChange }
 				type="radio"
 			/>
-			<label className="components-radio-control__label" htmlFor={ id }>
+			<label
+				className="components-radio-control__label cnl-homepage-setup__option-label"
+				htmlFor={ id }
+			>
 				{ label }
+				{ isRecommended && (
+					<Badge intent="informational">
+						{ __( 'Recommended' ) }
+					</Badge>
+				) }
 			</label>
-			{ children && (
+			{ ( help || ( checked && children ) ) && (
 				<div className="cnl-homepage-setup__option-detail">
-					{ children }
+					{ help && (
+						<Text
+							className="cnl-homepage-setup__option-help"
+							id={ `${ id }-help` }
+							variant="body-sm"
+						>
+							{ help }
+						</Text>
+					) }
+					{ checked && children }
 				</div>
 			) }
 		</div>
+	);
+}
+
+/**
+ * The radio buttons a step's question is answered with.
+ *
+ * @param {Object}  props
+ * @param {string}  props.legend   What's being chosen, for screen readers.
+ * @param {Element} props.children The choices.
+ * @return {Element} The group.
+ */
+function Choices( { legend, children } ) {
+	return (
+		<fieldset className="components-radio-control cnl-homepage-setup__choices">
+			<VisuallyHidden as="legend">{ legend }</VisuallyHidden>
+			{ children }
+		</fieldset>
+	);
+}
+
+/**
+ * How a page is listed among the choices: its title, and whether it's
+ * published yet.
+ *
+ * @param {Object} page Page record.
+ * @return {string} The label.
+ */
+function getPageOptionLabel( page ) {
+	return page.status === 'publish'
+		? getLabel( page )
+		: sprintf(
+				/* translators: %s: page title. */
+				__( '%s (not published yet)' ),
+				getLabel( page )
+			);
+}
+
+function HomepageStep( { defaults, plan, pages, choices, setChoices } ) {
+	const id = `cnl-homepage-setup-homepage-${ useId() }`;
+	const offered = defaults.homepage.page;
+	const others = getOtherPages( defaults, pages );
+	const chosen = plan.homepage.page;
+	const isOther = !! choices.isOtherHomepage && others.length > 0;
+	const choose = ( change ) => setChoices( { ...choices, ...change } );
+	const isNowPosts = defaults.site?.show_on_front !== 'page';
+	const publishHelp = __( 'Not published yet. It will be published.' );
+	let offeredHelp = null;
+
+	if ( ! offered ) {
+		offeredHelp = __( 'A blank page, ready for you to fill in.' );
+	} else if ( offered.status !== 'publish' ) {
+		offeredHelp = publishHelp;
+	} else if (
+		! isNowPosts &&
+		Number( offered.id ) === Number( defaults.site?.page_on_front )
+	) {
+		offeredHelp = __( 'Your homepage now.' );
+	}
+
+	return (
+		<>
+			<StepHeading
+				description={
+					isNowPosts
+						? __(
+								'Visitors will land on this page instead of a list of your posts.'
+							)
+						: __( 'It’s the first page visitors see.' )
+				}
+				title={ __( 'Which page should be your homepage?' ) }
+			/>
+			<Choices legend={ __( 'Your homepage' ) }>
+				<RadioOption
+					checked={ ! isOther }
+					help={ offeredHelp }
+					id={ `${ id }-offered` }
+					isRecommended={ others.length > 0 }
+					label={
+						offered
+							? sprintf(
+									/* translators: %s: page title, like Home. */
+									__( '“%s”' ),
+									getLabel( offered )
+								)
+							: sprintf(
+									/* translators: %s: page title, like Home. */
+									__( 'A new page called “%s”' ),
+									defaults.homepage.newTitle
+								)
+					}
+					name={ id }
+					onChange={ () => choose( { isOtherHomepage: false } ) }
+				/>
+				{ others.length > 0 && (
+					<RadioOption
+						checked={ isOther }
+						id={ `${ id }-other` }
+						label={
+							offered
+								? __( 'Another page' )
+								: __( 'A page you already have' )
+						}
+						name={ id }
+						onChange={ () => choose( { isOtherHomepage: true } ) }
+					>
+						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							help={
+								chosen && chosen.status !== 'publish'
+									? publishHelp
+									: undefined
+							}
+							hideLabelFromVision
+							label={ __( 'Page for your homepage' ) }
+							onChange={ ( value ) =>
+								choose( { homepageId: value } )
+							}
+							options={ others.map( ( page ) => ( {
+								label: getPageOptionLabel( page ),
+								value: String( page.id ),
+							} ) ) }
+							value={ chosen ? String( chosen.id ) : '' }
+						/>
+					</RadioOption>
+				) }
+			</Choices>
+			<Text className="cnl-homepage-setup__doc" variant="body-sm">
+				<ExternalLink href={ HOMEPAGE_DOCS }>
+					{ __( 'Learn more about homepages' ) }
+				</ExternalLink>
+			</Text>
+		</>
 	);
 }
 
@@ -440,38 +459,37 @@ function PostsPageStep( { plan, choices, setChoices } ) {
 	return (
 		<>
 			<StepHeading
-				isOptional
-				title={ __( 'Where will you put your posts?' ) }
-			/>
-			<Para>
-				{ __(
-					'Your posts move off the homepage, so they need a page of their own, or visitors can’t find them.'
+				description={ __(
+					'Give them a page of their own, so visitors can still find them.'
 				) }
-			</Para>
-			<fieldset className="components-radio-control cnl-homepage-setup__choices">
-				<VisuallyHidden as="legend">
-					{ __( 'Your posts' ) }
-				</VisuallyHidden>
+				title={ __( 'Where should your posts go?' ) }
+			/>
+			<Choices legend={ __( 'Your posts' ) }>
 				<RadioOption
 					checked={ isOn }
+					help={
+						page
+							? __( 'Where they are now.' )
+							: __( 'What most websites do.' )
+					}
 					id={ `${ id }-page` }
+					isRecommended
 					label={
 						page
 							? sprintf(
 									/* translators: %s: page title. */
-									__( 'Keep them on “%s”' ),
+									__( 'On “%s”' ),
 									getLabel( page )
 								)
-							: __( 'Create a page for posts' )
+							: __( 'On a new page' )
 					}
 					name={ id }
 					onChange={ () => choose( true ) }
 				>
-					{ isOn && ! page && (
+					{ ! page && (
 						<TextControl
 							__next40pxDefaultSize
 							__nextHasNoMarginBottom
-							help={ __( 'You can rename it later.' ) }
 							hideLabelFromVision
 							label={ __( 'Page name' ) }
 							onChange={ ( value ) =>
@@ -483,324 +501,198 @@ function PostsPageStep( { plan, choices, setChoices } ) {
 				</RadioOption>
 				<RadioOption
 					checked={ ! isOn }
+					help={ __( 'You can add a page for them later.' ) }
 					id={ `${ id }-none` }
 					label={ __( 'I don’t want a blog' ) }
 					name={ id }
 					onChange={ () => choose( false ) }
-				>
-					<Text
-						className="cnl-homepage-setup__option-help"
-						variant="body-sm"
-					>
-						{ __(
-							'Your posts stay on your site, but no page lists them. You can change this later.'
-						) }
-					</Text>
-				</RadioOption>
-			</fieldset>
-			<DocLink href={ DOCS.staticHomepage }>
-				{ __( 'Learn more about a page for your posts' ) }
-			</DocLink>
+				/>
+			</Choices>
 		</>
 	);
 }
 
+/**
+ * The links finishing would add to a menu of links: Home, when it has no
+ * way home yet, and the page for the posts, when it isn't there already.
+ *
+ * @param {Object} plan The plan to carry out.
+ * @return {string[]} The links' names.
+ */
+function getMenuAdditions( plan ) {
+	if ( ! plan.menu || plan.menu.isAutomatic ) {
+		return [];
+	}
+
+	const postsPage = plan.posts.page;
+
+	return [
+		! plan.menu.hasHomeLink && __( 'Home' ),
+		plan.posts.isOn &&
+			! ( postsPage && isPageInMenu( plan.menu, postsPage.id ) ) &&
+			( postsPage ? getLabel( postsPage ) : plan.posts.newTitle ),
+	].filter( Boolean );
+}
+
 function MenuStep( { plan, menuTitle, choices, setChoices } ) {
+	const id = `cnl-homepage-setup-menu-${ useId() }`;
+	const additions = getMenuAdditions( plan );
+	const choose = ( value ) => setChoices( { ...choices, useMenu: value } );
+	const menuName = menuTitle || __( 'your menu' );
+
 	return (
 		<>
-			<StepHeading isOptional title={ __( 'Add them to your menu' ) } />
-			<Para>
-				{ __(
-					'Your menu lists its links by hand, so new pages don’t join it by themselves. Adding them helps visitors find their way home, and to your posts.'
+			<StepHeading
+				description={ __(
+					'Your menu doesn’t pick up new pages by itself.'
 				) }
-			</Para>
-			<CheckboxControl
-				__nextHasNoMarginBottom
-				checked={ plan.useMenu }
-				label={ sprintf(
-					/* translators: %s: menu name. */
-					__( 'Add them to “%s”' ),
-					menuTitle || __( 'your menu' )
-				) }
-				onChange={ ( value ) =>
-					setChoices( { ...choices, useMenu: value } )
-				}
+				title={ __( 'Add them to your menu?' ) }
 			/>
-			<DocLink href={ DOCS.menus }>
-				{ __( 'Learn more about menus' ) }
-			</DocLink>
+			<Choices legend={ __( 'Your menu' ) }>
+				<RadioOption
+					checked={ plan.useMenu }
+					help={ __( 'So visitors can find them.' ) }
+					id={ `${ id }-add` }
+					isRecommended
+					label={
+						additions.length > 1
+							? sprintf(
+									/* translators: 1: page title, like Home. 2: page title, like Blog. 3: menu name. */
+									__( 'Add “%1$s” and “%2$s” to “%3$s”' ),
+									additions[ 0 ],
+									additions[ 1 ],
+									menuName
+								)
+							: sprintf(
+									/* translators: 1: page title. 2: menu name. */
+									__( 'Add “%1$s” to “%2$s”' ),
+									additions[ 0 ],
+									menuName
+								)
+					}
+					name={ id }
+					onChange={ () => choose( true ) }
+				/>
+				<RadioOption
+					checked={ ! plan.useMenu }
+					help={ __( 'You can add them from Menus later.' ) }
+					id={ `${ id }-leave` }
+					label={ __( 'Leave my menu as it is' ) }
+					name={ id }
+					onChange={ () => choose( false ) }
+				/>
+			</Choices>
 		</>
 	);
 }
 
 function LatestPostsStep() {
 	return (
-		<>
-			<StepHeading
-				isOptional={ false }
-				title={ __( 'Show your latest posts first' ) }
-			/>
-			<Para>
-				{ __(
-					'Your homepage will list your newest posts, newest first, so visitors see what you’ve just written as soon as they arrive. Most blogs open this way.'
-				) }
-			</Para>
-			<DocLink href={ DOCS.reading }>
-				{ __( 'Learn more about what your homepage shows' ) }
-			</DocLink>
-		</>
+		<StepHeading
+			description={ __(
+				'Your homepage will list your newest posts, so visitors see what you’ve just written as soon as they arrive.'
+			) }
+			title={ __( 'Show your latest posts first' ) }
+		/>
 	);
 }
 
 /**
- * A page that's done its job, the old homepage or the old posts page: keep
- * it as a page of its own, or delete it, and whether it stays in the menu.
+ * The old homepage and the old posts page, together: kept or deleted. Kept
+ * ones leave the menu, as the homepage takes their place.
  *
  * @param {Object}   props
- * @param {string}   props.name       Which page: `oldHomepage` or
- *                                    `oldPostsPage`.
- * @param {string}   props.heading    The step's heading.
- * @param {string}   props.intro      Why it's being asked.
- * @param {string}   props.keepHelp   What keeping it means.
- * @param {string}   props.menuHelp   Why it should leave the menu.
  * @param {Object}   props.plan       The plan.
  * @param {Object}   props.choices    What's been chosen.
  * @param {Function} props.setChoices Changes it.
  * @return {Element} The step.
  */
-function OldPageStep( {
-	name,
-	heading,
-	intro,
-	keepHelp,
-	menuHelp,
-	plan,
-	choices,
-	setChoices,
-} ) {
-	const { page, isInMenu, leaveMenu, toTrash } = plan[ name ];
-	const id = `cnl-homepage-setup-${ name }-${ useId() }`;
-	const title = getLabel( page );
-	const choose = ( change ) =>
+function OldPagesStep( { plan, choices, setChoices } ) {
+	const id = `cnl-homepage-setup-old-pages-${ useId() }`;
+	const olds = [ plan.oldHomepage, plan.oldPostsPage ].filter( Boolean );
+	const titles = olds.map( ( old ) => getLabel( old.page ) );
+	const toTrash = olds.some( ( old ) => old.toTrash );
+	const isAnyInMenu = olds.some( ( old ) => old.isInMenu );
+	const choose = ( value ) =>
 		setChoices( {
 			...choices,
-			[ name ]: { ...choices[ name ], ...change },
+			oldHomepage: { ...choices.oldHomepage, toTrash: value },
+			oldPostsPage: { ...choices.oldPostsPage, toTrash: value },
 		} );
+	const isOne = titles.length === 1;
 
 	return (
 		<>
-			<StepHeading isOptional title={ heading } />
-			<Para>{ intro }</Para>
-			<fieldset className="components-radio-control cnl-homepage-setup__choices">
-				<VisuallyHidden as="legend">{ heading }</VisuallyHidden>
+			<StepHeading
+				description={
+					isOne
+						? sprintf(
+								/* translators: %s: page title. */
+								__(
+									'Your homepage will list your latest posts, so “%s” isn’t needed for that any more.'
+								),
+								titles[ 0 ]
+							)
+						: sprintf(
+								/* translators: 1: page title. 2: page title. */
+								__(
+									'Your homepage will list your latest posts, so “%1$s” and “%2$s” aren’t needed for that any more.'
+								),
+								titles[ 0 ],
+								titles[ 1 ]
+							)
+				}
+				title={
+					isOne
+						? __( 'Keep your old page?' )
+						: __( 'Keep your old pages?' )
+				}
+			/>
+			<Choices legend={ __( 'Your old pages' ) }>
 				<RadioOption
 					checked={ ! toTrash }
+					help={
+						isAnyInMenu
+							? __(
+									'Nothing is lost. You’ll find them under Pages, out of your menu.'
+								)
+							: __(
+									'Nothing is lost. You’ll find them under Pages.'
+								)
+					}
 					id={ `${ id }-keep` }
-					label={ sprintf(
-						/* translators: %s: page title. */
-						__( 'Keep my old “%s” page' ),
-						title
-					) }
+					isRecommended
+					label={
+						isOne
+							? sprintf(
+									/* translators: %s: page title. */
+									__( 'Keep “%s”' ),
+									titles[ 0 ]
+								)
+							: __( 'Keep them' )
+					}
 					name={ id }
-					onChange={ () => choose( { toTrash: false } ) }
-				>
-					<Text
-						className="cnl-homepage-setup__option-help"
-						variant="body-sm"
-					>
-						{ keepHelp }
-					</Text>
-				</RadioOption>
+					onChange={ () => choose( false ) }
+				/>
 				<RadioOption
 					checked={ toTrash }
-					id={ `${ id }-trash` }
-					label={ sprintf(
-						/* translators: %s: page title. */
-						__( 'Delete my old “%s” page' ),
-						title
+					help={ __(
+						'They go to the trash, where you can restore them.'
 					) }
-					name={ id }
-					onChange={ () => choose( { toTrash: true } ) }
-				>
-					<Text
-						className="cnl-homepage-setup__option-help"
-						variant="body-sm"
-					>
-						{ __(
-							'It goes to the trash, so you can bring it back for a while.'
-						) }
-					</Text>
-				</RadioOption>
-			</fieldset>
-			{ isInMenu && (
-				<CheckboxControl
-					__nextHasNoMarginBottom
-					checked={ leaveMenu }
-					disabled={ toTrash }
-					help={
-						toTrash
-							? __( 'A deleted page leaves your menu too.' )
-							: menuHelp
+					id={ `${ id }-trash` }
+					label={
+						isOne
+							? sprintf(
+									/* translators: %s: page title. */
+									__( 'Delete “%s”' ),
+									titles[ 0 ]
+								)
+							: __( 'Delete them' )
 					}
-					label={ __( 'Remove it from my menu' ) }
-					onChange={ ( value ) => choose( { leaveMenu: value } ) }
+					name={ id }
+					onChange={ () => choose( true ) }
 				/>
-			) }
-		</>
-	);
-}
-
-function OldHomepageStep( props ) {
-	const title = getLabel( props.plan.oldHomepage.page );
-
-	return (
-		<OldPageStep
-			{ ...props }
-			heading={ __( 'Your old homepage' ) }
-			intro={ sprintf(
-				/* translators: %s: page title. */
-				__(
-					'“%s” won’t be your homepage any more. Keep it as a page of its own, or delete it.'
-				),
-				title
-			) }
-			keepHelp={ __( 'You can still find it under Pages.' ) }
-			menuHelp={ __(
-				'Your menu already takes visitors home, so a second link for this page would be confusing.'
-			) }
-			name="oldHomepage"
-		/>
-	);
-}
-
-function OldPostsPageStep( props ) {
-	const title = getLabel( props.plan.oldPostsPage.page );
-
-	return (
-		<OldPageStep
-			{ ...props }
-			heading={ __( 'Your old posts page' ) }
-			intro={ sprintf(
-				/* translators: %s: page title. */
-				__(
-					'Your posts will be on your homepage now, so “%s” won’t list them any more. Keep it as a page of its own, or delete it.'
-				),
-				title
-			) }
-			keepHelp={ __(
-				'You can still find it under Pages, but it won’t list your posts.'
-			) }
-			menuHelp={ __(
-				'Your homepage lists your posts now, so a link to this page would lead visitors to the same thing.'
-			) }
-			name="oldPostsPage"
-		/>
-	);
-}
-
-/**
- * What happens to an old homepage or posts page, in plain words.
- *
- * @param {?Object} old The page's plan.
- * @return {?string} The change, if any.
- */
-function getOldPageChange( old ) {
-	if ( old?.toTrash ) {
-		return sprintf(
-			/* translators: %s: page title. */
-			__( '“%s” will go to the trash.' ),
-			getLabel( old.page )
-		);
-	}
-
-	if ( old?.leaveMenu ) {
-		return sprintf(
-			/* translators: %s: page title. */
-			__( '“%s” will leave your menu.' ),
-			getLabel( old.page )
-		);
-	}
-
-	return null;
-}
-
-/**
- * What finishing will do, in plain words.
- *
- * @param {Object} plan The plan to carry out.
- * @return {string[]} One line per change.
- */
-function getChanges( plan ) {
-	if ( plan.to === 'posts' ) {
-		return [
-			__( 'Your homepage will list your latest posts.' ),
-			...[ plan.oldHomepage, plan.oldPostsPage ].map( getOldPageChange ),
-		].filter( Boolean );
-	}
-
-	const postsTitle = plan.posts.page
-		? getLabel( plan.posts.page )
-		: plan.posts.newTitle;
-
-	return [
-		plan.homepage.page
-			? sprintf(
-					/* translators: %s: page title. */
-					__( 'Your homepage will show “%s”.' ),
-					getLabel( plan.homepage.page )
-				)
-			: sprintf(
-					/* translators: %s: page title, like Home. */
-					__( 'A new page, “%s”, will become your homepage.' ),
-					plan.homepage.newTitle
-				),
-		plan.posts.isOn &&
-			sprintf(
-				/* translators: %s: page title, like Blog. */
-				__( 'Your posts will be listed on “%s”.' ),
-				postsTitle
-			),
-		! plan.posts.isOn &&
-			__( 'No page will list your posts. You can change this later.' ),
-		plan.useMenu && __( 'Both pages will join your menu.' ),
-	].filter( Boolean );
-}
-
-/**
- * "Home" as the sidebar shows it, its icon on black, so it's clear where to
- * go to change the homepage again.
- *
- * @return {Element} The sidebar's Home, inline.
- */
-function SidebarHome() {
-	return (
-		<span className="cnl-homepage-setup__sidebar-home">
-			<span className="cnl-homepage-setup__sidebar-home-icon">
-				<Icon icon={ homeIcon } size={ 16 } />
-			</span>
-			{ __( 'Home' ) }
-		</span>
-	);
-}
-
-function ReviewStep( { plan } ) {
-	return (
-		<>
-			<StepHeading title={ __( 'Ready to switch?' ) } />
-			<Para>{ __( 'This is what will change:' ) }</Para>
-			<ul className="cnl-homepage-setup__changes">
-				{ getChanges( plan ).map( ( change ) => (
-					<li key={ change }>{ change }</li>
-				) ) }
-			</ul>
-			<Para>
-				{ createInterpolateElement(
-					__(
-						'It’s saved as soon as you finish. You can change it whenever you like from <home /> in the sidebar.'
-					),
-					{ home: <SidebarHome /> }
-				) }
-			</Para>
+			</Choices>
 		</>
 	);
 }
@@ -811,82 +703,105 @@ function ReviewStep( { plan } ) {
  *
  * @param {Object}   props
  * @param {string}   props.direction    `page` or `posts`, as chosen.
+ * @param {string}   props.recommends   `page` or `posts`, what the
+ *                                      workspace expects, if anything.
  * @param {Function} props.setDirection Changes it.
  * @return {Element} The step.
  */
-function ShowsStep( { direction, setDirection } ) {
+function ShowsStep( { direction, recommends, setDirection } ) {
 	const id = `cnl-homepage-setup-shows-${ useId() }`;
 
 	return (
 		<>
 			<StepHeading
-				isOptional={ false }
+				description={ __( 'It’s the first thing they see.' ) }
 				title={ __( 'What should visitors see first?' ) }
 			/>
-			<fieldset className="components-radio-control cnl-homepage-setup__choices">
-				<VisuallyHidden as="legend">
-					{ __( 'Your homepage shows' ) }
-				</VisuallyHidden>
+			<Choices legend={ __( 'Your homepage shows' ) }>
 				<RadioOption
 					checked={ direction === 'page' }
+					help={ __(
+						'Most websites open on a page that says who they are. Posts go on a page of their own.'
+					) }
 					id={ `${ id }-page` }
+					isRecommended={ recommends === 'page' }
 					label={ __( 'A page' ) }
 					name={ id }
 					onChange={ () => setDirection( 'page' ) }
-				>
-					<Text
-						className="cnl-homepage-setup__option-help"
-						variant="body-sm"
-					>
-						{ __(
-							'A page of its own, with your posts on another page.'
-						) }
-					</Text>
-				</RadioOption>
+				/>
 				<RadioOption
 					checked={ direction === 'posts' }
+					help={ __(
+						'Most blogs open on their newest posts, newest first.'
+					) }
 					id={ `${ id }-posts` }
+					isRecommended={ recommends === 'posts' }
 					label={ __( 'Your latest posts' ) }
 					name={ id }
 					onChange={ () => setDirection( 'posts' ) }
-				>
-					<Text
-						className="cnl-homepage-setup__option-help"
-						variant="body-sm"
-					>
-						{ __( 'Your newest posts, newest first.' ) }
-					</Text>
-				</RadioOption>
-			</fieldset>
-			<DocLink href={ DOCS.reading }>
-				{ __( 'Learn more about what your homepage shows' ) }
-			</DocLink>
+				/>
+			</Choices>
 		</>
 	);
 }
 
 const STEPS = {
 	homepage: HomepageStep,
+	latest: LatestPostsStep,
 	menu: MenuStep,
-	oldHomepage: OldHomepageStep,
-	oldPostsPage: OldPostsPageStep,
+	oldPages: OldPagesStep,
 	posts: PostsPageStep,
-	review: ReviewStep,
 	shows: ShowsStep,
 };
 
 /**
+ * The steps to show: the plan's, after the question of what the homepage
+ * shows when the dialog asks it, and without any left with nothing to ask.
+ *
+ * @param {Object}  plan       The plan to carry out.
+ * @param {boolean} isChoosing Whether the dialog asks what the homepage
+ *                             shows.
+ * @return {string[]} The steps.
+ */
+function getSteps( plan, isChoosing ) {
+	const steps = plan.steps.filter( ( step ) => {
+		// Choosing the latest posts already said what they'd do.
+		if ( step === 'latest' ) {
+			return ! isChoosing;
+		}
+
+		// Nothing to add when the menu already has both.
+		if ( step === 'menu' ) {
+			return getMenuAdditions( plan ).length > 0;
+		}
+
+		return true;
+	} );
+
+	return isChoosing ? [ 'shows', ...steps ] : steps;
+}
+
+/**
  * @param {Object}   props
- * @param {string}   [props.expects] `page` or `posts`, what the workspace
- *                                   expects the homepage to show. Without
- *                                   it, the first step asks.
- * @param {?number}  props.menuId    The menu in the site header, if any.
- * @param {Function} props.onClose   Called when the dialog closes unfinished.
- * @param {Function} props.onDone    Called with the plan carried out, and the
- *                                   pages used, once it's saved.
+ * @param {string}   [props.expects]    `page` or `posts`, what the workspace
+ *                                      expects the homepage to show. Without
+ *                                      it, the first step asks.
+ * @param {?number}  props.menuId       The menu in the site header, if any.
+ * @param {Function} props.onClose      Called when the dialog closes unfinished.
+ * @param {Function} props.onDone       Called with the plan carried out, and the
+ *                                      pages used, once it's saved.
+ * @param {string}   [props.recommends] `page` or `posts`, what the workspace
+ *                                      expects, recommended when the first
+ *                                      step asks.
  * @return {Element} The dialog.
  */
-export default function HomepageSetup( { expects, menuId, onClose, onDone } ) {
+export default function HomepageSetup( {
+	expects,
+	menuId,
+	onClose,
+	onDone,
+	recommends,
+} ) {
 	const siteNow = useSiteNow( menuId );
 	const [ choices, setChoices ] = useState( {} );
 	const [ direction, setDirection ] = useState( null );
@@ -921,6 +836,7 @@ export default function HomepageSetup( { expects, menuId, onClose, onDone } ) {
 					: 'posts',
 			page: getPlan( 'page' ),
 			posts: getPlan( 'posts' ),
+			site: siteNow.site,
 		};
 	}
 
@@ -938,18 +854,15 @@ export default function HomepageSetup( { expects, menuId, onClose, onDone } ) {
 				size="medium"
 				title={ title }
 			>
-				<Para>{ __( 'Looking at your site…' ) }</Para>
+				<Text render={ <p /> }>{ __( 'Looking at your site…' ) }</Text>
 			</Modal>
 		);
 	}
 
-	const steps = isChoosing ? [ 'shows', ...plan.steps ] : plan.steps;
-	const stepId = steps[ stepIndex ];
-	const StepBody =
-		stepId === 'posts' && plan.to === 'posts'
-			? LatestPostsStep
-			: STEPS[ stepId ];
-	const isLast = stepIndex === steps.length - 1;
+	const steps = getSteps( plan, isChoosing );
+	const stepId = steps[ Math.min( stepIndex, steps.length - 1 ) ];
+	const StepBody = STEPS[ stepId ];
+	const isLast = stepIndex >= steps.length - 1;
 
 	const finish = async () => {
 		setIsSaving( true );
@@ -980,15 +893,17 @@ export default function HomepageSetup( { expects, menuId, onClose, onDone } ) {
 			size="medium"
 			title={ title }
 		>
-			<Stack direction="column" gap="md">
+			<Stack direction="column" gap="lg">
 				<StepBody
 					choices={ choices }
+					defaults={ { ...basePlan, site: planRef.current.site } }
 					direction={ to }
-					setDirection={ setDirection }
 					menuTitle={ siteNow.menu?.title }
 					pages={ pages }
 					plan={ plan }
+					recommends={ recommends }
 					setChoices={ setChoices }
+					setDirection={ setDirection }
 				/>
 				{ error && (
 					<Notice.Root intent="error">
@@ -997,14 +912,19 @@ export default function HomepageSetup( { expects, menuId, onClose, onDone } ) {
 				) }
 			</Stack>
 			<div className="cnl-homepage-setup__footer">
-				<Text className="cnl-homepage-setup__count" variant="body-sm">
-					{ sprintf(
-						/* translators: 1: this step's number. 2: how many steps. */
-						__( 'Step %1$d of %2$d' ),
-						stepIndex + 1,
-						steps.length
-					) }
-				</Text>
+				{ steps.length > 1 && (
+					<Text
+						className="cnl-homepage-setup__count"
+						variant="body-sm"
+					>
+						{ sprintf(
+							/* translators: 1: this step's number. 2: how many steps. */
+							__( 'Step %1$d of %2$d' ),
+							stepIndex + 1,
+							steps.length
+						) }
+					</Text>
+				) }
 				<div className="cnl-homepage-setup__actions">
 					{ stepIndex > 0 && (
 						<Button
@@ -1026,7 +946,12 @@ export default function HomepageSetup( { expects, menuId, onClose, onDone } ) {
 						}
 						variant="primary"
 					>
-						{ isLast ? __( 'Finish' ) : __( 'Continue' ) }
+						{ /* Saves straight away, so it says what it does. */ }
+						{ isLast &&
+							plan.to === 'posts' &&
+							__( 'Show latest posts' ) }
+						{ isLast && plan.to === 'page' && __( 'Set homepage' ) }
+						{ ! isLast && __( 'Continue' ) }
 					</Button>
 				</div>
 			</div>

@@ -1,6 +1,4 @@
-@use "@wordpress/base-styles/colors" as *;
-
-// Setting up the homepage, a step at a time. See
+// Setting up the homepage, a question at a time. See
 // `src/pickers/homepage-setup/index.jsx`.
 
 .cnl-homepage-setup {
@@ -11,15 +9,11 @@
 	}
 }
 
-.cnl-homepage-setup__text {
+// The step's question is the heading that matters; its one line of why sits
+// under it, quieter.
+.cnl-homepage-setup__description {
 	margin: 0;
-	color: var(--wpds-color-foreground-content-neutral);
-}
-
-.cnl-homepage-setup__changes {
-	margin: 0;
-	list-style: disc;
-	padding-inline-start: var(--wpds-dimension-padding-xl);
+	color: var(--wpds-color-foreground-content-neutral-weak);
 }
 
 .cnl-homepage-setup__footer {
@@ -27,7 +21,7 @@
 	align-items: center;
 	justify-content: space-between;
 	gap: var(--wpds-dimension-gap-md);
-	margin-top: var(--wpds-dimension-gap-xl);
+	margin-top: var(--wpds-dimension-gap-2xl);
 }
 
 .cnl-homepage-setup__count {
@@ -40,65 +34,40 @@
 	margin-inline-start: auto;
 }
 
-// "Home" as the sidebar shows it: its icon on the sidebar's black, then its
-// name, so it's clear where to go to change the homepage again.
-.cnl-homepage-setup__sidebar-home {
-	font-weight: 600;
-	white-space: nowrap;
-}
-
-// Sits on the line like a letter, centred on the text either side.
-.cnl-homepage-setup__sidebar-home-icon {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 20px;
-	height: 20px;
-	margin-inline-end: var(--wpds-dimension-gap-xs);
-	border-radius: var(--wpds-border-radius-sm);
-	background: $gray-900;
-	color: $white;
-	vertical-align: -5px;
-}
-
-// Radio choices with what goes with each right under its label.
+// Radio choices with a line of help, and what goes with each once chosen,
+// right under its label.
 .cnl-homepage-setup__choices {
 	display: flex;
 	flex-direction: column;
-	gap: var(--wpds-dimension-gap-md);
+	gap: var(--wpds-dimension-gap-lg);
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+// The label, with "Recommended" beside the usual choice.
+.cnl-homepage-setup__option-label {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
 }
 
 .cnl-homepage-setup__option-detail {
+	display: flex;
+	flex-direction: column;
 	grid-column: 2;
 	grid-row: 2;
-	margin-top: var(--wpds-dimension-gap-sm);
+	gap: var(--wpds-dimension-gap-sm);
+	margin-top: var(--wpds-dimension-gap-xs);
 }
 
 .cnl-homepage-setup__option-help {
 	color: var(--wpds-color-foreground-content-neutral-weak);
 }
 
-// The page the homepage will be: a page icon, its name and its address.
-.cnl-homepage-setup__page-card {
-	display: flex;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-md);
-	padding: var(--wpds-dimension-padding-md) var(--wpds-dimension-padding-lg);
-	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral);
-	border-radius: var(--wpds-border-radius-md);
-
-	> svg {
-		flex-shrink: 0;
-		fill: currentcolor;
-	}
-}
-
-.cnl-homepage-setup__page-address {
-	color: var(--wpds-color-foreground-content-neutral-weak);
-}
-
-// WordPress's own guide on a step: small and grey, there for anyone who
-// wants it, never in the way.
+// WordPress's own guide: small and grey, there for anyone who wants it,
+// never in the way.
 .cnl-homepage-setup__doc {
 	color: var(--wpds-color-foreground-content-neutral-weak);
 

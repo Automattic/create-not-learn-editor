@@ -142,8 +142,6 @@ function planToPage( { site, pages, menu, getTitle, labels, homeUrl } ) {
 		steps.push( 'menu' );
 	}
 
-	steps.push( 'review' );
-
 	return {
 		homepage: {
 			newTitle: labels.home,
@@ -186,27 +184,20 @@ function planToPosts( { site, pages, menu } ) {
 	const homepage =
 		site.show_on_front === 'page' ? byId( site.page_on_front ) : null;
 	const postsPage = byId( site.page_for_posts );
-	const steps = [ 'posts' ];
 	const oldHomepage = isUsable( homepage ) ? homepage : null;
 	const oldPostsPage =
 		isUsable( postsPage ) && postsPage.status === 'publish'
 			? postsPage
 			: null;
 
-	if ( oldHomepage ) {
-		steps.push( 'oldHomepage' );
-	}
-
-	if ( oldPostsPage ) {
-		steps.push( 'oldPostsPage' );
-	}
-
-	steps.push( 'review' );
+	// One step for both old pages, when there are any. Without them there's
+	// nothing to choose, only the switch to explain.
+	const steps = oldHomepage || oldPostsPage ? [ 'oldPages' ] : [ 'latest' ];
 
 	return {
 		menu,
 		oldHomepage: oldHomepage && {
-			// Out of the menu by default, so it doesn't link home twice.
+			// Out of the menu, so it doesn't link home twice.
 			isInMenu: isPageInMenu( menu, oldHomepage.id ),
 			leaveMenu: isPageInMenu( menu, oldHomepage.id ),
 			page: oldHomepage,
@@ -214,8 +205,8 @@ function planToPosts( { site, pages, menu } ) {
 			toTrash: false,
 		},
 		oldPostsPage: oldPostsPage && {
-			// Out of the menu by default: its posts are on the homepage now,
-			// so it would only show the same thing twice.
+			// Out of the menu: its posts are on the homepage now, so it would
+			// only show the same thing twice.
 			isInMenu: isPageInMenu( menu, oldPostsPage.id ),
 			leaveMenu: isPageInMenu( menu, oldPostsPage.id ),
 			page: oldPostsPage,

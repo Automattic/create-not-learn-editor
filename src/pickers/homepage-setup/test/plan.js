@@ -249,16 +249,11 @@ describe( 'getHomepageSetupPlan, to a homepage page', () => {
 			site: postsFront,
 		} );
 
-		expect( automatic.steps ).toEqual( [ 'homepage', 'posts', 'review' ] );
+		expect( automatic.steps ).toEqual( [ 'homepage', 'posts' ] );
 		expect( automatic.useMenu ).toBe( false );
-		expect( byHand.steps ).toEqual( [
-			'homepage',
-			'posts',
-			'menu',
-			'review',
-		] );
+		expect( byHand.steps ).toEqual( [ 'homepage', 'posts', 'menu' ] );
 		expect( byHand.useMenu ).toBe( true );
-		expect( noMenu.steps ).toEqual( [ 'homepage', 'posts', 'review' ] );
+		expect( noMenu.steps ).toEqual( [ 'homepage', 'posts' ] );
 		expect( noMenu.menu ).toBe( null );
 	} );
 
@@ -297,7 +292,7 @@ describe( 'getHomepageSetupPlan, to the latest posts', () => {
 		} );
 
 		expect( result.to ).toBe( 'posts' );
-		expect( result.steps ).toEqual( [ 'posts', 'oldHomepage', 'review' ] );
+		expect( result.steps ).toEqual( [ 'oldPages' ] );
 		expect( result.oldHomepage ).toEqual( {
 			isInMenu: true,
 			leaveMenu: true,
@@ -327,12 +322,7 @@ describe( 'getHomepageSetupPlan, to the latest posts', () => {
 			site: { ...pageFront, page_for_posts: blog.id },
 		} );
 
-		expect( result.steps ).toEqual( [
-			'posts',
-			'oldHomepage',
-			'oldPostsPage',
-			'review',
-		] );
+		expect( result.steps ).toEqual( [ 'oldPages' ] );
 		expect( result.oldPostsPage ).toEqual( {
 			isInMenu: true,
 			leaveMenu: true,
@@ -349,7 +339,7 @@ describe( 'getHomepageSetupPlan, to the latest posts', () => {
 			site: { ...pageFront, page_for_posts: draftBlog.id },
 		} );
 
-		expect( result.steps ).toEqual( [ 'posts', 'oldHomepage', 'review' ] );
+		expect( result.steps ).toEqual( [ 'oldPages' ] );
 		expect( result.oldPostsPage ).toBe( null );
 	} );
 
@@ -364,7 +354,7 @@ describe( 'getHomepageSetupPlan, to the latest posts', () => {
 			},
 		} );
 
-		expect( result.steps ).toEqual( [ 'posts', 'review' ] );
+		expect( result.steps ).toEqual( [ 'latest' ] );
 		expect( result.oldHomepage ).toBe( null );
 	} );
 } );
