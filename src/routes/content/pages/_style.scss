@@ -529,3 +529,31 @@ $cnl-accent: var(--wp-admin-theme-color, #3858e9);
 		animation: none;
 	}
 }
+
+// ---------------------------------------------------------------------------
+// The list of pages while the menu is set by hand: DataViews' list layout,
+// with rows only as tall as their title and status.
+// ---------------------------------------------------------------------------
+
+.cnl-pages-data-view .dataviews-view-list {
+
+	div[role="row"] .dataviews-view-list__item-wrapper {
+		padding-block: var(--wpds-dimension-padding-sm);
+	}
+
+	div[role="row"] .dataviews-view-list__field-wrapper,
+	div[role="row"] .dataviews-view-list__field-value {
+		min-height: 0;
+	}
+}
+
+.cnl-pages-data-view__status {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-xs);
+
+	svg {
+		flex-shrink: 0;
+		fill: currentcolor;
+	}
+}

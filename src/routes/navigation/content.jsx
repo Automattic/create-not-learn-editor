@@ -37,6 +37,7 @@ import {
 	getNavigationMenuId,
 	navigateToNavigationEditRoute,
 } from './menu-helpers';
+import useMainMenu from '../content/use-main-menu';
 import { useNavigationMenus } from './use-navigation-menus';
 import {
 	DeleteNavigationMenuModal,
@@ -68,10 +69,12 @@ function Stage() {
 		isResolvingLocations,
 		locationsError,
 		locationsMap,
-		mainMenuId,
 		menus,
 		templateParts,
 	} = useNavigationMenus();
+	// An auto main menu's pages can be switched on and off on the Pages screen
+	// too, so the subtitle says so while it is one.
+	const { isAutoMenu: isMainMenuAuto } = useMainMenu();
 	const commonLocations = useMemo(
 		() => getCommonMenuLocations( templateParts, menus ),
 		[ menus, templateParts ]
@@ -230,11 +233,8 @@ function Stage() {
 			setIsRowActionSaving( false );
 		}
 	};
-	// The main menu is looked after alongside the pages it links to.
 	const editNavigationMenu = ( menu ) =>
-		getNavigationMenuId( menu ) === mainMenuId
-			? navigate( { to: '/types/page/list/all' } )
-			: navigateToNavigationEditRoute( navigate, menu );
+		navigateToNavigationEditRoute( navigate, menu );
 	const navigationEmpty = (
 		<div className="cnl-editor-empty-state">
 			<EmptyState.Root>
@@ -272,9 +272,13 @@ function Stage() {
 			hasPadding={ false }
 			headingLevel={ 2 }
 			key="navigation-page"
-			subTitle={ __(
-				'The links visitors use to get around your site. Your main menu, the one in your header, is looked after on the Pages screen.'
-			) }
+			subTitle={
+				isMainMenuAuto
+					? __(
+							'The links visitors use to get around your site. Your main menu, the one in your header, lists your pages by itself. Choose which on the Pages screen.'
+						)
+					: __( 'The links visitors use to get around your site.' )
+			}
 			title={ __( 'Menus' ) }
 		>
 			{ ( error || locationsError ) && (

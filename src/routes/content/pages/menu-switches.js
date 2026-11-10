@@ -1,12 +1,14 @@
 /**
- * The Pages screen's menu switches: one per page, for whether it is in the
- * site's main menu.
+ * Menu switches: one per page, for whether it is in a menu. The Pages list
+ * shows them for the main menu while it is an auto menu, and a page's details
+ * show one for each menu.
  *
- * A menu that updates by itself (a Page List) stays that way: switching a
- * page off leaves it out, rather than turning the menu into links set by hand,
- * and its order is the pages' own order, changed by dragging them. A menu set
- * by hand has links added and taken out, and its order is changed from each
- * page's ⋮. Anything but pages is added on the Menus screen.
+ * An auto menu (a lone Page List) stays that way: switching a page off leaves
+ * it out, rather than turning the menu into links set by hand, and its order
+ * is the pages' own order, changed by dragging them. It only ever lists pages,
+ * so it can't take a Home link for a homepage that shows the latest posts. A
+ * menu set by hand has links added and taken out; it is changed everywhere
+ * else on the Menus screen.
  *
  * Every change waits for Save, like any other site edit.
  */
@@ -17,6 +19,7 @@
 import {
 	getNavigationContentFromEditedRecord,
 	getNavigationItemLabel,
+	isAutoMenuBlocks,
 	serializeNavigationBlocks,
 } from '../../navigation-edit/navigation-blocks';
 import { showMenuSetByHandNotice } from '../../navigation-edit/list-view';
@@ -32,7 +35,6 @@ import {
 	getExcludedPageIds,
 	getItemPlace,
 	getMenuBlocks,
-	hasMoreThanPages,
 	hasPageList,
 	indentItem,
 	isPageItem,
@@ -163,7 +165,11 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 		[ edited ]
 	);
 	const blocks = useMemo( () => getMenuBlocks( content ), [ content ] );
-	const isAutomatic = hasPageList( blocks );
+	// Whether a Page List lists the pages, so a page is switched off by
+	// leaving it out. A menu with more beside its Page List does that too, but
+	// is still set by hand.
+	const listsPages = hasPageList( blocks );
+	const isAutomatic = isAutoMenuBlocks( blocks );
 	const excludedIds = useMemo(
 		() => getExcludedPageIds( blocks ),
 		[ blocks ]
@@ -245,7 +251,7 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 
 		// Left out with a page above it: it can't be in the menu on its own.
 		if (
-			isAutomatic &&
+			listsPages &&
 			page &&
 			! excludedIds.has( id ) &&
 			isPageExcluded( page, excludedIds, pages ) &&
@@ -264,13 +270,24 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 			};
 		}
 
+		// An auto menu lists pages only, and the homepage isn't one.
+		if ( isAutomatic && target === HOMEPAGE && ! homePageId ) {
+			return {
+				checked: false,
+				disabled: true,
+				note: __(
+					'Your homepage shows your latest posts, and your auto menu only lists pages.'
+				),
+			};
+		}
+
 		const checked = isOn( target );
 		const isDraft = page && page.status !== 'publish';
 		let note = '';
 
 		if ( checked && isDraft ) {
 			note = __( 'In your menu once published' );
-		} else if ( checked && ! isAutomatic ) {
+		} else if ( checked && ! listsPages ) {
 			const place = getItemPlace( blocks, getMatch( target ) );
 
 			if ( place?.parent ) {
@@ -291,13 +308,17 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 	};
 
 	const toggle = ( target ) => {
+		if ( getSwitch( target ).disabled ) {
+			return;
+		}
+
 		const id = target === HOMEPAGE ? homePageId : Number( target );
 		const title = getTitle( target );
 
 		if ( isOn( target ) ) {
 			let next = removeAll( blocks, getMatch( target ) );
 
-			if ( isAutomatic && id ) {
+			if ( listsPages && id ) {
 				next = setPageExcluded( next, id, true );
 			}
 
@@ -314,7 +335,7 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 		}
 
 		// A menu that updates by itself takes the page back.
-		if ( isAutomatic && id ) {
+		if ( listsPages && id ) {
 			apply(
 				setPageExcluded( blocks, id, false ),
 				sprintf(
@@ -375,7 +396,7 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 	 * @return {Object[]} `{ disabled, label, onClick }` for each.
 	 */
 	const getMenuMoves = ( target ) => {
-		if ( isAutomatic ) {
+		if ( listsPages ) {
 			return EMPTY_ARRAY;
 		}
 
@@ -465,7 +486,7 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 	// A page moved to the Trash leaves a menu set by hand with it. A menu that
 	// updates by itself drops it on its own.
 	const removePage = ( pageId ) => {
-		if ( ! isAutomatic ) {
+		if ( ! listsPages ) {
 			apply( removeAll( blocks, getMatch( pageId ) ) );
 		}
 	};
@@ -473,7 +494,6 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 	return {
 		getMenuMoves,
 		getSwitch,
-		hasMoreThanPages: hasMoreThanPages( blocks ),
 		isAutomatic,
 		isReady: Boolean( edited ),
 		removePage,

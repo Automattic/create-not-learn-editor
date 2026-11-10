@@ -14,7 +14,7 @@ import { settings } from '../../../settings';
 import { getEditedMenuContent } from '../use-main-menu';
 import {
 	getParsedBlocks,
-	hasPageListBlock,
+	isAutoMenuBlocks,
 	serializeNavigationBlocks,
 } from '../../navigation-edit/navigation-blocks';
 import { getPageTitle } from './data';
@@ -252,8 +252,8 @@ export function useSwitchHomepage( state ) {
 
 	/**
 	 * Show the latest posts. A menu set by hand that linked the page keeps
-	 * going home: the link becomes a Home link in its place. A menu that lists
-	 * every page is left as it is.
+	 * going home: the link becomes a Home link in its place. An auto menu is
+	 * left as it is.
 	 *
 	 * @param {number} [menuId] The main menu's ID, if there is one.
 	 */
@@ -268,7 +268,7 @@ export function useSwitchHomepage( state ) {
 						: '';
 				const blocks = getParsedBlocks( content );
 				const next =
-					content && ! hasPageListBlock( blocks )
+					content && ! isAutoMenuBlocks( blocks )
 						? replacePageLinksWithHomeLinks(
 								blocks,
 								pageId,

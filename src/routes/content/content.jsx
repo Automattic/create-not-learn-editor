@@ -419,10 +419,12 @@ function Stage() {
 			to: `/types/${ type.name }/new`,
 		} );
 	};
-	// Pages can add to the main menu too, so Add page is a menu while there is
-	// one, or might be: it doesn't change under the pointer as the menu loads.
+	// Pages can add to the main menu too, so Add page is a menu while it is an
+	// auto menu, or might be: it doesn't change under the pointer as the menu
+	// loads. A menu set by hand is changed on the Menus screen.
+	const canAddToMenu = Boolean( mainMenu.menuId && mainMenu.isAutoMenu );
 	const hasAddMenu =
-		type.name === 'page' && ( mainMenu.isLoading || !! mainMenu.menuId );
+		type.name === 'page' && ( mainMenu.isLoading || canAddToMenu );
 	const pageActions = (
 		<div className="routes-post-list__page-actions">
 			{ type.canCreate && hasAddMenu && (
@@ -440,7 +442,7 @@ function Stage() {
 					{ ( { onClose } ) => (
 						<AddOptions
 							onAddMenuItem={
-								mainMenu.menuId
+								canAddToMenu
 									? menuItemAdder.addMenuItem
 									: undefined
 							}
@@ -610,7 +612,7 @@ function Stage() {
 			<PagesList
 				canCreate={ type.canCreate }
 				onAddMenuItem={
-					mainMenu.menuId ? menuItemAdder.addMenuItem : undefined
+					canAddToMenu ? menuItemAdder.addMenuItem : undefined
 				}
 				onAddPage={ openCreateFlow }
 			/>
@@ -743,9 +745,13 @@ function Stage() {
 				className: 'cnl-editor-stage cnl-editor-content-page',
 				subTitle:
 					( type.name === 'page' &&
-						__(
-							'Every page on your site. Pick one to see it, and switch it on to show it in your menu.'
-						) ) ||
+						( canAddToMenu
+							? __(
+									'Every page on your site. Pick one to see it, and switch it on to show it in your menu.'
+								)
+							: __(
+									'Every page on your site. Pick one to see it.'
+								) ) ) ||
 					postsSettings?.description ||
 					type.description ||
 					sprintf(
