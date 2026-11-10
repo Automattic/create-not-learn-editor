@@ -41,6 +41,8 @@ import {
 	getManualNavigationItems,
 	getNavigationBlocksFromEditedRecord,
 	getNavigationContentFromEditedRecord,
+	getPageListExcludedIds,
+	getParsedBlocks,
 	isAutoMenuContent,
 	serializeNavigationBlocks,
 } from './navigation-blocks';
@@ -277,7 +279,10 @@ export function useMenuItemsEditor( navigationId ) {
 
 		editEntityRecord( 'postType', NAVIGATION_POST_TYPE, navigationId, {
 			blocks: undefined,
-			content: createManualNavigationContentFromPages( pages ),
+			content: createManualNavigationContentFromPages(
+				pages,
+				getPageListExcludedIds( getParsedBlocks( previousContent ) )
+			),
 			selection: undefined,
 		} );
 		setIsConfirmingCustomize( false );

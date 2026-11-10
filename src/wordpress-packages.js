@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import apiFetch from '@wordpress/api-fetch';
-import { Breadcrumbs, Page } from '@wordpress/admin-ui';
+import { Breadcrumbs } from '@wordpress/admin-ui';
 import {
 	cloneBlock,
 	createBlock,
@@ -41,6 +41,7 @@ import {
 	Modal,
 	Notice,
 	Popover,
+	SearchControl,
 	SelectControl,
 	ToggleControl,
 	/* eslint-disable @wordpress/no-unsafe-wp-apis -- The segmented control is still experimental in @wordpress/components and has no @wordpress/ui equivalent yet. */
@@ -70,12 +71,15 @@ import {
 import {
 	Component,
 	createInterpolateElement,
+	createContext,
 	createPortal,
 	Fragment,
 	memo,
 	useCallback,
+	useContext,
 	useEffect,
 	useId,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -91,6 +95,7 @@ import {
 	arrowUp,
 	blockDefault,
 	brush,
+	calendar,
 	category,
 	caution,
 	check,
@@ -103,7 +108,9 @@ import {
 	chevronUp,
 	closeSmall,
 	cloudDownload,
+	code,
 	color,
+	commentAuthorAvatar,
 	copy,
 	drawerLeft,
 	customLink,
@@ -114,6 +121,7 @@ import {
 	file,
 	footer,
 	fullscreen,
+	fullscreenExit,
 	header,
 	help,
 	home,
@@ -121,11 +129,13 @@ import {
 	info,
 	layout,
 	link,
+	listView,
 	lockSmall,
 	lock,
 	mobile,
 	moreVertical,
 	navigation,
+	notFound,
 	page,
 	payment,
 	percent,
@@ -159,6 +169,11 @@ import {
 	update,
 	upload,
 } from '@wordpress/icons';
+import {
+	/* eslint-disable @wordpress/no-unsafe-wp-apis -- Matches keys to shortcuts the way the vendored ListView does, so the Pages list can catch the ones that would remove a row. */
+	__unstableUseShortcutEventMatch as useShortcutEventMatch,
+	/* eslint-enable @wordpress/no-unsafe-wp-apis */
+} from '@wordpress/keyboard-shortcuts';
 import { displayShortcut } from '@wordpress/keycodes';
 import { useEditorAssets, useEditorSettings } from '@wordpress/lazy-editor';
 import { MediaUpload, uploadMedia } from '@wordpress/media-utils';
@@ -179,6 +194,7 @@ import {
 	Skeleton,
 	Spinner,
 	Stack,
+	Switch,
 	SwitchControl,
 	Tabs,
 	Text,
@@ -188,6 +204,12 @@ import {
 } from '@wordpress/ui';
 import { ThemeProvider } from '@wordpress/theme';
 import { addQueryArgs, getPath, safeDecodeURI } from '@wordpress/url';
+
+/**
+ * Internal dependencies
+ */
+// Admin UI's page, with Back added to its header.
+import { Page } from './stage-page';
 
 export {
 	addSubmenu as addSubmenuIcon,
@@ -209,6 +231,7 @@ export {
 	Button,
 	Card,
 	Collapsible,
+	calendar as calendarIcon,
 	category as categoryIcon,
 	caution as cautionIcon,
 	check as checkIcon,
@@ -216,6 +239,7 @@ export {
 	CheckboxControl,
 	cloudDownload as cloudDownloadIcon,
 	color as colorIcon,
+	commentAuthorAvatar as userIcon,
 	ColorIndicator,
 	chevronLeft as chevronLeftIcon,
 	chevronRight as chevronRightIcon,
@@ -225,8 +249,10 @@ export {
 	chevronUp as chevronUpIcon,
 	cloneBlock,
 	closeSmall as closeSmallIcon,
+	code as codeIcon,
 	Component,
 	createInterpolateElement,
+	createContext,
 	createPortal,
 	copy as copyIcon,
 	coreDataStore,
@@ -250,6 +276,7 @@ export {
 	FormFileUpload,
 	Fragment,
 	fullscreen as fullscreenIcon,
+	fullscreenExit as fullscreenExitIcon,
 	getBlockType,
 	getBlockVariations,
 	getPath,
@@ -268,6 +295,7 @@ export {
 	Link,
 	LinkControl,
 	link as linkIcon,
+	listView as listViewIcon,
 	customLink as customLinkIcon,
 	lockSmall as lockSmallIcon,
 	Menu,
@@ -279,6 +307,7 @@ export {
 	moreVertical as moreVerticalIcon,
 	Modal,
 	navigation as compassIcon,
+	notFound as notFoundIcon,
 	noticesStore,
 	Notice,
 	page as pageIcon,
@@ -302,6 +331,7 @@ export {
 	resolveSelect,
 	safeDecodeURI,
 	search as searchIcon,
+	SearchControl,
 	SelectControl,
 	select,
 	subscribe,
@@ -314,6 +344,7 @@ export {
 	Skeleton,
 	Spinner,
 	Stack,
+	Switch,
 	SwitchControl,
 	sprintf,
 	square as squareIcon,
@@ -347,16 +378,19 @@ export {
 	useBlockBindingsUtils,
 	useBlockEditingMode,
 	useCallback,
+	useContext,
 	useDispatch,
 	useEditorAssets,
 	useEditorSettings,
 	useEntityBlockEditor,
 	useEffect,
 	useId,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useRegistry,
 	useSelect,
+	useShortcutEventMatch,
 	useState,
 	useSyncExternalStore,
 	__,

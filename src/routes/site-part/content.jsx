@@ -23,7 +23,6 @@ import { useSearch } from '@wordpress/route';
 import { cnlEditorStore, getTitleText } from '../../records';
 import ScreenLinks from '../../screen-links';
 import { settings } from '../../settings';
-import { getSiteCrumb } from '../../site-trail';
 import {
 	DocumentTitle,
 	SiteCanvas,
@@ -142,6 +141,14 @@ const SITE_PARTS = {
 
 // The screen offering the two, and the first crumb back on each.
 const SITE_PARTS_TITLE = __( 'Header & footer' );
+
+/*
+ * The header and footer are listed only on the "Home" screen, so their
+ * screens sit under it.
+ */
+function getSiteCrumb() {
+	return { label: __( 'Home' ), to: '/' };
+}
 
 function getSitePartsCrumb() {
 	return { label: SITE_PARTS_TITLE, to: SITE_PARTS_PATH };

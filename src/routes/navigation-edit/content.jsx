@@ -1,14 +1,13 @@
 /**
  * WordPress dependencies
  */
-import { useNavigate, useParams } from '@wordpress/route';
+import { useNavigate, useParams, useSearch } from '@wordpress/route';
 
 /**
  * Internal dependencies
  */
 import { withCanvasRecovery } from '../../canvas-recovery';
 import { withUiTheme } from '../../theme';
-import { useSiteTrail } from '../../site-trail';
 import { cnlEditorStore, getErrorMessage } from '../../records';
 import {
 	Breadcrumbs,
@@ -28,16 +27,17 @@ import {
 	sprintf,
 	trashIcon,
 	useDispatch,
+	useEffect,
+	useRef,
 	useState,
 	__,
 } from '../../wordpress-packages';
 import { useMenuItemsEditor } from './menu-items-editor';
 import NavigationEditCanvas from './navigation-edit-canvas';
-import { NAVIGATION_POST_TYPE } from './shared';
+import { ADD_MENU_ITEMS_SEARCH, NAVIGATION_POST_TYPE } from './shared';
 
 function NavigationEditStage() {
 	const navigate = useNavigate();
-	const siteTrail = useSiteTrail();
 	const params = useParams( { strict: false } );
 	const navigationId = Number( params.id );
 	const [ isSaving, setIsSaving ] = useState( false );
@@ -56,6 +56,27 @@ function NavigationEditStage() {
 		menuTitle,
 		openAddMenuItems,
 	} = useMenuItemsEditor( navigationId );
+	const search = useSearch( { strict: false } );
+	const hasOpenedAdd = useRef( false );
+
+	// Sent here to add something, "Add menu items" opens once it can.
+	useEffect( () => {
+		if (
+			! search[ ADD_MENU_ITEMS_SEARCH ] ||
+			! canAddMenuItems ||
+			hasOpenedAdd.current
+		) {
+			return;
+		}
+
+		hasOpenedAdd.current = true;
+		openAddMenuItems();
+		navigate( {
+			replace: true,
+			search: { ...search, [ ADD_MENU_ITEMS_SEARCH ]: undefined },
+			to: `/navigation/edit/${ encodeURIComponent( navigationId ) }`,
+		} );
+	}, [ canAddMenuItems, navigate, navigationId, openAddMenuItems, search ] );
 
 	const editNavigationMenu = ( edits ) =>
 		editEntityRecord(
@@ -204,19 +225,20 @@ function NavigationEditStage() {
 		<Page
 			actions={ menuOptions }
 			ariaLabel={ menuTitle }
-			// Opened from the Menus screen, the menu leads back.
+			// A menu sits under the Menus screen, wherever it was opened
+			// from. Back retraces the way it was reached.
 			breadcrumbs={
-				siteTrail.length ? (
-					<Breadcrumbs
-						items={ [ ...siteTrail, { label: menuTitle } ] }
-					/>
-				) : undefined
+				<Breadcrumbs
+					items={ [
+						{ label: __( 'Menus' ), to: '/navigation' },
+						{ label: menuTitle },
+					] }
+				/>
 			}
 			className="cnl-editor-stage routes-navigation-edit"
 			hasPadding={ false }
 			headingLevel={ 2 }
 			subTitle={ __( 'Manage this navigation menu.' ) }
-			title={ siteTrail.length ? undefined : menuTitle }
 		>
 			{ ! isMenuReady && (
 				<div className="cnl-editor-spinner">

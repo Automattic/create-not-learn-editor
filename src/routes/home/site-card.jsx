@@ -14,8 +14,8 @@ import { useNavigate } from '@wordpress/route';
 /**
  * Internal dependencies
  */
+import { startHomeTrip } from '../../home-trip';
 import { settings } from '../../settings';
-import { FROM_SITE_SEARCH } from '../../site-trail';
 import { getSiteAddress } from './site-address';
 import { ReviewChanges } from '../../top-bar/review-changes';
 import { useChanges } from '../../top-bar/use-changes';
@@ -84,9 +84,11 @@ export function SiteMark( { name, imageUrl } ) {
 	return (
 		<button
 			className="cnl-site-card__mark"
-			onClick={ () =>
-				navigate( { search: FROM_SITE_SEARCH, to: '/design/identity' } )
-			}
+			onClick={ () => {
+				// Back on Name & logo leads straight back to Home.
+				startHomeTrip();
+				navigate( { to: '/design/identity' } );
+			} }
 			tabIndex={ -1 }
 			type="button"
 		>

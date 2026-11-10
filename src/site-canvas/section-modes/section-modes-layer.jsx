@@ -97,6 +97,7 @@ import {
 	setPickedSection as setSharedPickedSection,
 	setPostsTrip,
 } from '../mode';
+import { expandCanvas } from '../expansion';
 import { useEditorSpotlight } from '../part-spotlight';
 import { useCanvasDocument } from '../use-canvas-document';
 import { useCanvasStyles } from '../use-canvas-styles';
@@ -598,10 +599,6 @@ function useContentHost( editorRef ) {
 	return host;
 }
 
-function useNoSync() {
-	return null;
-}
-
 /**
  * @param {Object}   props
  * @param {Object}   props.editorRef     Ref to the editor's container.
@@ -623,12 +620,6 @@ function useNoSync() {
  *                                       a post, arranged in Compose only. It
  *                                       has no header or footer to open.
  * @param {Function} props.onExitCompose Leaves Compose for Edit.
- * @param {Function} props.useSync       A hook linking Compose to a list of
- *                                       the same sections elsewhere, like the
- *                                       Pages sidebar. It returns `{
- *                                       hoveredId, selectedId, onHover,
- *                                       onSelect }`, in the editor's client
- *                                       IDs.
  * @return {?Element} The layer.
  */
 export function SectionModesLayer( {
@@ -638,11 +629,8 @@ export function SectionModesLayer( {
 	isComposing = false,
 	isWriting = false,
 	onExitCompose,
-	useSync = useNoSync,
 } ) {
 	const registry = useRegistry();
-	const syncHook = useSync();
-	const sync = isComposing && ! isWriting ? syncHook : null;
 	const layerRef = useRef();
 	const host = useContentHost( editorRef );
 	const structure = useComposeStructure();
@@ -1384,11 +1372,7 @@ export function SectionModesLayer( {
 	}, [ chatSectionId ] );
 	useEffect( () => () => setSharedPickedSection( null ), [] );
 
-	// The list elsewhere knows a run of text by any of its blocks.
-	const pointedId =
-		hoveredId ||
-		( sync?.hoveredId && findTarget( sync.hoveredId ) ) ||
-		null;
+	const pointedId = hoveredId || null;
 	const shownHoverId =
 		menuOpenFor ||
 		( pointedId && pointedId !== active?.id ? pointedId : null ) ||
@@ -1620,34 +1604,6 @@ export function SectionModesLayer( {
 		[ drag?.clientId, groupedById ]
 	);
 	const draggedBlock = draggedBlocks?.length ? draggedBlocks : null;
-
-	/*
-	 * Composing, the layer and the list of sections elsewhere, like the Pages
-	 * sidebar, point at and pick the same sections.
-	 */
-	const syncRef = useRef( sync );
-	syncRef.current = sync;
-
-	useEffect( () => {
-		syncRef.current?.onHover?.( hoveredId );
-	}, [ hoveredId ] );
-
-	useEffect( () => {
-		if ( pickedSection ) {
-			syncRef.current?.onSelect?.( pickedSection );
-		}
-	}, [ pickedSection ] );
-
-	const syncedSelectedId = sync?.selectedId
-		? findTarget( sync.selectedId )
-		: null;
-
-	useEffect( () => {
-		if ( syncedSelectedId ) {
-			setPickedSection( syncedSelectedId );
-			scrollCanvasTo( editorRef, syncedSelectedId );
-		}
-	}, [ editorRef, syncedSelectedId ] );
 
 	/*
 	 * The sections locked to their content, which take no new block but a
@@ -2649,6 +2605,11 @@ export function SectionModesLayer( {
 					onClose={ isPartOpen ? undefined : exitMode }
 					onFreeform={ () => {
 						const { id } = active;
+
+						// More control is for getting on with the section's
+						// blocks, so the canvas expands to fill the editor
+						// too, and stays so until its back arrow.
+						expandCanvas( true );
 
 						// Writing has no Freeform, as Edit hands its blocks
 						// to core's own tools: the section is selected there.

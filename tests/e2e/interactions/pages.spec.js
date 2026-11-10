@@ -7,7 +7,7 @@ const {
 	getSaveControls,
 	getStage,
 	openPageLayouts,
-	setCanvasMode,
+	openReviewChanges,
 	test,
 	visitEditor,
 } = require( '../utils' );
@@ -32,30 +32,23 @@ test.describe( 'Pages interactions', () => {
 		).toBeVisible( { timeout: 15000 } );
 	} );
 
-	test( 'the pencil opens a page into its sections, and Pages goes back', async ( {
+	test( 'a page opens into its summary, and Pages goes back', async ( {
 		page,
 		rest,
 	} ) => {
 		const testPage = await rest.createPage();
 		const stage = getStage( page );
 
-		await visitEditor( page, '/types/page' );
-		await getPageItem( page, testPage.title ).hover();
-		await stage
-			.getByRole( 'button', { name: `Edit ${ testPage.title }` } )
-			.click();
+		await visitEditor(
+			page,
+			`/types/page/list/all?postId=${ testPage.id }&previewId=${ testPage.id }`
+		);
 
 		await expect( page ).toHaveURL(
 			new RegExp( `postId%3D${ testPage.id }` )
 		);
-		// The page's sections are listed while composing it.
-		await setCanvasMode( page, 'Compose' );
 		await expect(
-			stage
-				.getByRole( 'list', { name: 'The page, top to bottom' } )
-				.getByRole( 'button', {
-					name: new RegExp( `^${ testPage.body }` ),
-				} )
+			stage.getByRole( 'region', { name: 'About this page' } )
 		).toBeVisible( { timeout: 15000 } );
 		await expect(
 			getEditorCanvas( page, '.cnl-site-canvas' ).getByText(
@@ -68,105 +61,114 @@ test.describe( 'Pages interactions', () => {
 			.getByRole( 'link', { name: 'Pages' } )
 			.click();
 		await expect(
-			stage.getByRole( 'region', {
-				name: 'In your menu',
-				exact: true,
-			} )
+			stage.locator( '.cnl-pages-list-view' ).getByRole( 'treegrid' )
 		).toBeVisible();
 	} );
 
-	test( 'a page goes into the menu, waiting to be saved', async ( {
+	test( 'a page switched off stays out of the menu, waiting to be saved', async ( {
 		page,
 		rest,
 	} ) => {
-		const draft = await rest.createPage( { status: 'draft' } );
-		const stage = getStage( page );
-		const inMenu = stage.getByRole( 'region', {
-			name: 'In your menu',
-			exact: true,
-		} );
-		const notInMenu = stage.getByRole( 'region', {
-			name: 'Not in your menu',
+		const testPage = await rest.createPage();
+		const menuSwitch = getStage( page ).getByRole( 'switch', {
+			name: `Show ${ testPage.title } in your menu`,
 		} );
 
 		await visitEditor( page, '/types/page' );
+		await expect( menuSwitch ).toBeChecked( { timeout: 15000 } );
 
-		// Drafts aren't in a menu that lists every page.
-		await expect(
-			notInMenu.getByRole( 'button', {
-				name: new RegExp( `^${ draft.title }` ),
-			} )
-		).toBeVisible( { timeout: 15000 } );
+		await menuSwitch.click();
 
-		await notInMenu
-			.getByRole( 'button', { name: new RegExp( `^${ draft.title }` ) } )
-			.hover();
-		await notInMenu
-			.getByRole( 'button', {
-				name: `Add ${ draft.title } to your menu`,
-			} )
-			.click();
-
-		await expect(
-			inMenu.getByRole( 'link', { name: draft.title, exact: true } )
-		).toBeVisible();
-		await expect(
-			notInMenu.getByRole( 'button', {
-				name: new RegExp( `^${ draft.title }` ),
-			} )
-		).toHaveCount( 0 );
+		await expect( menuSwitch ).not.toBeChecked();
 		await expect( getSaveControls( page ) ).toContainText(
 			'1 unsaved change'
 		);
+
+		// Switched back on, the menu is as it was.
+		await menuSwitch.click();
+		await expect( menuSwitch ).toBeChecked();
 	} );
 
-	test( 'adds a link to the menu with the link control', async ( {
+	test( 'adding something other than a page opens the menu to add it', async ( {
 		page,
 	} ) => {
-		const url = `https://example.com/${ Date.now() }`;
-		const inMenu = getStage( page ).getByRole( 'region', {
-			name: 'In your menu',
-			exact: true,
-		} );
-
 		await visitEditor( page, '/types/page' );
-		await inMenu
-			.getByRole( 'button', { name: 'Add to your menu' } )
-			.click( { timeout: 15000 } );
-		await page.getByRole( 'menuitem', { name: 'Link' } ).click();
-
-		const urlField = page.getByRole( 'combobox', {
-			name: 'Search or type URL',
-		} );
-		await expect( urlField ).toBeFocused();
-		await urlField.fill( url );
-		await urlField.press( 'Enter' );
-
+		// The menu has loaded once its switches show.
 		await expect(
-			inMenu.getByRole( 'link', {
-				name: url.replace( 'https://', '' ),
-				exact: true,
-			} )
-		).toBeVisible();
-		await expect( getSaveControls( page ) ).toContainText(
-			'1 unsaved change'
-		);
+			getStage( page ).getByRole( 'switch' ).first()
+		).toBeVisible( { timeout: 15000 } );
+		await getStage( page )
+			.getByRole( 'button', { name: 'Add page' } )
+			.click( { timeout: 15000 } );
+		await page
+			.getByRole( 'menuitem', { name: /^Link or something else/ } )
+			.click();
+
+		// A menu that updates by itself asks first.
+		const confirm = page.getByRole( 'dialog', {
+			name: 'Customize your menu?',
+		} );
+
+		if ( await confirm.isVisible() ) {
+			await confirm
+				.getByRole( 'button', { name: 'Customize menu' } )
+				.click();
+		}
+
+		await expect
+			.poll( () => getRoute( page ), { timeout: 15000 } )
+			.toMatch( /^\/navigation\/edit\// );
+		await expect(
+			page.getByRole( 'dialog', { name: 'Add menu items' } )
+		).toBeVisible( { timeout: 15000 } );
 	} );
 
-	test( 'Other menus leads on to the Menus screen', async ( { page } ) => {
+	test( 'Manage all menus leads on to the Menus screen', async ( {
+		page,
+	} ) => {
 		await visitEditor( page, '/types/page' );
 
-		const otherMenus = getStage( page )
-			.getByRole( 'navigation', { name: 'More menu options' } )
-			.getByRole( 'button', { name: /^Other menus/ } );
+		const allMenus = getStage( page )
+			.getByRole( 'navigation', { name: 'More options' } )
+			.getByRole( 'button', { name: /^Manage all menus/ } );
 
-		await expect( otherMenus ).toBeVisible( { timeout: 15000 } );
-		await otherMenus.click();
+		await expect( allMenus ).toBeVisible( { timeout: 15000 } );
+		await allMenus.click();
 		await expect
 			.poll( () => getRoute( page ), { timeout: 15000 } )
 			.toBe( '/navigation' );
 		await expect(
-			getStage( page ).getByRole( 'heading', { name: 'Menus' } )
+			getStage( page ).getByRole( 'heading', {
+				exact: true,
+				name: 'Menus',
+			} )
+		).toBeVisible();
+	} );
+
+	test( 'System pages lists the pages the site makes for itself', async ( {
+		page,
+	} ) => {
+		await visitEditor( page, '/types/page' );
+
+		const stage = getStage( page );
+		const systemPages = stage
+			.getByRole( 'navigation', { name: 'More options' } )
+			.getByRole( 'button', { name: /^System pages/ } );
+
+		await expect( systemPages ).toBeVisible( { timeout: 15000 } );
+		await systemPages.click();
+		await expect
+			.poll( () => getRoute( page ), { timeout: 15000 } )
+			.toBe( '/types/page/list/all?content=system' );
+
+		const notFound = stage.getByRole( 'button', {
+			name: /^Page not found/,
+		} );
+
+		await expect( notFound ).toBeVisible( { timeout: 15000 } );
+		await expect( notFound ).toHaveAttribute( 'aria-pressed', 'true' );
+		await expect(
+			stage.getByRole( 'button', { name: /^Search results/ } )
 		).toBeVisible();
 	} );
 
@@ -197,6 +199,116 @@ test.describe( 'Pages interactions', () => {
 		await expect( getSaveControls( page ) ).toContainText(
 			'1 unsaved change'
 		);
+	} );
+
+	test( 'drags a page under another page, and back out, waiting to be saved', async ( {
+		page,
+		rest,
+	} ) => {
+		const stamp = Date.now();
+		// Titles that list the sub-page straight after its parent.
+		const parent = await rest.createPage( {
+			title: `Nest parent ${ stamp }`,
+		} );
+		const child = await rest.createPage( {
+			title: `Nest sub-page ${ stamp }`,
+		} );
+		const getParent = async () =>
+			( await rest.fetch( `/wp/v2/pages/${ child.id }` ) ).parent;
+		const getRow = ( title ) =>
+			getStage( page )
+				.locator( '.cnl-pages-list-view [data-block]' )
+				.filter( { hasText: title } );
+		// Rows move aside as a page is dragged, so where it goes is given as
+		// a row and a spot on it, measured once the drag has started.
+		const drag = async ( title, getPoint ) => {
+			// A moved page's row is redrawn once a save brings back its new
+			// address, which can drop a drag just started, so start again
+			// until it takes.
+			await expect( async () => {
+				const from = await getPageItem(
+					page,
+					child.title
+				).boundingBox();
+
+				await page.mouse.move( from.x + 40, from.y + from.height / 2 );
+				await page.mouse.down();
+				await page.mouse.move( from.x + 50, from.y + from.height / 2, {
+					steps: 5,
+				} );
+
+				if (
+					! ( await getRow( child.title ).getAttribute( 'class' ) )
+						.split( ' ' )
+						.includes( 'is-dragging' )
+				) {
+					await page.mouse.up();
+					throw new Error( 'The drag didn’t start.' );
+				}
+			} ).toPass( { timeout: 10000 } );
+
+			const to = getPoint( await getRow( title ).boundingBox() );
+
+			// The list works out where a drop goes a little after each move.
+			for ( let step = 0; step < 10; step++ ) {
+				await page.mouse.move( to.x + ( step % 2 ), to.y, {
+					steps: 2,
+				} );
+				await page.waitForTimeout( 60 );
+			}
+
+			await page.mouse.up();
+		};
+
+		await visitEditor( page, '/types/page' );
+		await getRow( child.title ).scrollIntoViewIfNeeded();
+
+		// Low on the parent's row and well to the right puts it underneath.
+		await drag( parent.title, ( row ) => ( {
+			x: row.x + 120,
+			y: row.y + row.height * 0.8,
+		} ) );
+		await expect(
+			page
+				.getByTestId( 'snackbar' )
+				.getByText(
+					`Moved “${ child.title }” under “${ parent.title }”.`
+				)
+		).toBeVisible();
+		await expect( getRow( child.title ) ).toHaveAttribute(
+			'aria-level',
+			'2'
+		);
+
+		// The move waits for Save, like any other change.
+		await expect( getSaveControls( page ) ).toContainText(
+			'1 unsaved change'
+		);
+		expect( await getParent() ).toBe( 0 );
+
+		const review = await openReviewChanges( page );
+
+		await review.getByRole( 'button', { name: 'Save 1 change' } ).click();
+		await expect( getSaveControls( page ) ).toContainText(
+			'All changes saved',
+			{ timeout: 15000 }
+		);
+		expect( await getParent() ).toBe( parent.id );
+
+		// High on the parent's row and to the far left brings it back out,
+		// above its parent.
+		await drag( parent.title, ( row ) => ( {
+			x: row.x + 4,
+			y: row.y + row.height * 0.25,
+		} ) );
+		await expect( getRow( child.title ) ).toHaveAttribute(
+			'aria-level',
+			'1'
+		);
+		await expect( getSaveControls( page ) ).toContainText(
+			'unsaved change'
+		);
+		expect( await getParent() ).toBe( parent.id );
 	} );
 
 	test( 'opens a page layout in the block editor', async ( { page } ) => {

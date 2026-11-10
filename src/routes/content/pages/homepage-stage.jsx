@@ -2,348 +2,43 @@
  * The homepage, opened up on the Pages screen.
  *
  * It belongs to the homepage rather than to a page, so it is there whatever
- * the homepage shows, even when no page has ever been picked for it. What it
- * shows is chosen at the top. Below that is the page's own drilldown when it
- * shows a page, or a word about the latest posts when it lists them.
+ * the homepage shows, even when no page has ever been picked for it. It is
+ * the page's own drilldown when it shows a page, or a word about the latest
+ * posts when it lists them. "Configure homepage" opens the step-by-step
+ * setup to change what it shows.
  */
-
-/**
- * WordPress dependencies
- */
-import { useSearch } from '@wordpress/route';
 
 /**
  * Internal dependencies
  */
 import ScreenLinks from '../../../screen-links';
-import { useSiteTrail, useTrailSearch } from '../../../site-trail';
 import useMainMenu from '../use-main-menu';
-import { getPageTitle, usePages } from './data';
+import { getPageTitle } from './data';
 import {
 	useHomepageState,
 	useSwitchHomepage,
 	useUseAsHomepage,
 } from './homepage';
-import {
-	findDefaultHomepagePage,
-	isFrontPageTemplateId,
-} from './homepage-state';
-import { HOMEPAGE_VIEW } from './homepage-view';
-import { getPageSearchString } from './sections-view';
+import { isFrontPageTemplateId } from './homepage-state';
 import PostsPerPage from './posts-per-page';
+import HomepageSetup from '../../../pickers/homepage-setup';
+import useOnHomepageSetupDone from '../../../pickers/homepage-setup/use-on-done';
 import { PageDetailStage } from './stage';
 import {
 	__,
 	Breadcrumbs,
-	Button,
-	checkIcon,
-	DropdownMenu,
-	Icon,
 	layoutIcon,
 	memo,
-	MenuGroup,
-	MenuItem,
-	Modal,
-	moreVerticalIcon,
 	Notice,
 	Page,
-	pageIcon,
 	postIcon,
-	postListIcon,
-	SelectControl,
 	settingsIcon,
 	sprintf,
-	Stack,
 	Text,
-	useCallback,
-	useMemo,
 	useState,
 } from '../../../wordpress-packages';
 
 const LIST_PATH = '/types/page/list/all';
-const NEW_PAGE = 'new';
-
-function getStatusSuffix( status ) {
-	switch ( status ) {
-		case 'draft':
-		case 'auto-draft':
-			return __( 'Draft, will be published' );
-		case 'pending':
-			return __( 'Pending review, will be published' );
-		case 'future':
-			return __( 'Scheduled, will be published now' );
-		case 'private':
-			return __( 'Private, will be published' );
-		default:
-			return '';
-	}
-}
-
-/**
- * Pages to pick from, the one the homepage remembers first.
- *
- * @param {Object[]} pages        Every page.
- * @param {number}   rememberedId The page the homepage remembers, if any.
- * @return {Object[]} Options for the page picker.
- */
-function getPageOptions( pages, rememberedId ) {
-	return pages
-		.slice()
-		.sort( ( a, b ) => {
-			if ( Number( a.id ) === rememberedId ) {
-				return -1;
-			}
-
-			if ( Number( b.id ) === rememberedId ) {
-				return 1;
-			}
-
-			return getPageTitle( a ).localeCompare( getPageTitle( b ) );
-		} )
-		.map( ( page ) => {
-			const suffix = getStatusSuffix( page.status );
-
-			return {
-				label: suffix
-					? sprintf(
-							/* translators: 1: page title, 2: what happens to it. */
-							__( '%1$s (%2$s)' ),
-							getPageTitle( page ),
-							suffix
-						)
-					: getPageTitle( page ),
-				value: String( page.id ),
-			};
-		} );
-}
-
-/**
- * Pick another page for the homepage, or start a new one. Tucked away behind
- * "A page", as most sites never need it.
- *
- * @param {Object}   props                Component props.
- * @param {number}   props.currentId      The page the homepage shows.
- * @param {Function} props.onClose        Closes it.
- * @param {Function} props.onPick         Called with the page picked.
- * @param {Function} props.onStartNewPage Opens the add page flow for it.
- * @param {Object[]} props.pages          Every page.
- * @return {Element} The dialog.
- */
-function ChangePageModal( {
-	currentId,
-	onClose,
-	onPick,
-	onStartNewPage,
-	pages,
-} ) {
-	const [ value, setValue ] = useState( '' );
-	const options = useMemo(
-		() =>
-			getPageOptions(
-				pages.filter( ( page ) => Number( page.id ) !== currentId ),
-				0
-			),
-		[ currentId, pages ]
-	);
-	const usePage = ( event ) => {
-		event.preventDefault();
-
-		if ( value === NEW_PAGE ) {
-			onClose();
-			onStartNewPage();
-			return;
-		}
-
-		const page = pages.find( ( item ) => String( item.id ) === value );
-
-		if ( page ) {
-			onClose();
-			onPick( page );
-		}
-	};
-
-	return (
-		<Modal
-			className="routes-navigation-edit__item-modal"
-			onRequestClose={ onClose }
-			title={ __( 'Change your homepage’s page' ) }
-		>
-			<form onSubmit={ usePage }>
-				<SelectControl
-					__next40pxDefaultSize
-					label={ __( 'Page' ) }
-					onChange={ setValue }
-					options={ [
-						{ label: __( 'Choose a page' ), value: '' },
-						...options,
-						{ label: __( 'Start a new page…' ), value: NEW_PAGE },
-					] }
-					value={ value }
-				/>
-				<div className="routes-navigation-edit__modal-actions">
-					<Button
-						onClick={ onClose }
-						type="button"
-						variant="tertiary"
-					>
-						{ __( 'Cancel' ) }
-					</Button>
-					<Button
-						accessibleWhenDisabled
-						disabled={ ! value }
-						type="submit"
-						variant="primary"
-					>
-						{ __( 'Use this page' ) }
-					</Button>
-				</div>
-			</form>
-		</Modal>
-	);
-}
-
-/**
- * What the homepage shows: a page, or the latest posts.
- *
- * "A page" goes back to the page the homepage showed last, or a page called
- * Home, and starts one when there's neither. Changing which page is offered,
- * but only from the options on "A page".
- *
- * @param {Object}   props                Component props.
- * @param {Object}   props.homepage       Result of `useHomepageState`.
- * @param {Function} props.onStartNewPage Opens the add page flow for it.
- * @return {Element} The choice.
- */
-function HomepageChoice( { homepage, onStartNewPage } ) {
-	const { menuId } = useMainMenu();
-	const { pages } = usePages();
-	const { showLatestPosts } = useSwitchHomepage( homepage );
-	const useAsHomepage = useUseAsHomepage( homepage );
-	const [ isChanging, setIsChanging ] = useState( false );
-	const showsPage = homepage.shows === 'page';
-	const choices = [
-		{
-			description: __( 'A page you build from sections' ),
-			icon: pageIcon,
-			isSelected: showsPage,
-			label: __( 'A page' ),
-			onSelect: () => {
-				if ( showsPage ) {
-					return;
-				}
-
-				const page = findDefaultHomepagePage( pages, {
-					getTitle: getPageTitle,
-					homeTitle: __( 'Home' ),
-					rememberedId: homepage.rememberedId,
-				} );
-
-				if ( page ) {
-					useAsHomepage.request( page );
-				} else {
-					onStartNewPage();
-				}
-			},
-			options: showsPage && (
-				<DropdownMenu
-					className="cnl-homepage-shows__more"
-					icon={ moreVerticalIcon }
-					label={ __( 'More for a page' ) }
-					popoverProps={ { placement: 'bottom-end' } }
-					toggleProps={ { size: 'compact' } }
-				>
-					{ ( { onClose } ) => (
-						<MenuGroup>
-							<MenuItem
-								onClick={ () => {
-									onClose();
-									setIsChanging( true );
-								} }
-							>
-								{ __( 'Change page' ) }
-							</MenuItem>
-						</MenuGroup>
-					) }
-				</DropdownMenu>
-			),
-		},
-		{
-			description: __( 'Your newest blog posts, newest first' ),
-			icon: postListIcon,
-			isSelected: ! showsPage,
-			label: __( 'Your latest posts' ),
-			onSelect: () => {
-				if ( showsPage ) {
-					showLatestPosts( menuId );
-				}
-			},
-		},
-	];
-
-	return (
-		<section
-			aria-label={ __( 'Your homepage shows' ) }
-			className="cnl-homepage-shows"
-		>
-			<Stack direction="column" gap="xs">
-				<h3 className="cnl-page-sections__title">
-					{ __( 'Your homepage shows' ) }
-				</h3>
-				<Text className="cnl-page-sections__hint" variant="body-sm">
-					{ __( 'What visitors see first when they arrive.' ) }
-				</Text>
-			</Stack>
-			<ul className="cnl-homepage-shows__options" role="list">
-				{ choices.map( ( choice ) => (
-					<li
-						className={ `cnl-homepage-shows__choice${
-							choice.options ? ' has-options' : ''
-						}` }
-						key={ choice.label }
-					>
-						<button
-							aria-pressed={ choice.isSelected }
-							className="cnl-homepage-shows__option"
-							onClick={ choice.onSelect }
-							type="button"
-						>
-							<Icon
-								className="cnl-homepage-shows__icon"
-								icon={ choice.icon }
-							/>
-							<span className="cnl-homepage-shows__text">
-								<span className="cnl-homepage-shows__label">
-									{ choice.label }
-								</span>
-								<span className="cnl-homepage-shows__description">
-									{ choice.description }
-								</span>
-							</span>
-							{ choice.isSelected && (
-								<Icon
-									className="cnl-homepage-shows__check"
-									icon={ checkIcon }
-									size={ 20 }
-								/>
-							) }
-						</button>
-						{ choice.options }
-					</li>
-				) ) }
-			</ul>
-			{ isChanging && (
-				<ChangePageModal
-					currentId={ homepage.pageId }
-					onClose={ () => setIsChanging( false ) }
-					onPick={ useAsHomepage.request }
-					onStartNewPage={ onStartNewPage }
-					pages={ pages }
-				/>
-			) }
-			{ useAsHomepage.modal }
-		</section>
-	);
-}
 
 /**
  * Says so when visitors can't see the homepage, with ways to put it right.
@@ -477,16 +172,14 @@ function getLayoutDestination( templateId ) {
  * shows. The layout is a way on rather than a picker here, as the latest
  * posts always use the one layout, so there is nothing to choose between.
  *
- * @param {Object}  props              Component props.
- * @param {boolean} props.canConfigure Whether what the homepage shows can be
- *                                     changed.
- * @param {Object}  props.homepage     Result of `useHomepageState`.
- * @param {Object}  props.searchParams The route's search params.
+ * @param {Object}    props              Component props.
+ * @param {boolean}   props.canConfigure Whether what the homepage shows can
+ *                                       be changed.
+ * @param {Object}    props.homepage     Result of `useHomepageState`.
+ * @param {?Function} props.onConfigure  Opens the homepage setup.
  * @return {Element} The body.
  */
-function LatestPostsBody( { canConfigure, homepage, searchParams } ) {
-	// Screens opened from here lead back to where the visit began, too.
-	const trailSearch = useTrailSearch();
+function LatestPostsBody( { canConfigure, homepage, onConfigure } ) {
 	const layout = homepage.latestPostsTemplateId
 		? getLayoutDestination( homepage.latestPostsTemplateId )
 		: null;
@@ -507,26 +200,21 @@ function LatestPostsBody( { canConfigure, homepage, searchParams } ) {
 							'Change how your posts are displayed'
 						),
 						icon: layoutIcon,
-						search: layout.search && {
-							...trailSearch,
-							...layout.search,
-						},
-						title: __( 'Layout' ),
+						search: layout.search,
+						title: __( 'Change layout' ),
 						to: layout.to,
 					},
 					{
 						description: __( 'Write, edit and publish blog posts' ),
 						icon: postIcon,
-						search: trailSearch,
 						title: __( 'Edit your posts' ),
 						to: '/types/post/list/all',
 					},
-					canConfigure && {
+					onConfigure && {
 						description: __( 'Choose what visitors see first' ),
 						icon: settingsIcon,
-						search: { ...searchParams, view: HOMEPAGE_VIEW },
+						onOpen: onConfigure,
 						title: __( 'Configure homepage' ),
-						to: LIST_PATH,
 					},
 				].filter( Boolean ) }
 			/>
@@ -535,37 +223,40 @@ function LatestPostsBody( { canConfigure, homepage, searchParams } ) {
 }
 
 /**
- * The homepage, opened up.
+ * The homepage, opened up. "Configure homepage" opens the same step-by-step
+ * setup as Home's notice (`src/pickers/homepage-setup/`), which asks first
+ * what the homepage shows.
  *
- * @param {Object}   props                Component props.
- * @param {Function} props.onStartNewPage Opens the add page flow, for a new
- *                                        page to be the homepage.
  * @return {Element} The homepage stage.
  */
-export default function HomepageStage( { onStartNewPage } ) {
+export default function HomepageStage() {
 	const homepage = useHomepageState();
-	const siteTrail = useSiteTrail();
-	const searchParams = useSearch( { strict: false } );
-	const startNewPage = useCallback(
-		() => onStartNewPage?.(),
-		[ onStartNewPage ]
-	);
+	const { menuId } = useMainMenu();
+	const [ isConfiguring, setIsConfiguring ] = useState( false );
+	const onDone = useOnHomepageSetupDone( () => setIsConfiguring( false ) );
 	const canConfigure = homepage.canSwitch && homepage.shows !== 'theme';
-	const isConfiguring = canConfigure && searchParams.view === HOMEPAGE_VIEW;
+	const onConfigure = canConfigure ? () => setIsConfiguring( true ) : null;
 	const intro = <MemoizedHomepageIntro homepage={ homepage } />;
-	const configurePanel = canConfigure ? (
-		<HomepageChoice homepage={ homepage } onStartNewPage={ startNewPage } />
-	) : null;
+	const setup = isConfiguring && (
+		<HomepageSetup
+			menuId={ menuId }
+			onClose={ () => setIsConfiguring( false ) }
+			onDone={ onDone }
+		/>
+	);
 
 	if ( homepage.pageId ) {
 		return (
-			<PageDetailStage
-				configurePanel={ configurePanel }
-				intro={ intro }
-				isHomepage
-				key={ homepage.pageId }
-				pageId={ homepage.pageId }
-			/>
+			<>
+				<PageDetailStage
+					intro={ intro }
+					isHomepage
+					key={ homepage.pageId }
+					onConfigureHomepage={ onConfigure }
+					pageId={ homepage.pageId }
+				/>
+				{ setup }
+			</>
 		);
 	}
 
@@ -575,19 +266,8 @@ export default function HomepageStage( { onStartNewPage } ) {
 			breadcrumbs={
 				<Breadcrumbs
 					items={ [
-						...siteTrail,
 						{ label: __( 'Pages' ), to: LIST_PATH },
-						...( isConfiguring
-							? [
-									{
-										label: __( 'Homepage' ),
-										to: `${ LIST_PATH }?${ getPageSearchString(
-											searchParams
-										) }`,
-									},
-									{ label: __( 'Configure homepage' ) },
-								]
-							: [ { label: __( 'Homepage' ) } ] ),
+						{ label: __( 'Homepage' ) },
 					] }
 				/>
 			}
@@ -596,16 +276,16 @@ export default function HomepageStage( { onStartNewPage } ) {
 			headingLevel={ 2 }
 		>
 			<div className="cnl-pages-detail__body">
-				{ ! homepage.isLoading && ! isConfiguring && intro }
-				{ ! homepage.isLoading && ! isConfiguring && (
+				{ ! homepage.isLoading && intro }
+				{ ! homepage.isLoading && (
 					<LatestPostsBody
 						canConfigure={ canConfigure }
 						homepage={ homepage }
-						searchParams={ searchParams }
+						onConfigure={ onConfigure }
 					/>
 				) }
-				{ ! homepage.isLoading && isConfiguring && configurePanel }
 			</div>
+			{ setup }
 		</Page>
 	);
 }

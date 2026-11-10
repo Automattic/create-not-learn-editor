@@ -1,18 +1,11 @@
 /**
- * The Pages canvas: the page being worked on, always in view, and linked to
- * the sidebar section by section.
+ * The Pages canvas: the page being worked on, always in view.
  *
  * It is a site canvas: Browse shows the saved page as visitors see it, Edit
  * changes it in place, and Compose works on its sections. Following a link in
  * the preview to another page opens that page in the sidebar, and picking a
  * page there moves the preview. The list of pages only ever browses: editing
  * opens the page in the sidebar, and going back to the list browses again.
- *
- * In Edit, a section picked in the sidebar is marked on the page, and while a
- * section is being added or dragged, a marker shows where it will land. In
- * Compose, its own layer marks them instead, and what it points at and picks
- * is pointed at and picked in the sidebar too. Changes made from the sidebar
- * leave Browse, where they can't be seen.
  */
 
 /**
@@ -26,34 +19,17 @@ import { useNavigate, useSearch } from '@wordpress/route';
 import { settings } from '../../../settings';
 import {
 	MODE_BROWSE,
-	MODE_COMPOSE,
 	MODE_EDIT,
+	setCanvasMode,
 	useCanvasMode,
 } from '../../../site-canvas/mode';
-import {
-	DocumentTitle,
-	SiteCanvas,
-	useCanvasDocument,
-	useSiteCanvas,
-} from '../../../site-canvas';
+import { DocumentTitle, SiteCanvas, useSiteCanvas } from '../../../site-canvas';
 import { getErrorMessage } from '../../../records';
-import {
-	getPageTitle,
-	PAGES_QUERY,
-	usePageSections,
-	usePreviewStructure,
-} from './data';
+import { getPageTitle, PAGE_TEMPLATES_QUERY, PAGES_QUERY } from './data';
 import { getHomepageSummary, parseTarget, useHomepageState } from './homepage';
 import { HOMEPAGE, isIndexTemplateId } from './homepage-state';
-import {
-	getSectionTitle,
-	getTemplateElementKey,
-	getTemplateElementLabel,
-} from './page-sections';
 import { RenamePageModal } from './page-options';
 import { getPagePreviewUrl } from './preview-url';
-import { sectionBridge, useSectionBridge } from './section-bridge';
-import { SECTIONS_VIEW } from './sections-view';
 import {
 	__,
 	Button,
@@ -64,6 +40,7 @@ import {
 	externalIcon,
 	homeIcon,
 	Icon,
+	layoutIcon,
 	linkIcon,
 	MenuGroup,
 	MenuItem,
@@ -81,45 +58,6 @@ import {
 
 const LIST_PATH = '/types/page/list/all';
 
-const HOVERED = 'cnl-section-is-hovered';
-const SELECTED = 'cnl-section-is-selected';
-const INSERT_BEFORE = 'cnl-section-insert-before';
-const INSERT_AFTER = 'cnl-section-insert-after';
-const MARKER_CLASSES = [ HOVERED, SELECTED, INSERT_BEFORE, INSERT_AFTER ];
-
-/*
- * Styles for the markers, added to the editor's iframe. The iframe has the
- * theme's styles, not ours, so they travel with it.
- */
-function getCanvasStyles( accent ) {
-	return `
-:root { --cnl-section-accent: ${ accent }; }
-[data-cnl-section] { transition: outline-color .15s ease, box-shadow .15s ease; outline: 2px solid transparent; outline-offset: -2px; }
-[data-cnl-section].${ HOVERED } { outline-color: var(--cnl-section-accent); }
-[data-cnl-section].${ SELECTED } { outline: 3px solid var(--cnl-section-accent); outline-offset: -3px; }
-[data-cnl-section].${ HOVERED }, [data-cnl-section].${ SELECTED }, [data-cnl-section].${ INSERT_BEFORE }, [data-cnl-section].${ INSERT_AFTER } { position: relative; }
-[data-cnl-section].${ INSERT_BEFORE }::before, [data-cnl-section].${ INSERT_AFTER }::before {
-	content: ""; position: absolute; z-index: 21; left: 12px; right: 12px; height: 4px;
-	border-radius: 4px; background: var(--cnl-section-accent);
-	box-shadow: 0 0 0 4px color-mix(in srgb, var(--cnl-section-accent) 25%, transparent);
-	pointer-events: none; animation: cnl-insert-pulse 1.2s ease-in-out infinite;
-}
-[data-cnl-section].${ INSERT_BEFORE }::before { top: -2px; }
-[data-cnl-section].${ INSERT_AFTER }::before { bottom: -2px; }
-@keyframes cnl-insert-pulse { 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--cnl-section-accent) 10%, transparent); } }
-@media (prefers-reduced-motion: reduce) { [data-cnl-section]::before { animation: none !important; } }
-`;
-}
-
-function getAccentColor() {
-	return (
-		window
-			.getComputedStyle( document.body )
-			.getPropertyValue( '--wp-admin-theme-color' )
-			.trim() || '#3858e9'
-	);
-}
-
 /**
  * A page as the sidebar's list has it, with its address, status and layout,
  * if the list has loaded.
@@ -136,251 +74,6 @@ function getListedPage( select, pageId ) {
 	);
 
 	return pages?.find( ( listed ) => listed.id === pageId ) || null;
-}
-
-/**
- * What the canvas links to the sidebar: the header, each section and the
- * footer, keyed as the sidebar knows them and pointing at where the preview
- * renders them.
- *
- * @param {Object[]} blocks    The page's sections.
- * @param {Object}   structure Result of `usePreviewStructure`.
- * @return {Object[]} `{ key, previewId, label, isSection }` items.
- */
-export function getLinkedItems( blocks, structure ) {
-	const items = [];
-	const getElementItem = ( element ) => ( {
-		key: getTemplateElementKey( element ),
-		label: getTemplateElementLabel( element ),
-		previewId: element.clientId,
-	} );
-
-	structure.before.forEach( ( element ) =>
-		items.push( getElementItem( element ) )
-	);
-
-	blocks.forEach( ( block, index ) => {
-		items.push( {
-			isSection: true,
-			key: block.clientId,
-			label: getSectionTitle( block ),
-			previewId: structure.sectionIds[ index ],
-		} );
-	} );
-
-	structure.after.forEach( ( element ) =>
-		items.push( getElementItem( element ) )
-	);
-
-	return items;
-}
-
-/**
- * Link the page's parts on the canvas to the sidebar: label them, and mark
- * them as the bridge says.
- *
- * @param {Object}   options
- * @param {Document} options.canvasDocument The editor's canvas document.
- * @param {Object[]} options.items          Result of `getLinkedItems`.
- */
-function useLinkedSections( { canvasDocument, items } ) {
-	const hoveredKey = useSectionBridge( ( state ) => state.hoveredId );
-	const selectedKey = useSectionBridge( ( state ) => state.selectedId );
-	const insertionIndex = useSectionBridge(
-		( state ) => state.insertionIndex
-	);
-	const scrollRequest = useSectionBridge( ( state ) => state.scrollRequest );
-
-	// Styles for the markers, once per canvas document.
-	useEffect( () => {
-		if ( ! canvasDocument?.body ) {
-			return undefined;
-		}
-
-		const style = canvasDocument.createElement( 'style' );
-		style.id = 'cnl-linked-sections';
-		style.textContent = getCanvasStyles( getAccentColor() );
-		canvasDocument.head.appendChild( style );
-
-		return () => style.remove();
-	}, [ canvasDocument ] );
-
-	const getNode = ( key ) => {
-		const previewId = items.find( ( item ) => item.key === key )?.previewId;
-
-		return previewId
-			? canvasDocument?.getElementById( `block-${ previewId }` )
-			: null;
-	};
-
-	// Name every part, so the canvas can show what the sidebar calls it.
-	useEffect( () => {
-		if ( ! canvasDocument?.body ) {
-			return undefined;
-		}
-
-		const label = () =>
-			items.forEach( ( item ) => {
-				const node =
-					item.previewId &&
-					canvasDocument.getElementById(
-						`block-${ item.previewId }`
-					);
-
-				if (
-					node &&
-					node.getAttribute( 'data-cnl-section' ) !== item.label
-				) {
-					node.setAttribute( 'data-cnl-section', item.label );
-				}
-			} );
-
-		label();
-
-		// Blocks render asynchronously, and re-render as the page changes.
-		const observer = new canvasDocument.defaultView.MutationObserver(
-			label
-		);
-		observer.observe( canvasDocument.body, {
-			childList: true,
-			subtree: true,
-		} );
-
-		return () => observer.disconnect();
-	}, [ canvasDocument, items ] );
-
-	// Mark the pointed-at and picked parts, and where a new section would go.
-	useEffect( () => {
-		if ( ! canvasDocument?.body ) {
-			return undefined;
-		}
-
-		const mark = () => {
-			canvasDocument
-				.querySelectorAll(
-					MARKER_CLASSES.map( ( name ) => `.${ name }` ).join()
-				)
-				.forEach( ( node ) =>
-					node.classList.remove( ...MARKER_CLASSES )
-				);
-
-			getNode( hoveredKey )?.classList.add( HOVERED );
-			getNode( selectedKey )?.classList.add( SELECTED );
-
-			const sections = items.filter( ( item ) => item.isSection );
-
-			if ( insertionIndex !== null && sections.length ) {
-				const isAfter = insertionIndex >= sections.length;
-				const anchor =
-					sections[ Math.min( insertionIndex, sections.length - 1 ) ];
-
-				getNode( anchor.key )?.classList.add(
-					isAfter ? INSERT_AFTER : INSERT_BEFORE
-				);
-			}
-		};
-
-		mark();
-
-		// A section that was just added may not have rendered yet.
-		const retry = window.setTimeout( mark, 400 );
-
-		return () => {
-			window.clearTimeout( retry );
-			canvasDocument
-				.querySelectorAll(
-					MARKER_CLASSES.map( ( name ) => `.${ name }` ).join()
-				)
-				.forEach( ( node ) =>
-					node.classList.remove( ...MARKER_CLASSES )
-				);
-		};
-		// `getNode` reads `items`, which is a dependency.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ canvasDocument, hoveredKey, insertionIndex, items, selectedKey ] );
-
-	// Bring a part picked in the sidebar into view.
-	useEffect( () => {
-		if ( ! canvasDocument?.body || ! scrollRequest || ! selectedKey ) {
-			return undefined;
-		}
-
-		let attempts = 0;
-		let timeout;
-		const scroll = () => {
-			const node = getNode( selectedKey );
-
-			if ( node ) {
-				const view = canvasDocument.defaultView;
-				const rect = node.getBoundingClientRect();
-				const isTall = rect.height > view.innerHeight * 0.8;
-				const reduceMotion = view.matchMedia(
-					'(prefers-reduced-motion: reduce)'
-				).matches;
-
-				/*
-				 * Scrolled on the canvas's own window rather than with
-				 * `scrollIntoView`, which also scrolls every container
-				 * around the iframe. A tall part is brought in from its top,
-				 * where its label is; anything else is centred.
-				 */
-				view.scrollTo( {
-					behavior: reduceMotion ? 'auto' : 'smooth',
-					top:
-						view.scrollY +
-						rect.top -
-						( isTall ? 0 : ( view.innerHeight - rect.height ) / 2 ),
-				} );
-				return;
-			}
-
-			if ( attempts++ < 10 ) {
-				timeout = window.setTimeout( scroll, 150 );
-			}
-		};
-
-		scroll();
-
-		return () => window.clearTimeout( timeout );
-		// Only a new request should scroll, not every change to the selection.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ canvasDocument, scrollRequest ] );
-
-	// Bring where a new section would go into view.
-	useEffect( () => {
-		const sections = items.filter( ( item ) => item.isSection );
-
-		if (
-			! canvasDocument?.body ||
-			insertionIndex === null ||
-			! sections.length
-		) {
-			return;
-		}
-
-		const isAfter = insertionIndex >= sections.length;
-		const node = getNode(
-			sections[ Math.min( insertionIndex, sections.length - 1 ) ].key
-		);
-
-		if ( ! node ) {
-			return;
-		}
-
-		const rect = node.getBoundingClientRect();
-		const edge = isAfter ? rect.bottom : rect.top;
-		const view = canvasDocument.defaultView;
-
-		// Keep the marker comfortably in view, a third of the way down.
-		if ( edge < 40 || edge > view.innerHeight - 40 ) {
-			view.scrollBy( {
-				behavior: 'smooth',
-				top: edge - view.innerHeight / 3,
-			} );
-		}
-		// `getNode` reads `items`, which is a dependency.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ canvasDocument, insertionIndex, items ] );
 }
 
 function getStatusLabel( status ) {
@@ -422,15 +115,128 @@ function getPagePath( link ) {
 }
 
 /**
- * The menu on the page's name: Rename for any page, as its title isn't on
- * every layout, and its address once it has one.
+ * The layout a page is shown in: the homepage's own, when the theme has one,
+ * as it always wins, then the one the page picked, then the one it gets by
+ * default. The page's unsaved pick counts, so the layout opened is the one on
+ * show.
  *
- * @param {Object}  props        Component props.
- * @param {string}  props.link   The page's address, when it has one to show.
- * @param {?number} props.pageId The page, when there is one to rename.
+ * @param {number}  pageId     Page ID.
+ * @param {boolean} isHomepage Whether the page is the homepage.
+ * @return {?string} The layout's ID, or `null` until it is known.
+ */
+function usePageLayoutId( pageId, isHomepage ) {
+	return useSelect(
+		( select ) => {
+			const store = select( coreDataStore );
+
+			if ( isHomepage ) {
+				const frontId = store.getDefaultTemplateId( {
+					slug: 'front-page',
+				} );
+				const front = frontId
+					? store.getEntityRecord(
+							'postType',
+							'wp_template',
+							frontId
+						)
+					: null;
+
+				if ( front?.slug === 'front-page' ) {
+					return front.id;
+				}
+			}
+
+			// Not known until the page has loaded, or every page would get
+			// the default layout for a moment.
+			if ( ! store.getEntityRecord( 'postType', 'page', pageId ) ) {
+				return null;
+			}
+
+			const page = store.getEditedEntityRecord(
+				'postType',
+				'page',
+				pageId
+			);
+			const picked =
+				page?.template && page.template !== 'default'
+					? page.template
+					: '';
+
+			if ( picked ) {
+				const layouts = store.getEntityRecords(
+					'postType',
+					'wp_template',
+					PAGE_TEMPLATES_QUERY
+				);
+				const layout = layouts?.find( ( { slug } ) => slug === picked );
+
+				// Not known until the page's layouts have loaded.
+				if ( ! layouts || layout ) {
+					return layout?.id || null;
+				}
+			}
+
+			return (
+				store.getDefaultTemplateId( {
+					slug: page?.slug ? `page-${ page.slug }` : 'page',
+				} ) || null
+			);
+		},
+		[ isHomepage, pageId ]
+	);
+}
+
+/**
+ * Edit layout, in the page's menu: opens the layout the page is shown in on
+ * Pages' Layouts, in Edit, with a way back to the page. Only looked up once
+ * the menu opens.
+ *
+ * @param {Object}     props            Component props.
+ * @param {boolean}    props.isHomepage Whether the page is the homepage.
+ * @param {() => void} props.onClose    Closes the menu.
+ * @param {number}     props.pageId     Page ID.
+ * @return {Element} The menu item.
+ */
+function EditLayoutItem( { isHomepage, onClose, pageId } ) {
+	const navigate = useNavigate();
+	const layoutId = usePageLayoutId( pageId, isHomepage );
+
+	return (
+		<MenuItem
+			disabled={ ! layoutId }
+			icon={ layoutIcon }
+			onClick={ async () => {
+				onClose();
+				await navigate( {
+					search: {
+						content: 'templates',
+						layoutFor: isHomepage ? HOMEPAGE : pageId,
+						postIds: [ String( layoutId ) ],
+					},
+					to: LIST_PATH,
+				} );
+				// Only once the page's canvas has gone, as it would take
+				// Edit to mean opening the page.
+				setCanvasMode( MODE_EDIT );
+			} }
+		>
+			{ __( 'Edit layout' ) }
+		</MenuItem>
+	);
+}
+
+/**
+ * The menu on the page's name: Rename for any page, as its title isn't on
+ * every layout, Edit layout, and its address once it has one.
+ *
+ * @param {Object}  props            Component props.
+ * @param {boolean} props.isHomepage Whether the page is the homepage.
+ * @param {string}  props.link       The page's address, when it has one to
+ *                                   show.
+ * @param {?number} props.pageId     The page, when there is one to rename.
  * @return {?Element} The menu.
  */
-function PageOptions( { link, pageId } ) {
+function PageOptions( { isHomepage, link, pageId } ) {
 	const { createSuccessNotice } = useDispatch( noticesStore );
 	const [ isRenaming, setIsRenaming ] = useState( false );
 	const canRename = Boolean( pageId );
@@ -457,6 +263,13 @@ function PageOptions( { link, pageId } ) {
 							>
 								{ __( 'Rename' ) }
 							</MenuItem>
+						) }
+						{ pageId > 0 && (
+							<EditLayoutItem
+								isHomepage={ isHomepage }
+								onClose={ onClose }
+								pageId={ pageId }
+							/>
 						) }
 						{ link && (
 							<MenuItem
@@ -565,23 +378,6 @@ function isPassedToPreview( change, select ) {
 	);
 }
 
-/**
- * The page open in the sidebar according to the browser's address, rather
- * than the router. Opening a page from `/types/page` moves to the list's own
- * route, and the old route's canvas stays on show for a moment with the old
- * address, which has no page open. Switching to Edit in that moment would
- * otherwise open the homepage over the page just opened.
- *
- * @return {string|number} `HOMEPAGE`, a page ID, or 0.
- */
-function getOpenedInAddress() {
-	const route =
-		new URL( window.location.href ).searchParams.get( 'p' ) || '/';
-	const query = route.split( '?' )[ 1 ] || '';
-
-	return parseTarget( new URLSearchParams( query ).get( 'postId' ) );
-}
-
 function PageDocument( { homepage, page } ) {
 	const isPublished = page?.status === 'publish';
 	let link = page?.link;
@@ -612,88 +408,12 @@ function PageDocument( { homepage, page } ) {
 				</div>
 				<p className="cnl-editor-homepage-document__meta">{ meta }</p>
 			</div>
-			<PageOptions link={ path ? link : '' } pageId={ page?.id } />
+			<PageOptions
+				isHomepage={ Boolean( homepage ) }
+				link={ path ? link : '' }
+				pageId={ page?.id }
+			/>
 		</div>
-	);
-}
-
-/**
- * Links the page's parts on the canvas to the sidebar, from a component of its
- * own. It follows the page's blocks, which change on every keystroke, and the
- * part pointed at, which changes on every hover, so the canvas around it
- * doesn't have to.
- *
- * @param {Object}    props                Component props.
- * @param {?Document} props.canvasDocument The editor's canvas document.
- * @param {number}    props.pageId         Page ID.
- * @return {null} Nothing.
- */
-function LinkedSections( { canvasDocument, pageId } ) {
-	const { blocks } = usePageSections( pageId );
-	const structure = usePreviewStructure();
-	const items = useMemo(
-		() => getLinkedItems( blocks, structure ),
-		[ blocks, structure ]
-	);
-
-	useLinkedSections( { canvasDocument, items } );
-
-	return null;
-}
-
-/**
- * Link Compose to the sidebar's list of the page's sections: what one points
- * at or picks, the other does too.
- *
- * The sidebar knows sections by the page's own client IDs and Compose by the
- * editor's, which are matched up by position. See `getLinkedItems`.
- *
- * @param {number} pageId The page on show.
- * @return {Function} A hook for `SectionModesLayer` to call while composing.
- */
-function useComposeSyncHook( pageId ) {
-	return useMemo(
-		() =>
-			function usePagesComposeSync() {
-				const { blocks } = usePageSections( pageId );
-				const structure = usePreviewStructure();
-				const items = useMemo(
-					() => getLinkedItems( blocks, structure ),
-					[ blocks, structure ]
-				);
-				const hoveredKey = useSectionBridge(
-					( state ) => state.hoveredId
-				);
-				const selectedKey = useSectionBridge(
-					( state ) => state.selectedId
-				);
-				const selectedFrom = useSectionBridge(
-					( state ) => state.selectedFrom
-				);
-
-				return useMemo( () => {
-					const toEditor = ( key ) =>
-						items.find( ( item ) => item.key === key )?.previewId ??
-						null;
-					const toKey = ( clientId ) =>
-						items.find( ( item ) => item.previewId === clientId )
-							?.key ?? null;
-
-					return {
-						hoveredId: toEditor( hoveredKey ),
-						// Only what the sidebar picks; Compose knows its own.
-						selectedId:
-							selectedFrom === 'canvas'
-								? null
-								: toEditor( selectedKey ),
-						onHover: ( clientId ) =>
-							sectionBridge.hover( toKey( clientId ) ),
-						onSelect: ( clientId ) =>
-							sectionBridge.select( toKey( clientId ), 'canvas' ),
-					};
-				}, [ hoveredKey, items, selectedFrom, selectedKey ] );
-			},
-		[ pageId ]
 	);
 }
 
@@ -877,12 +597,6 @@ function PagesCanvas() {
 			site,
 		} ),
 	} );
-	const canvasDocument = useCanvasDocument( editorRef, `${ target }` );
-	const useComposeSync = useComposeSyncHook( pageId );
-	const scrollRequest = useSectionBridge( ( state ) => state.scrollRequest );
-	const insertionIndex = useSectionBridge(
-		( state ) => state.insertionIndex
-	);
 	const previewPageId =
 		canvas.previewEntity?.postType === 'page'
 			? Number( canvas.previewEntity.postId )
@@ -913,76 +627,11 @@ function PagesCanvas() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ previewPageId ] );
 
-	// The sidebar follows the canvas's mode. Editing the page on show opens
-	// it in the sidebar, and going back to the list browses again, as does
-	// arriving at the list from another screen while editing. A change made
-	// in the list, to the menu say, shows in the editor without taking the
-	// list away.
-	const wasEditing = useRef( isEditing );
-	useEffect( () => {
-		if ( isEditing && ! drilled && ! getOpenedInAddress() ) {
-			if ( wasEditing.current ) {
-				canvas.requestMode( MODE_BROWSE );
-			} else if ( ! canvas.isShowingChange() ) {
-				navigate( {
-					search: {
-						...searchParams,
-						postId: target,
-						previewId: target,
-					},
-					to: LIST_PATH,
-				} );
-			}
-		}
-
-		wasEditing.current = isEditing;
-		// Only a move between the list and a page, or between modes, should
-		// switch the other.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ drilled, isEditing ] );
-
-	// A page's sections are open in the sidebar while the canvas is zoomed
-	// out to them. Whichever of the two moves first, the other follows: the
-	// zoom changing opens or closes them, and the address changing, as the
-	// breadcrumbs do, zooms in or out.
-	const isComposing = canvas.isComposing;
-	const showsSections =
-		Boolean( drilled ) && searchParams.view === SECTIONS_VIEW;
-	const wasComposing = useRef( false );
-	const wasShowingSections = useRef( false );
-	useEffect( () => {
-		if ( drilled && isComposing !== wasComposing.current ) {
-			if ( isComposing !== showsSections ) {
-				navigate( {
-					search: {
-						...searchParams,
-						view: isComposing ? SECTIONS_VIEW : undefined,
-					},
-					to: LIST_PATH,
-				} );
-			}
-		} else if (
-			drilled &&
-			showsSections !== wasShowingSections.current &&
-			showsSections !== isComposing
-		) {
-			canvas.requestMode( showsSections ? MODE_COMPOSE : MODE_EDIT );
-		}
-
-		wasComposing.current = isComposing;
-		wasShowingSections.current = showsSections;
-		// Only the zoom or the address changing should move the other.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ drilled, isComposing, showsSections ] );
-
-	// A section picked, or about to be added, can only be marked in the
-	// editor, in Edit or Compose.
-	useEffect( () => {
-		if ( scrollRequest || insertionIndex !== null ) {
-			canvas.showEditor();
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ scrollRequest, insertionIndex ] );
+	/*
+	 * The sidebar no longer follows the canvas's mode: Edit is on by default,
+	 * on the list as on a page, and Browse is a switch beside the device.
+	 * Opening a page in the sidebar is the sidebar's own business.
+	 */
 
 	if ( homepage.isLoading ) {
 		return null;
@@ -993,26 +642,17 @@ function PagesCanvas() {
 	}
 
 	return (
-		<>
-			{ ! canvas.isComposing && pageId > 0 && (
-				<LinkedSections
-					canvasDocument={ canvasDocument }
-					pageId={ pageId }
+		<SiteCanvas
+			canvas={ canvas }
+			className={ `cnl-pages-canvas${ drilled ? ' is-drilled' : '' }` }
+			document={
+				<PageDocument
+					homepage={ isHomepage ? homepage : null }
+					page={ page }
 				/>
-			) }
-			<SiteCanvas
-				canvas={ canvas }
-				className={ `cnl-pages-canvas${ drilled ? ' is-drilled' : '' }` }
-				useComposeSync={ useComposeSync }
-				document={
-					<PageDocument
-						homepage={ isHomepage ? homepage : null }
-						page={ page }
-					/>
-				}
-				editorRef={ editorRef }
-			/>
-		</>
+			}
+			editorRef={ editorRef }
+		/>
 	);
 }
 

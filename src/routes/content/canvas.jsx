@@ -8,11 +8,19 @@ import { useNavigate, useParams, useSearch } from '@wordpress/route';
  */
 import { getTitleText } from '../../records';
 import { getEditablePostType } from '../../settings';
-import { getActiveTab, getTemplateTitle } from './helpers';
+import { getActiveTab, getTemplateTitle, isTemplateTab } from './helpers';
 import useContentRecords from './use-content-records';
 import PagesCanvas from './pages/canvas';
+import { HOMEPAGE } from './pages/homepage-state';
 import TemplateCanvas from './template-canvas';
-import { Button, Spinner, __, sprintf } from '../../wordpress-packages';
+import {
+	Button,
+	Spinner,
+	__,
+	coreDataStore,
+	sprintf,
+	useSelect,
+} from '../../wordpress-packages';
 
 function getCanvasLabel( {
 	selectedPost,
@@ -78,13 +86,58 @@ function getCanvasIconClass( { showTemplates, type } ) {
 		: 'dashicons-admin-post';
 }
 
+/**
+ * The page a layout was opened from, by its Edit layout, if any.
+ *
+ * @param {?(string|number)} layoutFor The `layoutFor` search value: a page
+ *                                     ID, or `HOMEPAGE`.
+ * @return {number} The page's ID, or 0.
+ */
+function useLayoutForId( layoutFor ) {
+	const frontPageId = useSelect(
+		( select ) => {
+			if ( layoutFor !== HOMEPAGE ) {
+				return 0;
+			}
+
+			const site = select( coreDataStore ).getEditedEntityRecord(
+				'root',
+				'site'
+			);
+
+			return site?.show_on_front === 'page'
+				? Number( site.page_on_front ) || 0
+				: 0;
+		},
+		[ layoutFor ]
+	);
+
+	return layoutFor === HOMEPAGE ? frontPageId : Number( layoutFor ) || 0;
+}
+
+/**
+ * The records to show a layout on, with the page it was opened from first,
+ * so the layout is shown on that page when it can be.
+ *
+ * @param {Object[]} records Posts or pages.
+ * @param {number}   id      The page the layout was opened from, or 0.
+ * @return {Object[]} The records.
+ */
+function getRecordsFor( records, id ) {
+	const from = id && records.find( ( record ) => record.id === id );
+
+	return from
+		? [ from, ...records.filter( ( record ) => record !== from ) ]
+		: records;
+}
+
 export default function Canvas() {
 	const params = useParams( { strict: false } );
 	const searchParams = useSearch( { strict: false } );
 
 	if (
 		params.type === 'page' &&
-		getActiveTab( searchParams ) !== 'templates'
+		! isTemplateTab( getActiveTab( searchParams ) )
 	) {
 		return <PagesCanvas />;
 	}
@@ -94,6 +147,7 @@ export default function Canvas() {
 
 function ContentCanvas() {
 	const navigate = useNavigate();
+	const searchParams = useSearch( { strict: false } );
 	const {
 		activeTab,
 		isLoading,
@@ -102,12 +156,13 @@ function ContentCanvas() {
 		selectedTemplate,
 		type,
 	} = useContentRecords();
+	const layoutForId = useLayoutForId( searchParams.layoutFor );
 
 	if ( ! type ) {
 		return null;
 	}
 
-	const showTemplates = activeTab === 'templates';
+	const showTemplates = isTemplateTab( activeTab );
 
 	if ( isLoading ) {
 		return (
@@ -125,7 +180,11 @@ function ContentCanvas() {
 		getEditablePostType( 'wp_template' )
 	) {
 		return (
-			<TemplateCanvas records={ posts } template={ selectedTemplate } />
+			<TemplateCanvas
+				isSystemPage={ activeTab === 'system' }
+				records={ getRecordsFor( posts, layoutForId ) }
+				template={ selectedTemplate }
+			/>
 		);
 	}
 

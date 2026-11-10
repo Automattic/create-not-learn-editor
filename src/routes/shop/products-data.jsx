@@ -15,7 +15,6 @@ import { useNavigate } from '@wordpress/route';
 /**
  * Internal dependencies
  */
-import { useShopSearch } from './heading';
 import { PRODUCT_KIND, PRODUCT_NAME, formatPrice } from './product-entity';
 import {
 	HAS_OPTIONS,
@@ -392,7 +391,6 @@ export function useProductsPage( view ) {
  */
 export function useAddProduct() {
 	const navigate = useNavigate();
-	const search = useShopSearch();
 	const { saveEntityRecord } = useDispatch( coreDataStore );
 	const { createErrorNotice } = useDispatch( noticesStore );
 	const [ isAdding, setIsAdding ] = useState( false );
@@ -408,7 +406,7 @@ export function useAddProduct() {
 				{ throwOnError: true }
 			);
 			navigate( {
-				search: { ...search, product: product.id },
+				search: { product: product.id },
 				to: PRODUCTS_PATH,
 			} );
 		} catch ( addError ) {
@@ -476,7 +474,6 @@ export function ProductsEmpty( { view } ) {
 
 export function useProductActions() {
 	const navigate = useNavigate();
-	const search = useShopSearch();
 	const { editEntityRecord } = useDispatch( coreDataStore );
 	const edit = ( items, edits ) =>
 		items.forEach( ( item ) =>
@@ -491,7 +488,7 @@ export function useProductActions() {
 		{
 			callback: ( [ item ] ) =>
 				navigate( {
-					search: { ...search, product: item.id },
+					search: { product: item.id },
 					to: PRODUCTS_PATH,
 				} ),
 			id: 'edit',

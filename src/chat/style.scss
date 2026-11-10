@@ -24,12 +24,21 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 
 @media (min-width: 782px) {
 
-	body.cnl-chat-is-open:not(.cnl-chat-in-stage) #{$layout} > .cnl-chat-host {
+	body.cnl-chat-is-open:is(:not(.cnl-chat-in-stage), .cnl-canvas-is-expanded) #{$layout} > .cnl-chat-host {
 		display: flex;
 		flex: 0 0 $chat-width;
 		min-width: 0;
 		min-height: 0;
 		margin: $top-bar-height $gap $gap 0;
+	}
+
+	/*
+	 * The canvas expanded to fill the editor has no top bar above it, so the
+	 * docked chat lines up with it. In the stage, it is docked meanwhile, as
+	 * the stage is hidden (`mountChat()`). See `src/styles/_stage.scss`.
+	 */
+	body.cnl-chat-is-open.cnl-canvas-is-expanded #{$layout} > .cnl-chat-host {
+		margin-block-start: $gap;
 	}
 
 	body.cnl-chat-is-open.cnl-chat-in-stage #{$layout} [class*="__stage"]:has(> .cnl-chat-host) {

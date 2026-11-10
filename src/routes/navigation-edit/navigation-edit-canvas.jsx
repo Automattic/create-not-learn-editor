@@ -116,7 +116,7 @@ const VIEW_LOCATIONS = 'locations';
 
 /**
  * See the menu on the site, or in each place it is shown: Preview or
- * Locations. Drawn as the site canvas's Browse | Edit toggle is, at the left of
+ * Locations. Drawn as the site canvas's Browse | Edit toggle was, at the left of
  * the toolbar, as it switches the whole canvas rather than acting on what is in
  * it.
  *

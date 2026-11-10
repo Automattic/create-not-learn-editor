@@ -35,6 +35,14 @@ const ZOOMED_OUT = 'auto-scaled';
 // Sets the editor to a desktop's width while core measures it.
 const WIDENING_CLASS = 'is-compose-widening';
 
+// What sits beside the canvas in the editor, like the Document Overview, and
+// the property its width is handed to the widening in.
+const SECONDARY_SIDEBAR = '.interface-interface-skeleton__secondary-sidebar';
+const SIDEBAR_WIDTH_PROPERTY = '--cnl-compose-sidebar-width';
+
+// Narrows the editor by a pixel, for core to measure it again once zoomed out.
+const REMEASURE_CLASS = 'is-compose-remeasuring';
+
 // Frames for core to measure the widened canvas, and to start zooming
 // before it is let go.
 const MEASURE_FRAMES = 3;
@@ -128,6 +136,7 @@ export function useComposeZoom( isComposing, editorRef ) {
 		let isZoomed = false;
 		let request;
 		let widened = null;
+		let remeasured = null;
 
 		const zoomOut = () => {
 			if ( selectors.getZoomLevel() !== ZOOMED_OUT ) {
@@ -155,6 +164,26 @@ export function useComposeZoom( isComposing, editorRef ) {
 			whenReady( () => left-- <= 0, then );
 		};
 
+		/*
+		 * Core works its scale out as the zoom starts, for the widened
+		 * editor, and puts that one back as the zoom ends. Where the canvas
+		 * is let go narrower than core's widest zoomed-out page, as with the
+		 * Document Overview open beside it, that scale is too big for it and
+		 * the page is cut off. A resize once the zoom has settled has core
+		 * work it out again, for the canvas as it is.
+		 */
+		const remeasure = () => {
+			if ( isCancelled || ! editorRef.current ) {
+				return;
+			}
+
+			remeasured = editorRef.current;
+			remeasured.classList.add( REMEASURE_CLASS );
+			afterFrames( RELEASE_FRAMES, () =>
+				remeasured.classList.remove( REMEASURE_CLASS )
+			);
+		};
+
 		// Zoomed out already, by a canvas before this one, core has no
 		// unzoomed width to start from.
 		if ( selectors.isZoomOut() ) {
@@ -165,13 +194,24 @@ export function useComposeZoom( isComposing, editorRef ) {
 			() => getCanvasFrame( editorRef.current )?.contentDocument?.body,
 			() => {
 				widened = editorRef.current;
+				// The page gets a desktop's width beside the Document
+				// Overview, when it is open, too.
+				widened.style.setProperty(
+					SIDEBAR_WIDTH_PROPERTY,
+					`${
+						widened
+							.querySelector( SECONDARY_SIDEBAR )
+							?.getBoundingClientRect().width || 0
+					}px`
+				);
 				widened.classList.add( WIDENING_CLASS );
 				afterFrames( MEASURE_FRAMES, () => {
 					isZoomed = true;
 					zoomOut();
-					afterFrames( RELEASE_FRAMES, () =>
-						widened.classList.remove( WIDENING_CLASS )
-					);
+					afterFrames( RELEASE_FRAMES, () => {
+						widened.classList.remove( WIDENING_CLASS );
+						whenZoomSettles( editorRef, remeasure );
+					} );
 				} );
 			}
 		);
@@ -186,6 +226,7 @@ export function useComposeZoom( isComposing, editorRef ) {
 			isCancelled = true;
 			window.cancelAnimationFrame( request );
 			widened?.classList.remove( WIDENING_CLASS );
+			remeasured?.classList.remove( REMEASURE_CLASS );
 			unsubscribe();
 		};
 	}, [ editorRef, isComposing, registry ] );

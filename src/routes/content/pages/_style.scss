@@ -1,5 +1,4 @@
-// The Pages screen: page tree, page drilldown, section stack and the linked
-// preview canvas.
+// The Pages screen: page tree, page drilldown and the preview canvas.
 
 @use "../../../colors" as *;
 @use "../../../elevation" as *;
@@ -22,400 +21,97 @@ $cnl-accent: var(--wp-admin-theme-color, #3858e9);
 	}
 }
 
-@keyframes cnl-page-section-new {
-
-	0% {
-		background: color-mix(in srgb, #{$cnl-accent} 18%, transparent);
-	}
-
-	100% {
-		background: transparent;
-	}
-}
-
 // ---------------------------------------------------------------------------
-// Page tree.
+// Every page, in the Menus screen's list view.
 // ---------------------------------------------------------------------------
 
-.cnl-pages-tree {
-	display: flex;
-	flex-direction: column;
-	gap: var(--wpds-dimension-gap-sm);
-	padding: var(--wpds-dimension-padding-md) var(--wpds-dimension-padding-lg) var(--wpds-dimension-padding-2xl);
-}
-
-.cnl-pages-tree--loading {
-	padding: var(--wpds-dimension-padding-2xl);
-}
-
-.cnl-pages-tree__empty {
-	margin: var(--wpds-dimension-padding-3xl) auto;
-}
-
-.cnl-pages-tree__search {
-	display: flex;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-sm);
-	margin: 0 var(--wpds-dimension-padding-sm) var(--wpds-dimension-gap-sm);
-	padding: 0 var(--wpds-dimension-padding-md);
-	border: 1px solid var(--wpds-color-stroke-interactive-neutral);
-	border-radius: var(--wpds-border-radius-sm);
-	background: var(--wpds-color-background-interactive-neutral);
-	color: var(--wpds-color-foreground-content-neutral-weak);
-
-	&:focus-within {
-		border-color: var(--wpds-color-stroke-focus);
-		box-shadow: 0 0 0 1px var(--wpds-color-stroke-focus);
-	}
-
-	svg {
-		flex: 0 0 auto;
-		fill: currentcolor;
-	}
-
-	input {
-		flex: 1 1 auto;
-		min-width: 0;
-		height: var(--wpds-dimension-size-lg);
-		padding: 0;
-		border: 0;
-		background: transparent;
-		box-shadow: none;
-		color: var(--wpds-color-foreground-interactive-neutral);
-		font: inherit;
-		outline: none;
-	}
-}
-
-$cnl-pages-tree-row-gap: 2px;
-
-// A sliver between rows, so a hovered row never touches the picked one.
-.cnl-pages-tree__list,
-.cnl-pages-tree__children {
-	display: flex;
-	flex-direction: column;
-	gap: $cnl-pages-tree-row-gap;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-.cnl-pages-tree__children {
-	margin-top: $cnl-pages-tree-row-gap;
-}
-
-.cnl-pages-tree__row {
-	position: relative;
-	display: flex;
-	align-items: center;
-	gap: 2px;
-	padding-inline-start: calc(var(--cnl-pages-tree-depth, 0) * 20px);
-
-	// Guide line joining sub-pages to their parent.
-	&::before {
-		content: "";
-		position: absolute;
-		// Reaches across the gap above, so the line doesn't break.
-		top: -$cnl-pages-tree-row-gap;
-		bottom: 0;
-		inset-inline-start: calc(var(--cnl-pages-tree-depth, 0) * 20px - 8px);
-		width: 1px;
-		background: var(--wpds-color-stroke-surface-neutral-weak);
-	}
-
-	&[style*="--cnl-pages-tree-depth: 0"]::before {
-		display: none;
-	}
-}
-
-// Dragging pages: the page being moved fades, and a line (beside) or a
-// highlight (inside) shows where it will land.
-.cnl-pages-tree__row[draggable="true"] {
-	cursor: grab;
-}
-
-.cnl-pages-tree__row.is-dragging {
-	opacity: 0.4;
-}
-
-.cnl-pages-tree__row.is-drop-before::after,
-.cnl-pages-tree__row.is-drop-after::after {
-	content: "";
-	position: absolute;
-	z-index: 1;
-	inset-inline-start: calc(var(--cnl-pages-tree-drop-depth, 0) * 20px + 26px);
-	inset-inline-end: 0;
-	height: 3px;
-	border-radius: var(--wpds-border-radius-md);
-	background: $cnl-accent;
-	pointer-events: none;
-}
-
-.cnl-pages-tree__row.is-drop-before::after {
-	top: -2px;
-}
-
-.cnl-pages-tree__row.is-drop-after::after {
-	bottom: -2px;
-}
-
-.cnl-pages-tree__row.is-drop-inside .cnl-pages-tree__link {
-	background: color-mix(in srgb, #{$cnl-accent} 10%, transparent);
-	box-shadow: inset 0 0 0 2px $cnl-accent;
-}
-
-.cnl-pages-tree__list.is-dragging .cnl-pages-tree__actions {
-	visibility: hidden;
-}
-
-.cnl-pages-tree__toggle.components-button {
-	flex: 0 0 auto;
-	width: 24px;
-	min-width: 24px;
-	height: 24px;
-	padding: 0;
-	color: var(--wpds-color-foreground-content-neutral-weak);
-}
-
-.cnl-pages-tree__toggle-spacer {
-	flex: 0 0 24px;
-}
-
-.cnl-pages-tree__link {
-	display: flex;
-	flex: 1 1 auto;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-sm);
-	min-width: 0;
-	min-height: 40px;
-	// Room at the end for the edit and delete buttons.
-	padding: 0 88px 0 var(--wpds-dimension-padding-sm);
-	border: 0;
-	border-radius: var(--wpds-border-radius-sm);
-	background: transparent;
-	color: var(--wpds-color-foreground-interactive-neutral);
-	cursor: var(--wpds-cursor-control);
-	font: inherit;
-	text-align: start;
-	transition: background-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
-
-	.cnl-pages-tree__row:hover > & {
-		background: var(--wpds-color-background-interactive-neutral-weak-active);
-	}
-
-	&:focus-visible {
-		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
-		outline-offset: -2px;
-	}
-
-	// The page in the preview: a faint brand tint, so it reads apart from a
-	// hovered row and keeps its tint while hovered.
-	.cnl-pages-tree__row.is-previewed > & {
-		background: var(--wpds-color-background-interactive-brand-weak-active);
-	}
-}
-
-.cnl-pages-tree__icon {
-	flex: 0 0 auto;
-	color: var(--wpds-color-foreground-content-neutral-weak);
-	fill: currentcolor;
-
-	.is-previewed > .cnl-pages-tree__link > & {
-		color: var(--wpds-color-foreground-interactive-brand);
-	}
-}
-
-.cnl-pages-tree__title {
-	overflow: hidden;
-	min-width: 0;
-	font-weight: var(--wpds-typography-font-weight-emphasis);
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.cnl-pages-tree__role {
-	flex: 0 0 auto;
-	color: var(--wpds-color-foreground-content-neutral-weak);
-	font-size: var(--wpds-typography-font-size-sm);
-}
-
-.cnl-pages-tree__status {
-	flex: 0 0 auto;
-}
-
-// Opens the page up, or deletes it. Shown while its row is hovered or focused.
-.cnl-pages-tree__actions {
-	position: absolute;
-	top: 50%;
-	inset-inline-end: var(--wpds-dimension-padding-sm);
-	display: flex;
-	gap: var(--wpds-dimension-gap-xs);
-	opacity: 0;
-	transform: translateY(-50%);
-	transition: opacity var(--wpds-motion-duration-md) var(--wpds-motion-easing-subtle);
-
-	// It eases in from just behind where it settles.
-	@media not (prefers-reduced-motion) {
-		transform: translate(-6px, -50%) scale(0.9);
-		transition:
-			opacity var(--wpds-motion-duration-md) var(--wpds-motion-easing-subtle),
-			transform var(--wpds-motion-duration-md) var(--wpds-motion-easing-expressive);
-	}
-
-	.cnl-pages-tree__row:hover > &,
-	.cnl-pages-tree__row:has(:focus-visible) > & {
-		opacity: 1;
-		transform: translateY(-50%);
-	}
-}
-
-.cnl-pages-tree__edit.components-button {
-	color: var(--wpds-color-foreground-content-neutral-weak);
-
-	&:hover {
-		color: var(--wpds-color-foreground-interactive-neutral);
-	}
-}
-
-.cnl-pages-tree__delete.components-button {
-	color: var(--wpds-color-foreground-interactive-error);
-
-	&:hover {
-		color: var(--wpds-color-foreground-interactive-error-active);
-	}
-}
-
-.cnl-pages-tree__no-results {
-	padding: var(--wpds-dimension-padding-md);
-	color: var(--wpds-color-foreground-content-neutral-weak);
-}
-
-.cnl-pages-tree__footer {
-	margin-top: var(--wpds-dimension-gap-md);
-	padding: 0 var(--wpds-dimension-padding-sm);
-	color: var(--wpds-color-foreground-content-neutral-weak);
-}
-
-// ---------------------------------------------------------------------------
-// Pages in the menu, and the rest.
-// ---------------------------------------------------------------------------
-
-.cnl-pages-menu {
+.cnl-pages-list {
 	display: flex;
 	flex-direction: column;
 	gap: var(--wpds-dimension-gap-xl);
 	padding: var(--wpds-dimension-padding-md) var(--wpds-dimension-padding-lg) var(--wpds-dimension-padding-2xl);
 }
 
-.cnl-pages-menu__group {
+// The list scrolls on its own, under the screen's title and Add page, as a
+// DataViews list does. The screen gives way to what's below it in the stage,
+// like the way in to the chat, rather than the list running on under it.
+.cnl-editor-content-page:has(> .cnl-pages-list) {
+	min-height: 0;
+}
+
+.cnl-editor-content-page > .cnl-pages-list {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+.cnl-pages-list--loading {
+	padding: var(--wpds-dimension-padding-2xl);
+}
+
+.cnl-pages-list__empty {
+	margin: var(--wpds-dimension-padding-3xl) auto;
+}
+
+.cnl-pages-list__group {
 	display: flex;
 	flex-direction: column;
-	gap: var(--wpds-dimension-gap-xs);
-	border-radius: var(--wpds-border-radius-md);
-	transition: box-shadow var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
-
-	&.is-drop-target {
-		background: color-mix(in srgb, #{$cnl-accent} 6%, transparent);
-		box-shadow: inset 0 0 0 2px $cnl-accent;
-	}
+	gap: var(--wpds-dimension-gap-md);
 }
 
-.cnl-pages-menu__group-header {
-	display: flex;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-xs);
-	min-height: 40px;
-	padding: 0 var(--wpds-dimension-padding-sm);
-}
-
-.cnl-pages-menu__group-title {
-	display: flex;
-	align-items: baseline;
-	gap: var(--wpds-dimension-gap-sm);
-	margin: 0;
-	color: var(--wpds-color-foreground-content-neutral);
-	font-size: var(--wpds-typography-font-size-md);
-	font-weight: var(--wpds-typography-font-weight-emphasis);
-	line-height: var(--wpds-typography-line-height-md);
-}
-
-.cnl-pages-menu__group-count {
-	color: var(--wpds-color-foreground-content-neutral-weak);
-	font-size: var(--wpds-typography-font-size-sm);
-	font-weight: var(--wpds-typography-font-weight-default);
-}
-
-.cnl-pages-menu__info.components-button {
-	color: var(--wpds-color-foreground-content-neutral-weak);
-}
-
-.cnl-pages-menu__group-actions {
-	display: flex;
-	align-items: center;
-	gap: 2px;
-	margin-inline-start: auto;
-}
-
-.cnl-pages-menu__empty,
-.cnl-pages-menu__none {
-	margin: 0;
-	padding: var(--wpds-dimension-padding-md);
-	color: var(--wpds-color-foreground-content-neutral-weak);
-}
-
-.cnl-pages-menu__empty {
-	border: 1px dashed var(--wpds-color-stroke-surface-neutral);
-	border-radius: var(--wpds-border-radius-sm);
-	font-size: var(--wpds-typography-font-size-sm);
-	text-align: center;
-
-	&.is-drop-target {
-		border-color: $cnl-accent;
-		background: color-mix(in srgb, #{$cnl-accent} 6%, transparent);
-	}
-}
-
-.cnl-pages-menu__item-options {
-	display: flex;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-xs);
-}
-
-// The menu's rows look like the page tree's: the page in the canvas has a
-// faint tint rather than the list view's solid selection, and hovering tints
-// a row without recolouring its text.
+// The end of each row: a badge, the options, and the switch.
+// The switch and badge always show; the options wait for the row to be
+// hovered, focused or picked, as the list view's own options do.
 // Scoped by the table too, to outrank the list view's own row styles.
-.cnl-pages-menu .block-editor-list-view-tree tr.block-editor-list-view-leaf {
+.cnl-pages-list-view .block-editor-list-view-tree tr.block-editor-list-view-leaf {
 
-	.block-editor-list-view-block-contents,
-	.block-editor-list-view-block-select-button:hover {
-		color: var(--wpds-color-foreground-interactive-neutral);
+	// As narrow as what's in it, leaving the page's title the rest.
+	.block-editor-list-view-block__menu-cell {
+		width: 1%;
+		white-space: nowrap;
 	}
 
-	td {
-		background: var(--cnl-pages-menu-row-background, transparent);
-		transition:
-			background-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
-			box-shadow var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+	.block-editor-list-view-block__menu-cell > .cnl-pages-list-view__row-end {
+		opacity: 1;
 	}
 
-	// The cells meet at a fraction of a pixel, which shows as a hairline;
-	// the first cell's shadow covers it.
-	td:first-child {
-		border-radius: var(--wpds-border-radius-sm) 0 0 var(--wpds-border-radius-sm);
-		box-shadow: 1px 0 0 var(--cnl-pages-menu-row-background, transparent);
+	// Pages are locked against the list view's own delete, which isn't how a
+	// page is deleted here, not against being changed, so no padlock.
+	.block-editor-list-view-block-select-button__lock {
+		display: none;
 	}
 
-	td:last-child {
-		border-radius: 0 var(--wpds-border-radius-sm) var(--wpds-border-radius-sm) 0;
+	.cnl-pages-list-view__options {
+		opacity: 0;
+		transition: opacity var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
 	}
 
-	&:hover {
-		--cnl-pages-menu-row-background: var(--wpds-color-background-interactive-neutral-weak-active);
-	}
-
+	&:hover,
+	&:focus-within,
 	&.is-selected {
-		--cnl-pages-menu-row-background: var(--wpds-color-background-interactive-brand-weak-active);
+
+		.cnl-pages-list-view__options {
+			opacity: 1;
+		}
+	}
+
+	// Core's focus ring runs from the title to one 24px button past it, so
+	// here it stopped part way across the badge. Ring the whole row instead,
+	// badge, options and switch with it.
+	.block-editor-list-view-block-contents:focus::after {
+		display: none;
+	}
+
+	&:has(.block-editor-list-view-block-contents:focus) {
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+		outline-offset: calc(-1 * var(--wpds-border-width-focus));
+		border-radius: var(--wpds-border-radius-sm);
+	}
+
+	// The page on show is tinted rather than filled, so its switch, on or
+	// off, still reads against it.
+	&.is-selected td {
+		background: var(--wpds-color-background-interactive-brand-weak-active);
 	}
 
 	&.is-selected .block-editor-list-view-block-contents,
@@ -426,176 +122,21 @@ $cnl-pages-tree-row-gap: 2px;
 	&.is-selected .block-editor-block-icon {
 		color: var(--wpds-color-foreground-interactive-brand);
 	}
-
-	// The list view tints whatever sits under the selected item; the page
-	// tree doesn't.
-	&.is-branch-selected:not(.is-selected) {
-		background: transparent;
-	}
-
-	// A badge says something about the page, so it always shows. Only the
-	// row's actions wait for hover, focus or the row being picked.
-	.block-editor-list-view-block__menu-cell > .cnl-pages-menu__item-options {
-		opacity: 1;
-	}
-
-	.cnl-pages-menu__item-options > .components-button,
-	.cnl-pages-menu__item-options > .components-dropdown-menu {
-		opacity: 0;
-		transition: opacity var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
-	}
-
-	&:hover .cnl-pages-menu__item-options > *,
-	&:focus-within .cnl-pages-menu__item-options > *,
-	&.is-selected .cnl-pages-menu__item-options > * {
-		opacity: 1;
-	}
-
-	.cnl-pages-menu__item-options .components-button.has-icon {
-		color: var(--wpds-color-foreground-content-neutral-weak);
-
-		&:hover {
-			color: var(--wpds-color-foreground-interactive-neutral);
-		}
-	}
-
-	.cnl-pages-menu__item-options .cnl-pages-menu__delete.components-button.has-icon {
-		color: var(--wpds-color-foreground-interactive-error);
-
-		&:hover {
-			color: var(--wpds-color-foreground-interactive-error-active);
-		}
-	}
 }
 
-.cnl-pages-menu__status {
-	flex: 0 0 auto;
-}
-
-.cnl-pages-menu__pages {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-.cnl-pages-menu__page {
-	position: relative;
+.cnl-pages-list-view__row-end {
 	display: flex;
 	align-items: center;
-	cursor: grab;
-
-	&:active {
-		cursor: grabbing;
-	}
-}
-
-// Like the page tree, a page's actions show on hover or keyboard focus.
-.cnl-pages-menu__page-actions {
-	position: absolute;
-	top: 50%;
-	inset-inline-end: var(--wpds-dimension-padding-sm);
-	display: flex;
+	// Ends at the row's end, so the switches line up whatever is beside them.
+	justify-content: flex-end;
 	gap: var(--wpds-dimension-gap-xs);
-	opacity: 0;
-	transform: translateY(-50%);
-	transition: opacity var(--wpds-motion-duration-md) var(--wpds-motion-easing-subtle);
-
-	.cnl-pages-menu__page:hover > &,
-	.cnl-pages-menu__page:focus-within > & {
-		opacity: 1;
-	}
-
-	.components-button {
-		color: var(--wpds-color-foreground-content-neutral-weak);
-
-		&:hover {
-			color: var(--wpds-color-foreground-interactive-neutral);
-		}
-	}
-
-	.components-button:last-child {
-		color: var(--wpds-color-foreground-interactive-error);
-	}
+	// As far in from the row's end as a top-level page's icon is from its
+	// start, so the switches sit inside the row's tint and focus ring.
+	padding-inline-end: var(--wpds-dimension-padding-2xl);
 }
 
-.cnl-pages-menu__edit.components-button {
-	color: var(--wpds-color-foreground-content-neutral-weak);
-}
-
-.cnl-pages-menu__group-actions .components-button {
-	color: var(--wpds-color-foreground-content-neutral-weak);
-
-	&:hover {
-		color: var(--wpds-color-foreground-interactive-neutral);
-	}
-}
-
-.cnl-pages-menu__page-link {
-	display: flex;
-	flex: 1 1 auto;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-sm);
-	min-width: 0;
-	min-height: 36px;
-	padding: 0 var(--wpds-dimension-padding-sm);
-	border: 0;
-	border-radius: var(--wpds-border-radius-sm);
-	background: transparent;
-	color: var(--wpds-color-foreground-interactive-neutral);
-	cursor: inherit;
-	font: inherit;
-	text-align: start;
-	transition: background-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
-
-	&:hover {
-		background: var(--wpds-color-background-interactive-neutral-weak-active);
-	}
-
-	&:focus-visible {
-		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
-		outline-offset: -2px;
-	}
-
-	.cnl-pages-menu__page.is-previewed > & {
-		background: var(--wpds-color-background-interactive-brand-weak-active);
-	}
-}
-
-.cnl-pages-menu__page-icon {
-	flex: 0 0 auto;
-	color: var(--wpds-color-foreground-content-neutral-weak);
-	fill: currentcolor;
-
-	.is-previewed > .cnl-pages-menu__page-link > & {
-		color: var(--wpds-color-foreground-interactive-brand);
-	}
-}
-
-.cnl-pages-menu__page-title {
-	overflow: hidden;
-	min-width: 0;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.cnl-pages-menu__page-role {
-	flex: 0 0 auto;
-	color: var(--wpds-color-foreground-content-neutral-weak);
-	font-size: var(--wpds-typography-font-size-sm);
-}
-
-// The homepage's second line can be a long page title, so it gives way to
-// "Homepage" rather than pushing the row's buttons out.
-.cnl-pages-menu__page--homepage .cnl-pages-menu__page-role,
-.cnl-pages-tree__item--homepage > .cnl-pages-tree__row .cnl-pages-tree__role {
-	flex: 0 1 auto;
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+.cnl-pages-list-view__switch {
+	margin-inline-start: var(--wpds-dimension-gap-xs);
 }
 
 .cnl-homepage-problem {
@@ -627,7 +168,14 @@ $cnl-pages-tree-row-gap: 2px;
 	gap: var(--wpds-dimension-gap-xl);
 	min-height: 0;
 	overflow: auto;
-	padding: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-2xl) var(--wpds-dimension-padding-3xl);
+	padding: var(--wpds-dimension-padding-xl) var(--wpds-dimension-padding-2xl) var(--wpds-dimension-padding-3xl);
+}
+
+// Until the summary has loaded, nothing sits above the links to divide them
+// from.
+.cnl-pages-detail__body > .cnl-screen-links:first-child {
+	border-top: 0;
+	padding-top: 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -732,7 +280,7 @@ $cnl-pages-tree-row-gap: 2px;
 .cnl-page-layouts {
 	display: flex;
 	flex-direction: column;
-	gap: var(--wpds-dimension-gap-md);
+	gap: var(--wpds-dimension-gap-lg);
 }
 
 .cnl-page-layouts__grid {
@@ -830,21 +378,8 @@ $cnl-pages-tree-row-gap: 2px;
 }
 
 // ---------------------------------------------------------------------------
-// Sections.
+// Headings and hints on a page's views.
 // ---------------------------------------------------------------------------
-
-.cnl-page-sections {
-	display: flex;
-	flex-direction: column;
-	gap: var(--wpds-dimension-gap-md);
-}
-
-.cnl-page-sections__header {
-	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: var(--wpds-dimension-gap-md);
-}
 
 .cnl-page-sections__title {
 	display: flex;
@@ -860,381 +395,113 @@ $cnl-pages-tree-row-gap: 2px;
 	color: var(--wpds-color-foreground-content-neutral-weak);
 }
 
-.cnl-page-sections__list {
-	display: flex;
-	flex-direction: column;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
+// ---------------------------------------------------------------------------
+// A page's details: core's page fields, in a DataForm.
+// ---------------------------------------------------------------------------
 
-// The gap between two sections, where a new one can be slotted in.
-.cnl-page-sections__gap {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: 8px;
-	z-index: 1;
+// Inset as far as the ways on below it, so the details' labels line up with
+// their icons.
+.cnl-page-details .cnl-page-details__content {
+	padding: var(--wpds-dimension-padding-lg) var(--wpds-dimension-padding-md);
 
-	&::before {
-		content: "";
-		position: absolute;
-		inset-inline: 12px;
-		top: 50%;
-		height: 2px;
-		margin-top: -1px;
-		border-radius: var(--wpds-border-radius-sm);
-		background: $cnl-accent;
-		opacity: 0;
-		transition: opacity var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
-	}
-
-	&:first-child {
-		height: 0;
-	}
-
-	.cnl-page-sections__list.is-dragging & {
-		pointer-events: none;
+	&.is-loading {
+		display: flex;
+		flex-direction: column;
+		gap: var(--wpds-dimension-gap-md);
 	}
 }
 
-.cnl-page-sections__gap-button {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 24px;
-	height: 24px;
-	padding: 0;
-	border: 0;
-	border-radius: 50%;
-	background: $cnl-accent;
-	color: #fff;
-	cursor: var(--wpds-cursor-control);
-	opacity: 0;
-	transform: scale(0.6);
-	transition:
-		opacity var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
-		transform var(--wpds-motion-duration-sm) var(--wpds-motion-easing-balanced);
-
-	svg {
-		fill: currentcolor;
-	}
-
-	&:focus-visible {
-		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
-		outline-offset: 2px;
-	}
-}
-
-.cnl-page-sections__gap:hover,
-.cnl-page-sections__gap:focus-within,
-.cnl-page-sections__gap.is-active {
-
-	&::before {
-		opacity: 1;
-	}
-
-	.cnl-page-sections__gap-button {
-		opacity: 1;
-		transform: none;
-	}
-}
-
-.cnl-page-section {
-	--cnl-sketch-accent: #{$cnl-accent};
-	cursor: grab;
-	user-select: none;
-	--cnl-sketch-fill: var(--wpds-color-foreground-content-neutral);
-	--cnl-sketch-on-fill: var(--wpds-color-background-surface-neutral);
-	--cnl-sketch-tint: var(--wpds-color-background-surface-neutral-strong);
-	--cnl-sketch-image: color-mix(in srgb, #{$cnl-accent} 22%, var(--wpds-color-background-surface-neutral-strong));
-	position: relative;
-	border: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
-	border-radius: var(--wpds-border-radius-lg);
-	background: var(--wpds-color-background-surface-neutral);
-	animation: cnl-pages-fade-up var(--wpds-motion-duration-md) var(--wpds-motion-easing-balanced) both;
-	transition:
-		border-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
-		box-shadow var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
-		opacity var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
-
-	&.is-hovered,
-	&:hover {
-		border-color: var(--wpds-color-stroke-surface-neutral-strong);
-		box-shadow: $cnl-rest-shadow;
-	}
-
-	&.is-selected {
-		border-color: $cnl-accent;
-		box-shadow: 0 0 0 1px $cnl-accent;
-	}
-
-	&.is-dragging {
-		opacity: 0.4;
-	}
-
-	&.is-new {
-		animation: cnl-page-section-new 1.6s var(--wpds-motion-easing-subtle);
-	}
-
-	// Where a dragged section will land.
-	&.is-drop-before::before,
-	&.is-drop-after::after {
-		content: "";
-		position: absolute;
-		inset-inline: 8px;
-		height: 3px;
-		border-radius: var(--wpds-border-radius-md);
-		background: $cnl-accent;
-		pointer-events: none;
-	}
-
-	&.is-drop-before::before {
-		top: -6px;
-	}
-
-	&.is-drop-after::after {
-		bottom: -6px;
-	}
-}
-
-.cnl-page-section__row {
-	display: flex;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-xs);
-	padding: var(--wpds-dimension-padding-xs);
-	padding-inline-end: var(--wpds-dimension-padding-sm);
-}
-
-.cnl-page-section__handle {
-	display: flex;
-	min-width: 20px;
-	flex: 0 0 auto;
-	align-self: stretch;
-	align-items: center;
+.cnl-page-details__note,
+.cnl-page-details__note * {
 	color: var(--wpds-color-foreground-content-neutral-weak);
-	cursor: grab;
-	opacity: 0.5;
-	transition: opacity var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
-
-	svg {
-		fill: currentcolor;
-	}
-
-	.cnl-page-section:hover &,
-	.cnl-page-section.is-selected & {
-		opacity: 1;
-	}
-
-	.cnl-page-section:active & {
-		cursor: grabbing;
-	}
 }
 
-.cnl-page-section__main {
-	cursor: inherit;
-	display: flex;
-	flex: 1 1 auto;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-md);
-	min-width: 0;
-	padding: var(--wpds-dimension-padding-xs);
-	border: 0;
-	border-radius: var(--wpds-border-radius-sm);
-	background: transparent;
-	color: inherit;
-	font: inherit;
-	text-align: start;
-
-	&:focus-visible {
-		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
-		outline-offset: 0;
-	}
-}
-
-// Pressed, and all the while a section is being dragged, the hand closes.
-.cnl-page-section:not(.is-template-element):active,
-body.cnl-is-dragging-section,
-body.cnl-is-dragging-section * {
-	cursor: grabbing !important;
-	user-select: none;
-}
-
-.cnl-page-section__menu .components-button {
-	cursor: var(--wpds-cursor-control);
-}
-
-.cnl-page-section__sketch {
-	flex: 0 0 auto;
+// The menus a page is in. Menu names can be long: in the row, one is cut
+// short; in its switches, they wrap, however long the words.
+.cnl-page-menus__value {
+	display: block;
 	overflow: hidden;
-	border: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
-	border-radius: var(--wpds-border-radius-sm);
-	background: var(--wpds-color-background-surface-neutral);
-	color: var(--wpds-color-foreground-content-neutral);
-}
-
-.cnl-page-section__text {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-	min-width: 0;
-}
-
-.cnl-page-section__title,
-.cnl-page-section__summary {
-	overflow: hidden;
+	max-width: 100%;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.cnl-page-section__title {
-	font-weight: var(--wpds-typography-font-weight-emphasis);
+.cnl-page-menus__loading {
+	display: block;
 }
 
-.cnl-page-section__summary {
-	color: var(--wpds-color-foreground-content-neutral-weak);
-	font-size: var(--wpds-typography-font-size-sm);
-}
-
-.cnl-page-section__menu {
-	flex: 0 0 auto;
-	opacity: 0;
-	transition: opacity var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
-
-	.cnl-page-section:hover &,
-	.cnl-page-section:focus-within &,
-	.cnl-page-section.is-selected & {
-		opacity: 1;
-	}
-}
-
-.cnl-page-sections__add-item {
-	margin: var(--wpds-dimension-gap-md) 0;
-}
-
-.cnl-page-sections__add {
+// It scrolls, which clips anything drawn outside it, so it keeps a gutter for
+// the switches' focus rings, taken back from its margin to stay in line.
+.cnl-page-menus {
 	display: flex;
 	flex-direction: column;
-	box-sizing: border-box;
-	width: 100%;
-	align-items: center;
-	justify-content: center;
-	gap: var(--wpds-dimension-gap-sm);
-	min-height: 56px;
+	width: min(280px, 100%);
+	max-height: 320px;
+	margin: calc(-1 * var(--wpds-dimension-padding-sm));
 	padding: var(--wpds-dimension-padding-sm);
-	border: 1px dashed var(--wpds-color-stroke-surface-neutral-strong);
-	border-radius: var(--wpds-border-radius-lg);
-	background: transparent;
-	color: var(--wpds-color-foreground-interactive-neutral);
-	cursor: var(--wpds-cursor-control);
-	font: inherit;
-	text-align: center;
-	transition:
-		border-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
-		background-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
-		color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
-
-	svg {
-		fill: currentcolor;
-	}
-
-	&.is-empty {
-		min-height: 112px;
-		padding: var(--wpds-dimension-padding-lg);
-	}
-
-	&:hover,
-	&.is-active {
-		border-color: $cnl-accent;
-		background: color-mix(in srgb, #{$cnl-accent} 6%, transparent);
-		color: $cnl-accent;
-	}
-
-	&:focus-visible {
-		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
-		outline-offset: 2px;
-	}
+	overflow-y: auto;
+	list-style: none;
 }
 
-.cnl-page-sections__add-hint {
-	max-width: 32em;
-	color: var(--wpds-color-foreground-content-neutral-weak);
-}
-
-.cnl-page-sections__add-label {
+.cnl-page-menus__item {
 	display: flex;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-sm);
-	font-weight: var(--wpds-typography-font-weight-emphasis);
-}
+	align-items: flex-start;
+	gap: var(--wpds-dimension-gap-lg);
+	min-width: 0;
+	padding: var(--wpds-dimension-padding-md) 0;
 
-// Content from the template rather than the page itself - the header,
-// footer, or anything else the layout adds, like a title or image. Shown so
-// the page reads top to bottom as visitors see it, but can't be moved, and
-// carries a purple treatment to set it apart from the page's own sections.
-.cnl-page-section.is-template-element {
-	cursor: default;
-	margin-bottom: var(--wpds-dimension-gap-sm);
-
-	.cnl-page-section__main {
-		cursor: var(--wpds-cursor-control);
+	& + & {
+		border-top: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
 	}
 
-	border-style: dashed;
-	border-color: color-mix(in srgb, #{$cnl-global} 30%, transparent);
-	background: color-mix(in srgb, #{$cnl-global} 6%, transparent);
-	animation: none;
-
-	&.is-selected {
-		border-style: solid;
-		border-color: $cnl-global;
+	&:first-child {
+		padding-top: 0;
 	}
 
-	.cnl-page-section__part-icon {
-		border-color: color-mix(in srgb, #{$cnl-global} 30%, transparent);
-		background: color-mix(in srgb, #{$cnl-global} 12%, transparent);
-		color: $cnl-global;
-	}
-
-	.cnl-page-section__summary {
-		color: $cnl-global;
+	&:last-child {
+		padding-bottom: 0;
 	}
 }
 
-.cnl-page-section__lock {
-	flex: 0 0 auto;
-	color: $cnl-global;
-
-	svg {
-		fill: currentcolor;
-	}
-}
-
-// Holds the lock's place where a site part's options menu would otherwise
-// sit, so it lines up the same whether or not that menu is there.
-.cnl-page-section__menu-spacer {
-	flex: 0 0 auto;
-	width: var(--wpds-dimension-size-sm);
-	height: var(--wpds-dimension-size-sm);
-}
-
-.cnl-page-section__part-icon {
+.cnl-page-menus__text {
 	display: flex;
-	flex: 0 0 auto;
-	align-items: center;
-	justify-content: center;
-	box-sizing: border-box;
-	width: 50px;
-	height: 34px;
-	border: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
-	border-radius: var(--wpds-border-radius-sm);
-	background: var(--wpds-color-background-surface-neutral);
-	color: var(--wpds-color-foreground-content-neutral-weak);
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
 
-	svg {
-		fill: currentcolor;
+.cnl-page-menus__name {
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.cnl-page-menus__description {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+	line-height: var(--wpds-typography-line-height-xs);
+}
+
+// Level with the name's first line, however many lines it runs to.
+.cnl-page-menus__switch {
+	flex: 0 0 auto;
+	margin-top: 2px;
+}
+
+// The card sets the details apart from the ways on below it, so they need no
+// rule between them as well.
+.cnl-page-details + .cnl-screen-links {
+	border-top: 0;
+	padding-top: 0;
+}
+
+.components-button.is-link.cnl-page-details__button {
+	text-align: start;
+	text-decoration: none;
+
+	&:hover {
+		text-decoration: underline;
 	}
 }
 
@@ -1258,8 +525,7 @@ body.cnl-is-dragging-section * {
 
 @media (prefers-reduced-motion: reduce) {
 
-	.cnl-editor-stage.cnl-pages-detail,
-	.cnl-page-section {
+	.cnl-editor-stage.cnl-pages-detail {
 		animation: none;
 	}
 }

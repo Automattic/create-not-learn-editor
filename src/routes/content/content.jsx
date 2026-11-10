@@ -7,7 +7,6 @@ import { withCanvasRecovery } from '../../canvas-recovery';
 import { withScreenKey } from '../../screen-key';
 import { getCurrentEditorPath } from '../static/screens';
 import { withUiTheme } from '../../theme';
-import { useSiteTrail } from '../../site-trail';
 import { usePostsTrip } from '../../site-canvas/mode';
 import { getTemplateDisplayDescription } from '../../records';
 import { EMPTY_ARRAY } from './page-layouts';
@@ -16,9 +15,11 @@ import { getActiveWorkspace } from '../../workspaces/presets';
 import useMainMenu from './use-main-menu';
 import { PageDetailStage } from './pages/stage';
 import { parseTarget, useHomepageState } from './pages/homepage';
+import { getPageTitle } from './pages/data';
 import { HOMEPAGE } from './pages/homepage-state';
 import HomepageStage from './pages/homepage-stage';
-import PagesMenuGroups from './pages/menu-groups';
+import PagesList from './pages/pages-list';
+import useAddMenuItem, { AddOptions } from './pages/use-add-menu-item';
 import AddPageFlow from './add-page-flow';
 import Canvas from './canvas';
 import {
@@ -36,7 +37,8 @@ import { TIMELINE_LAYOUT } from './post-timeline';
 import useCoreTrashActions from './use-core-trash-actions';
 import PostKindPicker from '../../pickers/post-kinds';
 import { isAskingPostKind } from '../../post-kinds-base';
-import { getTemplateTitle } from './helpers';
+import { getTemplateTitle, isTemplateTab } from './helpers';
+import { getSystemPage, SYSTEM_PAGES_CONTENT } from './pages/system-pages';
 import PagesTable from './pages-table';
 import useContentRecords, { LISTED_STATUSES } from './use-content-records';
 import { useDataViews } from '../../use-dataviews';
@@ -117,8 +119,25 @@ function TabLabel( { icon, label } ) {
 function Stage() {
 	const navigate = useNavigate();
 	const searchParams = useSearch( { strict: false } );
-	const siteTrail = useSiteTrail();
 	const postsTrip = usePostsTrip();
+	// The page whose Edit layout opened Layouts, to lead back to.
+	const layoutFor = parseTarget( searchParams.layoutFor );
+	const layoutForTitle = useSelect(
+		( select ) => {
+			if ( ! layoutFor || layoutFor === HOMEPAGE ) {
+				return layoutFor ? __( 'Homepage' ) : '';
+			}
+
+			return getPageTitle(
+				select( coreDataStore ).getEditedEntityRecord(
+					'postType',
+					'page',
+					layoutFor
+				)
+			);
+		},
+		[ layoutFor ]
+	);
 	// Where a page being added goes: in the menu, out of it, or the user picks.
 	const [ addingPage, setAddingPage ] = useState( null );
 	const [ isPickingPostKind, setIsPickingPostKind ] = useState( false );
@@ -137,6 +156,8 @@ function Stage() {
 	} = useContentRecords();
 	const mainMenu = useMainMenu();
 	const homepage = useHomepageState();
+	// Pages adds to the main menu too: anything but a page goes on Menus.
+	const menuItemAdder = useAddMenuItem( mainMenu.menuId );
 	const { frontPageId, postsPageId } = useSelect( ( select ) => {
 		const site = select( coreDataStore ).getEditedEntityRecord(
 			'root',
@@ -237,7 +258,7 @@ function Stage() {
 		[ previewTemplates ]
 	);
 
-	// Asked to add one from outside the list, like quick add's Page.
+	// Asked to add one from outside the list, like the admin bar's New > Page.
 	const isAddRequested = !! searchParams.add && !! type;
 	useEffect( () => {
 		if ( ! isAddRequested ) {
@@ -264,7 +285,8 @@ function Stage() {
 	}
 
 	const listPath = `/types/${ type.name }/list/${ statusView?.slug || 'all' }`;
-	const showTemplates = activeTab === 'templates';
+	const showTemplates = isTemplateTab( activeTab );
+	const isSystemPages = activeTab === SYSTEM_PAGES_CONTENT;
 	const drilled =
 		isPages && ! showTemplates ? parseTarget( searchParams.postId ) : 0;
 
@@ -272,11 +294,7 @@ function Stage() {
 	if ( drilled === HOMEPAGE || ( drilled && drilled === homepage.pageId ) ) {
 		return (
 			<>
-				<HomepageStage
-					onStartNewPage={ () =>
-						setAddingPage( { menuPlacement: 'homepage' } )
-					}
-				/>
+				<HomepageStage />
 				{ addingPage && (
 					<AddPageFlow
 						mainMenu={ mainMenu }
@@ -325,7 +343,7 @@ function Stage() {
 		navigate( {
 			search: {
 				...searchParams,
-				content: 'templates',
+				content: isSystemPages ? SYSTEM_PAGES_CONTENT : 'templates',
 				postIds: templateId ? [ String( templateId ) ] : undefined,
 				templateId: undefined,
 				templateIds: undefined,
@@ -397,9 +415,38 @@ function Stage() {
 			to: `/types/${ type.name }/new`,
 		} );
 	};
+	// Pages can add to the main menu too, so Add page is a menu while there is
+	// one, or might be: it doesn't change under the pointer as the menu loads.
+	const hasAddMenu =
+		type.name === 'page' && ( mainMenu.isLoading || !! mainMenu.menuId );
 	const pageActions = (
 		<div className="routes-post-list__page-actions">
-			{ type.canCreate && (
+			{ type.canCreate && hasAddMenu && (
+				<DropdownMenu
+					icon={ null }
+					label={ addLabel }
+					popoverProps={ { placement: 'bottom-end' } }
+					text={ addLabel }
+					toggleProps={ {
+						__next40pxDefaultSize: true,
+						showTooltip: false,
+						variant: 'primary',
+					} }
+				>
+					{ ( { onClose } ) => (
+						<AddOptions
+							onAddMenuItem={
+								mainMenu.menuId
+									? menuItemAdder.addMenuItem
+									: undefined
+							}
+							onAddPage={ openCreateFlow }
+							onClose={ onClose }
+						/>
+					) }
+				</DropdownMenu>
+			) }
+			{ type.canCreate && ! hasAddMenu && (
 				<Button
 					__next40pxDefaultSize
 					onClick={ openCreateFlow }
@@ -519,7 +566,19 @@ function Stage() {
 			</EmptyState.Root>
 		</div>
 	);
-	const templateEmpty = (
+	const templateEmpty = isSystemPages ? (
+		<div className="cnl-editor-empty-state">
+			<EmptyState.Root>
+				<EmptyState.Icon icon={ pageIcon } />
+				<EmptyState.Title>{ __( 'No system pages' ) }</EmptyState.Title>
+				<EmptyState.Description>
+					{ __(
+						'Your theme leaves these to WordPress, so there is nothing of its own to change here.'
+					) }
+				</EmptyState.Description>
+			</EmptyState.Root>
+		</div>
+	) : (
 		<div className="cnl-editor-empty-state">
 			<EmptyState.Root>
 				<EmptyState.Icon icon={ layoutIcon } />
@@ -544,8 +603,11 @@ function Stage() {
 		pagesList = isPagesTable ? (
 			<PagesTable listPath={ listPath } mainMenu={ mainMenu } />
 		) : (
-			<PagesMenuGroups
+			<PagesList
 				canCreate={ type.canCreate }
+				onAddMenuItem={
+					mainMenu.menuId ? menuItemAdder.addMenuItem : undefined
+				}
 				onAddPage={ openCreateFlow }
 			/>
 		);
@@ -619,25 +681,25 @@ function Stage() {
 
 	// Pages has no tabs: its layouts open from the options menu, as a step
 	// down from Pages with a way back.
-	const isLayoutsStep = showTemplates && isPages;
-	// Layouts and the table of all pages are steps down from Pages.
+	const isLayoutsStep = showTemplates && isPages && ! isSystemPages;
+	// Layouts, system pages and the table of all pages are steps down from
+	// Pages.
 	let subScreenLabel = null;
 
 	if ( isLayoutsStep ) {
 		subScreenLabel = __( 'Layouts' );
+	} else if ( isSystemPages && isPages ) {
+		subScreenLabel = __( 'System pages' );
 	} else if ( isPagesTable ) {
 		subScreenLabel = __( 'All pages' );
 	}
 
 	const title = type.menuName || type.label;
 	// Opened from a section's Edit posts, the list leads back to its page.
-	// Opened from the "Home" screen, or the Header or Footer screen,
-	// Pages leads back there.
-	let siteCrumbs = siteTrail;
-
-	if ( postsTrip?.postType === type.name ) {
-		siteCrumbs = [ { label: postsTrip.label, to: postsTrip.to } ];
-	}
+	const siteCrumbs =
+		postsTrip?.postType === type.name
+			? [ { label: postsTrip.label, to: postsTrip.to } ]
+			: [];
 	const pageHeader = subScreenLabel
 		? {
 				ariaLabel: subScreenLabel,
@@ -645,16 +707,20 @@ function Stage() {
 					<Breadcrumbs
 						items={ [
 							...siteCrumbs,
-							{
-								label: title,
-								// Back up keeps the way back to where the
-								// visit began.
-								to: searchParams.from
-									? `${ listPath }?${ new URLSearchParams( {
-											from: searchParams.from,
-										} ) }`
-									: listPath,
-							},
+							{ label: title, to: listPath },
+							...( isLayoutsStep && layoutFor
+								? [
+										{
+											label: layoutForTitle,
+											to: `${ listPath }?${ new URLSearchParams(
+												{
+													postId: layoutFor,
+													previewId: layoutFor,
+												}
+											) }`,
+										},
+									]
+								: [] ),
 							{ label: subScreenLabel },
 						] }
 					/>
@@ -674,7 +740,7 @@ function Stage() {
 				subTitle:
 					( type.name === 'page' &&
 						__(
-							'Every page on your site. Pick one to see it, or edit it to change what is on it.'
+							'Every page on your site. Pick one to see it, and switch it on to show it in your menu.'
 						) ) ||
 					postsSettings?.description ||
 					type.description ||
@@ -720,10 +786,6 @@ function Stage() {
 						label={ __( 'Show posts' ) }
 						onChange={ ( slug ) =>
 							navigate( {
-								// Keeps the way back to where the visit began.
-								search: searchParams.from
-									? { from: searchParams.from }
-									: undefined,
 								to: `/types/${ type.name }/list/${ slug }`,
 							} )
 						}
@@ -739,7 +801,14 @@ function Stage() {
 					</ToggleGroupControl>
 				</div>
 			) }
-			{ showTemplates && (
+			{ isSystemPages && (
+				<p className="cnl-editor-stage__description">
+					{ __(
+						'Your site makes these pages for itself, so they aren’t in your list of pages. WordPress calls these templates. Pick one to see it, and change how it looks.'
+					) }
+				</p>
+			) }
+			{ showTemplates && ! isSystemPages && (
 				<p className="cnl-editor-stage__description">
 					{ sprintf(
 						/* translators: %s: post type label. */
@@ -770,7 +839,11 @@ function Stage() {
 								const isSelected =
 									String( selectedTemplateId ) ===
 									String( template.id );
+								const systemPage = isSystemPages
+									? getSystemPage( template )
+									: null;
 								const description =
+									systemPage?.description ||
 									getTemplateDisplayDescription( template );
 
 								return (
@@ -785,15 +858,17 @@ function Stage() {
 										>
 											<Icon
 												className="cnl-homepage-shows__icon"
-												icon={ getTemplateIcon(
-													template
-												) }
+												icon={
+													systemPage?.icon ||
+													getTemplateIcon( template )
+												}
 											/>
 											<span className="cnl-homepage-shows__text">
 												<span className="cnl-homepage-shows__label">
-													{ getTemplateTitle(
-														template
-													) }
+													{ systemPage?.title ||
+														getTemplateTitle(
+															template
+														) }
 												</span>
 												{ description && (
 													<span className="cnl-homepage-shows__description">
@@ -822,25 +897,22 @@ function Stage() {
 			{ showTemplates && templates.length > 0 && (
 				<p className="routes-post-list__template-footer">
 					{ createInterpolateElement(
-						sprintf(
-							/* translators: %s: post type singular label, like "Post". */
-							__(
-								'For more advanced control <a>view all %s layouts</a>'
-							),
-							type.singular || type.name
-						),
+						isSystemPages
+							? __(
+									'For more advanced control <a>view all layouts</a>'
+								)
+							: sprintf(
+									/* translators: %s: post type singular label, like "Post". */
+									__(
+										'For more advanced control <a>view all %s layouts</a>'
+									),
+									type.singular || type.name
+								),
 						{
 							a: (
 								<Button
 									onClick={ () =>
-										navigate( {
-											// Keeps the way back to where the
-											// visit began.
-											search: searchParams.from
-												? { from: searchParams.from }
-												: undefined,
-											to: '/templates',
-										} )
+										navigate( { to: '/templates' } )
 									}
 									variant="link"
 								/>
@@ -863,6 +935,7 @@ function Stage() {
 					templates={ templates }
 				/>
 			) }
+			{ menuItemAdder.modal }
 		</Page>
 	);
 }

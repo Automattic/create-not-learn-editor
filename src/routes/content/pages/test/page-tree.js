@@ -11,10 +11,9 @@ import {
 	countPageTree,
 	filterPageTree,
 	getPageAncestorTitles,
-	getPageDropTarget,
 	getPageKeyboardTarget,
+	getLevelChanges,
 	getPageMoveChanges,
-	takePageFromTree,
 } from '../page-tree';
 
 const getTitle = ( page ) => page.title;
@@ -78,31 +77,6 @@ describe( 'page tree', () => {
 		// Home, Orphan, About > [Team], Services > [Design]
 		const tree = buildPageTree( pages, { frontPageId: 5 } );
 
-		test( 'drops beside, inside, and first under an open parent', () => {
-			expect( getPageDropTarget( tree, 6, 1, 'before' ) ).toEqual( {
-				index: 2,
-				parent: 0,
-			} );
-			expect( getPageDropTarget( tree, 5, 1, 'after' ) ).toEqual( {
-				index: 0,
-				parent: 1,
-			} );
-			expect( getPageDropTarget( tree, 5, 1, 'after', false ) ).toEqual( {
-				index: 3,
-				parent: 0,
-			} );
-			expect( getPageDropTarget( tree, 3, 1, 'inside' ) ).toEqual( {
-				index: 1,
-				parent: 1,
-			} );
-		} );
-
-		test( 'refuses to drop a page into itself or its sub-pages', () => {
-			expect( getPageDropTarget( tree, 2, 2, 'inside' ) ).toBeNull();
-			expect( getPageDropTarget( tree, 2, 3, 'inside' ) ).toBeNull();
-			expect( getPageDropTarget( tree, 2, 3, 'before' ) ).toBeNull();
-		} );
-
 		test( 'moves with the keyboard', () => {
 			expect( getPageKeyboardTarget( tree, 5, 'ArrowUp' ) ).toBeNull();
 			expect( getPageKeyboardTarget( tree, 6, 'ArrowUp' ) ).toEqual( {
@@ -120,43 +94,41 @@ describe( 'page tree', () => {
 			expect( getPageKeyboardTarget( tree, 5, 'ArrowLeft' ) ).toBeNull();
 		} );
 
-		test( 'numbers the pages beside a moved page as they now appear', () => {
+		test( 'changes only the moved page when it can', () => {
 			// Design moves out of Services, to sit between About and Services.
+			// Orphan, whose parent is gone, keeps it.
 			expect(
-				getPageMoveChanges( tree, 4, { index: 3, parent: 0 } )
-			).toEqual( [
-				{ id: 6, menu_order: 1, parent: 0 },
-				{ id: 2, menu_order: 2, parent: 0 },
-				{ id: 4, menu_order: 3, parent: 0 },
-				{ id: 1, menu_order: 4, parent: 0 },
-			] );
+				getPageMoveChanges(
+					tree,
+					4,
+					{ index: 3, parent: 0 },
+					{ frontPageId: 5 }
+				)
+			).toEqual( [ { id: 4, menu_order: 1, parent: 0 } ] );
 		} );
-	} );
-} );
 
-describe( 'takePageFromTree', () => {
-	test( 'takes a page out with its sub-pages, wherever it is', () => {
-		const tree = buildPageTree( pages );
-		const { node, tree: rest } = takePageFromTree( tree, 2 );
+		test( 'numbers a level afresh when one page can’t go in place', () => {
+			const level = [ 'A', 'B', 'C', 'D' ].map( ( title, index ) => ( {
+				id: index + 1,
+				menu_order: 0,
+				parent: 0,
+				title,
+			} ) );
+			const wanted = [ 2, 4, 1, 3 ];
+			const changes = getLevelChanges(
+				wanted.map( ( id ) => level[ id - 1 ] ),
+				0,
+				{ previousIds: [ 1, 2, 3, 4 ] }
+			);
+			const saved = level.map( ( page ) => ( {
+				...page,
+				...changes.find( ( change ) => change.id === page.id ),
+			} ) );
 
-		expect( node.page.title ).toBe( 'About' );
-		expect( node.children.map( ( child ) => child.page.title ) ).toEqual( [
-			'Team',
-		] );
-		expect( countPageTree( rest ) ).toBe( countPageTree( tree ) - 2 );
-
-		const nested = takePageFromTree( tree, 4 );
-
-		expect( nested.node.page.title ).toBe( 'Design' );
-		expect( countPageTree( nested.tree ) ).toBe(
-			countPageTree( tree ) - 1
-		);
-	} );
-
-	test( 'leaves the tree alone without a page to take', () => {
-		const tree = buildPageTree( pages );
-
-		expect( takePageFromTree( tree, 0 ) ).toEqual( { node: null, tree } );
-		expect( takePageFromTree( tree, 99 ).node ).toBeNull();
+			expect(
+				buildPageTree( saved ).map( ( node ) => node.page.id )
+			).toEqual( wanted );
+			expect( changes.length ).toBeGreaterThan( 1 );
+		} );
 	} );
 } );

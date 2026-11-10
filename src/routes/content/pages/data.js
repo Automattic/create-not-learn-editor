@@ -9,7 +9,6 @@ import { getEditedEntityRecords } from '../../../edited-records';
 import { getTitleText } from '../../../records';
 import {
 	__,
-	blockEditorStore,
 	blocksStore,
 	coreDataStore,
 	parseBlocks,
@@ -18,7 +17,6 @@ import {
 	useCallback,
 	useDispatch,
 	useEffect,
-	useMemo,
 	useSelect,
 } from '../../../wordpress-packages';
 
@@ -185,107 +183,7 @@ export function getSitePartArea( attributes, theme ) {
 	);
 }
 
-/**
- * Describe one block the template puts around the page: its header or
- * footer, or anything else, like a title or featured image the layout adds.
- *
- * @param {string} clientId Block's client ID in the preview.
- * @param {Object} store    `blockEditorStore` selectors, bound to the preview.
- * @param {string} theme    Current theme's stylesheet, for template part IDs.
- * @return {Object} `{ area, clientId, id }` for a site part, or
- *                  `{ clientId, name }` for anything else.
- */
-function describeTemplateElement( clientId, store, theme ) {
-	const name = store.getBlockName( clientId );
-
-	if ( name === 'core/template-part' ) {
-		const attributes = store.getBlockAttributes( clientId ) || {};
-		const area = getSitePartArea( attributes, theme );
-
-		if ( area ) {
-			return {
-				area,
-				clientId,
-				id: `${ attributes.theme || theme }//${ attributes.slug }`,
-			};
-		}
-	}
-
-	return { clientId, name };
-}
-
-/**
- * How the page is laid out in the preview editor: the template's own blocks
- * around it - its header and footer, and anything else the layout adds, like
- * a title or featured image - and where each of the page's own sections is
- * rendered.
- *
- * The preview renders the page inside its template, and gives the page's
- * blocks client IDs of its own there, so sections are matched to the preview
- * by position inside the Post Content block rather than by ID.
- *
- * @return {Object} `{ after, before, sectionIds }`. `after` and `before` are
- *                  the template's elements in the order they appear around
- *                  the page's content.
- */
-export function usePreviewStructure() {
-	const { postContentId, sectionIds, theme } = useSelect( ( select ) => {
-		const store = select( blockEditorStore );
-		const [ contentId ] = store.getBlocksByName( 'core/post-content' );
-
-		return {
-			postContentId: contentId,
-			sectionIds: store.getBlockOrder( contentId || '' ),
-			theme: select( coreDataStore ).getCurrentTheme()?.stylesheet,
-		};
-	}, [] );
-
-	return useMemo( () => {
-		if ( ! postContentId ) {
-			return { after: EMPTY_ARRAY, before: EMPTY_ARRAY, sectionIds };
-		}
-
-		const store = selectFromRegistry( blockEditorStore );
-		const before = [];
-		const after = [];
-		let pathId = postContentId;
-		let parentId = store.getBlockRootClientId( postContentId ) || '';
-
-		// Walk up from the page's content to the template's root, collecting
-		// the blocks beside it at each level - the closer to the content, the
-		// closer to it in the list.
-		for (;;) {
-			const siblings = store.getBlockOrder( parentId );
-			const pathIndex = siblings.indexOf( pathId );
-
-			before.unshift(
-				...siblings
-					.slice( 0, pathIndex )
-					.map( ( clientId ) =>
-						describeTemplateElement( clientId, store, theme )
-					)
-			);
-			after.push(
-				...siblings
-					.slice( pathIndex + 1 )
-					.map( ( clientId ) =>
-						describeTemplateElement( clientId, store, theme )
-					)
-			);
-
-			if ( ! parentId ) {
-				break;
-			}
-
-			pathId = parentId;
-			parentId = store.getBlockRootClientId( parentId ) || '';
-		}
-
-		return { after, before, sectionIds };
-	}, [ postContentId, sectionIds, theme ] );
-}
-
-const PAGE_TEMPLATES_QUERY = { per_page: -1, post_type: 'page' };
+export const PAGE_TEMPLATES_QUERY = { per_page: -1, post_type: 'page' };
 
 /**
  * The layouts a page can use: the one it gets by default, and the theme's

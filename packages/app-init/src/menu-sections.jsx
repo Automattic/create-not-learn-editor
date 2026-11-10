@@ -100,8 +100,10 @@ const SECTIONS = {
 			'Plugins extend what WordPress can do. Each one here leads to its own screens.'
 		),
 	},
+	// Folded on load anyway, and four short items, so none goes behind a "…".
 	advanced: {
 		label: __( 'Advanced' ),
+		shownItems: 4,
 		tucked: true,
 		foldsOnLoad: true,
 		isPinned: true,

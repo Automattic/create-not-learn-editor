@@ -357,6 +357,14 @@ function cnl_editor_get_menu_items() {
 		// Plugins: those that add to the site, each leading to its screens.
 		cnl_editor_get_shop_extension_menu_items(),
 		array(
+			// Gutenberg's full Styles editor (`includes/gutenberg-routes.php`),
+			// for every style setting the Design screens leave out.
+			array(
+				'id'      => 'styles',
+				'label'   => __( 'Styles', 'create-not-learn-editor' ),
+				'to'      => '/styles',
+				'section' => 'advanced',
+			),
 			array(
 				'id'      => 'patterns',
 				'label'   => __( 'Patterns', 'create-not-learn-editor' ),

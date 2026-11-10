@@ -53,6 +53,7 @@ import {
 } from './mode';
 import { getEditRoute, getLiveUrl, isSameLocation } from './urls';
 import { usePreviewFrame } from './use-preview-frame';
+import { SITE_CHANGED_EVENT } from './site-changed';
 
 const EMPTY_OBJECT = {};
 
@@ -299,6 +300,27 @@ export function useSiteCanvas( {
 
 		wasSavingRef.current = isSaving;
 	}, [ isSaving ] );
+
+	/*
+	 * A change saved without Save, which the preview hasn't seen either. The
+	 * site may show a different page at the same address now, so what the
+	 * site says about each page is asked again, and the preview reloads as
+	 * after a save.
+	 */
+	useEffect( () => {
+		const onSiteChanged = () => {
+			dispatch( cnlEditorStore ).invalidateResolutionForStoreSelector(
+				'getPreviewContext'
+			);
+			savedVersionRef.current += 1;
+			setSavedVersion( savedVersionRef.current );
+		};
+
+		window.addEventListener( SITE_CHANGED_EVENT, onSiteChanged );
+
+		return () =>
+			window.removeEventListener( SITE_CHANGED_EVENT, onSiteChanged );
+	}, [] );
 
 	const frame = usePreviewFrame( {
 		getVersion: () => savedVersionRef.current,
@@ -573,6 +595,7 @@ export function useSiteCanvas( {
 
 	return {
 		canEdit,
+		canvasEntity,
 		device,
 		dialog: {
 			isOpen: isDialogOpen,

@@ -19,7 +19,7 @@ import { useNavigate, useSearch } from '@wordpress/route';
  */
 import ScreenLinks from '../../screen-links';
 import SitePreviewCanvas from '../static/site-preview';
-import { ShopPage, useShopSearch } from './heading';
+import { ShopPage } from './heading';
 import {
 	SHOP_LAYOUTS,
 	SHOP_PAGES_PATH,
@@ -93,15 +93,12 @@ function useSelectedShopPage() {
 
 export function ShopPagesStage() {
 	const navigate = useNavigate();
-	const search = useShopSearch();
 	const { pages, selected } = useSelectedShopPage();
 
 	return (
 		<ShopPage
 			crumbs={ [ { label: __( 'Shop pages' ) } ] }
-			description={ __(
-				'Pick a page to see it. Switch to Edit to change how it looks.'
-			) }
+			description={ __( 'Pick a page to change how it looks.' ) }
 		>
 			<ul className="cnl-shop-products">
 				{ pages.map( ( page ) => (
@@ -112,7 +109,7 @@ export function ShopPagesStage() {
 							disabled={ ! page.url }
 							onClick={ () =>
 								navigate( {
-									search: { ...search, page: page.id },
+									search: { page: page.id },
 									to: SHOP_PAGES_PATH,
 								} )
 							}

@@ -33,6 +33,7 @@
 @use "./pickers/styles";
 @use "./screen-links";
 @use "./pickers/identity";
+@use "./pickers/homepage-setup";
 
 // The canvas, then the menu screens, which build on it.
 @use "./styles/canvas";

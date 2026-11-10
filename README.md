@@ -84,7 +84,7 @@ The `create-not-learn-editor_ui_theme` filter can override it too. The theme's s
 
 ## Site Mutations Are Explicit
 
-The editor does not automatically create pages, navigation, or homepage settings when it loads.
+The editor does not automatically create pages, navigation, or homepage settings, when it loads or when the plugin is activated. A new site keeps WordPress's own default of latest posts on the homepage. Home then offers to set the homepage up the way the workspace expects, step by step, and nothing changes until the person finishes.
 
 The setup behavior is behind an explicit action:
 

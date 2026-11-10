@@ -13,6 +13,7 @@ import { useHomepageState, useUseAsHomepage } from './homepage';
 import {
 	__,
 	Button,
+	codeIcon,
 	coreDataStore,
 	DropdownMenu,
 	externalIcon,
@@ -22,7 +23,6 @@ import {
 	Modal,
 	moreVerticalIcon,
 	noticesStore,
-	pencilIcon,
 	sprintf,
 	useDispatch,
 	useSelect,
@@ -197,13 +197,13 @@ export function PageOptions( { isHomepage, page, pageId, onEdit } ) {
 						</MenuGroup>
 						<MenuGroup>
 							<MenuItem
-								icon={ pencilIcon }
+								icon={ codeIcon }
 								onClick={ () => {
 									onClose();
 									onEdit();
 								} }
 							>
-								{ __( 'Open in full editor' ) }
+								{ __( 'Open in advanced editor' ) }
 							</MenuItem>
 							{ page?.link && (
 								<MenuItem

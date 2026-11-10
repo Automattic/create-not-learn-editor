@@ -7,6 +7,7 @@ import { useNavigate } from '@wordpress/route';
  * Internal dependencies
  */
 import { withCanvasRecovery } from '../../canvas-recovery';
+import { startHomeTrip } from '../../home-trip';
 import { withUiTheme } from '../../theme';
 import { settings } from '../../settings';
 import { DocumentTitle, SiteCanvas, useSiteCanvas } from '../../site-canvas';
@@ -142,12 +143,14 @@ function PreviewDocument( { canvas } ) {
 				}
 				isBusy={ false }
 				// The homepage opened up on the Pages screen.
-				onConfigureHomepage={ () =>
+				onConfigureHomepage={ () => {
+					// Back on the homepage leads straight back to Home.
+					startHomeTrip();
 					navigate( {
 						search: { postId: 'home', previewId: 'home' },
 						to: '/types/page/list/all',
-					} )
-				}
+					} );
+				} }
 			/>
 		</div>
 	);

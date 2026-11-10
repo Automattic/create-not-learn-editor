@@ -48,6 +48,9 @@ export const PREFERENCE_NAME = 'workspace';
  * - `home.viewLabel`: the link to the live site, under Home's title.
  * - `home.preview`: what Home's canvas opens on. `home` is the homepage;
  *   `posts` is wherever the blog's posts are listed.
+ * - `home.expectsHomepage`: what the workspace expects the homepage to show,
+ *   `page` or `posts`. When the site shows the other, Home offers to set it
+ *   up (`src/routes/home/homepage-notice.jsx`), until it's dismissed there.
  * - `posts`: how the Posts screen lists posts and says what it is for.
  *   `layout` is a DataViews layout, where `activity` is the posts timeline
  *   (`src/routes/content/post-timeline-view.jsx`); `statusFilter` puts a row of buttons for
@@ -73,10 +76,11 @@ const DEFAULTS = {
 		copy: {},
 		adminLinks: [],
 		hint: __(
-			'Tip: follow links on the page to visit the rest of your site. Switch to Edit to change what is on it, then zoom out to add and arrange its sections.'
+			'Tip: change the page right where it is, or press Edit for more room. Zoom out to add and arrange its sections, and turn on Browse to follow links around your site.'
 		),
 		preview: 'home',
 		viewLabel: __( 'View site' ),
+		expectsHomepage: 'page',
 	},
 	posts: {
 		addLabel: null,
@@ -130,6 +134,8 @@ const PRESETS = [
 			),
 			preview: 'posts',
 			viewLabel: __( 'View blog' ),
+			// Visitors to a blog come for the latest posts.
+			expectsHomepage: 'posts',
 		},
 		posts: {
 			addLabel: __( 'Write a post' ),

@@ -37,6 +37,7 @@ import { ZoomControls } from './zoom-controls';
 import { SelectedPage } from './selected-page';
 import {
 	Notice,
+	Page,
 	Spinner,
 	__,
 	_n,
@@ -512,21 +513,8 @@ export default function Canvas() {
 	}, [] );
 
 	return (
-		<section className="cnl-editor-canvas cnl-site-overview-canvas">
-			<header className="cnl-editor-canvas__toolbar cnl-site-overview__toolbar">
-				<div className="cnl-site-overview__heading">
-					<h1 className="cnl-site-overview__title">
-						{ __( 'Site overview' ) }
-					</h1>
-					<p className="cnl-site-overview__description">
-						{ __( 'Every page on your site, at a glance' ) }
-						{ layout && (
-							<span className="cnl-site-overview__summary">
-								{ getSummary( layout.nodes ) }
-							</span>
-						) }
-					</p>
-				</div>
+		<Page
+			actions={
 				<ZoomControls
 					canZoomIn={ canZoomIn }
 					isReset={ isReset }
@@ -534,7 +522,18 @@ export default function Canvas() {
 					onZoom={ zoomBy }
 					zoom={ zoomLevel }
 				/>
-			</header>
+			}
+			className="cnl-editor-stage cnl-editor-content-page cnl-site-overview-page"
+			hasPadding={ false }
+			headingLevel={ 2 }
+			subTitle={ [
+				__( 'Every page on your site, at a glance' ),
+				layout && getSummary( layout.nodes ),
+			]
+				.filter( Boolean )
+				.join( ' · ' ) }
+			title={ __( 'Site overview' ) }
+		>
 			<div className="cnl-site-overview__body">
 				{ /* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- The canvas pans and zooms from the pointer and keyboard. */ }
 				<div
@@ -664,6 +663,6 @@ export default function Canvas() {
 					/>
 				) }
 			</div>
-		</section>
+		</Page>
 	);
 }
