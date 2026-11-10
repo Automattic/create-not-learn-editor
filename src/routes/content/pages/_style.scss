@@ -107,6 +107,19 @@ $cnl-accent: var(--wp-admin-theme-color, #3858e9);
 		}
 	}
 
+	// Core's focus ring runs from the title to one 24px button past it, so
+	// here it stopped part way across the badge. Ring the whole row instead,
+	// badge, options and switch with it.
+	.block-editor-list-view-block-contents:focus::after {
+		display: none;
+	}
+
+	&:has(.block-editor-list-view-block-contents:focus) {
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+		outline-offset: calc(-1 * var(--wpds-border-width-focus));
+		border-radius: var(--wpds-border-radius-sm);
+	}
+
 	// The page on show is tinted rather than filled, so its switch, on or
 	// off, still reads against it.
 	&.is-selected td {
@@ -129,6 +142,9 @@ $cnl-accent: var(--wp-admin-theme-color, #3858e9);
 	// Ends at the row's end, so the switches line up whatever is beside them.
 	justify-content: flex-end;
 	gap: var(--wpds-dimension-gap-xs);
+	// As far in from the row's end as a top-level page's icon is from its
+	// start, so the switches sit inside the row's tint and focus ring.
+	padding-inline-end: var(--wpds-dimension-padding-2xl);
 }
 
 .cnl-pages-list-view__switch {
