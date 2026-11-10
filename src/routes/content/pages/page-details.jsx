@@ -17,11 +17,15 @@ import { privateApis as editorPrivateApis } from '@wordpress/editor';
  */
 import { unlock } from '../../../lock-unlock';
 import { useDataViews } from '../../../use-dataviews';
+import { PageMenusEdit, PageMenusView } from './page-menus';
+import { getPagePath } from './page-path';
 import {
 	__,
 	Button,
+	Card,
 	coreDataStore,
 	Skeleton,
+	Text,
 	useDispatch,
 	useMemo,
 	useSelect,
@@ -45,7 +49,7 @@ const STATUS_GROUP = {
 
 const SUMMARY_FORM = {
 	layout: { type: 'panel' },
-	fields: [ STATUS_GROUP, 'slug' ],
+	fields: [ STATUS_GROUP, 'slug', 'cnl_menus' ],
 };
 
 // Everything in the editor's summary that applies to a page, but its
@@ -61,6 +65,7 @@ const DETAILS_FORM = {
 		STATUS_GROUP,
 		'date',
 		'slug',
+		'cnl_menus',
 		'author',
 		'cnl_layout',
 		'parent',
@@ -79,8 +84,34 @@ const LABELS = {
 };
 
 /**
- * Core's page fields, in plain words, with a Layout row of our own that leads
- * to Change layout.
+ * The Address row's value: the page's path, or `/` for the homepage.
+ *
+ * @param {Object} props      Component props.
+ * @param {Object} props.item Page record.
+ * @return {string} The path.
+ */
+function AddressView( { item } ) {
+	const isHomepage = useSelect(
+		( select ) => {
+			const site = select( coreDataStore ).getEditedEntityRecord(
+				'root',
+				'site'
+			);
+
+			return (
+				site?.show_on_front === 'page' &&
+				Number( site.page_on_front ) === Number( item.id )
+			);
+		},
+		[ item.id ]
+	);
+
+	return isHomepage ? '/' : getPagePath( item );
+}
+
+/**
+ * Core's page fields, in plain words, with rows of our own for the menus the
+ * page is in and a Layout row that leads to Change layout.
  *
  * @param {string}   layoutName    The name of the page's layout.
  * @param {Function} onOpenLayouts Opens the layouts.
@@ -102,6 +133,28 @@ function usePageFields( layoutName, onOpenLayouts ) {
 					next = { ...next, label: LABELS[ field.id ] };
 				}
 
+				if ( field.id === 'slug' ) {
+					next = { ...next, render: AddressView };
+				}
+
+				// A note rather than a detail to change, so quieter, as in
+				// the editor's summary.
+				if ( field.id === 'last_edited_date' && field.render ) {
+					const FieldView = field.render;
+
+					next = {
+						...next,
+						render: ( props ) => (
+							<Text
+								className="cnl-page-details__note"
+								variant="body-sm"
+							>
+								<FieldView { ...props } />
+							</Text>
+						),
+					};
+				}
+
 				// As in the editor, a page is moved to the trash, not given
 				// it as a status.
 				if ( field.id === 'status' ) {
@@ -115,6 +168,14 @@ function usePageFields( layoutName, onOpenLayouts ) {
 
 				return next;
 			} ),
+			// Which menus the page is in. Its switches change the menus
+			// themselves, not the page, so nothing goes through `onChange`.
+			{
+				id: 'cnl_menus',
+				label: __( 'Menus' ),
+				Edit: PageMenusEdit,
+				render: PageMenusView,
+			},
 			{
 				id: 'cnl_layout',
 				label: __( 'Layout' ),
@@ -135,8 +196,8 @@ function usePageFields( layoutName, onOpenLayouts ) {
 }
 
 /**
- * A page's details as a form: each one shows its value, and its pencil
- * changes it.
+ * A page's details as a form, on a card of their own: each one shows its
+ * value, and its pencil changes it.
  *
  * @param {Object}   props               Component props.
  * @param {Object}   props.form          DataForm form.
@@ -166,10 +227,12 @@ function PageDetailsForm( { form, label, layoutName, onOpenLayouts, pageId } ) {
 
 	if ( ! dataviews || ! fields || ! page ) {
 		return (
-			<div aria-hidden className="cnl-page-details is-loading">
-				<Skeleton style={ { height: 20, width: '70%' } } />
-				<Skeleton style={ { height: 20, width: '55%' } } />
-			</div>
+			<Card.Root aria-hidden className="cnl-page-details">
+				<Card.Content className="cnl-page-details__content is-loading">
+					<Skeleton style={ { height: 20, width: '70%' } } />
+					<Skeleton style={ { height: 20, width: '55%' } } />
+				</Card.Content>
+			</Card.Root>
 		);
 	}
 
@@ -195,14 +258,20 @@ function PageDetailsForm( { form, label, layoutName, onOpenLayouts, pageId } ) {
 	};
 
 	return (
-		<section aria-label={ label } className="cnl-page-details">
-			<dataviews.DataForm
-				data={ page }
-				fields={ fields }
-				form={ form }
-				onChange={ onChange }
-			/>
-		</section>
+		<Card.Root
+			aria-label={ label }
+			className="cnl-page-details"
+			render={ <section /> }
+		>
+			<Card.Content className="cnl-page-details__content">
+				<dataviews.DataForm
+					data={ page }
+					fields={ fields }
+					form={ form }
+					onChange={ onChange }
+				/>
+			</Card.Content>
+		</Card.Root>
 	);
 }
 

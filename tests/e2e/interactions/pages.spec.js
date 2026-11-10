@@ -7,7 +7,6 @@ const {
 	getSaveControls,
 	getStage,
 	openPageLayouts,
-	setCanvasMode,
 	test,
 	visitEditor,
 } = require( '../utils' );
@@ -32,7 +31,7 @@ test.describe( 'Pages interactions', () => {
 		).toBeVisible( { timeout: 15000 } );
 	} );
 
-	test( 'a page opens into its sections, and Pages goes back', async ( {
+	test( 'a page opens into its summary, and Pages goes back', async ( {
 		page,
 		rest,
 	} ) => {
@@ -47,14 +46,8 @@ test.describe( 'Pages interactions', () => {
 		await expect( page ).toHaveURL(
 			new RegExp( `postId%3D${ testPage.id }` )
 		);
-		// The page's sections are listed while composing it.
-		await setCanvasMode( page, 'Compose' );
 		await expect(
-			stage
-				.getByRole( 'list', { name: 'The page, top to bottom' } )
-				.getByRole( 'button', {
-					name: new RegExp( `^${ testPage.body }` ),
-				} )
+			stage.getByRole( 'region', { name: 'About this page' } )
 		).toBeVisible( { timeout: 15000 } );
 		await expect(
 			getEditorCanvas( page, '.cnl-site-canvas' ).getByText(

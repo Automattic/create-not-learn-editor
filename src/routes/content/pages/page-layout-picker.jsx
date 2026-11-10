@@ -233,7 +233,7 @@ function PageLayouts( {
 							'Your homepage always uses this layout. WordPress calls layouts templates.'
 						)
 					: __(
-							'How the page is set out around its sections, like whether the title shows. WordPress calls these templates.'
+							'How the page is set out around its sections. WordPress calls these templates.'
 						) }
 			</Text>
 			{ body }

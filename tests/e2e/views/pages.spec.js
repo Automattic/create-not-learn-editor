@@ -73,8 +73,8 @@ test.describe( 'Pages view', () => {
 			stage.getByRole( 'button', { name: 'Page options' } )
 		).toBeVisible();
 
-		// The summary says whether visitors can see it, and where, and
-		// changes either with core's own fields.
+		// The summary says whether visitors can see it, where, and in which
+		// menus, and changes each in place.
 		const summary = stage.getByRole( 'region', {
 			name: 'About this page',
 		} );
@@ -83,6 +83,9 @@ test.describe( 'Pages view', () => {
 		).toBeVisible( { timeout: 15000 } );
 		await expect(
 			summary.getByRole( 'button', { name: 'Edit Address' } )
+		).toBeVisible();
+		await expect(
+			summary.getByRole( 'button', { name: 'Edit Menus' } )
 		).toBeVisible();
 
 		// Its sections aren't listed, even while composing.

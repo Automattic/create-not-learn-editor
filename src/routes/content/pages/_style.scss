@@ -168,7 +168,7 @@ $cnl-accent: var(--wp-admin-theme-color, #3858e9);
 	gap: var(--wpds-dimension-gap-xl);
 	min-height: 0;
 	overflow: auto;
-	padding: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-2xl) var(--wpds-dimension-padding-3xl);
+	padding: var(--wpds-dimension-padding-xl) var(--wpds-dimension-padding-2xl) var(--wpds-dimension-padding-3xl);
 }
 
 // Until the summary has loaded, nothing sits above the links to divide them
@@ -280,7 +280,7 @@ $cnl-accent: var(--wp-admin-theme-color, #3858e9);
 .cnl-page-layouts {
 	display: flex;
 	flex-direction: column;
-	gap: var(--wpds-dimension-gap-md);
+	gap: var(--wpds-dimension-gap-lg);
 }
 
 .cnl-page-layouts__grid {
@@ -399,10 +399,101 @@ $cnl-accent: var(--wp-admin-theme-color, #3858e9);
 // A page's details: core's page fields, in a DataForm.
 // ---------------------------------------------------------------------------
 
-.cnl-page-details.is-loading {
+// Inset as far as the ways on below it, so the details' labels line up with
+// their icons.
+.cnl-page-details .cnl-page-details__content {
+	padding: var(--wpds-dimension-padding-lg) var(--wpds-dimension-padding-md);
+
+	&.is-loading {
+		display: flex;
+		flex-direction: column;
+		gap: var(--wpds-dimension-gap-md);
+	}
+}
+
+.cnl-page-details__note,
+.cnl-page-details__note * {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+// The menus a page is in. Menu names can be long: in the row, one is cut
+// short; in its switches, they wrap, however long the words.
+.cnl-page-menus__value {
+	display: block;
+	overflow: hidden;
+	max-width: 100%;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cnl-page-menus__loading {
+	display: block;
+}
+
+// It scrolls, which clips anything drawn outside it, so it keeps a gutter for
+// the switches' focus rings, taken back from its margin to stay in line.
+.cnl-page-menus {
 	display: flex;
 	flex-direction: column;
-	gap: var(--wpds-dimension-gap-md);
+	width: min(280px, 100%);
+	max-height: 320px;
+	margin: calc(-1 * var(--wpds-dimension-padding-sm));
+	padding: var(--wpds-dimension-padding-sm);
+	overflow-y: auto;
+	list-style: none;
+}
+
+.cnl-page-menus__item {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--wpds-dimension-gap-lg);
+	min-width: 0;
+	padding: var(--wpds-dimension-padding-md) 0;
+
+	& + & {
+		border-top: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+	}
+
+	&:first-child {
+		padding-top: 0;
+	}
+
+	&:last-child {
+		padding-bottom: 0;
+	}
+}
+
+.cnl-page-menus__text {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.cnl-page-menus__name {
+	font-size: var(--wpds-typography-font-size-md);
+	line-height: var(--wpds-typography-line-height-sm);
+}
+
+.cnl-page-menus__description {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+	line-height: var(--wpds-typography-line-height-xs);
+}
+
+// Level with the name's first line, however many lines it runs to.
+.cnl-page-menus__switch {
+	flex: 0 0 auto;
+	margin-top: 2px;
+}
+
+// The card sets the details apart from the ways on below it, so they need no
+// rule between them as well.
+.cnl-page-details + .cnl-screen-links {
+	border-top: 0;
+	padding-top: 0;
 }
 
 .components-button.is-link.cnl-page-details__button {
