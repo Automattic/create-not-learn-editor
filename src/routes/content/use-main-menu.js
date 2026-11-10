@@ -11,6 +11,7 @@ import {
 	appendNavigationBlocksToContent,
 	createNavigationLinkBlockFromPage,
 	getNavigationContentFromEditedRecord,
+	isAutoMenuContent,
 	serializeNavigationBlocks,
 } from '../navigation-edit/navigation-blocks';
 import { getMenuPages } from './menu-status';
@@ -168,6 +169,10 @@ export default function useMainMenu() {
 	);
 
 	return {
+		// A lone Page List, which the Pages screen changes. A menu set by hand
+		// is changed on the Menus screen.
+		isAutoMenu:
+			typeof menuContent === 'string' && isAutoMenuContent( menuContent ),
 		isLoading,
 		menuArea,
 		menuId,

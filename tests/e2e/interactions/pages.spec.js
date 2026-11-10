@@ -123,6 +123,61 @@ test.describe( 'Pages interactions', () => {
 		).toBeVisible( { timeout: 15000 } );
 	} );
 
+	test( 'a menu set by hand is changed on the Menus screen, not from Pages', async ( {
+		page,
+		rest,
+	} ) => {
+		const menuId = await rest.getMainMenuId();
+		const menuPath = `/wp/v2/navigation/${ menuId }`;
+		const { content } = await rest.fetch( menuPath, {
+			params: { context: 'edit' },
+		} );
+
+		await rest.fetch( menuPath, {
+			data: {
+				content:
+					'<!-- wp:navigation-link {"label":"Elsewhere","url":"https://example.com","kind":"custom"} /-->',
+			},
+			method: 'POST',
+		} );
+
+		try {
+			const stage = getStage( page );
+
+			await visitEditor( page, '/types/page' );
+			await expect(
+				stage.getByText( /Your menu is set by hand/ )
+			).toBeVisible( { timeout: 15000 } );
+			// A plain list of pages, not the tree that looks like a menu.
+			await expect(
+				stage.locator( '.dataviews-view-list__item' ).first()
+			).toBeVisible( { timeout: 15000 } );
+			await expect( stage.locator( '.cnl-pages-list-view' ) ).toHaveCount(
+				0
+			);
+			await expect( stage.getByRole( 'switch' ) ).toHaveCount( 0 );
+
+			// Picking a page opens its details.
+			await stage.locator( '.dataviews-view-list__item' ).first().click();
+			await expect( page ).toHaveURL( /postId%3D/ );
+			await expect(
+				stage.getByRole( 'region', { name: /this page$/ } )
+			).toBeVisible( { timeout: 15000 } );
+
+			await visitEditor( page, '/types/page' );
+
+			await stage.getByRole( 'button', { name: 'Edit menu' } ).click();
+			await expect
+				.poll( () => getRoute( page ), { timeout: 15000 } )
+				.toBe( `/navigation/edit/${ menuId }` );
+		} finally {
+			await rest.fetch( menuPath, {
+				data: { content: content.raw },
+				method: 'POST',
+			} );
+		}
+	} );
+
 	test( 'Manage all menus leads on to the Menus screen', async ( {
 		page,
 	} ) => {

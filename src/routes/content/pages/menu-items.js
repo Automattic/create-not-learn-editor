@@ -83,36 +83,6 @@ export function hasPageList( blocks ) {
 }
 
 /**
- * Whether a menu has anything in it but pages, a Page List and Home links:
- * links elsewhere, posts, submenus without a page, or other blocks. Menus like
- * that are changed on the Menus screen.
- *
- * @param {Object[]} blocks Menu blocks.
- * @return {boolean} Whether it does.
- */
-export function hasMoreThanPages( blocks ) {
-	return ( blocks || EMPTY_ARRAY ).some( ( block ) => {
-		const name = getBlockName( block );
-
-		if ( name === 'core/page-list' || name === 'core/home-link' ) {
-			return false;
-		}
-
-		const attributes = getBlockAttributes( block );
-
-		if (
-			! LINK_BLOCKS.includes( name ) ||
-			attributes.kind !== 'post-type' ||
-			( attributes.type && attributes.type !== 'page' )
-		) {
-			return true;
-		}
-
-		return hasMoreThanPages( block.innerBlocks );
-	} );
-}
-
-/**
  * The pages a menu's Page List leaves out.
  *
  * @param {Object[]} blocks Menu blocks.

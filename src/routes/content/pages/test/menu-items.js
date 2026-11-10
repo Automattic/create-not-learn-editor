@@ -15,7 +15,6 @@ import {
 	getExcludedPageIds,
 	getItemPlace,
 	getMenuBlocks,
-	hasMoreThanPages,
 	hasPageList,
 	indentItem,
 	isPageItem,
@@ -70,32 +69,6 @@ describe( 'setPageExcluded', () => {
 		expect(
 			setPageExcluded( out, 4, false )[ 0 ].attributes
 		).not.toHaveProperty( 'excludedPageIDs' );
-	} );
-} );
-
-describe( 'hasMoreThanPages', () => {
-	test( 'is false for pages, a Page List and Home links', () => {
-		expect(
-			hasMoreThanPages( [
-				link( 1, [ link( 2 ) ] ),
-				{ attributes: {}, innerBlocks: [], name: 'core/home-link' },
-				{ attributes: {}, innerBlocks: [], name: 'core/page-list' },
-			] )
-		).toBe( false );
-	} );
-
-	test( 'is true once there is a link elsewhere', () => {
-		expect(
-			hasMoreThanPages( [
-				link( 1, [
-					{
-						attributes: { kind: 'custom', url: 'https://x.test' },
-						innerBlocks: [],
-						name: 'core/navigation-link',
-					},
-				] ),
-			] )
-		).toBe( true );
 	} );
 } );
 
