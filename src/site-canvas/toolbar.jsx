@@ -19,12 +19,12 @@ import {
 	Button,
 	chevronLeftIcon,
 	chevronRightIcon,
+	codeIcon,
 	coreDataStore,
 	desktopIcon,
 	dispatch,
 	displayShortcut,
 	externalIcon,
-	fullscreenIcon,
 	isRTL,
 	listViewIcon,
 	Menu,
@@ -311,13 +311,13 @@ export function CanvasMoreMenu( { liveUrl, onOpenEditor } ) {
 				<MenuGroup>
 					<MenuItem
 						disabled={ ! onOpenEditor }
-						icon={ fullscreenIcon }
+						icon={ codeIcon }
 						onClick={ () => {
 							onClose();
 							onOpenEditor();
 						} }
 					>
-						{ __( 'Open in full editor' ) }
+						{ __( 'Open in advanced editor' ) }
 					</MenuItem>
 					<MenuItem
 						disabled={ ! liveUrl }
