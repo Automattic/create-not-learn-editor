@@ -6,6 +6,14 @@
  * changes the layout itself, in place, with plain blocks: no sections and no
  * Compose.
  *
+ * A layout is edited with core's full block tools. Core treats the blocks a
+ * pattern adds as a content-only section, whether the theme's layout places
+ * the pattern or a section was added from one, which would leave only their
+ * words to change. So patterns are opened up while a layout is edited, with
+ * core's own setting, as its "Enable editing all patterns" command does.
+ * Headers and footers keep core's lock: they are on every layout, and are
+ * opened on purpose.
+ *
  * A layout is shared by every post or page that uses it, so the canvas is in
  * the purple of what more than one page shares, the blocks in the editor too,
  * as the header and footer's are. See `src/global-scope`.
@@ -23,6 +31,8 @@ import { getTemplatePreviewUrl } from './template-preview-url';
 import { __, Icon, useMemo, useRef } from '../../wordpress-packages';
 
 const GLOBAL_STYLE_ID = 'cnl-template-canvas-global';
+
+const EDITOR_SETTINGS = { disableContentOnlyForUnsyncedPatterns: true };
 
 /**
  * @param {Object} props
@@ -80,6 +90,7 @@ export default function TemplateCanvas( { records, template } ) {
 				className="cnl-template-canvas"
 				document={ <TemplateDocument template={ template } /> }
 				editorRef={ editorRef }
+				editorSettings={ EDITOR_SETTINGS }
 				// A layout is edited block by block, with core's own tools,
 				// rather than as a page's sections: it is the more advanced
 				// job, and it is mostly the title, image and content that
