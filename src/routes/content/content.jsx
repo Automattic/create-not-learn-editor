@@ -37,7 +37,8 @@ import { TIMELINE_LAYOUT } from './post-timeline';
 import useCoreTrashActions from './use-core-trash-actions';
 import PostKindPicker from '../../pickers/post-kinds';
 import { isAskingPostKind } from '../../post-kinds-base';
-import { getTemplateTitle } from './helpers';
+import { getTemplateTitle, isTemplateTab } from './helpers';
+import { getSystemPage, SYSTEM_PAGES_CONTENT } from './pages/system-pages';
 import PagesTable from './pages-table';
 import useContentRecords, { LISTED_STATUSES } from './use-content-records';
 import { useDataViews } from '../../use-dataviews';
@@ -284,7 +285,8 @@ function Stage() {
 	}
 
 	const listPath = `/types/${ type.name }/list/${ statusView?.slug || 'all' }`;
-	const showTemplates = activeTab === 'templates';
+	const showTemplates = isTemplateTab( activeTab );
+	const isSystemPages = activeTab === SYSTEM_PAGES_CONTENT;
 	const drilled =
 		isPages && ! showTemplates ? parseTarget( searchParams.postId ) : 0;
 
@@ -345,7 +347,7 @@ function Stage() {
 		navigate( {
 			search: {
 				...searchParams,
-				content: 'templates',
+				content: isSystemPages ? SYSTEM_PAGES_CONTENT : 'templates',
 				postIds: templateId ? [ String( templateId ) ] : undefined,
 				templateId: undefined,
 				templateIds: undefined,
@@ -568,7 +570,19 @@ function Stage() {
 			</EmptyState.Root>
 		</div>
 	);
-	const templateEmpty = (
+	const templateEmpty = isSystemPages ? (
+		<div className="cnl-editor-empty-state">
+			<EmptyState.Root>
+				<EmptyState.Icon icon={ pageIcon } />
+				<EmptyState.Title>{ __( 'No system pages' ) }</EmptyState.Title>
+				<EmptyState.Description>
+					{ __(
+						'Your theme leaves these to WordPress, so there is nothing of its own to change here.'
+					) }
+				</EmptyState.Description>
+			</EmptyState.Root>
+		</div>
+	) : (
 		<div className="cnl-editor-empty-state">
 			<EmptyState.Root>
 				<EmptyState.Icon icon={ layoutIcon } />
@@ -671,12 +685,15 @@ function Stage() {
 
 	// Pages has no tabs: its layouts open from the options menu, as a step
 	// down from Pages with a way back.
-	const isLayoutsStep = showTemplates && isPages;
-	// Layouts and the table of all pages are steps down from Pages.
+	const isLayoutsStep = showTemplates && isPages && ! isSystemPages;
+	// Layouts, system pages and the table of all pages are steps down from
+	// Pages.
 	let subScreenLabel = null;
 
 	if ( isLayoutsStep ) {
 		subScreenLabel = __( 'Layouts' );
+	} else if ( isSystemPages && isPages ) {
+		subScreenLabel = __( 'System pages' );
 	} else if ( isPagesTable ) {
 		subScreenLabel = __( 'All pages' );
 	}
@@ -788,7 +805,14 @@ function Stage() {
 					</ToggleGroupControl>
 				</div>
 			) }
-			{ showTemplates && (
+			{ isSystemPages && (
+				<p className="cnl-editor-stage__description">
+					{ __(
+						'Your site makes these pages for itself, so they aren’t in your list of pages. WordPress calls these templates. Pick one to see it, and change how it looks.'
+					) }
+				</p>
+			) }
+			{ showTemplates && ! isSystemPages && (
 				<p className="cnl-editor-stage__description">
 					{ sprintf(
 						/* translators: %s: post type label. */
@@ -819,7 +843,11 @@ function Stage() {
 								const isSelected =
 									String( selectedTemplateId ) ===
 									String( template.id );
+								const systemPage = isSystemPages
+									? getSystemPage( template )
+									: null;
 								const description =
+									systemPage?.description ||
 									getTemplateDisplayDescription( template );
 
 								return (
@@ -834,15 +862,17 @@ function Stage() {
 										>
 											<Icon
 												className="cnl-homepage-shows__icon"
-												icon={ getTemplateIcon(
-													template
-												) }
+												icon={
+													systemPage?.icon ||
+													getTemplateIcon( template )
+												}
 											/>
 											<span className="cnl-homepage-shows__text">
 												<span className="cnl-homepage-shows__label">
-													{ getTemplateTitle(
-														template
-													) }
+													{ systemPage?.title ||
+														getTemplateTitle(
+															template
+														) }
 												</span>
 												{ description && (
 													<span className="cnl-homepage-shows__description">
@@ -871,13 +901,17 @@ function Stage() {
 			{ showTemplates && templates.length > 0 && (
 				<p className="routes-post-list__template-footer">
 					{ createInterpolateElement(
-						sprintf(
-							/* translators: %s: post type singular label, like "Post". */
-							__(
-								'For more advanced control <a>view all %s layouts</a>'
-							),
-							type.singular || type.name
-						),
+						isSystemPages
+							? __(
+									'For more advanced control <a>view all layouts</a>'
+								)
+							: sprintf(
+									/* translators: %s: post type singular label, like "Post". */
+									__(
+										'For more advanced control <a>view all %s layouts</a>'
+									),
+									type.singular || type.name
+								),
 						{
 							a: (
 								<Button

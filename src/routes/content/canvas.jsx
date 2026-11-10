@@ -8,7 +8,7 @@ import { useNavigate, useParams, useSearch } from '@wordpress/route';
  */
 import { getTitleText } from '../../records';
 import { getEditablePostType } from '../../settings';
-import { getActiveTab, getTemplateTitle } from './helpers';
+import { getActiveTab, getTemplateTitle, isTemplateTab } from './helpers';
 import useContentRecords from './use-content-records';
 import PagesCanvas from './pages/canvas';
 import { HOMEPAGE } from './pages/homepage-state';
@@ -137,7 +137,7 @@ export default function Canvas() {
 
 	if (
 		params.type === 'page' &&
-		getActiveTab( searchParams ) !== 'templates'
+		! isTemplateTab( getActiveTab( searchParams ) )
 	) {
 		return <PagesCanvas />;
 	}
@@ -162,7 +162,7 @@ function ContentCanvas() {
 		return null;
 	}
 
-	const showTemplates = activeTab === 'templates';
+	const showTemplates = isTemplateTab( activeTab );
 
 	if ( isLoading ) {
 		return (
@@ -181,6 +181,7 @@ function ContentCanvas() {
 	) {
 		return (
 			<TemplateCanvas
+				isSystemPage={ activeTab === 'system' }
 				records={ getRecordsFor( posts, layoutForId ) }
 				template={ selectedTemplate }
 			/>
