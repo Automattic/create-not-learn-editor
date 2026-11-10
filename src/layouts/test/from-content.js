@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { arrangements } from '../variants/from-content';
+import { arrangements, WIDE } from '../variants/from-content';
 
 const b = ( name, attributes = {}, innerBlocks = [] ) => ( {
 	name,
@@ -733,6 +733,113 @@ describe( 'Stacked, Centred and Card', () => {
 	} );
 } );
 
+describe( 'the section’s width', () => {
+	const layoutOf = ( section, key ) =>
+		arrangements( section ).find( ( l ) => l.key === 'content:' + key )
+			.block.attributes.layout;
+	const full = ( ...inner ) =>
+		b(
+			'core/group',
+			{ align: 'full', layout: { type: 'constrained' } },
+			inner
+		);
+	const wideColumns = ( ...cols ) => ( {
+		...columns( ...cols ),
+		attributes: { align: 'wide' },
+	} );
+
+	it( 'stays wide when all the content was in wide blocks', () => {
+		const section = full(
+			wideColumns(
+				[ heading( 'A' ), para( 'B' ) ],
+				[ image( 'a.jpg' ) ]
+			),
+			spacer()
+		);
+
+		expect( layoutOf( section, 'stacked' ) ).toEqual( {
+			type: 'constrained',
+			contentSize: WIDE,
+		} );
+	} );
+
+	it( 'stays wide when the section was wide columns', () => {
+		const section = wideColumns(
+			[ heading( 'A' ), para( 'B' ) ],
+			[ image( 'a.jpg' ) ]
+		);
+
+		expect( layoutOf( section, 'stacked' ).contentSize ).toBe( WIDE );
+	} );
+
+	it( 'stays wide when the group let its content fill it', () => {
+		const section = b( 'core/group', { align: 'wide' }, [
+			heading( 'A' ),
+			para( 'B' ),
+		] );
+
+		expect( layoutOf( section, 'card' ).contentSize ).toBe( WIDE );
+	} );
+
+	it( 'stays as it was when only some of the content was wide', () => {
+		const section = full(
+			heading( 'A', 2, { align: 'wide' } ),
+			para( 'B' ),
+			image( 'a.jpg' )
+		);
+
+		expect( layoutOf( section, 'card' ) ).toEqual( {
+			type: 'constrained',
+		} );
+	} );
+
+	it( 'keeps a content width the section had', () => {
+		const section = b(
+			'core/group',
+			{
+				align: 'full',
+				layout: { type: 'constrained', contentSize: '900px' },
+			},
+			[ wideColumns( [ heading( 'A' ) ], [ image( 'a.jpg' ) ] ) ]
+		);
+
+		expect( layoutOf( section, 'stacked' ).contentSize ).toBe( '900px' );
+	} );
+
+	it( 'keeps a cover’s content as narrow as it was', () => {
+		const section = b( 'core/cover', { url: 'a.jpg', align: 'full' }, [
+			heading( 'A' ),
+			para( 'B' ),
+		] );
+
+		expect( layoutOf( section, 'picture-moved' ) ).toEqual( {
+			type: 'constrained',
+		} );
+	} );
+
+	it( 'stays wide after another layout', () => {
+		const section = full(
+			wideColumns( [ heading( 'A' ), para( 'B' ) ], [ image( 'a.jpg' ) ] )
+		);
+		const stacked = arrangements( section ).find(
+			( l ) => l.key === 'content:stacked'
+		).block;
+
+		const constrained = arrangements( stacked )
+			.map( ( l ) => l.block )
+			.filter(
+				( block ) =>
+					block.name === 'core/group' &&
+					block.attributes.layout?.type === 'constrained'
+			);
+
+		expect( constrained.length ).toBeGreaterThan( 0 );
+		constrained.forEach( ( block ) =>
+			expect( block.attributes.layout.contentSize ).toBe( WIDE )
+		);
+	} );
+} );
+
 describe( 'the section’s own design', () => {
 	const layout = ( section, key ) =>
 		arrangements( section ).find( ( l ) => l.key === 'content:' + key )
@@ -967,7 +1074,7 @@ describe( 'the section’s own design', () => {
 			} );
 		} );
 
-		it( 'takes a media & text’s colours, but not its media', () => {
+		it( 'takes a media & text’s colours and width, but not its media', () => {
 			const section = b(
 				'core/media-text',
 				{
@@ -982,7 +1089,7 @@ describe( 'the section’s own design', () => {
 			expect( layout( section, 'stacked' ).attributes ).toEqual( {
 				backgroundColor: 'accent-1',
 				align: 'wide',
-				layout: { type: 'constrained' },
+				layout: { type: 'constrained', contentSize: WIDE },
 				style: { spacing: { padding: ROOMY } },
 			} );
 		} );

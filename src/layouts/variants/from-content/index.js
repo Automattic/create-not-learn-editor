@@ -274,6 +274,64 @@ function designOf( block ) {
 
 const hasRoom = ( block ) => !! block.attributes?.style?.spacing?.padding;
 
+/** The theme's wide width, for content that was wide. */
+export const WIDE = 'var(--wp--style--global--wide-size)';
+
+const isWide = ( block ) =>
+	[ 'wide', 'full' ].includes( block.attributes?.align );
+
+/**
+ * Whether a block only makes room, which doesn't say how wide the content is.
+ *
+ * @param {Object} block
+ */
+const isSpacing = ( block ) =>
+	[ 'core/spacer', 'core/separator' ].includes( block.name );
+
+/**
+ * Whether all of a section's content was wide: a wide block like columns or
+ * media & text, or a group or cover whose content is all in wide blocks, or a
+ * group that lets its content fill it. A layout that puts the content in a
+ * constrained group would make it narrow, so the group keeps that width.
+ *
+ * @param {Object} inner The group that holds the content, or the section.
+ */
+function wasWide( inner ) {
+	const { layout } = inner.attributes || {};
+	// A cover's content is constrained unless it says otherwise.
+	const constrained =
+		layout?.type === 'constrained' ||
+		( inner.name === 'core/cover' && ! layout?.type );
+	if ( inner.name !== 'core/group' && ! constrained ) {
+		return isWide( inner );
+	}
+	if ( constrained ) {
+		const content = ( inner.innerBlocks || [] ).filter(
+			( block ) => ! isSpacing( block )
+		);
+		return content.length > 0 && content.every( isWide );
+	}
+	// A group that isn't constrained lets its content fill it.
+	return isWide( inner ) && layout?.type !== 'flex';
+}
+
+/**
+ * The layout for the group a layout makes: constrained, as the section's was
+ * if it had one, but as wide as the content was.
+ *
+ * @param {Object} inner The group that holds the content, or the section.
+ */
+function layoutOf( inner ) {
+	const layout =
+		inner.name === 'core/group' &&
+		inner.attributes?.layout?.type === 'constrained'
+			? inner.attributes.layout
+			: { type: 'constrained' };
+	return wasWide( inner ) && ! layout.contentSize
+		? { ...layout, contentSize: WIDE }
+		: layout;
+}
+
 /**
  * Attributes with room around the content, unless there's some already.
  *
@@ -314,15 +372,13 @@ function ownDesign( section ) {
 		around.push( inner );
 		inner = inner.innerBlocks[ 0 ];
 	}
-	const layout = inner.name === 'core/group' && inner.attributes?.layout;
 	return {
 		around,
 		attributes: withRoom(
 			designOf( inner ),
 			[ ...around, inner ].some( hasRoom )
 		),
-		layout:
-			layout?.type === 'constrained' ? layout : { type: 'constrained' },
+		layout: layoutOf( inner ),
 		cover: withRoom( placeOf( section ), hasRoom( section ) ),
 	};
 }
