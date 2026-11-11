@@ -26,7 +26,12 @@ To install it on a test site, use the zip from the [latest release](https://gith
 
 ## What problems is it trying to solve?
 
-The project has two goals. The first is to make the Site Editor far more approachable the first time someone uses it. The second is to find answers to the hard problems the editor faces today, which include
+The project has two goals.
+
+- Make the Site Editor far more approachable the first time someone uses it.
+- Find answers to the hard problems the editor faces today.
+
+Those hard problems include
 
 - finding and editing what's on the homepage
 - understanding the difference between pages and templates
@@ -43,7 +48,12 @@ The project has two goals. The first is to make the Site Editor far more approac
 
 A better editor won't come from small changes alone. It needs some bigger swings, with room to experiment and test new ideas with real users.
 
-A plugin makes that possible. It's low risk and it can move quickly, using AI-powered engineering. Every idea gets checked with real people. Because it's outside Core, it isn't held back by the processes that rightly govern changes there.
+A plugin makes that possible, because it
+
+- is low risk
+- can move quickly, using AI-powered engineering
+- gets every idea checked with real people
+- isn't held back by the processes that rightly govern changes to Core
 
 This editor isn't the answer and it isn't finished. It's a vision of where the editor could go next. The ideas that hold up in testing are the ones that will be proposed for Core.
 
@@ -87,9 +97,18 @@ That does add some deliberate friction before you reach the full power of the bl
 
 ### One objective, many routes
 
-User research found that people don't follow one path when they build a website. Some start with the design, some with their content, and some want every page and menu in place before anything else.
+User research found that people don't follow one path when they build a website. For example, some
 
-So instead of a fixed onboarding flow, the editor gives you several routes to the same place. You can edit your header menu on the canvas, from Pages & menu, from the Menus screen, or from Home, then Header, then Menu.
+- start with the design
+- start with their content
+- want every page and menu in place before anything else
+
+So instead of a fixed onboarding flow, the editor gives you several routes to the same place. You can edit your header menu
+
+- on the canvas
+- from Pages & menu
+- from the Menus screen
+- from Home, then Header, then Menu
 
 Blocks aren't always the right tool for every job or every person either. Common tasks get focused, Customizer-like screens instead. In Menus, for example, you add pages, links and dropdowns in a familiar tree rather than adding blocks.
 
@@ -129,7 +148,12 @@ That makes it important to say when a change affects the whole site rather than 
 
 This editor is being designed for a future where WordPress is fully AI enabled. In that future the editor is a canvas, and your own agent, whether that's Claude Code, ChatGPT or something else, uses it to show its work on your actual website.
 
-Testing keeps showing two things, though. Even when an agent does most of the work, people still want to make small changes themselves. And there's never one kind of user. Some people will want to chat, some will mix chatting with editing, some will do it all by hand and some can't or won't use AI at all. So the editing tools have to be great on their own.
+Testing keeps showing two things, though.
+
+- Even when an agent does most of the work, people still want to make small changes themselves.
+- There's never one kind of user. Some people will want to chat, some will mix chatting with editing, some will do it all by hand and some can't or won't use AI at all.
+
+So the editing tools have to be great on their own.
 
 The editor already has a chat and an Agent workspace to try these ideas. [Connecting a language model](docs/language-model.md) explains how to set them up.
 
