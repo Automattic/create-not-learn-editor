@@ -2,8 +2,14 @@
 
 # Create Not Learn Editor
 
+Create Not Learn is an experimental WordPress plugin that reimagines the Site Editor around what people want to do, not how WordPress works. The goal is simple. Someone who has never used WordPress should be able to set up their site without needing any help.
+
+It looks like WordPress and behaves like WordPress, because it's built from the same packages and APIs as the editor in Core. It gives us room to try bigger ideas than Core can take on today and test them with real people, so the ones that work can be proposed back to Core.
+
 > [!WARNING]
 > Create Not Learn Editor is experimental software. Don't install it on a production website. It changes often, may break without notice and hasn't been through the reviews a released plugin would get. Try it in the Playground demos below, or on a local or staging site you don't mind losing.
+
+## Try it yourself
 
 [![Try the demo in WordPress Playground](https://img.shields.io/badge/Try_the_demo-WordPress_Playground-3858e9?style=for-the-badge&logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint.json) [![Try it on a blank site in WordPress Playground](https://img.shields.io/badge/Try_a_blank_site-WordPress_Playground-3858e9?style=for-the-badge&logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-blank.json)
 
@@ -17,411 +23,119 @@ To try the shop, [open Fernhouse with WooCommerce](https://playground.wordpress.
 
 Each demo opens in the Default workspace. To start in another, open the demo in [Writing](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dwriting) or [Builder](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dbuilder), or the shop demo in [Selling](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-shop.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dselling).
 
-Create Not Learn Editor is a standalone WordPress plugin that experiments with a focused, extensible site-editing experience.
+To install it on your own test site, download `create-not-learn-editor.zip` from the [latest release](https://github.com/Automattic/create-not-learn-editor/releases/latest) and upload it under Plugins > Add New Plugin. You'll need WordPress 7.0 or newer, PHP 7.4 or newer and the [Gutenberg plugin](https://wordpress.org/plugins/gutenberg/) 24.0.0 or newer. The editor then appears under Appearance > Create Not Learn.
 
-The plugin is intentionally not part of the Gutenberg repository. It consumes released WordPress and Gutenberg packages, declares the released Gutenberg plugin as a WordPress plugin dependency, and can be installed like a normal plugin.
+## What problems is it trying to solve?
 
-## Why This Exists
+The project has two goals. The first is to make the Site Editor far more approachable the first time someone uses it. The second is to find answers to the hard problems the editor faces today, which include
 
-WordPress core and Gutenberg are moving toward a more extensible Site Editor architecture. Gutenberg currently includes an experimental full-page editor at:
+- finding and editing what's on the homepage
+- understanding the difference between pages and templates
+- managing menus easily
+- finding and editing the parts every page shares, like the header and footer
+- building pages from sections instead of individual blocks
+- knowing what a change will affect before you make it
+- not having to keep moving between the editor and WP Admin
+- the pull between WordPress as a blogging platform and WordPress as a page builder
+- giving common goals an editing space suited to them
+- being ready for editing with AI agents
 
-```text
-/wp-admin/admin.php?page=site-editor-v2
-```
+## Why is this a plugin and not part of Core?
 
-This project mirrors that experiment from the outside, as a plugin. The goal is to learn what can be built by composing the public packages and runtime exposed by the released Gutenberg plugin, without requiring a Gutenberg checkout, patch, submodule, or custom core build.
+I don't believe we can get to a better editor through small changes alone. We need to take some bigger swings, with room to experiment and test new ideas with real users.
 
-That matters because a standalone plugin is easier to install, evaluate, ship, and iterate on. It also keeps the experiment honest: if the editor cannot be built from released packages and plugin APIs, that is useful information.
+A plugin lets us do that. It's low risk and it can move quickly, using AI-powered engineering. Every idea gets checked with real people. Because it's outside Core, it isn't held back by the processes that rightly govern changes there.
 
-## What It Does Today
+This editor isn't the answer and it isn't finished. It's a vision of where the editor could go next. The ideas that hold up in testing are the ones we'll propose for Core.
 
-The first slice provides a full-page editor shell under:
+The exact route back to Core is still being worked out. I'm [Dave Smith](https://github.com/getdave), a WordPress core committer and long-time contributor, so improving Core is the whole point for me. This is not going to become another editor fork.
 
-```text
-/wp-admin/admin.php?page=create-not-learn-editor
-```
+### What does "Core Adjacent" mean?
 
-The editor appears in the WordPress admin menu at:
+I describe the editor as Core Adjacent. That means it
 
-```text
-Appearance > Create Not Learn
-```
+- uses the WordPress Design System for its components and design
+- is built from released `@wordpress/*` packages and WordPress Core APIs, on top of the released Gutenberg plugin, with no fork of Gutenberg
+- follows the WordPress way, so it stays backwards compatible, can be switched off safely and never changes your site unless you ask it to
 
-The shell mirrors Gutenberg's `site-editor-v2` experiment setup:
+So it should feel familiar to anyone who knows WordPress, while staying easy for someone using it for the first time. [Architecture](docs/architecture.md) explains how that works in practice.
 
-- It registers a hidden admin page.
-- It intercepts `admin_init` and renders a standalone full-page HTML document.
-- It avoids the normal wp-admin wrapper, sidebar, and footer.
-- It uses the Gutenberg `@wordpress/boot` package for the editor frame.
-- It uses `@wordpress/route` route modules for navigation.
-- It imports WordPress packages from `@wordpress/*` modules and relies on generated asset metadata for runtime dependencies.
-- It preserves extension points for route, menu, and boot dependency registration.
+## The principles behind it
 
-The current routes are:
+### Optimise for new users
 
-- `/` for the Home route.
-- `/types/$type` for a content type landing route.
-- `/types/$type/list/$view` for content lists.
-- `/types/$type/edit/$id` for editing existing content.
-- `/types/$type/new` for creating new content.
+The first thing anyone sees should be simple enough for someone meeting WordPress for the first time. WordPress serves a huge range of people, but if it's approachable for a newcomer, we believe it's better for everyone, whatever their experience.
 
-Home and Content currently include visible placeholder canvases. They are deliberately simple surfaces so the boot frame, routing, menu, and content list behavior can be developed before replacing the placeholders with richer previews.
+You know this from other products. If something is too complicated to get started with, you give up. That's what WordPress does to a lot of people today, and we want to change it.
 
-## Visual Theme
+### Use the words people use, not WordPress concepts
 
-The editor uses the WordPress Design System as it ships. Its own surfaces take their colours, corners, spacing and shadows from WPDS tokens and core's elevation scale, so they sit alongside core's components rather than near them. The black sidebar's headings, its "Welcome" greeting and section titles like Content and Design, are the one exception: they are set in EB Garamond, the heading face on [WordPress.org](https://wordpress.org/). The font lives in `assets/fonts/eb-garamond/` under the SIL Open Font License and loads from the plugin, not a third-party CDN.
+The current Site Editor puts Templates and Patterns in front of you straight away. This editor leads with what people came to do, in their own words. Those words come from user research at Automattic.
 
-An optional "modern" layer sits on top. It softens corners with WPDS's moderate corner preset and floats the site preview on a quiet backdrop.
+- You edit your header and footer from Home, without going through template parts.
+- Menus are called Menus, not Navigation.
+- Pages are made of sections, and you click "Add section" rather than inserting a pattern.
 
-It is off by default. Switch it with the `CNL_EDITOR_UI_THEME` constant, either `'default'` (stock WPDS) or `'modern'`:
+The system-level tools are all still there, under Advanced in the sidebar.
 
-```sh
-npm run wp-env run cli wp config set CNL_EDITOR_UI_THEME modern
-npm run wp-env run cli wp config delete CNL_EDITOR_UI_THEME
-```
+### Reveal complexity when it's asked for
 
-The `create-not-learn-editor_ui_theme` filter can override it too. The theme's settings live in `src/theme/`.
+An interface that's too complicated the first time you meet it will fail, whatever your experience. So every screen starts simple and shows more power when you ask for it.
 
-## Site Mutations Are Explicit
+Page editing is a good example. You start by working with sections, and the full block tree and block tools are one step deeper in the toolbar. Nothing has been taken away. It just isn't the first thing you see.
 
-The editor does not automatically create pages, navigation, or homepage settings, when it loads or when the plugin is activated. A new site keeps WordPress's own default of latest posts on the homepage. Home then offers to set the homepage up the way the workspace expects, step by step, and nothing changes until the person finishes.
+That does add some deliberate friction before you reach the full power of the block editor. We think a calmer first experience is worth it.
 
-The setup behavior is behind an explicit action:
+### One objective, many routes
 
-```text
-POST /wp-json/create-not-learn-editor/v1/setup-defaults
-```
+Our research found that people don't follow one path when they build a website. Some start with the design, some with their content, and some want every page and menu in place before anything else.
 
-That action creates or reuses a Home page, sets it as the static homepage, and ensures a basic Navigation menu exists. It is intended to be idempotent.
+So instead of a fixed onboarding flow, the editor gives you several routes to the same place. You can edit your header menu on the canvas, from Pages & menu, from the Menus screen, or from Home, then Header, then Menu.
 
-## Requirements
+Blocks aren't always the right tool for every job or every person either. Common tasks get focused, Customizer-like screens instead. In Menus, for example, you add pages, links and dropdowns in a familiar tree rather than adding blocks.
 
-- WordPress 7.0 or newer.
-- PHP 7.4 or newer.
-- Gutenberg plugin 24.0.0 or newer.
+### One default, many modes
 
-The plugin header declares:
+WordPress serves bloggers, site builders, shops and much more, and a blogger needs different defaults and tools to someone building a portfolio. Until now the editor has tried to serve all of them with one interface, and it has drifted towards the experienced site builder.
 
-```text
-Requires Plugins: gutenberg
-```
+This editor uses workspaces instead. Each one adapts the interface to what someone came to do, not how much they know.
 
-WordPress plugin dependencies do not support minimum dependency versions, so the plugin also checks `GUTENBERG_VERSION >= 24.0.0` at runtime. If Gutenberg is missing or too old, the editor page is not registered and an admin notice is shown.
+- **Default** is for building a site, which is what most people come to WordPress for.
+- **Writing** puts posts and writing first, for bloggers.
+- **Selling** puts the shop first, when WooCommerce is active.
+- **Builder** puts templates, template parts and patterns up front, for agencies, developers and theme authors who know what they've come to change.
+- **Agent** gives the canvas the room while an agent does the work.
 
-## Development
+None of these is finished. The idea we want to test is that one editor can have several expressions of the same tools, because one interface can't serve everyone equally well.
 
-Install dependencies:
+### Keep public content in the editor
 
-```sh
-npm install
-```
+WordPress has long asked people to jump between WP Admin and the editor to manage their content, including posts. That hurts the experience, because your content is a big part of building your website.
 
-Start the local WordPress environment:
+So this editor brings everything public into the Site Editor. Posts, pages and other public post types are all under Content.
 
-```sh
-WP_ENV_PORT="<dev-port>" WP_ENV_TESTS_PORT="<test-port>" npm run wp-env start
-```
+### Make room for plugins
 
-Use available non-default local ports for `WP_ENV_PORT` and `WP_ENV_TESTS_PORT`.
+Plugins are where a lot of WordPress's power comes from, and also where a lot of the clutter in WP Admin comes from. This editor lets plugins register their own screens and routes, which get their own place in the sidebar. Any public post types they register appear under Content.
 
-The local environment uses WordPress 7.1 with the released Gutenberg 24.0.0 plugin. `npm run wp-env start` downloads these once into a cache that every checkout shares (`~/.cache/create-not-learn-editor/wp-env`), rather than once per checkout.
+That gives plugins such as WooCommerce a way to offer the kind of focused experience the current editor can't.
 
-To try another plugin alongside the editor, such as [Canvas](https://github.com/Automattic/canvas), build it somewhere and map it in a `.wp-env.override.json` next to `.wp-env.json`. The file is ignored by git.
+### Show everything, with clear scope
 
-```json
-{
-	"mappings": {
-		"wp-content/plugins/canvas": "~/path/to/canvas"
-	}
-}
-```
+When you edit a page you should see it the way visitors do, with the header and footer in place. So they stay on the canvas while you edit.
 
-Then restart and activate it:
+That makes it important to say when a change affects the whole site rather than just this page. Changes that reach every page, like the header, footer, menu, colours and fonts, are marked as site-wide.
 
-```sh
-npm run wp-env start
-npm run wp-env run cli wp plugin activate canvas
-```
+## Built for an agent-ready WordPress
 
-### Connecting a language model
+We're designing this editor for a future where WordPress is fully AI enabled. In that future the editor is a canvas, and your own agent, whether that's Claude Code, ChatGPT or something else, uses it to show its work on your actual website.
 
-Without a language model, the chat answers from a script and has no message box. To connect one, install Micah Wood's [Agentic Editor](https://github.com/wpscholar/agentic-editor) plugin and set up an AI connector under Settings > Connectors. The message box then shows, and what people type goes to the model through Agentic Editor's chat endpoint. The chat's own choices are still answered from the script.
+Our testing keeps showing two things, though. Even when an agent does most of the work, people still want to make small changes themselves. And there's never one kind of user. Some people will want to chat, some will mix chatting with editing, some will do it all by hand and some can't or won't use AI at all. So the editing tools have to be great on their own.
 
-The chat prefers OpenAI's `gpt-6-luna`, a small, cheap model, and falls back to Agentic Editor's choice when the site's connectors don't offer it. The `create-not-learn-editor_assistant_model_preference` filter changes the list. It only applies to this editor's chat.
+The editor already has a chat and an Agent workspace to try these ideas. [Connecting a language model](docs/language-model.md) explains how to set them up.
 
-The model gets two kinds of tool. Ours, in `src/chat/model-tools.js`, show the same pickers the script does, so people still make each change by picking. Agentic Editor's block editor tools change the page on the canvas. Asked to edit the header or footer without saying what, the chat lists what its screen offers, its layout, the site's name and logo, the menu and the social links, each leading to its picker (`src/chat/extras/site-part-widgets.jsx`). The header and footer stay locked on a page until someone chooses Edit header or Edit footer, so to change their words, links or social links the model first opens one the same way, in the spotlight, with `cnl_open_site_part` (`src/chat/site-parts.js`).
+## Contributing
 
-Some requests only ask for a picker, like "change my colours", and the model could do no more than show it. With a [TypeSafe](https://docs.typesafe.ai/introduction) API key under Settings > Connectors, those skip the model (`src/chat/router.js`). TypeSafe's Jev model doesn't write. It picks which picker a message asks for, and says how confident it is, in well under a second. Each picker is described to it with what it doesn't cover, so "edit my menu" gets the menu picker and "add a mobile menu" goes to the language model.
+Ideas, bug reports and pull requests are all welcome. If something worked for you, didn't work, or you think we've missed something, [open an issue](https://github.com/Automattic/create-not-learn-editor/issues).
 
-The script's keyword matching isn't used for what is typed while a language model is connected, as it can't tell those apart. Without TypeSafe, everything typed goes to the language model.
-
-Jev is also shown the site's pages and the sections of the page that is open, so a request like "the testimonial looks too pale" or "the photos bit on my Workshops page" goes straight to that section's picker. For a section on a page that isn't open, the chat asks Jev again once it knows the page, with that page's sections.
-
-When Jev picks a picker with a confidence of 0.8 or more, the chat shows it. Anything else goes on to the language model. The `create-not-learn-editor_assistant_router_confidence` and `create-not-learn-editor_assistant_router_model` filters change the threshold and the model.
-
-TypeSafe is a connector of its own rather than an AI provider, as it doesn't generate text. The key can also come from a `TYPESAFE_API_KEY` environment variable or constant. The editor asks Jev through `POST /wp-json/create-not-learn-editor/v1/assistant/route`, so the key stays on the server (`includes/assistant-router.php`).
-
-Asked for a page or section about something, the model writes one. It rewrites the words of one of the theme's designs, and the chat shows the result first in the page or section picker, to pick like any other design (`src/chat/written-designs.js`). The same works on a design already picked in the chat, as in "make this about sock puppets".
-
-The chat often sits beside a page, so a change to the whole site can look like a change to that page. Pickers that change every page, like colors, fonts, the menu, the header and the footer, carry the editor's purple globe note, and the model is told to say which pages a change shows on before making it (`src/chat/scope.js`). Pickers that change one page name it instead, as the editor leaves what is local unmarked.
-
-Agentic Editor asks before running some of its tools, such as publishing a pattern. This chat has nowhere to ask yet, so it leaves those out, and it won't run a call that adds raw HTML or scripts.
-
-The editor loads Agentic Editor's tools with `agentic_editor_enqueue_abilities()`, which [wpscholar/agentic-editor#30](https://github.com/wpscholar/agentic-editor/pull/30) adds. Until that is merged, map the PR's branch into `wp-env` as described above.
-
-### Opening in a workspace
-
-A link can open the editor in a workspace by adding `workspace` to its address:
-
-```text
-/wp-admin/admin.php?page=create-not-learn-editor&workspace=writing
-```
-
-The ids are `simple` (Default), `writing`, `selling` and `builder`, from `src/workspaces/presets.js`. The link switches the person to that workspace as if they had picked it from the switcher, so it stays their workspace afterwards. The editor then takes `workspace` out of the address, so a reload doesn't undo a switch made since. A workspace the site can't use, like Selling on a site without WooCommerce, is ignored.
-
-It is there for demos, and for the end of an onboarding flow, which can send people on to the workspace that suits what they came to do. It works with any other part of the address, such as `p` for the screen to open on.
-
-### Shop
-
-With WooCommerce active, Home offers the shop. Map WooCommerce in the same way, activate it, add its pages, then stock the shop with products that cover the awkward cases, like options, stock counts and drafts:
-
-```sh
-npm run wp-env run cli wp plugin activate woocommerce
-npm run wp-env run cli -- wp wc tool run install_pages --user=1
-npm run wp-env run cli -- --env-cwd=wp-content/plugins/<this folder> wp eval-file scripts/demo-site/seed-shop.php
-```
-
-### Demo site
-
-The development site (not the tests site) is set up as a demo the first time `wp-env` starts. `scripts/setup-demo-site.mjs` runs after every start and calls `scripts/demo-site/seed.php`, which:
-
-- activates the bundled Mainstay theme (`themes/mainstay/`);
-- names the site Fernhouse and fills Home, About, Workshops, Café and Visit pages with the theme's sections;
-- adds three journal posts with photos and a menu.
-
-It records that it has run in the `cnl_demo_site_version` option and leaves the site alone after that, so later edits survive restarts. It never overwrites a page someone has changed. When a new version of the demo changes a page's sections, only pages still exactly as the seed left them are updated. To run it again, delete the option and restart:
-
-```sh
-npm run wp-env run cli wp option delete cnl_demo_site_version
-npm run wp-env start
-```
-
-To skip it, start with `WP_ENV_LIFECYCLE_SCRIPT_AFTER_START=true`.
-
-Mainstay is a block theme made for this editor: pages are stacks of full-width sections, each with Soft, Tint, Brand, Contrast and Highlight colour styles for Compose's Colour menu, plus header and footer layouts, page layouts, palettes, font pairings and full looks for Colors & fonts. It lives in this repo but is not part of the plugin zip.
-
-Run the development build watcher:
-
-```sh
-npm run dev
-```
-
-Create production assets:
-
-```sh
-npm run build
-```
-
-Create an installable plugin zip:
-
-```sh
-npm run plugin-zip
-```
-
-Generated `build/` assets and plugin zips are intentionally ignored by git. The source repo is the canonical state; build artifacts are generated when needed.
-
-### Playground demo
-
-The demo links at the top of this README open [WordPress Playground](https://wordpress.org/playground/) with a blueprint from `demos/`.
-
-- `demos/blueprint.json` installs Gutenberg, this plugin and the Mainstay theme, runs `scripts/demo-site/seed.php` to build Fernhouse, and lands in the editor.
-- `demos/blueprint-shop.json` does the same, then installs WooCommerce, adds its pages, runs `scripts/demo-site/seed-shop.php` to stock the shop, and lands on the Shop screen.
-- `demos/blueprint-blank.json` installs Gutenberg and this plugin and lands in the editor. It adds no theme or content, so the site runs the default theme of whichever WordPress version Playground loads.
-
-Playground can't install from the plugin source, which needs building first, or from workflow artifacts. So on every push to `trunk`, `.github/workflows/plugin-zip.yml` builds the plugin zip and publishes it to the `playground-build` branch, along with a zip of the theme and the seed scripts. The blueprints install from that branch, so the demos always run the latest successful build of `trunk`.
-
-Keep the Gutenberg version in every blueprint in step with `.wp-env.json`. Canvas is left out, as the plugin doesn't need it.
-
-Every demo opens in the Default workspace. Playground's `url` parameter changes where a blueprint lands, so any demo link opens in another workspace with `&url=` and the editor's address, encoded, on the end. This opens the trunk demo in Writing:
-
-```text
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dwriting
-```
-
-The workflows below add the Writing, Builder and Selling links wherever they list the demos. Selling needs a shop, so its link uses the shop blueprint.
-
-#### Branch demos
-
-Every other branch gets demos of its own too. Each push builds them to `refs/playground/<branch>`, with a `blueprint.json`, a `blueprint-shop.json` and a `blueprint-blank.json` that install from there. That ref is neither a branch nor a tag, so the demos stay out of the branch and tag lists. The links for `getdave/my-change` are
-
-```text
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/my-change/blueprint.json
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/my-change/blueprint-shop.json
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/my-change/blueprint-blank.json
-```
-
-When a pull request opens, `.github/workflows/playground-links.yml` comments the links on it. The demo follows the branch, updating a few minutes after each push, and is deleted with it.
-
-#### Release demos
-
-The trunk demo changes with every push, which is no good for a user test. For a demo that stays put, tag a release and push the tag:
-
-```sh
-git tag v0.2.0
-git push origin v0.2.0
-```
-
-The workflow builds the tagged commit and publishes its files to a `playground-v0.2.0` tag, with a `blueprint.json`, a `blueprint-shop.json` and a `blueprint-blank.json` that install from that tag. Those blueprints also pin WordPress to the version in `scripts/wp-env.mjs`, where the trunk and branch demos take the latest, so the blank site runs that version's default theme. The workflow then creates a GitHub release for `v0.2.0`, or updates one you made already, with the Playground links at the top of the notes and the plugin zip attached. The links are
-
-```text
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint.json
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint-shop.json
-https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint-blank.json
-```
-
-Every release keeps its own links, so testers can stay on one while trunk moves on. Pushing the same tag to a new commit rebuilds that release in place.
-
-`scripts/playground-build.sh` puts the files for each kind of demo together.
-
-### Plugin directory images
-
-`.wordpress-org/` holds the images for a WordPress.org plugin directory listing: the icon, the banner and screenshots, named the way the directory expects. They are not part of the plugin zip.
-
-The icon is drawn in `.wordpress-org/icon.svg` and the banner in `scripts/wordpress-org-assets/banner.html`. Both use the Mainstay theme's colours, and the banner borrows its fonts and photos, so the listing looks like the sites the editor makes. After changing either, run `npm run wporg-assets` to render the PNG sizes the directory asks for.
-
-The screenshot at the top of this README is `.wordpress-org/screenshot-1.jpg`. It shows the Fernhouse demo site in a 1440 by 900 window, so retake it from a fresh `wp-env` site when the editor changes.
-
-## Scripts
-
-- `npm run dev` watches and rebuilds development assets.
-- `npm run start` is an alias for the same watcher.
-- `npm run build` builds production assets.
-- `npm run sync:list-view` regenerates the temporary vendored Gutenberg ListView bridge from the pinned `@wordpress/block-editor` package.
-- `npm run check:list-view` verifies the committed ListView bridge is current.
-- `npm run lint:js` runs JavaScript linting.
-- `npm run lint:css` runs stylesheet linting.
-- `npm run test:unit` runs the unit tests with Vitest. Its settings live in `vitest.config.mjs`.
-- `npm run plugin-zip` creates an installable plugin zip.
-- `npm run test:e2e` runs every end-to-end test against the `wp-env` tests site. `test:e2e:smoke`, `test:e2e:views` and `test:e2e:interactions` run one group. See [the end-to-end tests guide](tests/e2e/README.md).
-- `npm run wporg-assets` renders the plugin directory icon and banner PNGs in `.wordpress-org/`.
-- `npm run wp-env` proxies to `wp-env`, after preparing the shared downloads on `start`.
-
-## Vendored ListView Bridge
-
-Gutenberg's full ListView implementation is currently exposed only as a private `@wordpress/block-editor` API. This plugin temporarily vendors that ListView as a narrow exception to the normal no-copied-source rule.
-
-The vendored source lives in:
-
-```text
-src/vendor/gutenberg/list-view
-```
-
-Do not edit those files by hand. Regenerate them with:
-
-```sh
-npm run sync:list-view
-```
-
-The sync script copies from the installed, lockfile-pinned `@wordpress/block-editor` package, applies the minimal local patch in `patches/gutenberg-list-view.patch`, rewrites known internal imports to plugin-local compatibility shims, and writes `provenance.json` with the upstream package version, git head, copied files, and patch checksum.
-
-The local patch is limited to the prototype appender extension points (`renderAppender` and `appenderParentClientId`). When Gutenberg exposes the required ListView API publicly, replace `src/list-view.js` with the public package import and remove this bridge.
-
-## Editor Workarounds
-
-Some behaviour the prototype needs has no supported extension point in the released Gutenberg, so it is reached by leaning on private APIs, core class names, or editor internals. Everything of that kind is listed here. Each entry says what it depends on and what would let it go away, because each one can break on a Gutenberg update.
-
-### Hiding core's "Edit original" toolbar button
-
-Template parts are edited through this plugin's own "Edit Header" button instead, so core's is redundant. Core renders it whenever the `onNavigateToEntityRecord` editor setting is present, and offers no way to suppress it for one block type. Dropping that setting would work but would also take the button away from synced patterns, which still need it.
-
-Instead `src/editor-extensions/template-part-editing.js` adds a `cnl-editor-template-part-selected` class to the admin document body while a template part is the selected block, and `src/style.scss` hides the button's toolbar group in that state.
-
-The whole group is hidden rather than the slot inside it, because a group emptied of its contents still draws its own borders and reads as a broken gap in the toolbar.
-
-Every slot in the toolbar carries the same `block-editor-block-toolbar__slot` class, so the group is picked out as the last one holding a slot, which is where the "other" group is rendered. Earlier slot groups carry controls that should stay, such as block alignment while a part is being edited.
-
-So this depends on three things: the `block-editor-block-toolbar.is-synced` and `block-editor-block-toolbar__slot` class names, the "other" group being rendered last of the slots, and that group holding nothing but "Edit original" for a selected template part.
-
-The replacement is rendered into `__unstableBlockToolbarLastItem`, the slot core's own template part toolbar buttons use, which is what keeps it out of the hidden group.
-
-It also depends on the canvas being portalled into its iframe from the admin document's JavaScript realm, which is what makes `document` there the document the toolbar lives in.
-
-Remove this once the template part block offers a way to opt out of the button.
-
-### Unlocking a template part for in-place editing
-
-The editor sets `disableContentOnlyForTemplateParts` whenever `renderingMode` is `template-locked`, which is the mode pages are edited in. Template parts are therefore not content-only sections there, and `DisableNonPageContentBlocks` additionally locks each part to `contentOnly` and each of its children to `disabled`.
-
-Entering the overlay's edit mode dispatches the private `editContentOnlySection` action, which disables everything outside the part, and then lifts those explicit locks with `setBlockEditingMode( clientId, 'default' )`. Leaving puts them back as `contentOnly` and `disabled`.
-
-The locks are re-read on every change and re-lifted if they come back, because `DisableNonPageContentBlocks` re-applies them whenever a block is added to or removed from the part, which would otherwise strand the author mid-edit.
-
-This assumes the editor keeps locking parts exactly that way. Remove it if template parts become editable in place without the lock, or if the rendering mode stops forcing `disableContentOnlyForTemplateParts`.
-
-### Leaving edit mode by clicking away
-
-`useEditContentOnlySectionExit` in `@wordpress/editor` is meant to handle this, but every block outside the edited section is `inert`, so a click aimed at one never reaches the handler and editing never ends. The same module listens for clicks on the canvas document and ends editing when the click lands outside the part, ignoring popovers so in-canvas UI such as the link editor still works.
-
-Remove it once core's handler fires for clicks on inert blocks.
-
-### Entering edit mode on a second click
-
-A click on an already selected template part enters edit mode. Knowing whether the part was selected *before* the click means reading the store ahead of the editor's own selection handling, so the listener runs in the capture phase on the canvas document, which fires before the editor's handlers at the React root. A first click therefore only ever selects.
-
-Remove it if the editor gains its own click-into-section behaviour for template parts.
-
-### Direct package imports in editor extensions
-
-`src/editor-extensions/` imports each `@wordpress/*` package directly rather than through `src/wordpress-packages.js`, which is the convention everywhere else. The barrel reaches `@wordpress/lazy-editor`, and these modules are registered from app init, so going through it would make the editor a static dependency of page boot and stop it loading lazily.
-
-### Block name label on hover
-
-`includes/block-canvas-styles.php` styles the block wrapper's `data-title` attribute to show a block's name on hover. It depends on that attribute and on the `block-editor-block-list__block` class.
-
-The label normally sits above its block. The topmost block has nothing above it, so the label would be drawn outside the canvas and clipped, which is what hid it on a site header. That one block gets the label just inside its top edge instead, matched through `.is-root-container > .block-editor-block-list__block:first-child`.
-
-Template parts and synced patterns get the label in `--wp-block-synced-color` rather than the admin colour, since they are shared across the site rather than owned by the page. They are matched by `.wp-block-template-part` and `.is-reusable`, the same two selectors core uses to colour its own outline around them.
-
-Both of those rules repeat the base rule's `:not()` chain. Without it the base rule wins on specificity and the override silently does nothing.
-
-## Verification
-
-Before handing off functional changes, run:
-
-```sh
-npm run build
-npm run check:list-view
-npm run lint:js
-npm run lint:css
-find . -path ./node_modules -prune -o -path ./build -prune -o -path ./.wp-env -prune -o -name '*.php' -print | xargs -n1 php -l
-```
-
-When checking runtime behavior, start `wp-env` with explicit local ports and visit:
-
-```text
-http://localhost:<dev-port>/wp-admin/admin.php?page=create-not-learn-editor
-```
-
-## Repository Shape
-
-- `create-not-learn-editor.php` is the plugin entry point.
-- `includes/` contains PHP bootstrap, dependency checks, admin page rendering, REST endpoints, and setup behavior.
-- `src/` contains JavaScript route modules, content surfaces, settings helpers, and styles.
-- `routes/` contains thin `@wordpress/build` entry wrappers for the editor routes.
-- `src/list-view.js` is the stable internal wrapper around the temporary vendored ListView bridge.
-- `src/editor-extensions/` contains block editor filters registered at app init, such as template part editing.
-- `@wordpress/build` creates the browser bundles and asset metadata under `build/`.
-- `.wp-env.json` defines the local WordPress and Gutenberg plugin environment.
-- `themes/mainstay/` is the demo block theme the development site uses. `scripts/demo-site/` seeds its content.
-- `demos/` holds the WordPress Playground blueprints for the demo links. Branch and release demos are generated from them.
-- `.wordpress-org/` holds the plugin directory icon, banner and screenshots.
-
-## Current Design Constraints
-
-- Do not depend on a local Gutenberg repository checkout.
-- Do not copy source from Gutenberg into this plugin, except for the scripted ListView bridge under `src/vendor/gutenberg/list-view`.
-- Use published `@wordpress/*` packages and runtime modules from the released Gutenberg plugin.
-- Import WordPress packages directly from `@wordpress/*`; do not access package APIs through `window.wp`.
-- Keep automatic site changes out of editor load.
-- Preserve PHP 7.4 compatibility.
-- Keep the plugin installable on the latest WordPress release once Gutenberg is installed and active.
+To work on the code, start with [CONTRIBUTING.md](CONTRIBUTING.md). It covers setting up a development copy, building and checking your changes, and links to the [docs](docs/) on how the editor works.
