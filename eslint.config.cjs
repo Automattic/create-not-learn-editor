@@ -14,6 +14,10 @@ module.exports = [
 			// Safari drops list semantics from lists styled without bullets,
 			// so `role="list"` on a `ul` is kept on purpose.
 			'jsx-a11y/no-redundant-roles': [ 'error', { ul: [ 'list' ] } ],
+			// `{Function}` and `{*}` are normal in WordPress code, and these
+			// flagged hundreds of them in every pull request's annotations.
+			'jsdoc/reject-function-type': 'off',
+			'jsdoc/reject-any-type': 'off',
 		},
 	},
 ];
