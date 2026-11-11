@@ -1,8 +1,9 @@
 /**
  * The site canvas toolbar's controls: Edit, which expands the canvas, undo
  * and redo while editing, stepping through pages visited in Browse, the
- * Browse switch, the View menu with the device, Zoom out for Compose, and the
- * way out to the full-screen editor.
+ * Browse switch, the View menu with the device and the live page in a new
+ * tab, and Zoom out for Compose. The way out to the full-screen editor is in
+ * the top bar's Options menu.
  */
 
 /**
@@ -20,21 +21,15 @@ import {
 	Button,
 	chevronLeftIcon,
 	chevronRightIcon,
-	codeIcon,
 	coreDataStore,
 	desktopIcon,
 	dispatch,
 	fullscreenExitIcon,
 	displayShortcut,
-	externalIcon,
 	isRTL,
 	listViewIcon,
 	Menu,
 	mobileIcon,
-	DropdownMenu,
-	MenuGroup,
-	MenuItem,
-	moreVerticalIcon,
 	pencilIcon,
 	redoIcon,
 	select as selectFromStore,
@@ -250,7 +245,8 @@ export function DocumentOverviewToggle() {
 
 /**
  * The device the page is shown on, in a menu as core's editor has it. The
- * button shows the device's icon.
+ * button shows the device's icon. Below the devices, as core's preview menu
+ * ends, the live page opens in a new tab.
  *
  * Compose lays the page out as on a desktop, so it shows Desktop picked, and
  * picking a device zooms back in, as core resets its zoom on a device change.
@@ -260,9 +256,17 @@ export function DocumentOverviewToggle() {
  * @param {boolean}   props.isComposing Whether Compose is on.
  * @param {Function}  props.onChange    Called with the device picked.
  * @param {?Function} props.onZoomIn    Zooms back in to Edit.
+ * @param {string}    props.liveUrl     The live page's URL. Empty when there
+ *                                      isn't one.
  * @return {Element} The menu.
  */
-export function ViewMenu( { device, isComposing, onChange, onZoomIn } ) {
+export function ViewMenu( {
+	device,
+	isComposing,
+	onChange,
+	onZoomIn,
+	liveUrl,
+} ) {
 	const shown = isComposing ? 'desktop' : device;
 
 	return (
@@ -305,6 +309,19 @@ export function ViewMenu( { device, isComposing, onChange, onZoomIn } ) {
 						) ) }
 					</Menu.Group>
 				</Menu.RadioGroup>
+				<Menu.Separator />
+				<Menu.Group>
+					<Menu.Item
+						disabled={ ! liveUrl }
+						onClick={ () =>
+							window.open( liveUrl, '_blank', 'noreferrer' )
+						}
+					>
+						<Menu.ItemLabel>
+							{ __( 'Open in a new tab' ) }
+						</Menu.ItemLabel>
+					</Menu.Item>
+				</Menu.Group>
 			</Menu.Popup>
 		</Menu.Root>
 	);
@@ -330,59 +347,6 @@ export function ZoomOutToggle( { isComposing, onToggle } ) {
 			onClick={ onToggle }
 			showTooltip
 		/>
-	);
-}
-
-/**
- * Less common ways to view the canvas, tucked behind a menu so the toolbar's
- * everyday controls keep the room.
- *
- * @param {Object}    props
- * @param {string}    props.liveUrl      The live site's URL, to open in a new
- *                                       tab. Empty when there isn't one.
- * @param {?Function} props.onOpenEditor Opens the page on show in the
- *                                       full-screen editor, for changes the
- *                                       canvas doesn't suit. Missing when
- *                                       there is nothing to open.
- * @return {Element} The menu.
- */
-export function CanvasMoreMenu( { liveUrl, onOpenEditor } ) {
-	return (
-		<DropdownMenu
-			className="cnl-site-canvas__more-menu"
-			icon={ moreVerticalIcon }
-			label={ __( 'More options' ) }
-			popoverProps={ { placement: 'bottom-end' } }
-			toggleProps={ {
-				className: 'cnl-site-canvas__more-menu-toggle',
-				showTooltip: true,
-			} }
-		>
-			{ ( { onClose } ) => (
-				<MenuGroup>
-					<MenuItem
-						disabled={ ! onOpenEditor }
-						icon={ codeIcon }
-						onClick={ () => {
-							onClose();
-							onOpenEditor();
-						} }
-					>
-						{ __( 'Open in advanced editor' ) }
-					</MenuItem>
-					<MenuItem
-						disabled={ ! liveUrl }
-						href={ liveUrl || undefined }
-						icon={ externalIcon }
-						onClick={ onClose }
-						rel="noreferrer"
-						target="_blank"
-					>
-						{ __( 'Open in a new tab' ) }
-					</MenuItem>
-				</MenuGroup>
-			) }
-		</DropdownMenu>
 	);
 }
 
