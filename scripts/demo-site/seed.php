@@ -279,8 +279,9 @@ function cnl_demo_paragraphs( $paragraphs ) {
 }
 
 /**
- * Version 1: switch to Mainstay, name the site, and add the pages, posts and
- * menu.
+ * Version 1: switch to Mainstay, name the site, and add the pages and posts.
+ * No menu is added, so the theme's Navigation blocks fall back to WordPress's
+ * default page list.
  */
 function cnl_demo_content() {
 	switch_theme( 'mainstay' );
@@ -374,27 +375,6 @@ function cnl_demo_content() {
 		cnl_demo_post( $demo_post );
 	}
 
-	// A menu, if the site has none, listing the pages in their menu order.
-	$has_navigation = get_posts(
-		array(
-			'post_type'   => 'wp_navigation',
-			'post_status' => array( 'publish', 'draft' ),
-			'fields'      => 'ids',
-			'numberposts' => 1,
-		)
-	);
-
-	if ( ! $has_navigation ) {
-		wp_insert_post(
-			array(
-				'post_type'    => 'wp_navigation',
-				'post_status'  => 'publish',
-				'post_name'    => 'main-menu',
-				'post_title'   => 'Main menu',
-				'post_content' => '<!-- wp:page-list /-->',
-			)
-		);
-	}
 }
 
 /**
