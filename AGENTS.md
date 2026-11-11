@@ -2,6 +2,19 @@
 
 This is a standalone WordPress plugin repo for Create Not Learn Editor.
 
+## Documentation
+
+The README is for people trying the editor and explains the ideas behind it. The detail you need to work on the code lives elsewhere, so read these before making changes:
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, building, scripts, verification, the repository layout and the design constraints.
+- [docs/architecture.md](docs/architecture.md) covers the editor shell and routes, the visual theme, explicit site changes, the Gutenberg version check and opening in a workspace.
+- [docs/language-model.md](docs/language-model.md) covers the chat, Agentic Editor and TypeSafe routing.
+- [docs/demo-site-and-playground.md](docs/demo-site-and-playground.md) covers the demo seed, the shop and the Playground demos.
+- [docs/editor-workarounds.md](docs/editor-workarounds.md) lists every reliance on private APIs or core internals. Add an entry there whenever you add one.
+- [docs/vendored-list-view.md](docs/vendored-list-view.md) covers the vendored ListView bridge.
+
+Keep those files current when behaviour they describe changes. Keep the README to what the editor is, why it exists and how to try it.
+
 ## Core Direction
 
 - Keep this plugin independent from the Gutenberg repository.
@@ -40,7 +53,7 @@ Always run wp-env through `npm run wp-env ...`, not the `wp-env` binary. `npm ru
 - On `start`, the script fills the cache (`~/.cache/create-not-learn-editor/wp-env`, or `CNL_WP_ENV_CACHE`) with anything missing, then sets up `.wp-env/sources/`, which `.wp-env.json` points at. Gutenberg is a symlink into the cache. WordPress is copied into the checkout, because wp-env writes `wp-config.php` and uploads into it.
 - Versions live in `scripts/wp-env.mjs`, not `.wp-env.json`. Each version downloads once; to change one, update its `key` with its URL.
 - wp-env always runs `git fetch` in its PHPUnit clones. The script points them at a cached wordpress-develop clone, so that fetch stays local.
-- Keep the environment to what the editor needs: WordPress, Gutenberg, this plugin and the Mainstay theme. Optional plugins such as [Canvas](https://github.com/Automattic/canvas) belong in a local, git-ignored `.wp-env.override.json`, as the README describes, not in `.wp-env.json`.
+- Keep the environment to what the editor needs: WordPress, Gutenberg, this plugin and the Mainstay theme. Optional plugins such as [Canvas](https://github.com/Automattic/canvas) belong in a local, git-ignored `.wp-env.override.json`, as CONTRIBUTING.md describes, not in `.wp-env.json`.
 
 ## Demo Theme and Site
 
@@ -108,7 +121,7 @@ For runtime checks, use the `wp-env` instance from Development Commands above.
 - Customisations of the full-screen edit canvas live in the editor layer, `src/editor-layer/`. It hides, adds to and configures core's editor from outside rather than forking it; see its README before working around the editor another way.
 - The block toolbar's rework, after Gutenberg's proposal for it, lives in `src/block-toolbar/`. It works from outside core's toolbar, through its slots and a stylesheet; see its README before changing core's toolbar another way.
 - Pickers used by more than one screen, and by the chat, live in `src/pickers/`. Change a picker there rather than copying it, so the screens and the chat stay the same.
-- The chat lives in `src/chat/`. It sits in the stage, in place of the screen, or docked to the right of the canvas; a button in its header swaps the two while both are tried. Without a language model it answers from a script: `engine.js` matches requests and `skills.jsx` says what each one shows and saves. Because of that it has no message box, unless the `create-not-learn-editor_assistant_can_type` filter turns one on; people pick from its choices instead. With the Agentic Editor plugin and an AI connector, the box shows and a model answers what is typed (`model.js`). The model's own tools show the same pickers (`model-tools.js`), and Agentic Editor's tools change the canvas. Requests a picker answers in full skip the model when TypeSafe's Jev, a decision model whose key is set under Settings > Connectors, is sure of them (`router.js`, `decision-model.js`, `includes/assistant-router.php`). The script's keyword matching isn't used for what is typed then, as it can't tell "edit my menu" from "add a mobile menu". Choices are still answered from the script. See the README's "Connecting a language model". It is mounted from app init, so it and the pickers import package by package rather than through `src/wordpress-packages.js`. Only its ways in, the panel's frame and its placement load with app init. The panel's body (`panel.jsx`, and through it the skills and pickers) and the editor's section picker come from `packages/app-init-deferred`, a script module app init fetches once the page is idle (`src/app-init-deferred.js`); keep anything that isn't needed before the chat opens out of `index.jsx`. Pickers too big for that, because they reach the editor, like the menu editor, go in `packages/chat-extras`, a script module the chat imports the first time it needs one.
+- The chat lives in `src/chat/`. It sits in the stage, in place of the screen, or docked to the right of the canvas; a button in its header swaps the two while both are tried. Without a language model it answers from a script: `engine.js` matches requests and `skills.jsx` says what each one shows and saves. Because of that it has no message box, unless the `create-not-learn-editor_assistant_can_type` filter turns one on; people pick from its choices instead. With the Agentic Editor plugin and an AI connector, the box shows and a model answers what is typed (`model.js`). The model's own tools show the same pickers (`model-tools.js`), and Agentic Editor's tools change the canvas. Requests a picker answers in full skip the model when TypeSafe's Jev, a decision model whose key is set under Settings > Connectors, is sure of them (`router.js`, `decision-model.js`, `includes/assistant-router.php`). The script's keyword matching isn't used for what is typed then, as it can't tell "edit my menu" from "add a mobile menu". Choices are still answered from the script. See `docs/language-model.md`. It is mounted from app init, so it and the pickers import package by package rather than through `src/wordpress-packages.js`. Only its ways in, the panel's frame and its placement load with app init. The panel's body (`panel.jsx`, and through it the skills and pickers) and the editor's section picker come from `packages/app-init-deferred`, a script module app init fetches once the page is idle (`src/app-init-deferred.js`); keep anything that isn't needed before the chat opens out of `index.jsx`. Pickers too big for that, because they reach the editor, like the menu editor, go in `packages/chat-extras`, a script module the chat imports the first time it needs one.
 - The temporary vendored ListView bridge lives in `src/vendor/gutenberg/list-view/` and must be regenerated with `npm run sync:list-view`, not edited by hand.
 
 Import WordPress packages from `@wordpress/*` modules instead of reading them from `window.wp`. Build assets are generated by `@wordpress/build`, which writes the dependency metadata PHP needs to enqueue package scripts and script modules.
