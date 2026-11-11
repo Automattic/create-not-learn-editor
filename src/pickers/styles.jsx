@@ -1,13 +1,14 @@
 /**
  * The site look, colour and font pickers.
  *
- * Shared by the Design, Colors and Fonts screens and the chat, so a choice
- * looks and works the same wherever it is made. Each picker edits the user's
+ * Shared by the Design, Colors and Fonts screens, so a choice looks and
+ * works the same wherever it is made. Each picker edits the user's
  * global styles as an unsaved change, which the canvas shows straight away,
  * and calls `onPick` with the title of what was picked.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
- * because the chat loads them from app init. See `src/editor-layer/index.jsx`.
+ * so they can be used from app init without loading the editor. See
+ * `src/editor-layer/index.jsx`.
  */
 
 /**

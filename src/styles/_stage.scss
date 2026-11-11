@@ -90,8 +90,8 @@
  * stage, as hiding it would leave nothing on screen.
  *
  * `:not([class*="__has-full-canvas"])` does nothing itself (that mode hides
- * the stage already) but makes this outrank the chat's layout rule for a
- * stage holding the "Need help?" card (`src/chat/style.scss`).
+ * the stage already). It only adds weight, so this outranks other layout
+ * rules for the stage.
  */
 body[data-cnl-workspace="agent"] #create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"])[class*="has-canvas"] [class*="__stage"] {
 	display: none;
@@ -120,7 +120,7 @@ body[data-cnl-workspace="agent"] #create-not-learn-editor-app [class*="__layout"
  * stays above it, and boot's thin dark frame around it. See
  * `src/site-canvas/expansion.js`. Only where boot
  * has a canvas on show, so a screen without one never goes blank. The stage
- * rule is shaped as the Agent workspace's above, to outrank the chat's.
+ * rule is shaped as the Agent workspace's above, for the same weight.
  */
 body.cnl-canvas-is-expanded #create-not-learn-editor-app [class*="__layout"][class*="has-canvas"] > [class*="__sidebar"],
 body.cnl-canvas-is-expanded #create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"])[class*="has-canvas"] [class*="__stage"] {

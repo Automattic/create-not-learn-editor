@@ -87,28 +87,8 @@ function cnl_editor_get_app_settings() {
 		'navigationRestBase' => $navigation_post_type && $navigation_post_type->rest_base
 			? $navigation_post_type->rest_base
 			: 'navigation',
-		'assistantCanType'   => cnl_editor_assistant_can_type(),
-		'assistantModel'     => cnl_editor_get_assistant_model(),
-		'assistantRouter'    => cnl_editor_assistant_can_route(),
 		'postKinds'          => cnl_editor_get_post_kind_settings(),
 		'mediaEditor'        => cnl_editor_has_media_editor(),
 		'maxUploadFileSize'  => wp_max_upload_size(),
-	);
-}
-
-/**
- * Whether people can type to the assistant.
- *
- * Without a language model the assistant answers from a script, so it can
- * only follow its own choices. Typing stays off until a model is connected,
- * through the Agentic Editor plugin and an AI connector. See
- * `cnl_editor_get_assistant_model()`.
- *
- * @return bool Whether the assistant's message box shows.
- */
-function cnl_editor_assistant_can_type() {
-	return (bool) apply_filters(
-		CNL_EDITOR_SLUG . '_assistant_can_type',
-		null !== cnl_editor_get_assistant_model()
 	);
 }

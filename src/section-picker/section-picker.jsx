@@ -32,7 +32,6 @@ import {
 import { __, _n, sprintf } from '@wordpress/i18n';
 import {
 	brush as brushIcon,
-	check as checkIcon,
 	layout as layoutIcon,
 	plus as plusIcon,
 } from '@wordpress/icons';
@@ -187,24 +186,15 @@ function useHasBeenNearView( ref, rootRef ) {
 /**
  * A section design: its preview, and its name with "Add" underneath.
  *
- * Shared with the chat, which marks the design it has added.
- *
- * @param {Object}   props            Component props.
- * @param {boolean}  props.isSelected Whether the design has been added.
- * @param {Function} props.onPick     Called with the pattern.
- * @param {Object}   props.pattern    Block pattern.
- * @param {Function} props.Preview    Renders the preview.
- * @param {Object}   props.scrollRef  Scroll area ref, to render the preview
- *                                    only once it comes near view.
+ * @param {Object}   props           Component props.
+ * @param {Function} props.onPick    Called with the pattern.
+ * @param {Object}   props.pattern   Block pattern.
+ * @param {Function} props.Preview   Renders the preview.
+ * @param {Object}   props.scrollRef Scroll area ref, to render the preview
+ *                                   only once it comes near view.
  * @return {Element} The design.
  */
-export function SectionDesignCard( {
-	isSelected = false,
-	onPick,
-	pattern,
-	Preview,
-	scrollRef,
-} ) {
+export function SectionDesignCard( { onPick, pattern, Preview, scrollRef } ) {
 	const ref = useRef();
 	const previewRef = useRef();
 	const isNearView = useHasBeenNearView( ref, scrollRef );
@@ -223,10 +213,7 @@ export function SectionDesignCard( {
 					__( 'Add %s' ),
 					title
 				) }
-				aria-pressed={ isSelected || undefined }
-				className={ `cnl-design-picker__card cnl-section-picker__card${
-					isSelected ? ' is-selected' : ''
-				}` }
+				className="cnl-design-picker__card cnl-section-picker__card"
 				onClick={ () => onPick( pattern ) }
 				title={ description || undefined }
 				type="button"
@@ -258,11 +245,8 @@ export function SectionDesignCard( {
 						aria-hidden
 						className="cnl-design-picker__action cnl-section-picker__add"
 					>
-						<Icon
-							icon={ isSelected ? checkIcon : plusIcon }
-							size={ 16 }
-						/>
-						{ isSelected ? __( 'Added' ) : __( 'Add' ) }
+						<Icon icon={ plusIcon } size={ 16 } />
+						{ __( 'Add' ) }
 					</span>
 				</span>
 			</button>

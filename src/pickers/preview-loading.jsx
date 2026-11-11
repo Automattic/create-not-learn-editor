@@ -2,7 +2,7 @@
  * What a design preview shows until its design has drawn.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
- * because the chat loads the pickers from app init. See
+ * so it can be used from app init without loading the editor. See
  * `src/editor-layer/index.jsx`.
  */
 

@@ -13,14 +13,15 @@
  * the screen beside it, is kept here too, for the same reasons. Expanding is
  * the canvas's Edit button; it changes the room the canvas has, not its mode.
  *
- * The section Compose has picked is kept beside it, for the chat: Compose's
- * pick is its own, not core's block selection. So is the header or footer
- * open in Edit content or Freeform, for the editor extension that opens a
- * template part's blocks: how far they open depends on which. And so is a
- * request from outside the canvas, the chat's, to open the header or footer
- * as Edit header or Edit footer does, for the canvas to take up. And so is
- * the way back from the screen a section's Edit posts leads to, which
- * another route's bundle shows and this canvas takes up on the way back.
+ * The section Compose has picked is kept beside it, so code outside the
+ * canvas can read it: Compose's pick is its own, not core's block selection.
+ * So is the header or footer open in Edit content or Freeform, for the
+ * editor extension that opens a template part's blocks: how far they open
+ * depends on which. And so is a request from code outside the canvas to open
+ * the header or footer as Edit header or Edit footer does, for the canvas to
+ * take up. And so is the way back from the screen a section's Edit posts
+ * leads to, which another route's bundle shows and this canvas takes up on
+ * the way back.
  *
  * Kept in a data store, registered once by name, rather than in this module:
  * app init and each route are built separately, each with its own copy of

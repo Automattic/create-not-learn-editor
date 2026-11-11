@@ -139,7 +139,7 @@ Testing keeps showing two things, though.
 
 So the editing tools have to be great on their own.
 
-The editor already has a chat and an Agent workspace to try these ideas. [Connecting a language model](docs/language-model.md) explains how to set them up.
+The editor already has an Agent workspace and tools for an agent in the browser to work with, so you can watch it change your site and step in at any point. [Driving the editor with WebMCP](docs/webmcp.md) explains how to connect one.
 
 ## Contributing
 

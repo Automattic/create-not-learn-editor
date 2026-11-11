@@ -1,18 +1,19 @@
 /**
  * The theme's layouts for the header or footer.
  *
- * Shared by the Header and Footer screens and the chat. Picking a layout swaps
- * the part's blocks for it as an unsaved change, which the canvas shows
- * straight away, and calls `onPick` with the layout's title.
+ * Shared by the Header and Footer screens. Picking a layout swaps the part's
+ * blocks for it as an unsaved change, which the canvas shows straight away,
+ * and calls `onPick` with the layout's title.
  *
  * Each caller passes the preview component that works where it is, as with
  * the section picker. Callers put it in `GlobalScope`, so the layouts are in
  * purple, as everything that changes what every page shares is. The picker
- * doesn't, so its list stays the one element it renders, for the chat's
- * carousel to take as its slides. See `src/global-scope`.
+ * doesn't, so its list stays the one element it renders. See
+ * `src/global-scope`.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
- * because the chat loads it from app init. See `src/editor-layer/index.jsx`.
+ * so it can be used from app init without loading the editor. See
+ * `src/editor-layer/index.jsx`.
  */
 
 /**

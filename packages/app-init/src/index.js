@@ -24,7 +24,6 @@ import {
 import { mountAdminBar } from '../../../src/admin-bar';
 import { preloadDeferredWhenIdle } from '../../../src/app-init-deferred';
 import { registerBlockToolbar } from '../../../src/block-toolbar';
-import { mountChat } from '../../../src/chat';
 import { mountCommands } from '../../../src/commands';
 import { registerBlockBindings } from '../../../src/editor-extensions/block-bindings';
 import { registerPageListExcludedPages } from '../../../src/editor-extensions/page-list-excluded-pages';
@@ -36,6 +35,7 @@ import { mountEditorLayer } from '../../../src/editor-layer';
 import { registerLayoutWireframes } from '../../../src/layouts';
 import { mountTopBar } from '../../../src/top-bar';
 import { mountWorkspaces } from '../../../src/workspaces';
+import { registerWebMcpTools } from '../../../src/webmcp';
 import { mountPreferences } from '../../../src/preferences';
 import { trackHomeTrip } from '../../../src/home-trip';
 import { mountMenuSections } from './menu-sections';
@@ -81,9 +81,9 @@ export async function init() {
 	mountAdminBar();
 	mountTopBar();
 	mountCommands();
-	mountChat();
 	enhanceSidebar( { userName: window.createNotLearnEditor?.userName } );
+	registerWebMcpTools();
 
-	// The chat's panel and the section picker, ready before they're opened.
+	// The section picker, ready before it's opened.
 	preloadDeferredWhenIdle();
 }

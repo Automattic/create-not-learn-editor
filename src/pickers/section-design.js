@@ -1,8 +1,8 @@
 /**
  * A section's layouts and colours.
  *
- * Shared by Compose's section toolbar, Edit's and the chat, so a section offers
- * the same choices wherever it is changed:
+ * Shared by Compose's section toolbar and Edit's, so a section offers the
+ * same choices wherever it is changed:
  *
  * - Its layouts are arrangements of the same content, for sections built from
  *   our layouts. See `src/layouts/variants.js`.
@@ -10,12 +10,11 @@
  *   for a theme without any, offered only where they can show and be read.
  *   See `src/site-canvas/compose/section-colors.js`.
  *
- * The toolbars show them in dropdowns. The chat shows the layouts as cards,
- * each a preview of the section laid out that way, and the colours as
- * swatches.
+ * The toolbars show them in dropdowns.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
- * because the chat loads it from app init. See `src/editor-layer/index.jsx`.
+ * so it can be used from app init without loading the editor. See
+ * `src/editor-layer/index.jsx`.
  */
 
 /**
@@ -25,15 +24,11 @@ import { store as blockEditorStore } from '@wordpress/block-editor';
 import {
 	cloneBlock,
 	getBlockType,
-	serialize,
 	store as blocksStore,
 } from '@wordpress/blocks';
 import { store as coreDataStore } from '@wordpress/core-data';
 import { useSelect } from '@wordpress/data';
 import { useMemo } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
-import { check as checkIcon } from '@wordpress/icons';
-import { Icon } from '@wordpress/ui';
 
 /**
  * Internal dependencies
@@ -49,7 +44,6 @@ import {
 	getSectionColor,
 	withSectionColor,
 } from '../site-canvas/compose/section-colors';
-import { usePreviewBlocks } from './preview-blocks';
 
 const EMPTY_ARRAY = [];
 const NO_COLORS = {
@@ -342,124 +336,4 @@ export function useSectionVariations( clientId, { allowCustom = false } = {} ) {
 	}, [ allowCustom, block, choices ] );
 
 	return { block, choices, colors, layouts };
-}
-
-function LayoutCard( { isCurrent, onSelect, option, Preview } ) {
-	// Serialized and parsed again, so the preview's blocks are its own.
-	const content = useMemo(
-		() => serialize( option.blocks ),
-		[ option.blocks ]
-	);
-	const previewBlocks = usePreviewBlocks( content );
-
-	return (
-		<li>
-			<button
-				aria-pressed={ isCurrent }
-				className={ `cnl-section-design__layout${
-					isCurrent ? ' is-current' : ''
-				}` }
-				onClick={ () => ! isCurrent && onSelect( option ) }
-				type="button"
-			>
-				<span aria-hidden className="cnl-section-design__preview">
-					<Preview
-						blocks={ previewBlocks }
-						description={ option.label }
-					/>
-				</span>
-				<span className="cnl-section-design__layout-footer">
-					<span className="cnl-section-design__label">
-						{ option.label }
-					</span>
-					{ isCurrent && (
-						<span className="cnl-section-design__current">
-							<Icon icon={ checkIcon } size={ 16 } />
-							{ __( 'Current' ) }
-						</span>
-					) }
-				</span>
-			</button>
-		</li>
-	);
-}
-
-/**
- * A section's layouts, as cards showing the section laid out each way.
- *
- * @param {Object}   props          Component props.
- * @param {Object}   props.layouts  From `useSectionVariations`.
- * @param {Function} props.onSelect Called with the layout picked.
- * @param {Function} props.Preview  Renders markup, from `{ content,
- *                                  description }`.
- * @return {Element} The layouts, as one list.
- */
-export function SectionLayouts( { layouts, onSelect, Preview } ) {
-	return (
-		<ul
-			aria-label={ __( 'Layouts' ) }
-			className="cnl-section-design__layouts"
-		>
-			{ layouts.options.map( ( option ) => (
-				<LayoutCard
-					isCurrent={ option.name === layouts.current }
-					key={ option.name }
-					onSelect={ onSelect }
-					option={ option }
-					Preview={ Preview }
-				/>
-			) ) }
-		</ul>
-	);
-}
-
-/**
- * A section's colours, as small swatches: each style's background, with
- * "Aa" in its heading colour.
- *
- * @param {Object}   props          Component props.
- * @param {Object}   props.colors   From `useSectionVariations`.
- * @param {Function} props.onSelect Called with the colour picked.
- * @return {Element} The swatches.
- */
-export function SectionColorSwatches( { colors, onSelect } ) {
-	return (
-		<ul
-			aria-label={ __( 'Colors' ) }
-			className="cnl-section-design__swatches"
-		>
-			{ colors.options.map( ( option ) => {
-				const isCurrent = option.name === colors.current;
-
-				return (
-					<li key={ option.name ?? 'none' }>
-						<button
-							aria-pressed={ isCurrent }
-							className={ `cnl-section-design__swatch${
-								isCurrent ? ' is-current' : ''
-							}${ option.name ? '' : ' is-none' }` }
-							onClick={ () => ! isCurrent && onSelect( option ) }
-							type="button"
-						>
-							<span
-								aria-hidden
-								className="cnl-section-design__swatch-color"
-								style={ {
-									background: option.colors.background,
-									color:
-										option.colors.heading ||
-										option.colors.text,
-								} }
-							>
-								{ __( 'Aa' ) }
-							</span>
-							<span className="cnl-section-design__label">
-								{ option.label }
-							</span>
-						</button>
-					</li>
-				);
-			} ) }
-		</ul>
-	);
 }

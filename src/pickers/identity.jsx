@@ -1,12 +1,13 @@
 /**
  * The site's name, tagline, logo and browser icon.
  *
- * Shared by the Name & logo screen, the Header and Footer screens and the
- * chat. Changes are unsaved edits to the `root/site` entity, which the canvas
- * shows as they are made.
+ * Shared by the Name & logo screen and the Header and Footer screens.
+ * Changes are unsaved edits to the `root/site` entity, which the canvas shows
+ * as they are made.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
- * because the chat loads it from app init. See `src/editor-layer/index.jsx`.
+ * so it can be used from app init without loading the editor. See
+ * `src/editor-layer/index.jsx`.
  */
 
 /**
@@ -274,8 +275,8 @@ export function SiteMediaSetting( {
 
 /**
  * The site's name, tagline, logo and browser icon, with a way to discard
- * changes to them. Shown on Name & logo, in the Header and Footer screens,
- * and in the chat.
+ * changes to them. Shown on Name & logo and in the Header and Footer
+ * screens.
  *
  * @param {Object}   props             Component props.
  * @param {string[]} props.fields      Which fields to show, of `title`,

@@ -65,7 +65,6 @@ function cnl_editor_bootstrap() {
 	require_once CNL_EDITOR_PATH . 'includes/block-canvas-styles.php';
 	require_once CNL_EDITOR_PATH . 'includes/layouts.php';
 	require_once CNL_EDITOR_PATH . 'includes/plugin-compat.php';
-	require_once CNL_EDITOR_PATH . 'includes/assistant-router.php';
 	require_once CNL_EDITOR_PATH . 'includes/post-kinds.php';
 	require_once CNL_EDITOR_PATH . 'includes/page-list.php';
 
@@ -82,7 +81,6 @@ function cnl_editor_bootstrap() {
 	cnl_editor_register_block_canvas_style_hooks();
 	cnl_editor_register_layout_hooks();
 	cnl_editor_register_plugin_compat_hooks();
-	cnl_editor_register_assistant_router_hooks();
 	cnl_editor_register_page_list_hooks();
 	cnl_editor_register_post_kind_hooks();
 	cnl_editor_register_setup_default_hooks();

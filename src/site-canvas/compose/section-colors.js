@@ -457,8 +457,9 @@ function makePaletteOption( set, supports, page ) {
  *                    with a null name; none when there are no colours but
  *                    the theme's. `swatch` is up to three colours, for Edit
  *                    design; `colors` is `{ background, heading, text }`,
- *                    for the chat; `values` is `{ background, text, button
- *                    }`, as saved, to start custom colours from.
+ *                    for swatches showing "Aa"; `values` is
+ *                    `{ background, text, button }`, as saved, to start
+ *                    custom colours from.
  */
 export function getColorOptions( {
 	blockStyles,

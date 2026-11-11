@@ -50,7 +50,7 @@ import {
  * Internal dependencies
  */
 import { openRoute } from '../open-route';
-import { openPage } from '../page-finder/page-finder';
+import { openPage } from '../page-finder/open-page';
 import { openPreferences } from '../preferences';
 import { HOMEPAGE } from '../routes/content/pages/homepage-state';
 import { getPostTypes, settings } from '../settings';
