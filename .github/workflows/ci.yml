@@ -5,18 +5,15 @@ name: CI
 #
 # - `checks` builds, lints, checks the vendored ListView, lints PHP and runs the
 #   unit tests.
-# - `e2e` runs the Playwright suite over four shards. Each shard starts one
-#   wp-env tests site per two cores (`scripts/e2e-sites.sh`) and gives every
-#   Playwright worker a site of its own, as the tests share a site's data. The
-#   shards share one build, from `build`.
+# - `e2e` runs the Playwright suite over six shards, each with a wp-env of its
+#   own. Tests run one at a time on each site, as they share its data, so
+#   more shards is how to make the suite faster.
 # - A pull request that only changes docs or other files that can't change a
 #   test's result skips e2e, which counts as passing.
 #
 # Branch protection on trunk requires `checks` and `e2e-result`, so a pull
 # request can't merge while either fails. `e2e-result` is the one check to
 # require for e2e, so the shard count can change without editing the rule.
-#
-# The e2e set-up follows Gutenberg's .github/workflows/end2end-test.yml.
 
 on:
   pull_request:
@@ -98,12 +95,21 @@ jobs:
               - '!.github/!(workflows)/**'
               - '!.github/workflows/!(ci.yml)'
 
-  build:
-    name: Build for e2e
+  e2e:
+    name: E2E (${{ matrix.shard }}/6)
     needs: changes
     if: needs.changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [ 1, 2, 3, 4, 5, 6 ]
+    env:
+      CNL_WP_ENV_CACHE: ${{ github.workspace }}/../wp-env-cache
+      WP_BASE_URL: http://localhost:8889
     steps:
+
       - name: Checkout
         uses: actions/checkout@v5
         with:
@@ -120,57 +126,6 @@ jobs:
 
       - name: Build
         run: npm run build
-
-      - name: Upload build
-        uses: actions/upload-artifact@v7
-        with:
-          name: build
-          path: |
-            build
-            packages/*/build
-            packages/*/build-module
-            packages/*/build-style
-          retention-days: 1
-          if-no-files-found: error
-          overwrite: true
-
-  e2e:
-    name: E2E (${{ matrix.shard }}/4)
-    needs: build
-    # A skipped check counts as passing, so a broken build must not skip the
-    # shards: they start and fail on the first step instead.
-    if: ${{ !cancelled() && needs.build.result != 'skipped' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [ 1, 2, 3, 4 ]
-    env:
-      CNL_WP_ENV_CACHE: ${{ github.workspace }}/../wp-env-cache
-    steps:
-      - name: Fail if the build failed
-        if: needs.build.result != 'success'
-        run: exit 1
-
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          persist-credentials: false
-
-      - name: Setup Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci --no-audit --no-fund
-
-      - name: Download build
-        uses: actions/download-artifact@v5
-        with:
-          name: build
 
       # The versions live in scripts/wp-env.mjs, so a change there downloads
       # them afresh.
@@ -196,20 +151,16 @@ jobs:
         run: npx playwright install --only-shell chromium
 
       # Downloads now and then fail part way, so it tries again.
-      - name: Start the tests sites
+      - name: Start wp-env
         run: |
           for attempt in 1 2 3; do
-            if urls=$( scripts/e2e-sites.sh ); then
-              echo "WP_BASE_URLS=$urls" >> "$GITHUB_ENV"
-              echo "Sites: $urls"
-              exit 0
-            fi
-            echo "::warning::Starting the sites failed (attempt $attempt), retrying"
+            npm run wp-env start && exit 0
+            echo "::warning::wp-env start failed (attempt $attempt), retrying"
             sleep 10
           done
           exit 1
 
-      # Saved as soon as the sites are up, so a failing test still keeps the
+      # Saved as soon as wp-env is up, so a failing test still keeps the
       # downloads for the next run.
       - name: Save wp-env sources
         if: steps.wp-env-cache.outputs.cache-hit != 'true'
@@ -220,7 +171,7 @@ jobs:
           key: wp-env-${{ hashFiles('scripts/wp-env.mjs') }}
 
       - name: Run e2e tests
-        run: npx playwright test --shard=${{ matrix.shard }}/4 --reporter=list
+        run: npx playwright test --shard=${{ matrix.shard }}/6 --reporter=list
 
       - name: Upload failure traces
         if: failure()
