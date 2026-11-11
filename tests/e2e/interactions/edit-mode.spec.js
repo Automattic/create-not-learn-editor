@@ -647,6 +647,13 @@ test.describe( 'Edit mode', () => {
 			'data-level',
 			'blocks'
 		);
+		// Typed once the cursor is in the new block, which can trail the
+		// section opening on a slow machine.
+		await expect(
+			getCanvasEditor( page )
+				.contentFrame()
+				.locator( '[contenteditable="true"]:focus' )
+		).toHaveCount( 1 );
 		await page.keyboard.type( 'Words on a blank page' );
 		await expect(
 			getCanvasEditor( page )
