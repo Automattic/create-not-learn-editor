@@ -72,14 +72,24 @@ describe( 'keepStartPatternsClosed', () => {
 } );
 
 describe( 'isStartPatternsAllowed', () => {
+	// What the site says is built from sections, as on each post's record.
+	const SECTIONED = { page: true, post: false };
 	const selectFor =
 		( { postType = 'page', isNew = true } = {} ) =>
-		() => ( {
-			getCurrentPostType: () => postType,
-			isEditedPostNew: () => isNew,
-		} );
+		( store ) =>
+			store === 'core'
+				? {
+						getEntityRecord: ( kind, name ) => ( {
+							cnl_has_sections: SECTIONED[ name ],
+						} ),
+					}
+				: {
+						getCurrentPostId: () => 1,
+						getCurrentPostType: () => postType,
+						isEditedPostNew: () => isNew,
+					};
 
-	it( 'allows a new page in the full-screen editor', () => {
+	it( 'allows something new built from sections, like a page, in the full-screen editor', () => {
 		expect( isStartPatternsAllowed( selectFor(), true ) ).toBe( true );
 	} );
 
@@ -89,7 +99,7 @@ describe( 'isStartPatternsAllowed', () => {
 		).toBe( false );
 	} );
 
-	it( 'keeps it from new posts of other types', () => {
+	it( 'keeps it from new posts not built from sections', () => {
 		expect(
 			isStartPatternsAllowed( selectFor( { postType: 'post' } ), true )
 		).toBe( false );

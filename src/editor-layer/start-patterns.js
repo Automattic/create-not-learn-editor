@@ -28,6 +28,7 @@ import { useEffect } from '@wordpress/element';
 /**
  * Internal dependencies
  */
+import { hasSections } from '../sections';
 import { EDITOR_STORE } from './settings-guard';
 
 export const START_PATTERNS_MODAL = '.editor-start-page-options__modal';
@@ -72,8 +73,9 @@ export function keepStartPatternsClosed( root = document.body ) {
 }
 
 /**
- * Whether core's "Choose a pattern" modal may open: only for a new page in the
- * full-screen editor. Core offers it for other post types with starter
+ * Whether core's "Choose a pattern" modal may open: only for something new
+ * built from sections, like a page, in the full-screen editor (see
+ * `src/sections.js`). Core offers it for other post types with starter
  * patterns too, so a new post is not enough.
  *
  * @param {Function} select       Data registry `select`.
@@ -88,14 +90,17 @@ export function isStartPatternsAllowed( select, isEditCanvas ) {
 	const editor = select( EDITOR_STORE );
 
 	return (
-		editor?.getCurrentPostType?.() === 'page' &&
-		!! editor.isEditedPostNew?.()
+		hasSections(
+			select,
+			editor?.getCurrentPostType?.(),
+			editor?.getCurrentPostId?.()
+		) && !! editor.isEditedPostNew?.()
 	);
 }
 
 /**
- * Allow core's "Choose a pattern" modal only for a new page in the full-screen
- * editor, and close it anywhere else.
+ * Allow core's "Choose a pattern" modal only for something new built from
+ * sections in the full-screen editor, and close it anywhere else.
  *
  * @param {boolean} isEditCanvas Whether the full-screen editor is on screen.
  * @return {boolean} Whether the modal is allowed.

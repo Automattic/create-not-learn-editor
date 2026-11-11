@@ -7,7 +7,7 @@ This is a standalone WordPress plugin repo for Create Not Learn Editor.
 The README is for people trying the editor and explains the ideas behind it. The detail you need to work on the code lives elsewhere, so read these before making changes:
 
 - [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, building, scripts, verification, the repository layout and the design constraints.
-- [docs/architecture.md](docs/architecture.md) covers the editor shell and routes, the visual theme, explicit site changes, the Gutenberg version check and opening in a workspace.
+- [docs/architecture.md](docs/architecture.md) covers the editor shell and routes, what is edited as sections and what as blocks, the visual theme, explicit site changes, the Gutenberg version check and opening in a workspace.
 - [docs/webmcp.md](docs/webmcp.md) covers the editor's WebMCP tools, the official AI plugin's tools alongside them, and how an agent connects.
 - [docs/demo-site-and-playground.md](docs/demo-site-and-playground.md) covers the demo seed, the shop and the Playground demos.
 - [docs/editor-workarounds.md](docs/editor-workarounds.md) lists every reliance on private APIs or core internals. Add an entry there whenever you add one.
@@ -122,6 +122,7 @@ For runtime checks, use the `wp-env` instance from Development Commands above.
 - The block toolbar's rework, after Gutenberg's proposal for it, lives in `src/block-toolbar/`. It works from outside core's toolbar, through its slots and a stylesheet; see its README before changing core's toolbar another way.
 - Pickers used by more than one screen live in `src/pickers/`. Change a picker there rather than copying it, so the screens stay the same.
 - The editor's section picker comes from `packages/app-init-deferred`, a script module app init fetches once the page is idle (`src/app-init-deferred.js`), so page boot doesn't wait for it.
+- Section editing (Add section, Edit design, Compose) is only for content the site says is built from sections: post types supporting `create-not-learn-editor-sections`, as pages do, changed per post by the `create-not-learn-editor_has_sections` filter (`includes/sections.php`). Ask `hasSections()` from `src/sections.js`; never check for pages or name plugins' pages in the editor. Everything else is edited block by block. Layouts and template parts don't have sections by default, but answer through the same support and filter, so never rule a post type in or out in code; keep every default changeable. Template parts always get the part treatment. See `docs/architecture.md`.
 - The editor's WebMCP tools live in `src/webmcp/`. App init registers their names, descriptions and inputs (`declarations.js`) only where the browser has WebMCP; what they do (`tools.js`) comes from `packages/app-init-deferred` the first time one is called. Make each change with the functions the editor's own controls use, as an unsaved edit, and add no tool that saves. The official AI plugin's WebMCP block tools load on the page too, from `includes/plugin-compat.php`. See `docs/webmcp.md`.
 - The temporary vendored ListView bridge lives in `src/vendor/gutenberg/list-view/` and must be regenerated with `npm run sync:list-view`, not edited by hand.
 

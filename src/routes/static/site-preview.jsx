@@ -94,11 +94,9 @@ function EmptyPreview() {
  *                                          to change, rather than what `url`
  *                                          shows.
  * @param {Function} props.isShownInPreview See `useSiteCanvas`.
- * @param {boolean}  props.hasSections      See `SiteCanvas`.
  * @return {Element} The preview canvas.
  */
 export default function SitePreviewCanvas( {
-	hasSections,
 	isShownInPreview,
 	pinnedEntity = null,
 	url = settings.homeUrl,
@@ -110,7 +108,6 @@ export default function SitePreviewCanvas( {
 			canvas={ canvas }
 			document={ <PreviewDocument canvas={ canvas } /> }
 			emptyPreview={ <EmptyPreview /> }
-			hasSections={ hasSections }
 		/>
 	);
 }

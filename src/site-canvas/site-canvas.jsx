@@ -16,7 +16,6 @@ import { Editor as LazyEditor } from '@wordpress/lazy-editor';
  * Internal dependencies
  */
 import { GlobalScope } from '../global-scope';
-import { unlock } from '../lock-unlock';
 import { getErrorMessage } from '../records';
 import {
 	__,
@@ -28,6 +27,7 @@ import {
 	useRef,
 	useSelect,
 } from '../wordpress-packages';
+import { hasSections as hasSectionsFor } from '../sections';
 import { BrowseHints } from './browse-hints';
 import { useComposeZoom } from './compose/use-compose-zoom';
 import { EDITOR_DEVICES } from './constants';
@@ -53,7 +53,6 @@ import {
 import { UnsavedChangesDialog } from './unsaved-changes-dialog';
 import { useOwnEditorSettings } from './use-own-editor-settings';
 import { useSectionLock } from './use-section-lock';
-import { isContainerBlock, isWritingType } from './writing-mode';
 import { useZoomGestures, ZoomControls } from './zoom-controls';
 
 /**
@@ -79,11 +78,6 @@ import { useZoomGestures, ZoomControls } from './zoom-controls';
  * @param {boolean} props.canCompose     Whether Compose is offered. A canvas
  *                                       about one part of the site, not a
  *                                       page's sections, does without.
- * @param {boolean} props.hasSections    Whether what is edited is built from
- *                                       sections. Without, like a product
- *                                       in its locked layout, Edit has no
- *                                       section layer and clicks reach the
- *                                       blocks, and there is no Compose.
  * @return {Element} The canvas.
  */
 export function SiteCanvas( {
@@ -96,13 +90,27 @@ export function SiteCanvas( {
 	editorSettings = null,
 	emptyPreview = null,
 	focusId = null,
-	hasSections = true,
 } ) {
-	const canCompose = canComposeSections && hasSections;
 	const ownEditorRef = useRef();
 	const bodyRef = useRef();
 	const editorRef = givenEditorRef || ownEditorRef;
 	const { device, editorDevice, editorEntity, frame, mode } = canvas;
+	// Only what the site says is built from sections, like a page, has
+	// them (`src/sections.js`). Anything else, a layout (what WordPress
+	// calls a template) wherever it is reached, a post or a product, is
+	// edited block by block with core's own tools: no sections, no Add
+	// section and no Compose. Its template parts are still opened on
+	// purpose, as on a page. See `SectionModesLayer`.
+	const hasSections = useSelect(
+		( select ) =>
+			hasSectionsFor(
+				select,
+				editorEntity?.postType,
+				editorEntity?.postId
+			),
+		[ editorEntity?.postType, editorEntity?.postId ]
+	);
+	const canCompose = canComposeSections && hasSections;
 	const isPreviewing = canvas.isPreviewing;
 	const isEditing = mode === MODE_EDIT;
 	const isExpanded = useCanvasExpansion();
@@ -127,44 +135,22 @@ export function SiteCanvas( {
 		canvas.canvasEntity?.postType === 'wp_template'
 			? GlobalScope
 			: Fragment;
-	// Writing, like a post, has no sections to work on in Edit. See
-	// `writing-mode.js`.
-	const isWriting = isWritingType( editorEntity?.postType );
-	// Writing is only zoomed out to arrange its containers, if it has any.
-	const hasContainers = useSelect(
-		( select ) => {
-			if ( ! isWriting ) {
-				return false;
-			}
+	const isComposing = canCompose && canvas.isComposing;
 
-			const store = unlock( select( blockEditorStore ) );
-
-			return store
-				.getBlockOrder( store.getSectionRootClientId() || '' )
-				.some( ( clientId ) =>
-					isContainerBlock( store.getBlockName( clientId ) )
-				);
-		},
-		[ isWriting ]
-	);
-	const canArrange = canCompose && ( ! isWriting || hasContainers );
-	const isComposing = canArrange && canvas.isComposing;
-
-	// A canvas without Compose, reached while composing, edits instead, as
-	// does writing once it has nothing left to arrange.
+	// A canvas without Compose, reached while composing, edits instead.
 	useEffect( () => {
-		if ( ! canArrange && canvas.isComposing ) {
+		if ( ! canCompose && canvas.isComposing ) {
 			canvas.requestMode( MODE_EDIT );
 		}
 		// Only arriving here composing should switch.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ canArrange, canvas.isComposing ] );
+	}, [ canCompose, canvas.isComposing ] );
 
 	useComposeZoom( isComposing && Boolean( editorEntity ), editorRef );
 
 	// Zooming out is Compose, offered by the toolbar's Zoom out, the canvas's
 	// corner and by pinching.
-	const canZoom = ! isPreviewing && canArrange && Boolean( editorEntity );
+	const canZoom = ! isPreviewing && canCompose && Boolean( editorEntity );
 	const zoomIn = () => isComposing && canvas.requestMode( MODE_EDIT );
 	const zoomOut = () => ! isComposing && canvas.requestMode( MODE_COMPOSE );
 
@@ -175,18 +161,9 @@ export function SiteCanvas( {
 		onZoomIn: zoomIn,
 		onZoomOut: zoomOut,
 	} );
-	/*
-	 * A layout's sections are mostly the post's title, image and content,
-	 * filled in from each post. Locked to their content, they would leave
-	 * nothing to change. Writing has no sections to lock.
-	 */
-	useSectionLock(
-		isEditing &&
-			Boolean( editorEntity ) &&
-			editorEntity.postType !== 'wp_template' &&
-			! isWriting
-	);
-	useEditSectionControls( isEditing && Boolean( editorEntity ) );
+	// Only a page's sections are locked to their content, and say so.
+	useSectionLock( isEditing && hasSections );
+	useEditSectionControls( isEditing && hasSections );
 	useOwnEditorSettings( editorSettings );
 
 	// Published for the stylesheet, which hides core chrome by block.
@@ -206,7 +183,7 @@ export function SiteCanvas( {
 		<section
 			className={ `cnl-site-canvas cnl-editor-canvas cnl-editor-preview-canvas is-${ mode } ${
 				isPreviewing ? 'is-previewing ' : ''
-			}${ className }` }
+			}${ hasSections ? 'has-sections ' : '' }${ className }` }
 		>
 			<header className="cnl-editor-canvas__toolbar cnl-editor-homepage-toolbar">
 				<div className="cnl-editor-homepage-toolbar__left">
@@ -293,22 +270,19 @@ export function SiteCanvas( {
 					{ isEditing && editorChildren }
 				</div>
 				{ /* One layer for Edit and Compose, kept as the canvas moves
-				between them, so what is picked carries over. Writing is
-				edited without it, and only arranged with it. */ }
-				{ ( ( isEditing && ! isWriting ) || isComposing ) &&
-					editorEntity &&
-					hasSections && (
-						<SectionModesLayer
-							editorRef={ editorRef }
-							entity={ editorEntity }
-							focusId={ focusId }
-							isComposing={ isComposing }
-							isWriting={ isWriting }
-							onExitCompose={ () =>
-								canvas.requestMode( MODE_EDIT )
-							}
-						/>
-					) }
+				between them, so what is picked carries over. Without
+				sections, it only opens the template parts, and every other
+				click reaches the blocks. */ }
+				{ ( isEditing || isComposing ) && editorEntity && (
+					<SectionModesLayer
+						editorRef={ editorRef }
+						entity={ editorEntity }
+						focusId={ focusId }
+						hasSections={ hasSections }
+						isComposing={ isComposing }
+						onExitCompose={ () => canvas.requestMode( MODE_EDIT ) }
+					/>
+				) }
 				{ canZoom && (
 					<ZoomControls
 						isComposing={ isComposing }
@@ -350,7 +324,10 @@ export function SiteCanvas( {
 					{ /* Only in Browse: out of it the hints draw nothing, and
 					mounted they would follow every edit. */ }
 					{ isPreviewing && frame.frameProps.src && editorEntity && (
-						<BrowseHints canvas={ canvas } />
+						<BrowseHints
+							canvas={ canvas }
+							hasSections={ hasSections }
+						/>
 					) }
 				</div>
 			</div>

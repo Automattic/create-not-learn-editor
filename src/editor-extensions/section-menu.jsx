@@ -1,6 +1,6 @@
 /**
  * "Edit section" and "Add section" at the top of a section's options menu on
- * a page.
+ * anything built from sections, like a page (see `src/sections.js`).
  *
  * They stand in for core's "Detach" and "Manage patterns", which the editor
  * layer's stylesheet hides on pages. "Detach" asks a beginner to understand
@@ -34,6 +34,7 @@ import { __ } from '@wordpress/i18n';
  * Internal dependencies
  */
 import { openSectionPicker } from '../editor-layer/section-picker-request';
+import { hasSections } from '../sections';
 import { unlock } from '../lock-unlock';
 
 /*
@@ -43,7 +44,8 @@ import { unlock } from '../lock-unlock';
 const EDITOR_STORE = 'core/editor';
 
 /**
- * Whether a block is a section of the page being edited.
+ * Whether a block is a section of what is being edited, if it is built from
+ * sections.
  *
  * `isSectionBlock` is false while the section is being edited, which is when
  * the toolbar offers "Exit section" instead.
@@ -54,7 +56,15 @@ const EDITOR_STORE = 'core/editor';
 function useIsPageSection( clientId ) {
 	return useSelect(
 		( select ) => {
-			if ( select( EDITOR_STORE )?.getCurrentPostType() !== 'page' ) {
+			const editor = select( EDITOR_STORE );
+
+			if (
+				! hasSections(
+					select,
+					editor?.getCurrentPostType(),
+					editor?.getCurrentPostId()
+				)
+			) {
 				return false;
 			}
 

@@ -11,6 +11,7 @@ import { store as noticesStore } from '@wordpress/notices';
  * Internal dependencies
  */
 import { useDeferred } from '../app-init-deferred';
+import { hasSections } from '../sections';
 import { MODE_BROWSE, useCanvasMode } from '../site-canvas/mode';
 import { useRequestedBlockSelection } from './block-request';
 import { useIsEditCanvas } from './canvas-mode';
@@ -89,23 +90,33 @@ function SectionPickerWhenAsked() {
 export function EditorLayer() {
 	const isEditCanvas = useIsEditCanvas();
 
-	const { hasWritingAids, postType, selectedBlockName } = useSelect(
-		( select ) => {
-			if ( ! isEditCanvas ) {
-				return NOT_EDITING;
-			}
+	const { hasWritingAids, isSectioned, postType, selectedBlockName } =
+		useSelect(
+			( select ) => {
+				if ( ! isEditCanvas ) {
+					return NOT_EDITING;
+				}
 
-			const { getBlockName, getSelectedBlockClientId } =
-				select( blockEditorStore );
+				const { getBlockName, getSelectedBlockClientId } =
+					select( blockEditorStore );
+				const editor = select( EDITOR_STORE );
+				const currentType = editor?.getCurrentPostType();
 
-			return {
-				hasWritingAids: getActiveWorkspace( select ).writingAids,
-				postType: select( EDITOR_STORE )?.getCurrentPostType(),
-				selectedBlockName: getBlockName( getSelectedBlockClientId() ),
-			};
-		},
-		[ isEditCanvas ]
-	);
+				return {
+					hasWritingAids: getActiveWorkspace( select ).writingAids,
+					isSectioned: hasSections(
+						select,
+						currentType,
+						editor?.getCurrentPostId()
+					),
+					postType: currentType,
+					selectedBlockName: getBlockName(
+						getSelectedBlockClientId()
+					),
+				};
+			},
+			[ isEditCanvas ]
+		);
 	// Writing a post, in a workspace for writers.
 	const isWriting = hasWritingAids && postType === 'post';
 
@@ -114,7 +125,7 @@ export function EditorLayer() {
 	);
 	useDistractionFreeEntry( isEditCanvas );
 	useRequestedBlockSelection( isEditCanvas );
-	useSectionWording( postType === 'page' );
+	useSectionWording( isSectioned );
 	useWritingWording( isWriting );
 	useUntitledWording( isWriting );
 	usePostKindFocus( isWriting );
@@ -134,6 +145,7 @@ export function EditorLayer() {
 		<>
 			<div
 				className="cnl-editor-layer"
+				data-has-sections={ isSectioned || undefined }
 				data-post-type={ postType || undefined }
 				data-selected-block={ selectedBlockName || undefined }
 				data-start-patterns={

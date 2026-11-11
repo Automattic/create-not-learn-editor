@@ -36,6 +36,30 @@ function cnl_editor_has_shop() {
 function cnl_editor_register_shop_hooks() {
 	add_action( 'init', 'cnl_editor_set_product_default_rendering_mode', 20 );
 	add_filter( 'block_editor_settings_all', 'cnl_editor_add_product_canvas_style' );
+	add_filter( CNL_EDITOR_SLUG . '_has_sections', 'cnl_editor_shop_pages_have_no_sections', 10, 2 );
+}
+
+/**
+ * WooCommerce's own pages, the cart, the checkout and the customer's account,
+ * are each one of its blocks rather than sections, so they are edited block
+ * by block, as a layout is. See `includes/sections.php`.
+ *
+ * @param bool                      $has_sections Whether it is edited as sections.
+ * @param WP_Post|WP_Block_Template $post         The post.
+ * @return bool Whether it is edited as sections.
+ */
+function cnl_editor_shop_pages_have_no_sections( $has_sections, $post ) {
+	if ( ! $has_sections || ! $post instanceof WP_Post || ! cnl_editor_has_shop() ) {
+		return $has_sections;
+	}
+
+	foreach ( array( 'cart', 'checkout', 'myaccount' ) as $page ) {
+		if ( cnl_editor_get_shop_page_id( $page ) === $post->ID ) {
+			return false;
+		}
+	}
+
+	return $has_sections;
 }
 
 /**

@@ -3,8 +3,9 @@
  *
  * Browse shows the layout on the site, on a post or page that would use it,
  * or at the site's address for a layout of lists like Posts Listing. Edit
- * changes the layout itself, in place, with plain blocks: no sections and no
- * Compose.
+ * changes the layout itself, in place. A layout isn't built from sections
+ * unless the site says so (`src/sections.js`), so by default it is edited
+ * with plain blocks: no sections and no Compose.
  *
  * A layout is edited with core's full block tools. Core treats the blocks a
  * pattern adds as a content-only section, whether the theme's layout places
@@ -109,11 +110,6 @@ export default function TemplateCanvas( { isSystemPage, records, template } ) {
 				}
 				editorRef={ editorRef }
 				editorSettings={ EDITOR_SETTINGS }
-				// A layout is edited block by block, with core's own tools,
-				// rather than as a page's sections: it is the more advanced
-				// job, and it is mostly the title, image and content that
-				// each page fills in.
-				hasSections={ false }
 			/>
 		</GlobalScope>
 	);
