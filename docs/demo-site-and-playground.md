@@ -37,13 +37,14 @@ The demo links in the [README](../README.md) open [WordPress Playground](https:/
 
 - `demos/blueprint.json` installs Gutenberg, this plugin and the Mainstay theme, runs `scripts/demo-site/seed.php` to build Fernhouse, and lands in the editor.
 - `demos/blueprint-shop.json` does the same, then installs WooCommerce, adds its pages, runs `scripts/demo-site/seed-shop.php` to stock the shop, and lands on the Shop screen.
+- `demos/blueprint-ai.json` builds Fernhouse the same way, then installs the [AI plugin](https://wordpress.org/plugins/ai/), turns on its WebMCP experiment and lands in the editor in the Agent workspace, for an agent to drive (see [Driving the editor with WebMCP](webmcp.md)). The AI plugin's version is pinned, as the editor adapts its tools through the plugin's filters. It needs no AI provider, as the agent brings its own.
 - `demos/blueprint-blank.json` installs Gutenberg and this plugin and lands in the editor. It adds no theme or content, so the site runs the default theme of whichever WordPress version Playground loads.
 
 Playground can't install from the plugin source, which needs building first, or from workflow artifacts. So on every push to `trunk`, `.github/workflows/plugin-zip.yml` builds the plugin zip and publishes it to the `playground-build` branch, along with a zip of the theme and the seed scripts. The blueprints install from that branch, so the demos always run the latest successful build of `trunk`.
 
 Keep the Gutenberg version in every blueprint in step with `.wp-env.json`. Canvas is left out, as the plugin doesn't need it.
 
-Every demo opens in the Default workspace. Playground's `url` parameter changes where a blueprint lands, so any demo link opens in another workspace with `&url=` and the editor's address, encoded, on the end. This opens the trunk demo in Writing:
+Every demo but the AI one opens in the Default workspace. Playground's `url` parameter changes where a blueprint lands, so any demo link opens in another workspace with `&url=` and the editor's address, encoded, on the end. This opens the trunk demo in Writing:
 
 ```text
 https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dwriting
@@ -53,11 +54,12 @@ The workflows below add the Writing, Builder and Selling links wherever they lis
 
 ### Branch demos
 
-Every other branch gets demos of its own too. Each push builds them to `refs/playground/<branch>`, with a `blueprint.json`, a `blueprint-shop.json` and a `blueprint-blank.json` that install from there. That ref is neither a branch nor a tag, so the demos stay out of the branch and tag lists. The links for `getdave/my-change` are
+Every other branch gets demos of its own too. Each push builds them to `refs/playground/<branch>`, with a `blueprint.json`, a `blueprint-shop.json`, a `blueprint-ai.json` and a `blueprint-blank.json` that install from there. That ref is neither a branch nor a tag, so the demos stay out of the branch and tag lists. The links for `getdave/my-change` are
 
 ```text
 https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/my-change/blueprint.json
 https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/my-change/blueprint-shop.json
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/my-change/blueprint-ai.json
 https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/my-change/blueprint-blank.json
 ```
 
@@ -72,11 +74,12 @@ git tag v0.2.0
 git push origin v0.2.0
 ```
 
-The workflow builds the tagged commit and publishes its files to a `playground-v0.2.0` tag, with a `blueprint.json`, a `blueprint-shop.json` and a `blueprint-blank.json` that install from that tag. Those blueprints also pin WordPress to the version in `scripts/wp-env.mjs`, where the trunk and branch demos take the latest, so the blank site runs that version's default theme. The workflow then creates a GitHub release for `v0.2.0`, or updates one you made already, with the Playground links at the top of the notes and the plugin zip attached. The links are
+The workflow builds the tagged commit and publishes its files to a `playground-v0.2.0` tag, with a `blueprint.json`, a `blueprint-shop.json`, a `blueprint-ai.json` and a `blueprint-blank.json` that install from that tag. Those blueprints also pin WordPress to the version in `scripts/wp-env.mjs`, where the trunk and branch demos take the latest, so the blank site runs that version's default theme. The workflow then creates a GitHub release for `v0.2.0`, or updates one you made already, with the Playground links at the top of the notes and the plugin zip attached. The links are
 
 ```text
 https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint.json
 https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint-shop.json
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint-ai.json
 https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-v0.2.0/blueprint-blank.json
 ```
 

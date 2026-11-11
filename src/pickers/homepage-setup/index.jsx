@@ -9,8 +9,8 @@
  * Save with the rest.
  *
  * Opened from the notice on Home (`src/routes/home/homepage-notice.jsx`).
- * Imported package by package, like the other pickers, so the chat could
- * offer it too.
+ * Imported package by package, like the other pickers, so it can be used
+ * from app init without loading the editor.
  */
 
 /**

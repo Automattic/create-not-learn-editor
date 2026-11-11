@@ -165,8 +165,7 @@ export function useSectionDesigns() {
 
 /**
  * The blocks a pattern adds, named after the pattern so the new section shows
- * up in the list under the name it was picked by. A design the chat's model
- * wrote is marked as the design it was written from.
+ * up in the list under the name it was picked by.
  *
  * @param {Object} pattern Block pattern.
  * @return {Object[]} Blocks.
@@ -190,7 +189,7 @@ export function getPatternSectionBlocks( pattern ) {
 					name:
 						block.attributes?.metadata?.name ||
 						getPatternTitle( pattern ),
-					patternName: pattern.basedOn || pattern.name,
+					patternName: pattern.name,
 				},
 			},
 		},

@@ -36,11 +36,9 @@ import { Badge, Icon } from '@wordpress/ui';
  * Internal dependencies
  */
 import { openRoute } from '../open-route';
+import { openPage, PAGES_PATH } from './open-page';
 import { HOMEPAGE } from '../routes/content/pages/homepage-state';
-import { MODE_EDIT, setCanvasMode } from '../site-canvas/mode';
 import { getMainPageIds, useMainMenuTopLevel } from './main-pages';
-
-const PAGES_PATH = '/types/page/list/all';
 
 /*
  * The Pages screen's own query (`PAGES_QUERY` in
@@ -74,16 +72,6 @@ function getRoleLabel( role ) {
 		default:
 			return '';
 	}
-}
-
-/**
- * Open a page on the Pages screen, in Edit, as the command palette does.
- *
- * @param {number|string} pageId Page ID, or `HOMEPAGE`.
- */
-export function openPage( pageId ) {
-	setCanvasMode( MODE_EDIT );
-	openRoute( PAGES_PATH, { postId: pageId, previewId: pageId } );
 }
 
 function getStatusLabel( status ) {

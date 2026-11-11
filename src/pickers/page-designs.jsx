@@ -1,11 +1,12 @@
 /**
  * The page designs offered by "Add a page".
  *
- * Shared by the Add a page modal and the chat. Each caller passes the preview
- * component that works where it is, as with the section picker.
+ * Used by the Add a page modal, which passes the preview component that
+ * works where it is, as with the section picker.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
- * because the chat loads it from app init. See `src/editor-layer/index.jsx`.
+ * so it can be used from app init without loading the editor. See
+ * `src/editor-layer/index.jsx`.
  */
 
 /**

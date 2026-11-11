@@ -123,7 +123,7 @@ http://localhost:<dev-port>/wp-admin/admin.php?page=create-not-learn-editor
 ## Documentation
 
 - [Architecture](docs/architecture.md) covers how the editor is built from released packages, its shell and routes, the visual theme, site changes, the Gutenberg version check and opening in a workspace.
-- [Connecting a language model](docs/language-model.md) covers the chat, Agentic Editor and TypeSafe routing.
+- [Driving the editor with WebMCP](docs/webmcp.md) covers the editor's WebMCP tools, the official AI plugin's tools alongside them, and how an agent connects.
 - [Demo site and Playground](docs/demo-site-and-playground.md) covers the Fernhouse seed, the shop, the Playground demos for trunk, branches and releases, and the plugin directory images.
 - [Editor workarounds](docs/editor-workarounds.md) lists every place the editor leans on private APIs or core internals, and what would let each one go.
 - [Vendored ListView bridge](docs/vendored-list-view.md) explains the one piece of copied Gutenberg source and how to regenerate it.

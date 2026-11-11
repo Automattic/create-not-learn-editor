@@ -340,7 +340,7 @@ function PartMenu( { clientId } ) {
 }
 
 /**
- * The theme's layouts for the part, from the picker the chat shares. The
+ * The theme's layouts for the part, from the shared layout picker. The
  * site's social links go into any layout that has a place for them. They are
  * remembered while the layouts are open, so passing through one without
  * social links doesn't lose them.

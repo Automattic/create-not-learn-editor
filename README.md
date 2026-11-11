@@ -21,6 +21,7 @@ Each demo runs the latest build in your browser, with nothing to install.
 
 - [Blank website](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-blank.json) - default theme, no content
 - [E-commerce site](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-shop.json) - may take a minute or two longer to load
+- [Driven by an AI agent](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-ai.json) - opens in the Agent workspace, for an agent to drive through WebMCP ([how to connect one](docs/webmcp.md#trying-it-in-playground))
 - Workspace demos
   - [Writing](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dwriting)
   - [Builder](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint.json&url=%2Fwp-admin%2Fadmin.php%3Fpage%3Dcreate-not-learn-editor%26workspace%3Dbuilder)
@@ -139,7 +140,7 @@ Testing keeps showing two things, though.
 
 So the editing tools have to be great on their own.
 
-The editor already has a chat and an Agent workspace to try these ideas. [Connecting a language model](docs/language-model.md) explains how to set them up.
+The editor already has an Agent workspace and tools for an agent in the browser to work with, so you can watch it change your site and step in at any point. [Driving the editor with WebMCP](docs/webmcp.md) explains how to connect one.
 
 ## Contributing
 

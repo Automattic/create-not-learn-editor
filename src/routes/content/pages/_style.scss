@@ -33,8 +33,8 @@ $cnl-accent: var(--wp-admin-theme-color, #3858e9);
 }
 
 // The list scrolls on its own, under the screen's title and Add page, as a
-// DataViews list does. The screen gives way to what's below it in the stage,
-// like the way in to the chat, rather than the list running on under it.
+// DataViews list does. The screen gives way to anything below it in the
+// stage, rather than the list running on under it.
 .cnl-editor-content-page:has(> .cnl-pages-list) {
 	min-height: 0;
 }

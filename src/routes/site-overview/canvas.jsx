@@ -45,7 +45,6 @@ import {
 	sprintf,
 	useCallback,
 	useDispatch,
-	dispatch,
 	useEffect,
 	useMemo,
 	useRef,
@@ -53,8 +52,6 @@ import {
 } from '../../wordpress-packages';
 
 const PAN_STEP = 80;
-const HIDE_CHAT_CLASS = 'cnl-chat-is-hidden';
-const CHAT_STORE = 'create-not-learn-editor/chat';
 const DRAG_THRESHOLD = 4;
 const ANIMATION_MS = 280;
 // Space to keep between a page brought into view and the screen's edges.
@@ -502,15 +499,6 @@ export default function Canvas() {
 		},
 		[ navigate ]
 	);
-
-	// The assistant has nothing to offer here, so it is closed and its ways in
-	// are hidden while the overview shows.
-	useEffect( () => {
-		document.body.classList.add( HIDE_CHAT_CLASS );
-		dispatch( CHAT_STORE )?.setOpen?.( false );
-
-		return () => document.body.classList.remove( HIDE_CHAT_CLASS );
-	}, [] );
 
 	return (
 		<Page

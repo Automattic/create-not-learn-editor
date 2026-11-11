@@ -504,8 +504,9 @@ function getCanvasCss(
 	return [
 		`.is-root-container *${ outside } { cursor: default !important; }`,
 		`.is-root-container .block-editor-block-list__block${ outside }.is-hovered::after { display: none !important; }`,
-		// The block names shown on hover, from `block-canvas-styles.php`.
-		`.is-root-container .block-editor-block-list__block${ outside }:hover::before { content: none !important; }`,
+		// The block names shown on hover, from `block-canvas-styles.php`,
+		// but not the badge on a change an agent made.
+		`.is-root-container .block-editor-block-list__block${ outside }:not([data-cnl-change]):hover::before { content: none !important; }`,
 		rootClientId &&
 			`#block-${ rootClientId }.is-hovered::after { display: none !important; }`,
 		/*
@@ -1231,9 +1232,9 @@ export function SectionModesLayer( {
 	useEffect( () => () => setOpenPart( null ), [] );
 
 	/*
-	 * The chat asked for the header or footer to be opened, as Edit header
-	 * or Edit footer does, so a language model can change its words. Taken
-	 * up once the part is on this canvas, in Edit, where it can open.
+	 * Code outside the canvas asked for the header or footer to be opened,
+	 * as Edit header or Edit footer does. Taken up once the part is on this
+	 * canvas, in Edit, where it can open.
 	 */
 	const partRequest = useSelect(
 		( select ) => select( CANVAS_STORE ).getPartRequest(),
@@ -1359,17 +1360,17 @@ export function SectionModesLayer( {
 	const pickedId =
 		( isWorkedOn && active.id ) ||
 		( ! active && picked && targets.has( picked ) ? picked : null );
-	// The section picked or in a mode, for the chat to change. A header or
-	// footer isn't one.
-	const sharedSectionId = active?.id || pickedId;
-	const chatSectionId =
-		sectionIds.includes( sharedSectionId ) &&
-		! isTextSection( sharedSectionId )
-			? sharedSectionId
+	// The section picked or in a mode, shared so code outside the canvas can
+	// read it. A header or footer isn't one.
+	const pickedOrActiveId = active?.id || pickedId;
+	const sharedSectionId =
+		sectionIds.includes( pickedOrActiveId ) &&
+		! isTextSection( pickedOrActiveId )
+			? pickedOrActiveId
 			: null;
 	useEffect( () => {
-		setSharedPickedSection( chatSectionId );
-	}, [ chatSectionId ] );
+		setSharedPickedSection( sharedSectionId );
+	}, [ sharedSectionId ] );
 	useEffect( () => () => setSharedPickedSection( null ), [] );
 
 	const pointedId = hoveredId || null;

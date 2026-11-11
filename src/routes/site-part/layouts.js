@@ -2,8 +2,8 @@
  * The layouts a theme offers for a site part, and which one the part uses.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
- * because the chat loads the layout picker from app init. See
- * `src/editor-layer/index.jsx`.
+ * so the layout picker can be used from app init without loading the
+ * editor. See `src/editor-layer/index.jsx`.
  */
 
 /**

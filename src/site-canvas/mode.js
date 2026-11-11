@@ -9,18 +9,22 @@
  * Kept outside any one canvas so the mode carries over from page to page and
  * screen to screen. Nothing is saved, so every visit starts in Edit.
  *
- * Whether the canvas is expanded to fill the editor, hiding the sidebar and
- * the screen beside it, is kept here too, for the same reasons. Expanding is
+ * The device the canvas shows the page on is kept here too, and whether the
+ * canvas is expanded to fill the editor, hiding the sidebar and the screen
+ * beside it, for the same reasons. Expanding is
  * the canvas's Edit button; it changes the room the canvas has, not its mode.
  *
- * The section Compose has picked is kept beside it, for the chat: Compose's
- * pick is its own, not core's block selection. So is the header or footer
- * open in Edit content or Freeform, for the editor extension that opens a
- * template part's blocks: how far they open depends on which. And so is a
- * request from outside the canvas, the chat's, to open the header or footer
- * as Edit header or Edit footer does, for the canvas to take up. And so is
- * the way back from the screen a section's Edit posts leads to, which
- * another route's bundle shows and this canvas takes up on the way back.
+ * The section Compose has picked is kept beside it, so code outside the
+ * canvas can read it: Compose's pick is its own, not core's block selection.
+ * So is the header or footer open in Edit content or Freeform, for the
+ * editor extension that opens a template part's blocks: how far they open
+ * depends on which. And so is a request from code outside the canvas to open
+ * the header or footer as Edit header or Edit footer does, for the canvas to
+ * take up, and a request to move to another mode, which the canvas takes
+ * up by its own rules, asking about unsaved changes on the way to Browse.
+ * And so is the way back from the screen a section's Edit posts
+ * leads to, which another route's bundle shows and this canvas takes up on
+ * the way back.
  *
  * Kept in a data store, registered once by name, rather than in this module:
  * app init and each route are built separately, each with its own copy of
@@ -42,6 +46,11 @@ import {
 	useSelect,
 } from '@wordpress/data';
 
+/**
+ * Internal dependencies
+ */
+import { DEFAULT_DEVICE } from './constants';
+
 export const MODE_BROWSE = 'browse';
 export const MODE_EDIT = 'edit';
 export const MODE_COMPOSE = 'compose';
@@ -59,6 +68,8 @@ if ( ! select( STORE_NAME ) ) {
 			reducer(
 				state = {
 					mode: MODE_EDIT,
+					modeRequest: null,
+					device: DEFAULT_DEVICE,
 					isExpanded: false,
 					openPart: null,
 					partRequest: null,
@@ -70,6 +81,10 @@ if ( ! select( STORE_NAME ) ) {
 				switch ( action.type ) {
 					case 'SET_CANVAS_MODE':
 						return { ...state, mode: action.mode };
+					case 'SET_MODE_REQUEST':
+						return { ...state, modeRequest: action.mode };
+					case 'SET_CANVAS_DEVICE':
+						return { ...state, device: action.device };
 					case 'SET_EXPANDED':
 						return { ...state, isExpanded: action.isExpanded };
 					case 'SET_OPEN_PART':
@@ -88,6 +103,14 @@ if ( ! select( STORE_NAME ) ) {
 				setCanvasMode: ( mode ) => ( {
 					mode,
 					type: 'SET_CANVAS_MODE',
+				} ),
+				setModeRequest: ( mode ) => ( {
+					mode,
+					type: 'SET_MODE_REQUEST',
+				} ),
+				setCanvasDevice: ( device ) => ( {
+					device,
+					type: 'SET_CANVAS_DEVICE',
 				} ),
 				setExpanded: ( isExpanded ) => ( {
 					isExpanded,
@@ -112,6 +135,8 @@ if ( ! select( STORE_NAME ) ) {
 			},
 			selectors: {
 				getCanvasMode: ( state ) => state.mode,
+				getModeRequest: ( state ) => state.modeRequest,
+				getCanvasDevice: ( state ) => state.device,
 				isExpanded: ( state ) => state.isExpanded,
 				getOpenPart: ( state ) => state.openPart,
 				getPickedSection: ( state ) => state.pickedSection,
@@ -183,6 +208,51 @@ export function setPickedSection( clientId ) {
 	if ( clientId !== select( STORE_NAME ).getPickedSection() ) {
 		dispatch( STORE_NAME ).setPickedSection( clientId );
 	}
+}
+
+/**
+ * Ask the canvas to move to a mode, as its own mode switch does, or stop
+ * asking. The canvas takes the request up, and clears it: on the way to
+ * Browse it asks about unsaved changes first, and waits for the preview to
+ * load, so the mode may change later, or not at all.
+ *
+ * @param {?string} mode `MODE_BROWSE`, `MODE_EDIT` or `MODE_COMPOSE`, or
+ *                       null.
+ */
+export function requestCanvasMode( mode ) {
+	if ( mode !== select( STORE_NAME ).getModeRequest() ) {
+		dispatch( STORE_NAME ).setModeRequest( mode );
+	}
+}
+
+/**
+ * @return {string} The device the canvas shows the page on: `desktop`,
+ *                  `tablet` or `mobile`.
+ */
+export function getCanvasDevice() {
+	return select( STORE_NAME ).getCanvasDevice();
+}
+
+/**
+ * Show the page on another device. Compose always shows it on a desktop,
+ * and picks this up again on leaving.
+ *
+ * @param {string} device `desktop`, `tablet` or `mobile`.
+ */
+export function setCanvasDevice( device ) {
+	if ( device !== getCanvasDevice() ) {
+		dispatch( STORE_NAME ).setCanvasDevice( device );
+	}
+}
+
+/**
+ * @return {string} The device the canvas shows the page on, kept up to date.
+ */
+export function useCanvasDevice() {
+	return useSelect(
+		( selectStore ) => selectStore( STORE_NAME ).getCanvasDevice(),
+		[]
+	);
 }
 
 /**

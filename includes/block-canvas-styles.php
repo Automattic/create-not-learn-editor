@@ -12,6 +12,99 @@ defined( 'ABSPATH' ) || exit;
  */
 function cnl_editor_register_block_canvas_style_hooks() {
 	add_filter( 'block_editor_settings_all', 'cnl_editor_add_block_hover_label_style' );
+	add_filter( 'block_editor_settings_all', 'cnl_editor_add_change_flash_style' );
+}
+
+/**
+ * Add the style for a change flashed on the canvas to the editor settings.
+ *
+ * @param array $settings Editor settings.
+ * @return array Filtered editor settings.
+ */
+function cnl_editor_add_change_flash_style( $settings ) {
+	if ( ! isset( $settings['styles'] ) || ! is_array( $settings['styles'] ) ) {
+		$settings['styles'] = array();
+	}
+
+	$settings['styles'][] = array(
+		'css' => cnl_editor_get_change_flash_css(),
+	);
+
+	return $settings;
+}
+
+/**
+ * Get the CSS that shows a change an agent made: a tint that fades away, in
+ * the agent's own orange, with a badge saying who changed it.
+ *
+ * A block flashed to show a change is marked with `data-cnl-change`, holding
+ * the badge's words (see `src/webmcp/flash.js`). This draws the outline core
+ * draws around a highlighted block, in orange, tints the block, and shows
+ * the words in the badge the hover label draws
+ * (`cnl_editor_get_block_hover_label_css()`), at the block's right, then
+ * fades them out over `--cnl-change-duration`. It is drawn here rather than
+ * with core's `flashBlock`, which highlights one block at a time, so a batch
+ * of changes can show all at once.
+ *
+ * The orange is the agent's alone, so a change it made never looks like the
+ * person's own selection. It is dark enough for the badge's small white words.
+ *
+ * @return string CSS.
+ */
+function cnl_editor_get_change_flash_css() {
+	return '
+		:root {
+			--cnl-agent-color: #c2410c;
+		}
+
+		@keyframes cnl-change-flash {
+			0%, 35% {
+				opacity: 1;
+			}
+
+			100% {
+				opacity: 0;
+			}
+		}
+
+		.block-editor-block-list__block[data-cnl-change]::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+			z-index: 1;
+			pointer-events: none;
+			outline: calc(var(--wp-admin-border-width-focus, 2px) / var(--wp-block-editor-iframe-zoom-out-scale, 1)) solid var(--cnl-agent-color);
+			outline-offset: calc(-1 * var(--wp-admin-border-width-focus, 2px) / var(--wp-block-editor-iframe-zoom-out-scale, 1));
+			background-color: color-mix(in srgb, var(--cnl-agent-color) 14%, transparent);
+			animation: cnl-change-flash var(--cnl-change-duration, 3s) ease-out forwards;
+		}
+
+		/*
+		 * The badge wins over the hover label, which would otherwise name the
+		 * block under the pointer, and takes its place even while the pointer
+		 * is on the block. It sits at the right, clear of the hover
+		 * label and of the tab the section layer puts at the left of a
+		 * picked section.
+		 */
+		.block-editor-block-list__block[data-cnl-change]::before {
+			content: attr(data-cnl-change) !important;
+			left: auto !important;
+			right: 0 !important;
+			background: var(--cnl-agent-color) !important;
+			animation: cnl-change-flash var(--cnl-change-duration, 3s) ease-out forwards;
+		}
+
+		.is-root-container > .block-editor-block-list__block[data-cnl-change]:first-child::before {
+			transform: none;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.block-editor-block-list__block[data-cnl-change]::after,
+			.block-editor-block-list__block[data-cnl-change]::before {
+				animation: none;
+			}
+		}
+	';
 }
 
 /**
@@ -59,9 +152,14 @@ function cnl_editor_get_block_hover_label_css() {
 		 * the outline marks it, so every label goes, not only the one on the
 		 * selected block: a name floating over whatever the pointer passes on
 		 * the way to the toolbar only competes with the selection.
+		 *
+		 * A change an agent made shows its badge in the same place, in this
+		 * look, whether or not a block is selected. See
+		 * `cnl_editor_get_change_flash_css()`.
 		 */
 		.is-root-container:not(:has(.block-editor-block-list__block:is(.is-selected, .is-multi-selected)))
-			.block-editor-block-list__block:hover:not(:has(.block-editor-block-list__block:hover))::before {
+			.block-editor-block-list__block:hover:not(:has(.block-editor-block-list__block:hover))::before,
+		.block-editor-block-list__block[data-cnl-change]::before {
 			content: attr(data-title);
 			position: absolute;
 			top: 0;
