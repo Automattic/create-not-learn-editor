@@ -11,7 +11,6 @@
  * WordPress dependencies
  */
 import { Editor as LazyEditor } from '@wordpress/lazy-editor';
-import { useNavigate } from '@wordpress/route';
 
 /**
  * Internal dependencies
@@ -33,12 +32,16 @@ import { BrowseHints } from './browse-hints';
 import { useComposeZoom } from './compose/use-compose-zoom';
 import { EDITOR_DEVICES } from './constants';
 import { useEditSectionControls } from './edit-section-controls';
-import { MODE_BROWSE, MODE_COMPOSE, MODE_EDIT } from './mode';
+import {
+	MODE_BROWSE,
+	MODE_COMPOSE,
+	MODE_EDIT,
+	setCanvasEditRoute,
+} from './mode';
 import { expandCanvas, useCanvasExpansion } from './expansion';
 import { SectionModesLayer } from './section-modes/section-modes-layer';
 import {
 	BrowseToggle,
-	CanvasMoreMenu,
 	closeDocumentOverview,
 	DocumentOverviewToggle,
 	EditHistory,
@@ -96,7 +99,6 @@ export function SiteCanvas( {
 	hasSections = true,
 } ) {
 	const canCompose = canComposeSections && hasSections;
-	const navigate = useNavigate();
 	const ownEditorRef = useRef();
 	const bodyRef = useRef();
 	const editorRef = givenEditorRef || ownEditorRef;
@@ -104,6 +106,14 @@ export function SiteCanvas( {
 	const isPreviewing = canvas.isPreviewing;
 	const isEditing = mode === MODE_EDIT;
 	const isExpanded = useCanvasExpansion();
+	const editRouteKey = JSON.stringify( canvas.editRoute ?? null );
+
+	// The top bar's Options menu opens this in the full-screen editor.
+	useEffect( () => {
+		setCanvasEditRoute( JSON.parse( editRouteKey ) );
+
+		return () => setCanvasEditRoute( null );
+	}, [ editRouteKey ] );
 	// Document Overview is for working with the whole editor, so it is only
 	// offered while the canvas fills it, and its list closes as it goes back.
 	useEffect( () => {
@@ -253,6 +263,7 @@ export function SiteCanvas( {
 						isComposing={ isComposing }
 						onChange={ canvas.setDevice }
 						onZoomIn={ zoomIn }
+						liveUrl={ canvas.liveUrl }
 					/>
 					{ canZoom && (
 						<ZoomOutToggle
@@ -262,14 +273,6 @@ export function SiteCanvas( {
 							}
 						/>
 					) }
-					<CanvasMoreMenu
-						liveUrl={ canvas.liveUrl }
-						onOpenEditor={
-							canvas.editRoute
-								? () => navigate( canvas.editRoute )
-								: null
-						}
-					/>
 				</div>
 			</header>
 			<div className="cnl-site-canvas__body" ref={ bodyRef }>

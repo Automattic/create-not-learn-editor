@@ -75,6 +75,7 @@ if ( ! select( STORE_NAME ) ) {
 					partRequest: null,
 					pickedSection: null,
 					postsTrip: null,
+					editRoute: null,
 				},
 				action
 			) {
@@ -95,6 +96,8 @@ if ( ! select( STORE_NAME ) ) {
 						return { ...state, partRequest: action.area };
 					case 'SET_POSTS_TRIP':
 						return { ...state, postsTrip: action.trip };
+					case 'SET_EDIT_ROUTE':
+						return { ...state, editRoute: action.route };
 				}
 
 				return state;
@@ -132,6 +135,10 @@ if ( ! select( STORE_NAME ) ) {
 					trip,
 					type: 'SET_POSTS_TRIP',
 				} ),
+				setEditRoute: ( route ) => ( {
+					route,
+					type: 'SET_EDIT_ROUTE',
+				} ),
 			},
 			selectors: {
 				getCanvasMode: ( state ) => state.mode,
@@ -142,6 +149,7 @@ if ( ! select( STORE_NAME ) ) {
 				getPickedSection: ( state ) => state.pickedSection,
 				getPartRequest: ( state ) => state.partRequest,
 				getPostsTrip: ( state ) => state.postsTrip,
+				getEditRoute: ( state ) => state.editRoute,
 			},
 		} )
 	);
@@ -325,6 +333,27 @@ export function setPostsTrip( trip ) {
 export function usePostsTrip() {
 	return useSelect(
 		( selectStore ) => selectStore( STORE_NAME ).getPostsTrip(),
+		[]
+	);
+}
+
+/**
+ * Note where the full-screen editor opens what the canvas shows, so the top
+ * bar's Options menu can offer it, or forget it when the canvas goes.
+ *
+ * @param {?Object} route `{ to, search }`, as `getEditRoute()` gives it.
+ */
+export function setCanvasEditRoute( route ) {
+	dispatch( STORE_NAME ).setEditRoute( route );
+}
+
+/**
+ * @return {?Object} Where the full-screen editor opens what the canvas
+ *                   shows, or null with no canvas or nothing to open.
+ */
+export function useCanvasEditRoute() {
+	return useSelect(
+		( selectStore ) => selectStore( STORE_NAME ).getEditRoute(),
 		[]
 	);
 }
