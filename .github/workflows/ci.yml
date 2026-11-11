@@ -94,8 +94,9 @@ jobs:
 
       # The versions live in scripts/wp-env.mjs, so a change there downloads
       # them afresh.
-      - name: Cache wp-env sources
-        uses: actions/cache@v4
+      - name: Restore wp-env sources
+        id: wp-env-cache
+        uses: actions/cache/restore@v4
         with:
           path: ${{ env.CNL_WP_ENV_CACHE }}
           key: wp-env-${{ hashFiles('scripts/wp-env.mjs') }}
@@ -117,8 +118,25 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --only-shell chromium
 
+      # Downloads now and then fail part way, so it tries again.
       - name: Start wp-env
-        run: npm run wp-env start
+        run: |
+          for attempt in 1 2 3; do
+            npm run wp-env start && exit 0
+            echo "::warning::wp-env start failed (attempt $attempt), retrying"
+            sleep 10
+          done
+          exit 1
+
+      # Saved as soon as wp-env is up, so a failing test still keeps the
+      # downloads for the next run.
+      - name: Save wp-env sources
+        if: steps.wp-env-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        continue-on-error: true
+        with:
+          path: ${{ env.CNL_WP_ENV_CACHE }}
+          key: wp-env-${{ hashFiles('scripts/wp-env.mjs') }}
 
       - name: Run e2e tests
         run: npx playwright test --shard=${{ matrix.shard }}/4 --reporter=list

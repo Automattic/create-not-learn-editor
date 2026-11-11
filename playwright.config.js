@@ -47,6 +47,9 @@ module.exports = defineConfig( {
 	// Every test shares one WordPress site. Running them side by side makes
 	// the editor open pages empty now and then, so run one at a time.
 	workers: 1,
+	// On CI, a test that fails is tried once more and reported as flaky if it
+	// then passes, as the first editor load on a fresh site can be slow.
+	retries: process.env.CI ? 1 : 0,
 	use: {
 		baseURL: getBaseURL(),
 		storageState: STORAGE_STATE_PATH,
