@@ -94,6 +94,8 @@ When developing, spin up a `wp-env` instance to preview changes rather than reas
 http://localhost:<port>/wp-admin/admin.php?page=create-not-learn-editor
 ```
 
+Check the UI with `npm run ui` by default, and fall back to the browser MCP only when it can't do what you need. It opens an editor path logged in (with the login `tests/e2e/global-setup.js` saves), runs a few clicks, prints a short text summary of the page and can save a 1x JPEG to `.context/`, e.g. `npm run ui -- p=/types/page --click "Add page" --shot add-page`. See `npm run ui -- --help`. Don't write Playwright scripts or login code inline.
+
 ## Verification Expectations
 
 Before handing off code changes, run:
