@@ -35,10 +35,11 @@ import {
 	paymentIcon,
 	storeIcon,
 	tagIcon,
+	useMemo,
 } from '../../wordpress-packages';
 
 function getShopPages() {
-	const { pages } = getShop();
+	const { pageIds = {}, pages } = getShop();
 
 	return [
 		{
@@ -65,6 +66,7 @@ function getShopPages() {
 			description: __( 'What visitors have picked, before they pay.' ),
 			icon: pageIcon,
 			id: 'cart',
+			pageId: pageIds.cart,
 			title: __( 'Cart' ),
 			url: pages.cart,
 		},
@@ -72,6 +74,7 @@ function getShopPages() {
 			description: __( 'Where visitors pay.' ),
 			icon: paymentIcon,
 			id: 'checkout',
+			pageId: pageIds.checkout,
 			title: __( 'Checkout' ),
 			url: pages.checkout,
 		},
@@ -148,9 +151,19 @@ export function ShopPagesStage() {
 	);
 }
 
+/*
+ * Edit stays on the page picked, rather than following the preview, which
+ * may be elsewhere: the preview of an empty cart's checkout is the cart.
+ */
 export function ShopPagesCanvas() {
 	const { selected } = useSelectedShopPage();
-	const pinnedEntity = useTemplateEntity( selected.templateSlug );
+	const templateEntity = useTemplateEntity( selected.templateSlug );
+	const { pageId } = selected;
+	const pageEntity = useMemo(
+		() => ( pageId ? { postId: pageId, postType: 'page' } : null ),
+		[ pageId ]
+	);
+	const pinnedEntity = templateEntity || pageEntity;
 
 	return (
 		<SitePreviewCanvas
