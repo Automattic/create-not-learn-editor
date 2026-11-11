@@ -4,7 +4,7 @@
 
 Create Not Learn is an experimental WordPress plugin that reimagines the Site Editor around what people want to do, not how WordPress works. The goal is simple. Someone who has never used WordPress should be able to set up their site without needing any help.
 
-It looks like WordPress and behaves like WordPress, because it's built from the same packages and APIs as the editor in Core. It gives us room to try bigger ideas than Core can take on today and test them with real people, so the ones that work can be proposed back to Core.
+It looks like WordPress and behaves like WordPress, because it's built from the same packages and APIs as the editor in Core. It's a place to try bigger ideas than Core can take on today and test them with real people, so the ones that work can be proposed back to Core.
 
 > [!WARNING]
 > Create Not Learn Editor is experimental software. Don't install it on a production website. It changes often, may break without notice and hasn't been through the reviews a released plugin would get. Try it in the Playground demos below, or on a local or staging site you don't mind losing.
@@ -41,17 +41,17 @@ The project has two goals. The first is to make the Site Editor far more approac
 
 ## Why is this a plugin and not part of Core?
 
-I don't believe we can get to a better editor through small changes alone. We need to take some bigger swings, with room to experiment and test new ideas with real users.
+A better editor won't come from small changes alone. It needs some bigger swings, with room to experiment and test new ideas with real users.
 
-A plugin lets us do that. It's low risk and it can move quickly, using AI-powered engineering. Every idea gets checked with real people. Because it's outside Core, it isn't held back by the processes that rightly govern changes there.
+A plugin makes that possible. It's low risk and it can move quickly, using AI-powered engineering. Every idea gets checked with real people. Because it's outside Core, it isn't held back by the processes that rightly govern changes there.
 
-This editor isn't the answer and it isn't finished. It's a vision of where the editor could go next. The ideas that hold up in testing are the ones we'll propose for Core.
+This editor isn't the answer and it isn't finished. It's a vision of where the editor could go next. The ideas that hold up in testing are the ones that will be proposed for Core.
 
-The exact route back to Core is still being worked out. I'm [Dave Smith](https://github.com/getdave), a WordPress core committer and long-time contributor, so improving Core is the whole point for me. This is not going to become another editor fork.
+The exact route back to Core is still being worked out, but improving Core is the whole point. This is not going to become another editor fork.
 
 ### What does "Core Adjacent" mean?
 
-I describe the editor as Core Adjacent. That means it
+The editor is Core Adjacent, which means it
 
 - uses the WordPress Design System for its components and design
 - is built from released `@wordpress/*` packages and WordPress Core APIs, on top of the released Gutenberg plugin, with no fork of Gutenberg
@@ -63,9 +63,9 @@ So it should feel familiar to anyone who knows WordPress, while staying easy for
 
 ### Optimise for new users
 
-The first thing anyone sees should be simple enough for someone meeting WordPress for the first time. WordPress serves a huge range of people, but if it's approachable for a newcomer, we believe it's better for everyone, whatever their experience.
+The first thing anyone sees should be simple enough for someone meeting WordPress for the first time. WordPress serves a huge range of people, but an editor that's approachable for a newcomer is better for everyone, whatever their experience.
 
-You know this from other products. If something is too complicated to get started with, you give up. That's what WordPress does to a lot of people today, and we want to change it.
+You know this from other products. If something is too complicated to get started with, you give up. That's what WordPress does to a lot of people today, and it needs to change.
 
 ### Use the words people use, not WordPress concepts
 
@@ -83,11 +83,11 @@ An interface that's too complicated the first time you meet it will fail, whatev
 
 Page editing is a good example. You start by working with sections, and the full block tree and block tools are one step deeper in the toolbar. Nothing has been taken away. It just isn't the first thing you see.
 
-That does add some deliberate friction before you reach the full power of the block editor. We think a calmer first experience is worth it.
+That does add some deliberate friction before you reach the full power of the block editor. A calmer first experience is worth it.
 
 ### One objective, many routes
 
-Our research found that people don't follow one path when they build a website. Some start with the design, some with their content, and some want every page and menu in place before anything else.
+User research found that people don't follow one path when they build a website. Some start with the design, some with their content, and some want every page and menu in place before anything else.
 
 So instead of a fixed onboarding flow, the editor gives you several routes to the same place. You can edit your header menu on the canvas, from Pages & menu, from the Menus screen, or from Home, then Header, then Menu.
 
@@ -105,7 +105,7 @@ This editor uses workspaces instead. Each one adapts the interface to what someo
 - **Builder** puts templates, template parts and patterns up front, for agencies, developers and theme authors who know what they've come to change.
 - **Agent** gives the canvas the room while an agent does the work.
 
-None of these is finished. The idea we want to test is that one editor can have several expressions of the same tools, because one interface can't serve everyone equally well.
+None of these is finished. The idea being tested is that one editor can have several expressions of the same tools, because one interface can't serve everyone equally well.
 
 ### Keep public content in the editor
 
@@ -127,14 +127,14 @@ That makes it important to say when a change affects the whole site rather than 
 
 ## Built for an agent-ready WordPress
 
-We're designing this editor for a future where WordPress is fully AI enabled. In that future the editor is a canvas, and your own agent, whether that's Claude Code, ChatGPT or something else, uses it to show its work on your actual website.
+This editor is being designed for a future where WordPress is fully AI enabled. In that future the editor is a canvas, and your own agent, whether that's Claude Code, ChatGPT or something else, uses it to show its work on your actual website.
 
-Our testing keeps showing two things, though. Even when an agent does most of the work, people still want to make small changes themselves. And there's never one kind of user. Some people will want to chat, some will mix chatting with editing, some will do it all by hand and some can't or won't use AI at all. So the editing tools have to be great on their own.
+Testing keeps showing two things, though. Even when an agent does most of the work, people still want to make small changes themselves. And there's never one kind of user. Some people will want to chat, some will mix chatting with editing, some will do it all by hand and some can't or won't use AI at all. So the editing tools have to be great on their own.
 
 The editor already has a chat and an Agent workspace to try these ideas. [Connecting a language model](docs/language-model.md) explains how to set them up.
 
 ## Contributing
 
-Ideas, bug reports and pull requests are all welcome. If something worked for you, didn't work, or you think we've missed something, [open an issue](https://github.com/Automattic/create-not-learn-editor/issues).
+Ideas, bug reports and pull requests are all welcome. If something worked for you, didn't work, or you think something's missing, [open an issue](https://github.com/Automattic/create-not-learn-editor/issues).
 
 To work on the code, start with [CONTRIBUTING.md](CONTRIBUTING.md). It covers setting up a development copy, building and checking your changes, and links to the [docs](docs/) on how the editor works.
