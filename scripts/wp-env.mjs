@@ -14,7 +14,8 @@
  * into the cache. WordPress is copied, because wp-env writes `wp-config.php`
  * and uploads into it.
  *
- * Set CNL_WP_ENV_CACHE to move the cache.
+ * Set CNL_WP_ENV_CACHE to move the cache, and CNL_WP_ENV_ROOT to run the
+ * `.wp-env.json` in another folder.
  */
 import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -32,7 +33,13 @@ const require = createRequire( import.meta.url );
 const repoRoot = path.resolve(
 	fileURLToPath( new URL( '..', import.meta.url ) )
 );
-const sourcesDir = path.join( repoRoot, '.wp-env', 'sources' );
+// The folder holding the `.wp-env.json` to run, the repository's own unless
+// CNL_WP_ENV_ROOT names another. CI's extra e2e sites each have one, from
+// `scripts/e2e-sites.sh`.
+const envRoot = process.env.CNL_WP_ENV_ROOT
+	? path.resolve( process.env.CNL_WP_ENV_ROOT )
+	: repoRoot;
+const sourcesDir = path.join( envRoot, '.wp-env', 'sources' );
 const cacheDir = process.env.CNL_WP_ENV_CACHE
 	? path.resolve( process.env.CNL_WP_ENV_CACHE )
 	: path.join( os.homedir(), '.cache', 'create-not-learn-editor', 'wp-env' );
@@ -306,7 +313,7 @@ async function ensurePHPUnitCache( tag ) {
  */
 async function preparePHPUnit( tag ) {
 	const { loadConfig } = require( '@wordpress/env/lib/config' );
-	const config = await loadConfig( repoRoot );
+	const config = await loadConfig( envRoot );
 	const cachedRepo = await ensurePHPUnitCache( tag );
 
 	const directories = [ 'WordPress-PHPUnit' ];
@@ -353,6 +360,7 @@ function runWpEnv( args ) {
 		'wp-env'
 	);
 	const child = spawn( process.execPath, [ bin, ...args ], {
+		cwd: envRoot,
 		stdio: 'inherit',
 	} );
 	child.on( 'exit', ( code, signal ) => {

@@ -48,7 +48,8 @@ test.describe( 'Pages view', () => {
 		page,
 		rest,
 	} ) => {
-		const testPage = await rest.createPage();
+		// A short title, so the breadcrumbs leave room for the step's own.
+		const testPage = await rest.createPage( { title: 'Summary' } );
 
 		await visitEditor(
 			page,

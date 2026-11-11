@@ -90,7 +90,7 @@ Generated `build/` assets and plugin zips are intentionally ignored by git. The 
 
 ## Verification
 
-[The CI workflow](.github/workflows/ci.yml) runs on every pull request. One job builds, lints JS, CSS and PHP, checks the ListView bridge and runs the unit tests. The other runs the end-to-end tests over four shards, each with its own `wp-env`. Trunk only takes a pull request once both pass.
+[The CI workflow](.github/workflows/ci.yml) runs on every pull request. One job builds, lints JS, CSS and PHP, checks the ListView bridge and runs the unit tests. The other runs the end-to-end tests over four shards. Each shard starts one `wp-env` tests site per two cores with `scripts/e2e-sites.sh`, and the Playwright config gives each worker its own site, from the `WP_BASE_URLS` list, so tests that share a site's data never meet. Pull requests that only change docs skip the end-to-end tests. Trunk only takes a pull request once both pass. Locally, nothing sets `WP_BASE_URLS`, so the tests run one at a time on your one tests site as before.
 
 Before pushing, run the quick checks locally:
 
