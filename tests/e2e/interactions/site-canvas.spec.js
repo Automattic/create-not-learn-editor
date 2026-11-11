@@ -229,7 +229,7 @@ test.describe( 'Site canvas interactions', () => {
 			name: 'Open in advanced editor',
 		} );
 
-		// It's in the top bar's Options menu; the canvas has no menu of its own.
+		// It's in the Options menu after Save; the canvas has no menu of its own.
 		await expect(
 			page
 				.locator( '.cnl-editor-homepage-toolbar' )

@@ -3,7 +3,7 @@
  * and redo while editing, stepping through pages visited in Browse, the
  * Browse switch, the View menu with the device and the live page in a new
  * tab, and Zoom out for Compose. The way out to the full-screen editor is in
- * the top bar's Options menu.
+ * the Options menu after Save.
  */
 
 /**

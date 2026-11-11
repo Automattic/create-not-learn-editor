@@ -23,7 +23,7 @@ import {
 	setCanvasMode,
 	useCanvasMode,
 } from '../../../site-canvas/mode';
-import { DocumentTitle, SiteCanvas, useSiteCanvas } from '../../../site-canvas';
+import { PageSwitcher, SiteCanvas, useSiteCanvas } from '../../../site-canvas';
 import { getErrorMessage } from '../../../records';
 import { getPageTitle, PAGE_TEMPLATES_QUERY, PAGES_QUERY } from './data';
 import { getHomepageSummary, parseTarget, useHomepageState } from './homepage';
@@ -33,13 +33,12 @@ import { getPagePreviewUrl } from './preview-url';
 import {
 	__,
 	Button,
-	chevronDownIcon,
+	moreHorizontalIcon,
 	coreDataStore,
 	Dropdown,
 	EmptyState,
 	externalIcon,
 	homeIcon,
-	Icon,
 	layoutIcon,
 	linkIcon,
 	MenuGroup,
@@ -308,7 +307,7 @@ function PageOptions( { isHomepage, link, pageId } ) {
 					<Button
 						aria-expanded={ isOpen }
 						className="cnl-editor-homepage-options__toggle"
-						icon={ chevronDownIcon }
+						icon={ moreHorizontalIcon }
 						label={ __( 'Page options' ) }
 						onClick={ onToggle }
 						showTooltip
@@ -398,16 +397,12 @@ function PageDocument( { homepage, page } ) {
 
 	return (
 		<div className="cnl-editor-homepage-document">
-			<div className="cnl-editor-homepage-document__text">
-				<div className="cnl-editor-homepage-document__heading">
-					<Icon
-						className="cnl-editor-homepage-document__icon"
-						icon={ homepage ? homeIcon : pageIcon }
-					/>
-					<DocumentTitle hint={ path } title={ heading } />
-				</div>
-				<p className="cnl-editor-homepage-document__meta">{ meta }</p>
-			</div>
+			<PageSwitcher
+				hint={ path }
+				icon={ homepage ? homeIcon : pageIcon }
+				meta={ meta }
+				title={ heading }
+			/>
 			<PageOptions
 				isHomepage={ Boolean( homepage ) }
 				link={ path ? link : '' }

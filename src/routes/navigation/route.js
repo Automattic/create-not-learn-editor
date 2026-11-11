@@ -4,7 +4,7 @@
 import { __ } from '../../wordpress-packages';
 
 export const route = {
-	title: () => __( 'Navigation menus' ),
+	title: () => __( 'Menus' ),
 	async canvas() {
 		return null;
 	},

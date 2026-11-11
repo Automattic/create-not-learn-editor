@@ -6,18 +6,13 @@ import { useSelect } from '@wordpress/data';
 import {
 	createElement as el,
 	createRoot,
+	Fragment,
 	useEffect,
 	useState,
 	useSyncExternalStore,
 } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
-import {
-	category,
-	check,
-	chevronUpDown,
-	drawerLeft,
-	menu as menuIcon,
-} from '@wordpress/icons';
+import { category, check, chevronUpDown, drawerLeft } from '@wordpress/icons';
 import { Icon, Tooltip } from '@wordpress/ui';
 
 /**
@@ -31,6 +26,7 @@ import {
 } from '../../../src/workspaces';
 import { openRoute } from '../../../src/open-route';
 import { OPEN_SIDEBAR_HOME_EVENT } from '../../../src/open-sidebar-home';
+import { openPreferences } from '../../../src/preferences';
 
 /*
  * What can be pointed at in the sidebar while it is a strip of icons, the
@@ -46,7 +42,7 @@ const SIDEBAR_SELECTOR =
 /*
  * The parts of the sidebar that keep their place while it expands or folds,
  * which glide to where they sit in the other shape: each item's icon, the
- * menu button and the workspace switcher's icon. Everything
+ * sidebar toggle and the workspace switcher's icon. Everything
  * else in the sidebar is clipped as it narrows, or revealed as it widens.
  */
 const GLIDING_PARTS_SELECTOR = [
@@ -176,9 +172,9 @@ const expansion = {
 };
 
 /**
- * Expand the sidebar from its strip of icons, or fold it back: a menu button
- * at the top of the sidebar, in the corner below the admin bar. Once the
- * sidebar is expanded it shows the sidebar itself, as the way to close it.
+ * Expand the sidebar from its strip of icons, or fold it back: a button at
+ * the foot of the sidebar, beside the workspace switcher, showing the
+ * sidebar itself either way.
  *
  * @return {Element} The toggle.
  */
@@ -192,7 +188,7 @@ function SidebarToggle() {
 		__next40pxDefaultSize: true,
 		'aria-expanded': isExpanded,
 		className: 'cnl-sidebar-toggle__button',
-		icon: isExpanded ? drawerLeft : menuIcon,
+		icon: drawerLeft,
 		label: isExpanded ? __( 'Collapse sidebar' ) : __( 'Expand sidebar' ),
 		onClick: () => expansion.set( ! isExpanded ),
 		showTooltip: true,
@@ -204,7 +200,7 @@ function SidebarToggle() {
  * Name the icon pointed at, or focused, in the sidebar's strip of icons.
  *
  * Boot's menu items aren't ours to wrap in a tooltip, so one tooltip follows
- * whichever item is under the pointer or has focus. The menu button and
+ * whichever item is under the pointer or has focus. The sidebar toggle and
  * boot's Back button already show their own.
  *
  * @return {?Element} The tooltip.
@@ -327,10 +323,10 @@ function WorkspaceSwitcher() {
 				),
 				el( Icon, { icon: chevronUpDown, size: 16 } )
 			),
-		renderContent: ( { onClose } ) =>
+		renderContent: ( { onClose } ) => [
 			el(
 				MenuGroup,
-				{ label: __( 'Workspace' ) },
+				{ key: 'workspaces', label: __( 'Workspace' ) },
 				getAvailableWorkspaces().map( ( { id, label, icon } ) =>
 					el(
 						MenuItem,
@@ -356,45 +352,29 @@ function WorkspaceSwitcher() {
 					)
 				)
 			),
+			// The editor's Preferences, on every screen.
+			el(
+				MenuGroup,
+				{ key: 'preferences' },
+				el(
+					MenuItem,
+					{
+						onClick: () => {
+							onClose();
+							openPreferences();
+						},
+					},
+					__( 'Preferences' )
+				)
+			),
+		],
 	} );
-}
-
-function createWelcome( name ) {
-	const welcome = document.createElement( 'p' );
-	welcome.className = 'cnl-sidebar-welcome';
-	welcome.textContent = name
-		? sprintf(
-				/* translators: %s: The current user's first name or nickname. */
-				__( 'Welcome, %s' ),
-				name
-			)
-		: __( 'Welcome' );
-
-	return welcome;
 }
 
 function mountStripTooltip() {
 	const container = document.createElement( 'div' );
 	document.body.append( container );
 	createRoot( container ).render( el( StripTooltip ) );
-}
-
-/**
- * The sidebar's top row: the greeting, then the menu button at the far end.
- *
- * @param {string} name The user's first name or nickname, if any.
- * @return {Element} The row.
- */
-function createSidebarHeader( name ) {
-	const toggle = document.createElement( 'div' );
-	toggle.className = 'cnl-sidebar-toggle';
-	createRoot( toggle ).render( el( SidebarToggle ) );
-
-	const header = document.createElement( 'div' );
-	header.className = 'cnl-sidebar-header';
-	header.append( createWelcome( name ), toggle );
-
-	return header;
 }
 
 /**
@@ -441,10 +421,27 @@ function openSidebarHomeOnBack() {
 	} );
 }
 
-function createWorkspaceSwitcher() {
+/**
+ * The sidebar's foot: the workspace switcher, and the button that expands
+ * the sidebar or folds it to its strip of icons.
+ *
+ * @return {Element} The foot.
+ */
+function createSidebarFoot() {
 	const container = document.createElement( 'div' );
 	container.className = 'cnl-sidebar-workspace';
-	createRoot( container ).render( el( WorkspaceSwitcher ) );
+	createRoot( container ).render(
+		el(
+			Fragment,
+			null,
+			el( WorkspaceSwitcher ),
+			el(
+				'div',
+				{ className: 'cnl-sidebar-toggle' },
+				el( SidebarToggle )
+			)
+		)
+	);
 
 	return container;
 }
@@ -452,30 +449,26 @@ function createWorkspaceSwitcher() {
 /**
  * Add the plugin's own pieces to boot's sidebar.
  *
- * - A top row in place of boot's Dashboard link, which `_sidebar.scss`
- *   hides, as the admin bar above leads to the Dashboard. It holds a
- *   greeting, hidden inside menu sections by CSS, and a menu button to
- *   expand the sidebar from its strip of icons and fold it back. The sidebar
- *   starts as a strip, so the first thing anyone sees is the screen itself,
- *   and folds back whenever another screen is picked.
- * - A workspace switcher in its own section below the menu, outside boot's
- *   navigation screens so it stays put when drilling in and out.
+ * - A foot below the menu, outside boot's navigation screens so it stays
+ *   put when drilling in and out, with the workspace switcher and a button
+ *   to expand the sidebar from its strip of icons and fold it back. The
+ *   sidebar starts as a strip, so the first thing anyone sees is the screen
+ *   itself, and folds back whenever another screen is picked. Boot's
+ *   Dashboard link, which `_sidebar.scss` hides, leaves nothing above the
+ *   menu, as the admin bar above leads to the Dashboard.
  * - A tooltip naming each icon while the sidebar is a strip of icons.
  * - Going back to the sidebar's top level takes the stage home too, and
  *   Back on a top-level screen in the stage opens the sidebar at home.
  * - Clicking an icon in the strip that opens a menu section expands the
  *   sidebar to show it.
  *
- * Boot's sidebar has no slot for extra content, so these are placed relative
- * to boot's own Dashboard link and the menu that follows it. The sidebar can remount, on narrow screens for
+ * Boot's sidebar has no slot for extra content, so the foot is placed after
+ * the menu that follows boot's own Dashboard link. The sidebar can remount, on narrow screens for
  * example, so they are put back whenever they go missing.
  *
- * @param {Object} options          Options.
- * @param {string} options.userName The user's first name or nickname, if any.
  */
-export function enhanceSidebar( { userName } = {} ) {
-	const header = createSidebarHeader( userName );
-	const workspaceSwitcher = createWorkspaceSwitcher();
+export function enhanceSidebar() {
+	const workspaceSwitcher = createSidebarFoot();
 
 	mountStripTooltip();
 	returnHomeWithSidebar();
@@ -494,10 +487,6 @@ export function enhanceSidebar( { userName } = {} ) {
 
 		if ( ! backButton ) {
 			return;
-		}
-
-		if ( backButton.previousElementSibling !== header ) {
-			backButton.before( header );
 		}
 
 		// Picking another screen folds the sidebar to its strip of icons.

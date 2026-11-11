@@ -6,13 +6,13 @@
  * Below the list, "Add a page" opens the Add page modal and "Manage pages"
  * the Pages screen's list.
  *
- * It is a combobox: the search field is the top bar's Go to page, and the
- * list opens out of it, in the same dark colours, rather than in a popover
- * with a field of its own. The field keeps focus while the arrow keys move
+ * It opens from the page's name in the canvas toolbar
+ * (`src/site-canvas/page-switcher.jsx`), in a popover with its search field
+ * at the top. It is a combobox: the list opens out of the field. The field keeps focus while the arrow keys move
  * through the list, so typing and picking work together.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
- * as the top bar is mounted from app init.
+ * as the page finder once loaded with app init.
  */
 
 /**
@@ -505,15 +505,26 @@ function PageFinderPanel( {
  * Opens when the field is clicked, focused or typed in, and closes on Escape,
  * on picking something, or once focus leaves the field and the list.
  *
- * @param {Object} props
- * @param {string} props.className   Class for the wrapper.
- * @param {string} props.placeholder What the empty field says.
+ * In a popover, as the canvas toolbar's page title opens it, the finder takes
+ * focus as it shows, its list stays open, and Escape or picking something
+ * hands back to the popover through `onDone`, to close it.
+ *
+ * @param {Object}    props
+ * @param {string}    props.className   Class for the wrapper.
+ * @param {string}    props.placeholder What the empty field says.
+ * @param {boolean}   props.isInPopover Whether it shows in a popover.
+ * @param {?Function} props.onDone      Called when the finder is done with.
  * @return {Element} The finder.
  */
-export function PageFinder( { className, placeholder } ) {
+export function PageFinder( {
+	className,
+	placeholder,
+	isInPopover = false,
+	onDone,
+} ) {
 	const id = useId();
 	const listId = `cnl-page-finder-list-${ id }`;
-	const [ isOpen, setIsOpen ] = useState( false );
+	const [ isOpen, setIsOpen ] = useState( isInPopover );
 	const [ filter, setFilter ] = useState( '' );
 	const [ activeDescendant, setActiveDescendant ] = useState( '' );
 	const inputRef = useRef();
@@ -532,9 +543,23 @@ export function PageFinder( { className, placeholder } ) {
 	const finish = () => {
 		close();
 		inputRef.current?.blur();
+		onDone?.();
 	};
 
+	useEffect( () => {
+		if ( isInPopover ) {
+			inputRef.current?.focus();
+		}
+	}, [ isInPopover ] );
+
 	const onKeyDown = ( event ) => {
+		if ( event.key === 'Escape' && isInPopover ) {
+			event.preventDefault();
+			event.stopPropagation();
+			finish();
+			return;
+		}
+
 		if ( event.key === 'Escape' ) {
 			if ( isOpen ) {
 				event.preventDefault();
@@ -561,11 +586,19 @@ export function PageFinder( { className, placeholder } ) {
 
 	return (
 		<div
-			className={ [ 'cnl-page-finder', className, isOpen && 'is-open' ]
+			className={ [
+				'cnl-page-finder',
+				className,
+				isOpen && 'is-open',
+				isInPopover && 'is-in-popover',
+			]
 				.filter( Boolean )
 				.join( ' ' ) }
 			onBlur={ ( event ) => {
-				if ( ! event.currentTarget.contains( event.relatedTarget ) ) {
+				if (
+					! isInPopover &&
+					! event.currentTarget.contains( event.relatedTarget )
+				) {
 					close();
 				}
 			} }

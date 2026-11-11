@@ -116,7 +116,7 @@ export function SiteCanvas( {
 	const isExpanded = useCanvasExpansion();
 	const editRouteKey = JSON.stringify( canvas.editRoute ?? null );
 
-	// The top bar's Options menu opens this in the full-screen editor.
+	// The Options menu after Save opens this in the full-screen editor.
 	useEffect( () => {
 		setCanvasEditRoute( JSON.parse( editRouteKey ) );
 

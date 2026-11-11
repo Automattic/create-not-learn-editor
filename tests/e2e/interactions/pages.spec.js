@@ -246,7 +246,7 @@ test.describe( 'Pages interactions', () => {
 		await dialog.getByLabel( 'Page title' ).fill( newTitle );
 		await dialog.getByRole( 'button', { name: 'Rename' } ).click();
 
-		// The new name waits in the top bar to be saved.
+		// The new name waits in the canvas toolbar to be saved.
 		await expect( dialog ).toHaveCount( 0 );
 		await expect(
 			page.locator( '.cnl-editor-homepage-document__title' )
@@ -399,7 +399,7 @@ test.describe( 'Pages interactions', () => {
 			.getByRole( 'link', { name: 'Pages' } )
 			.click();
 		await openPageLayouts( page );
-		// The advanced editor is in the top bar's Options menu.
+		// The advanced editor is in the Options menu after Save.
 		await page
 			.getByRole( 'button', { name: 'Options', exact: true } )
 			.click();

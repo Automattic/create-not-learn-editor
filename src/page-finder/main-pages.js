@@ -7,7 +7,7 @@
  * site has no menu.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
- * as the top bar is mounted from app init.
+ * as the page finder once loaded with app init.
  */
 
 /**

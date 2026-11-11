@@ -33,7 +33,7 @@ import { registerSectionPatterns } from '../../../src/editor-extensions/section-
 import { registerTemplatePartEditing } from '../../../src/editor-extensions/template-part-editing';
 import { mountEditorLayer } from '../../../src/editor-layer';
 import { registerLayoutWireframes } from '../../../src/layouts';
-import { mountTopBar } from '../../../src/top-bar';
+import { mountSaveControls } from '../../../src/top-bar';
 import { mountWorkspaces } from '../../../src/workspaces';
 import { registerWebMcpTools } from '../../../src/webmcp';
 import { mountPreferences } from '../../../src/preferences';
@@ -79,9 +79,9 @@ export async function init() {
 	mountMenuSections();
 	mountPreferences();
 	mountAdminBar();
-	mountTopBar();
+	mountSaveControls();
 	mountCommands();
-	enhanceSidebar( { userName: window.createNotLearnEditor?.userName } );
+	enhanceSidebar();
 	registerWebMcpTools();
 
 	// The section picker, ready before it's opened.

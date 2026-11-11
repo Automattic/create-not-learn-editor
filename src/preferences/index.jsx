@@ -7,8 +7,8 @@
  *   without any. So, as the editor layer does elsewhere, the section is
  *   portalled in from outside: while the modal is open, it is added to the
  *   end of the General tab, where core puts the extra sections it is given.
- * - In Preferences of its own, opened from the top bar's Options menu and
- *   the command palette on every other screen. Core's modal is the editor's,
+ * - In Preferences of its own, opened from the workspace menu at the foot of
+ *   the sidebar and the command palette on every other screen. Core's modal is the editor's,
  *   with options only the editor has, so it isn't there to open.
  *
  * Both are built from core's own preference controls, so the section looks

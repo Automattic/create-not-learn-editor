@@ -5,8 +5,8 @@
  * The breadcrumbs still show where the screen sits.
  *
  * Picking something on Home starts a trip. Going somewhere from outside the
- * screen and the canvas, like the sidebar, the admin bar, the top bar or the
- * command palette, ends it, and so does reaching Home.
+ * screen and the canvas, like the sidebar, the admin bar, the save controls
+ * or the command palette, ends it, and so does reaching Home.
  *
  * The trip is kept in `sessionStorage`, as routes are bundled apart from
  * app init and each has its own copy of this module.
@@ -16,12 +16,12 @@ const STORAGE_KEY = 'cnl-editor-home-trip';
 
 /*
  * Where going somewhere else is a fresh start rather than a step further
- * on: the sidebar, the admin bar, the top bar and the command palette.
+ * on: the sidebar, the admin bar, the save controls and the command palette.
  */
 const OUTSIDE_SELECTOR = [
 	'#create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"]',
 	'#wpadminbar',
-	'.cnl-top-bar-host',
+	'.cnl-canvas-save-host',
 	'.commands-command-menu',
 ].join( ', ' );
 

@@ -1,7 +1,7 @@
 /**
  * Whether an agent is working in the editor through WebMCP, its name if it
  * has given one, when it last called a tool, and what it has changed, for
- * the top bar to show. See `src/top-bar/agent-status.jsx`.
+ * the canvas toolbar to show. See `src/top-bar/agent-status.jsx`.
  *
  * Changes are kept in batches, one for each request the agent works on, so
  * a long session reads as a few pieces of work rather than every step. The

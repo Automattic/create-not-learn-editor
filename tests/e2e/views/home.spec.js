@@ -30,9 +30,9 @@ test.describe( 'Home view', () => {
 		await expect( links.getByRole( 'button' ) ).toHaveCount( 5 );
 		for ( const title of [
 			'Your homepage',
-			'Pages & menu',
+			'Pages',
 			'Name & logo',
-			'Colors & fonts',
+			'Design',
 			'Header & footer',
 		] ) {
 			await expect(
@@ -48,7 +48,7 @@ test.describe( 'Home view', () => {
 	test( 'keeps the sidebar links the same size when another screen loads', async ( {
 		page,
 	} ) => {
-		const names = [ 'Home', 'Site Overview', 'Pages', 'Colors' ];
+		const names = [ 'Home', 'Site overview', 'Pages', 'Colors' ];
 		const getHeights = () =>
 			Promise.all(
 				names.map( async ( name ) => {

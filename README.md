@@ -100,7 +100,7 @@ Every screen starts simple and shows more on demand. Page editing starts with se
 People don't follow one path when they build a site, so the editor offers several routes to each task. The header menu can be edited
 
 - on the canvas
-- from Pages & menu
+- from the Pages screen
 - from the Menus screen
 - from Home, then Header
 

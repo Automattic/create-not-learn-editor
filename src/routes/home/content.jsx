@@ -10,18 +10,17 @@ import { withCanvasRecovery } from '../../canvas-recovery';
 import { startHomeTrip } from '../../home-trip';
 import { withUiTheme } from '../../theme';
 import { settings } from '../../settings';
-import { DocumentTitle, SiteCanvas, useSiteCanvas } from '../../site-canvas';
+import { PageSwitcher, SiteCanvas, useSiteCanvas } from '../../site-canvas';
 import { getHomepageDocumentIconStatus } from './preview';
 import Stage from './stage';
 import { getActiveWorkspace } from '../../workspaces/presets';
 import {
 	Button,
 	Dropdown,
-	Icon,
 	MenuGroup,
 	MenuItem,
 	__,
-	chevronDownIcon,
+	moreHorizontalIcon,
 	homeIcon,
 	postListIcon,
 	coreDataStore,
@@ -69,7 +68,7 @@ function PageOptionsDropdown( {
 				<Button
 					aria-expanded={ isOpen }
 					className="cnl-editor-homepage-options__toggle"
-					icon={ chevronDownIcon }
+					icon={ moreHorizontalIcon }
 					label={ __( 'Page options' ) }
 					onClick={ onToggle }
 					showTooltip
@@ -121,22 +120,11 @@ function PreviewDocument( { canvas } ) {
 
 	return (
 		<div className="cnl-editor-homepage-document">
-			<div className="cnl-editor-homepage-document__text">
-				<div className="cnl-editor-homepage-document__heading">
-					{ documentIcon && (
-						<Icon
-							className="cnl-editor-homepage-document__icon"
-							icon={ documentIcon }
-						/>
-					) }
-					<DocumentTitle title={ previewLabel } />
-				</div>
-				{ previewMetaLabel && (
-					<p className="cnl-editor-homepage-document__meta">
-						{ previewMetaLabel }
-					</p>
-				) }
-			</div>
+			<PageSwitcher
+				icon={ documentIcon }
+				meta={ previewMetaLabel }
+				title={ previewLabel }
+			/>
 			<PageOptionsDropdown
 				hasHomepageOptions={
 					previewContext?.previewStatus === 'homepage'

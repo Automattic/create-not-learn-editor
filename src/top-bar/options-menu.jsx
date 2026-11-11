@@ -1,7 +1,7 @@
 /**
- * Options: the top bar's ⋮ menu, in the top right corner, where the editor
- * keeps its own. While the canvas shows something the full-screen editor can
- * open, it offers that too.
+ * Options: a ⋮ menu after Save, at the end of the canvas toolbar, while the
+ * canvas shows something the full-screen editor can open. Preferences, for
+ * every screen, is in the workspace menu at the foot of the sidebar.
  */
 
 /**
@@ -15,11 +15,14 @@ import { code, moreVertical } from '@wordpress/icons';
  * Internal dependencies
  */
 import { openRoute } from '../open-route';
-import { openPreferences } from '../preferences';
 import { useCanvasEditRoute } from '../site-canvas/mode';
 
 export function OptionsMenu() {
 	const editRoute = useCanvasEditRoute();
+
+	if ( ! editRoute ) {
+		return null;
+	}
 
 	return (
 		<DropdownMenu
@@ -30,31 +33,17 @@ export function OptionsMenu() {
 			toggleProps={ { showTooltip: true } }
 		>
 			{ ( { onClose } ) => (
-				<>
-					{ editRoute && (
-						<MenuGroup>
-							<MenuItem
-								icon={ code }
-								onClick={ () => {
-									onClose();
-									openRoute( editRoute.to, editRoute.search );
-								} }
-							>
-								{ __( 'Open in advanced editor' ) }
-							</MenuItem>
-						</MenuGroup>
-					) }
-					<MenuGroup>
-						<MenuItem
-							onClick={ () => {
-								onClose();
-								openPreferences();
-							} }
-						>
-							{ __( 'Preferences' ) }
-						</MenuItem>
-					</MenuGroup>
-				</>
+				<MenuGroup>
+					<MenuItem
+						icon={ code }
+						onClick={ () => {
+							onClose();
+							openRoute( editRoute.to, editRoute.search );
+						} }
+					>
+						{ __( 'Open in advanced editor' ) }
+					</MenuItem>
+				</MenuGroup>
 			) }
 		</DropdownMenu>
 	);

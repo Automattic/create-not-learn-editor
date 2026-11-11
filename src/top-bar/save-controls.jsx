@@ -4,9 +4,9 @@
  * Changes made across the editor are held back until the user saves them,
  * so this says how many are waiting, with Save to open the review, where
  * they are saved or discarded. Save is always there, and disabled while
- * there's nothing to save, so it's somewhere to look before there is. It replaces boot's save button
- * at the foot of the sidebar, which `style.scss` hides wherever the top bar
- * is shown.
+ * there's nothing to save, so it's somewhere to look before there is. It sits
+ * in the canvas toolbar, and replaces boot's save button at the foot of the
+ * sidebar, which `style.scss` hides wherever there is a canvas toolbar.
  */
 
 /**

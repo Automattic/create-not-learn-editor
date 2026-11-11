@@ -496,7 +496,7 @@ async function expectSnackbar( page, message ) {
 }
 
 /**
- * The unsaved-changes summary and Save button in the top bar.
+ * The unsaved-changes summary and Save button in the canvas toolbar.
  *
  * @param {import('@playwright/test').Page} page
  * @return {import('@playwright/test').Locator} The controls.
@@ -506,7 +506,7 @@ function getSaveControls( page ) {
 }
 
 /**
- * Open the Review changes dialog from the top bar.
+ * Open the Review changes dialog from the canvas toolbar.
  *
  * @param {import('@playwright/test').Page} page
  * @return {Promise<import('@playwright/test').Locator>} The dialog.

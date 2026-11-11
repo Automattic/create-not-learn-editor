@@ -50,7 +50,7 @@ function getAllPlaces() {
 			),
 			icon: postListIcon,
 			id: 'posts',
-			title: __( 'Your posts' ),
+			title: __( 'Posts' ),
 		},
 		{
 			description: __( 'Make the first page visitors see your own.' ),
@@ -59,10 +59,12 @@ function getAllPlaces() {
 			title: __( 'Your homepage' ),
 		},
 		{
-			description: __( 'Add pages like About and Contact.' ),
+			description: __(
+				'Add pages like About and Contact, and pick your menu.'
+			),
 			icon: pagesIcon,
 			id: 'pages',
-			title: __( 'Pages & menu' ),
+			title: __( 'Pages' ),
 		},
 		{
 			description: __( 'Name your site and add a logo.' ),
@@ -73,10 +75,10 @@ function getAllPlaces() {
 		{
 			// Design leads with whole-site looks and links on to Colors and
 			// Fonts, so one place covers both without adding to the choices.
-			description: __( 'Pick the look of your whole site.' ),
+			description: __( 'Pick the colors and fonts of your whole site.' ),
 			icon: brushIcon,
 			id: 'style',
-			title: __( 'Colors & fonts' ),
+			title: __( 'Design' ),
 		},
 		{
 			// One place for both, as they work the same way, and a screen
@@ -103,7 +105,7 @@ function getAllPlaces() {
 			description: __( 'Edit the areas templates share.' ),
 			icon: symbolFilledIcon,
 			id: 'templateParts',
-			title: __( 'Template parts' ),
+			title: __( 'Site parts' ),
 		},
 		{
 			description: __( 'Synced and unsynced patterns.' ),
