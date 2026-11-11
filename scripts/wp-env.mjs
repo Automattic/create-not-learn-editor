@@ -17,12 +17,10 @@
  * Set CNL_WP_ENV_CACHE to move the cache.
  */
 import fs from 'node:fs/promises';
-import { createWriteStream, existsSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
 import { execFile, spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { promisify } from 'node:util';
@@ -120,38 +118,37 @@ async function withLock( name, callback ) {
 	}
 }
 
+/*
+ * Downloads with curl rather than fetch: on CI runners, Node's fetch can crash
+ * the whole process part way through a large download (an uncaught
+ * `assert(!this.paused)` inside undici), which no retry here could catch.
+ */
 async function download( url, destination ) {
-	const attempts = 3;
-	for ( let attempt = 1; ; attempt++ ) {
-		try {
-			const response = await fetch( url, {
-				signal: AbortSignal.timeout( 10 * 60 * 1000 ),
-			} );
-			if ( ! response.ok ) {
-				throw new Error(
-					`${ response.status } ${ response.statusText }`
-				);
-			}
-			await pipeline(
-				Readable.fromWeb( response.body ),
-				createWriteStream( destination )
-			);
-			return;
-		} catch ( error ) {
-			if ( attempt === attempts ) {
-				throw new Error(
-					`Could not download ${ url }: ${ error.message }`
-				);
-			}
-			console.warn(
-				`Download failed (${ error.message }), retrying in ${
-					attempt * 10
-				}s...`
-			);
-			await new Promise( ( resolve ) =>
-				setTimeout( resolve, attempt * 10000 )
-			);
-		}
+	try {
+		await execFileAsync(
+			'curl',
+			[
+				'--fail',
+				'--location',
+				'--silent',
+				'--show-error',
+				'--retry',
+				'3',
+				'--retry-all-errors',
+				'--retry-delay',
+				'10',
+				'--max-time',
+				'600',
+				'--output',
+				destination,
+				url,
+			],
+			{ maxBuffer: 1024 * 1024 }
+		);
+	} catch ( error ) {
+		throw new Error(
+			`Could not download ${ url }: ${ error.stderr || error.message }`
+		);
 	}
 }
 
