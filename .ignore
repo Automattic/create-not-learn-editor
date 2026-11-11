@@ -1,0 +1,6 @@
+# Kept out of ripgrep searches, including Claude Code's Grep tool, because
+# matches here are noise that costs agents tokens. Git still tracks them.
+# Search one explicitly with `rg --no-ignore` when you need it.
+package-lock.json
+themes/*/assets/
+.wordpress-org/

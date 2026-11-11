@@ -22,6 +22,16 @@ Use available non-default local ports for `WP_ENV_PORT` and `WP_ENV_TESTS_PORT`.
 
 The local environment uses WordPress 7.1 with the released Gutenberg 24.0.0 plugin. `npm run wp-env start` downloads these once into a cache that every checkout shares (`~/.cache/create-not-learn-editor/wp-env`), rather than once per checkout.
 
+### How the shared downloads work
+
+Always run wp-env through `npm run wp-env ...`, not the `wp-env` binary. `npm run wp-env` runs `scripts/wp-env.mjs`, which serves wp-env's downloads from the shared cache before passing the command on.
+
+- Every checkout gets its own wp-env work directory, so letting wp-env download for itself means WordPress, Gutenberg and two PHPUnit clones per checkout. That is enough traffic to get throttled by wordpress.org and GitHub. Don't point `.wp-env.json` back at download URLs.
+- On `start`, the script fills the cache (`~/.cache/create-not-learn-editor/wp-env`, or `CNL_WP_ENV_CACHE`) with anything missing, then sets up `.wp-env/sources/`, which `.wp-env.json` points at and git ignores. Gutenberg is a symlink into the cache. WordPress is copied into the checkout, because wp-env writes `wp-config.php` and uploads into it.
+- Versions live in `scripts/wp-env.mjs`, not `.wp-env.json`. Each version downloads once. To change one, update its `key` with its URL, and keep the blueprints' Gutenberg version in step.
+- wp-env always runs `git fetch` in its PHPUnit clones. The script points them at a cached wordpress-develop clone, so that fetch stays local.
+- Keep the environment to what the editor needs, which is WordPress, Gutenberg, this plugin and the Mainstay theme. Optional plugins belong in a local `.wp-env.override.json`, as below, not in `.wp-env.json`.
+
 ### Trying another plugin alongside the editor
 
 To try another plugin alongside the editor, such as [Canvas](https://github.com/Automattic/canvas), build it somewhere and map it in a `.wp-env.override.json` next to `.wp-env.json`. The file is ignored by git.
