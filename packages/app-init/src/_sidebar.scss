@@ -10,8 +10,8 @@
  *
  * Inside a menu section, boot shows a title row with a Back button and the
  * section name. At the top level that row is empty, so it is taken out and
- * the menu starts at the top, where it starts when the sidebar is a strip of
- * icons too.
+ * the menu starts a little below the admin bar, where it starts when the
+ * sidebar is a strip of icons too.
  */
 $sidebar-heading-height: 56px;
 
@@ -24,6 +24,13 @@ $sidebar-heading-height: 56px;
 	&:not(:has(.components-button)) {
 		display: none;
 	}
+}
+
+// Room above the first item, Home, where there is no title row.
+$sidebar-menu-inset: var(--wpds-dimension-gap-lg);
+
+[class*="__sidebar"] [class*="__scrollable"] > [class*="__content"]:not(:has([class*="__title-icon"] .components-button)) {
+	padding-block-start: $sidebar-menu-inset;
 }
 
 /*
@@ -189,6 +196,10 @@ $sidebar-strip-width: 64px;
 		[class*="__title-icon"],
 		.cnl-sidebar-workspace__toggle > :not(:first-child) {
 			display: none;
+		}
+
+		[class*="__scrollable"] > [class*="__content"] {
+			padding-block-start: $sidebar-menu-inset;
 		}
 
 		[class*="__item-wrapper"] > * > * > :not(:first-child) {

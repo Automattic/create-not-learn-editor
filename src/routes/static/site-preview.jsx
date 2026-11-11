@@ -2,9 +2,9 @@
  * Internal dependencies
  */
 import { settings } from '../../settings';
-import { DocumentTitle, SiteCanvas, useSiteCanvas } from '../../site-canvas';
+import { PageSwitcher, SiteCanvas, useSiteCanvas } from '../../site-canvas';
 import { getHomepageDocumentIconStatus } from '../home/preview';
-import { Icon, __, homeIcon, postListIcon } from '../../wordpress-packages';
+import { __, homeIcon, postListIcon } from '../../wordpress-packages';
 
 const DOCUMENT_ICON_BY_STATUS = {
 	'home-latest-posts': homeIcon,
@@ -15,7 +15,8 @@ const DOCUMENT_ICON_BY_STATUS = {
 /**
  * The toolbar's centered document label: whatever page the preview is
  * showing, defaulting to the homepage before the preview has loaded or while
- * it is still resolving what is on show.
+ * it is still resolving what is on show. It opens the page finder, to go to
+ * another page.
  *
  * @param {Object} props        Component props.
  * @param {Object} props.canvas Result of `useSiteCanvas`.
@@ -42,22 +43,11 @@ function PreviewDocument( { canvas } ) {
 
 	return (
 		<div className="cnl-editor-homepage-document">
-			<div className="cnl-editor-homepage-document__text">
-				<div className="cnl-editor-homepage-document__heading">
-					{ documentIcon && (
-						<Icon
-							className="cnl-editor-homepage-document__icon"
-							icon={ documentIcon }
-						/>
-					) }
-					<DocumentTitle title={ previewLabel } />
-				</div>
-				{ previewMetaLabel && (
-					<p className="cnl-editor-homepage-document__meta">
-						{ previewMetaLabel }
-					</p>
-				) }
-			</div>
+			<PageSwitcher
+				icon={ documentIcon }
+				meta={ previewMetaLabel }
+				title={ previewLabel }
+			/>
 		</div>
 	);
 }
