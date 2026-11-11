@@ -1,8 +1,10 @@
 /**
  * Top bar: the strip of boot's dark frame above the stage and canvas.
  *
- * It holds Go to page, which opens the page finder (see `src/page-finder`),
- * in the middle, and the save controls and the Options menu on the right. The full-screen editor has a header of its
+ * It holds which agent is connected, if one is, on the left (see
+ * `src/webmcp/connection.js`), Go to page, which opens the page finder (see
+ * `src/page-finder`), in the middle, and the save controls and the Options
+ * menu on the right. The full-screen editor has a header of its
  * own, so the bar is hidden there, and on narrow screens, where
  * the stage fills the viewport and boot's sidebar save button is kept.
  */
@@ -15,6 +17,7 @@ import { createRoot } from '@wordpress/element';
 /**
  * Internal dependencies
  */
+import { AgentStatus } from './agent-status';
 import { GoToPage } from './go-to-page';
 import { OptionsMenu } from './options-menu';
 import { SaveControls } from './save-controls';
@@ -22,6 +25,9 @@ import { SaveControls } from './save-controls';
 function TopBar() {
 	return (
 		<div className="cnl-top-bar">
+			<div className="cnl-top-bar__start">
+				<AgentStatus />
+			</div>
 			<div className="cnl-top-bar__center">
 				<GoToPage />
 			</div>

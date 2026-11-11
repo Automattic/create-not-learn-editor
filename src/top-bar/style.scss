@@ -69,6 +69,114 @@ $layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-fu
 	pointer-events: auto;
 }
 
+/*
+ * Which agent is connected, lined up with the canvas's Edit button below it:
+ * past boot's sidebar, as a strip or expanded, and the gap after it, then in
+ * by the canvas toolbar's border and padding. Words only, so clicks still
+ * pass to the sidebar.
+ */
+$sidebar-strip-width: 64px;
+$surfaces-gap: 8px;
+$canvas-toolbar-inset: 11px;
+
+.cnl-top-bar__start {
+	grid-column: 1;
+	min-width: 0;
+	padding-inline-start: calc(#{$sidebar-strip-width + $surfaces-gap + $canvas-toolbar-inset} - var(--wpds-dimension-gap-sm));
+
+	body.cnl-sidebar-is-expanded & {
+		padding-inline-start: calc(#{$sidebar-width + $canvas-toolbar-inset} - var(--wpds-dimension-gap-sm));
+	}
+}
+
+.cnl-agent-status {
+	display: block;
+	min-width: 0;
+	pointer-events: auto;
+}
+
+/*
+ * Quiet on the dark bar, as the Options menu's button is. The button starts
+ * at the Edit button's edge; its own padding keeps its words clear of it.
+ */
+.components-button.cnl-agent-status__toggle {
+	gap: var(--wpds-dimension-gap-sm);
+	max-width: 100%;
+	color: var(--wpds-color-foreground-interactive-neutral);
+
+	&:hover:not(:disabled),
+	&[aria-expanded="true"] {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+		color: var(--wpds-color-foreground-interactive-neutral-active);
+	}
+
+	svg {
+		flex: none;
+	}
+}
+
+// Green, as a connection that's working reads, beside the unsaved changes'
+// amber. It pulses while the agent is at work.
+$agent-green: var(--wpds-color-stroke-surface-success-strong);
+
+@keyframes cnl-agent-pulse {
+
+	from {
+		box-shadow: 0 0 0 0 color-mix(in srgb, #{$agent-green} 60%, transparent);
+	}
+
+	to {
+		box-shadow: 0 0 0 7px color-mix(in srgb, #{$agent-green} 0%, transparent);
+	}
+}
+
+.cnl-agent-status__indicator {
+	flex: none;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: $agent-green;
+	box-shadow: 0 0 0 3px color-mix(in srgb, #{$agent-green} 25%, transparent);
+
+	&.is-active {
+		animation: cnl-agent-pulse 1.4s ease-out infinite;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+
+		&.is-active {
+			animation: none;
+		}
+	}
+}
+
+.cnl-agent-status__menu .components-popover__content {
+	width: 320px;
+}
+
+// Each change, with how long ago under it, both from the start.
+.cnl-agent-status__menu .components-menu-item__button {
+	height: auto;
+	padding-block: var(--wpds-dimension-padding-sm);
+	text-align: start;
+
+	.components-menu-item__info-wrapper {
+		align-items: flex-start;
+	}
+}
+
+.cnl-agent-status__empty,
+.cnl-agent-status__note {
+	margin: 0;
+	padding: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-md);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+}
+
+.cnl-agent-status__note {
+	border-top: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+}
+
 .cnl-top-bar__center {
 	grid-column: 2;
 	min-width: 0;

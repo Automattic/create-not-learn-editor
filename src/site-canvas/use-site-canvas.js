@@ -48,7 +48,11 @@ import {
 	MODE_BROWSE,
 	MODE_COMPOSE,
 	MODE_EDIT,
+	requestCanvasMode,
+	setCanvasDevice,
 	setCanvasMode,
+	STORE_NAME as CANVAS_STORE,
+	useCanvasDevice,
 	useCanvasMode,
 } from './mode';
 import { getEditRoute, getLiveUrl, isSameLocation } from './urls';
@@ -267,7 +271,7 @@ export function useSiteCanvas( {
 } ) {
 	const mode = useCanvasMode();
 	const isPreviewing = mode === MODE_BROWSE;
-	const [ device, setDevice ] = useState( DEFAULT_DEVICE );
+	const device = useCanvasDevice();
 	const [ isDialogOpen, setIsDialogOpen ] = useState( false );
 	const [ isAwaitingPreview, setIsAwaitingPreview ] = useState( false );
 	const [ followedEntity, setFollowedEntity ] = useState( null );
@@ -559,6 +563,21 @@ export function useSiteCanvas( {
 		showPreview();
 	};
 
+	// A move asked for from outside the canvas, by `requestCanvasMode`,
+	// follows the same rules as the canvas's own mode switch.
+	const modeRequest = useSelect(
+		( registrySelect ) => registrySelect( CANVAS_STORE ).getModeRequest(),
+		[]
+	);
+	useEffect( () => {
+		if ( modeRequest ) {
+			requestCanvasMode( null );
+			requestMode( modeRequest );
+		}
+		// Only a new request should move, not `requestMode` changing.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ modeRequest ] );
+
 	const saveAndShowPreview = async () => {
 		await save();
 
@@ -620,7 +639,7 @@ export function useSiteCanvas( {
 		previewContextError,
 		previewEntity,
 		requestMode,
-		setDevice,
+		setDevice: setCanvasDevice,
 		showEditor,
 	};
 }

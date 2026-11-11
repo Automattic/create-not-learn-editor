@@ -504,8 +504,9 @@ function getCanvasCss(
 	return [
 		`.is-root-container *${ outside } { cursor: default !important; }`,
 		`.is-root-container .block-editor-block-list__block${ outside }.is-hovered::after { display: none !important; }`,
-		// The block names shown on hover, from `block-canvas-styles.php`.
-		`.is-root-container .block-editor-block-list__block${ outside }:hover::before { content: none !important; }`,
+		// The block names shown on hover, from `block-canvas-styles.php`,
+		// but not the badge on a change an agent made.
+		`.is-root-container .block-editor-block-list__block${ outside }:not([data-cnl-change]):hover::before { content: none !important; }`,
 		rootClientId &&
 			`#block-${ rootClientId }.is-hovered::after { display: none !important; }`,
 		/*

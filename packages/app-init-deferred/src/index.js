@@ -9,3 +9,4 @@
  */
 export { EditorSectionPicker } from '../../../src/editor-layer/section-picker';
 export { runWebMcpTool } from '../../../src/webmcp/tools';
+export { showChange as showWebMcpChange } from '../../../src/webmcp/flash';

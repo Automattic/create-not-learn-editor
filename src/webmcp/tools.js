@@ -13,13 +13,13 @@
 import { store as blockEditorStore } from '@wordpress/block-editor';
 import { cloneBlock } from '@wordpress/blocks';
 import { store as coreDataStore } from '@wordpress/core-data';
-import * as data from '@wordpress/data';
+import { dispatch, resolveSelect, select } from '@wordpress/data';
 import { decodeEntities } from '@wordpress/html-entities';
+import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
  */
-import { addPatternSection } from '../editor-layer/section-picker';
 import { getSectionArrangements } from '../layouts/variants';
 import { openPage } from '../page-finder/open-page';
 import { getColorUpdate } from '../pickers/section-design';
@@ -32,12 +32,26 @@ import { HOMEPAGE } from '../routes/content/pages/homepage-state';
 import { searchSectionDesigns } from '../section-picker/groups';
 import {
 	createBlankSection,
+	getPatternSectionBlocks,
 	isLayoutPattern,
 	isSectionPattern,
 	isThemePattern,
 } from '../section-picker/patterns';
+import {
+	getCanvasDevice,
+	getCanvasMode,
+	MODE_BROWSE,
+	MODE_COMPOSE,
+	requestCanvasMode,
+	setCanvasDevice,
+} from '../site-canvas/mode';
 import { getBlockIndex } from '../site-canvas/writing-mode';
 import { describeChanges, getDirtyRecords } from '../top-bar/use-changes';
+import {
+	getActiveWorkspace,
+	getAvailableWorkspaces,
+	setActiveWorkspace,
+} from '../workspaces';
 import {
 	areSectionsReady,
 	describePage,
@@ -45,18 +59,31 @@ import {
 	getColorChoicesFor,
 	getSection,
 	getSectionBlock,
+	getSectionName,
 	getSections,
-	pickSection,
+	NO_PAGE_OPEN,
 	requireCanvas,
 	waitFor,
 } from './canvas';
+import { markConnected, recordChange, startTask } from './connection';
+import { showChange } from './flash';
 import { findByName } from './match';
 import { describeSiteStyle, setSiteStyle } from './site-style';
 
-const { dispatch, resolveSelect, select } = data;
-
 const PAGE_STATUSES = 'publish,future,draft,pending,private';
 const MAX_DESIGNS = 40;
+
+/**
+ * Show the person a change on the canvas, and note it for them to look back
+ * on from the top bar.
+ *
+ * @param {string}  text     What changed, in the person's words.
+ * @param {?string} clientId The block that shows it, if one does.
+ */
+function changed( text, clientId = null ) {
+	showChange( clientId );
+	recordChange( text, clientId );
+}
 
 function getTitle( record ) {
 	return decodeEntities(
@@ -87,6 +114,127 @@ async function getPages() {
 			: null;
 
 	return { homepageId, pages: pages || [] };
+}
+
+function connect( { agent } ) {
+	if ( typeof agent !== 'string' || ! agent.trim() ) {
+		throw new Error( "Give your product's name." );
+	}
+
+	markConnected( agent );
+
+	return { shows: `Connected to ${ agent.trim() }` };
+}
+
+function startTaskTool( { title } ) {
+	const kept = startTask( title );
+
+	if ( ! kept ) {
+		throw new Error( 'Give what you are working on, in a few words.' );
+	}
+
+	return { shows: kept };
+}
+
+function setWorkspace( { workspace } ) {
+	const before = getActiveWorkspace();
+	const available = getAvailableWorkspaces();
+	const wanted = String( workspace ?? '' ).trim();
+	const next =
+		available.find( ( item ) => item.id === wanted.toLowerCase() ) ||
+		findByName( available, wanted, ( item ) => item.label, 'workspace' );
+
+	// Unlike the sidebar's switcher, this leaves the screen as it is, so
+	// the page being worked on stays open.
+	setActiveWorkspace( next.id );
+
+	return {
+		workspace: { id: next.id, name: next.label },
+		before: { id: before.id, name: before.label },
+		workspaces: available.map( ( item ) => ( {
+			id: item.id,
+			name: item.label,
+		} ) ),
+	};
+}
+
+const MODES = [ 'browse', 'edit', 'compose' ];
+const DEVICES = [ 'desktop', 'tablet', 'mobile' ];
+// Long enough for Browse's preview to load the page.
+const MODE_WAIT_MS = 20000;
+
+function isAskingAboutChanges() {
+	return Boolean(
+		document.querySelector( '.cnl-site-canvas__unsaved-dialog' )
+	);
+}
+
+function describeCanvas() {
+	const mode = getCanvasMode();
+
+	return {
+		mode,
+		device: mode === MODE_COMPOSE ? 'desktop' : getCanvasDevice(),
+	};
+}
+
+async function setCanvas( { mode, device } ) {
+	if ( ! mode && ! device ) {
+		throw new Error( 'Give a mode, a device or both.' );
+	}
+
+	if ( mode && ! MODES.includes( mode ) ) {
+		throw new Error( `The modes are ${ MODES.join( ', ' ) }.` );
+	}
+
+	if ( device && ! DEVICES.includes( device ) ) {
+		throw new Error( `The devices are ${ DEVICES.join( ', ' ) }.` );
+	}
+
+	if ( ! getCanvas() ) {
+		throw new Error( NO_PAGE_OPEN );
+	}
+
+	if ( device ) {
+		setCanvasDevice( device );
+	}
+
+	if ( mode && mode !== getCanvasMode() ) {
+		requestCanvasMode( mode );
+
+		try {
+			await waitFor(
+				() => getCanvasMode() === mode || isAskingAboutChanges(),
+				`The canvas didn't move to ${ mode } in time.`,
+				MODE_WAIT_MS
+			);
+		} catch ( error ) {
+			requestCanvasMode( null );
+			throw error;
+		}
+
+		if ( getCanvasMode() !== mode ) {
+			return {
+				...describeCanvas(),
+				waiting:
+					'Browse only shows what is saved, so the editor has asked the person to save or discard their unsaved changes. The canvas moves to Browse once they have. Leave the choice to them.',
+			};
+		}
+	}
+
+	return {
+		...describeCanvas(),
+		...( mode === MODE_COMPOSE && device && device !== 'desktop'
+			? {
+					note: `Compose always shows the page on a desktop. It shows on ${ device } again on leaving Compose.`,
+				}
+			: {} ),
+		...( getCanvasMode() === MODE_BROWSE
+			? {
+					note: 'Browse shows the saved site. The tools that change the page move the canvas back to Edit.',
+				}
+			: {} ),
+	};
 }
 
 async function listPages() {
@@ -223,7 +371,9 @@ async function addSection( { design, after } ) {
 	}
 
 	const index = getBlockIndex( sections, -1, place );
-	let added;
+	let blocks = [ createBlankSection() ];
+	let added = 'Added a blank section';
+	let note = __( 'Added a blank section' );
 
 	if ( design ) {
 		const designs = await getDesigns();
@@ -237,22 +387,23 @@ async function addSection( { design, after } ) {
 				'design'
 			);
 
-		addPatternSection( data, pattern, {
-			rootClientId: canvas.rootClientId,
-			index,
-		} );
+		blocks = getPatternSectionBlocks( pattern );
 		added = `Added "${ getPatternTitle( pattern ) }"`;
-	} else {
-		dispatch( blockEditorStore ).insertBlocks(
-			[ createBlankSection() ],
-			index,
-			canvas.rootClientId,
-			false
+		note = sprintf(
+			/* translators: %s: A section design's name. */
+			__( 'Added “%s”' ),
+			getPatternTitle( pattern )
 		);
-		added = 'Added a blank section';
 	}
 
-	pickSection( getSections( canvas )[ place ] );
+	// Without selecting it, which would pick the section and open its bar.
+	dispatch( blockEditorStore ).insertBlocks(
+		blocks,
+		index,
+		canvas.rootClientId,
+		false
+	);
+	changed( note, blocks[ 0 ]?.clientId );
 
 	return {
 		done: `${ added } as section ${ place + 1 }.`,
@@ -273,16 +424,18 @@ function moveSection( { section, to } ) {
 		);
 	}
 
+	const name = getSectionName( moved );
+
 	dispatch( blockEditorStore ).moveBlocksToPosition(
 		moved.clientIds,
 		canvas.rootClientId,
 		canvas.rootClientId,
 		getBlockIndex( sections, from, target )
 	);
-	pickSection(
-		getSections( canvas ).find( ( item ) =>
-			item.clientIds.includes( moved.clientIds[ 0 ] )
-		)
+	changed(
+		/* translators: %s: A section's name. */
+		sprintf( __( 'Moved “%s”' ), name ),
+		moved.clientIds[ 0 ]
 	);
 
 	return {
@@ -295,8 +448,14 @@ function duplicateSection( { section } ) {
 	const canvas = requireCanvas();
 	const copied = getSection( getSections( canvas ), section );
 
+	const name = getSectionName( copied );
+
 	dispatch( blockEditorStore ).duplicateBlocks( copied.clientIds, false );
-	pickSection( getSections( canvas )[ Number( section ) ] );
+	changed(
+		/* translators: %s: A section's name. */
+		sprintf( __( 'Copied “%s”' ), name ),
+		getSections( canvas )[ Number( section ) ]?.clientIds[ 0 ]
+	);
 
 	return {
 		done: `Copied section ${ section } to section ${
@@ -310,9 +469,43 @@ function removeSection( { section } ) {
 	const canvas = requireCanvas();
 	const removed = getSection( getSections( canvas ), section );
 
+	const name = getSectionName( removed );
+
 	dispatch( blockEditorStore ).removeBlocks( removed.clientIds, false );
+	/* translators: %s: A section's name. */
+	recordChange( sprintf( __( 'Removed “%s”' ), name ) );
 
 	return { done: `Removed section ${ section }.`, ...describePage() };
+}
+
+/**
+ * A change to a section's design, in Edit design's words.
+ *
+ * @param {Object}  changes        What changed.
+ * @param {?string} changes.color  The colour picked, if one was.
+ * @param {?string} changes.layout The layout picked, if one was.
+ * @param {?string} changes.width  The width picked, if one was.
+ * @param {string}  name           The section's name.
+ * @return {string} The words.
+ */
+function describeStyleChange( { color, layout, width }, name ) {
+	if ( [ color, layout, width ].filter( Boolean ).length > 1 ) {
+		/* translators: %s: A section's name. */
+		return sprintf( __( 'Changed the design of “%s”' ), name );
+	}
+
+	if ( color ) {
+		/* translators: %s: A section's name. */
+		return sprintf( __( 'Changed the colour of “%s”' ), name );
+	}
+
+	if ( layout ) {
+		/* translators: %s: A section's name. */
+		return sprintf( __( 'Changed the layout of “%s”' ), name );
+	}
+
+	/* translators: %s: A section's name. */
+	return sprintf( __( 'Changed the width of “%s”' ), name );
 }
 
 function styleSection( { section, color, layout, width } ) {
@@ -333,6 +526,7 @@ function styleSection( { section, color, layout, width } ) {
 	}
 
 	let clientId = target.clientIds[ 0 ];
+	const name = getSectionName( target );
 
 	// The layout first, as it swaps the section for a new block.
 	if ( layout ) {
@@ -397,7 +591,7 @@ function styleSection( { section, color, layout, width } ) {
 		done.push( `width to ${ width }` );
 	}
 
-	pickSection( getSections( canvas )[ Number( section ) - 1 ] );
+	changed( describeStyleChange( { color, layout, width }, name ), clientId );
 
 	return {
 		done: `Changed section ${ section }'s ${ done.join( ', ' ) }.`,
@@ -411,6 +605,8 @@ async function setSiteStyleTool( input ) {
 	if ( ! done.length ) {
 		throw new Error( 'Give a look, a palette or fonts.' );
 	}
+
+	recordChange( __( "Changed the site's look" ) );
 
 	return {
 		done: `Changed the site's ${ done.join( ', ' ) }, on every page.`,
@@ -436,6 +632,15 @@ async function setSiteTitle( { title, tagline } ) {
 		edits
 	);
 
+	if ( edits.title !== undefined ) {
+		changed(
+			__( 'Changed the site title' ),
+			select( blockEditorStore ).getBlocksByName( 'core/site-title' )[ 0 ]
+		);
+	} else {
+		recordChange( __( 'Changed the tagline' ) );
+	}
+
 	return {
 		done: 'Changed the site title, on every page.',
 		...( await describeSiteStyle() ),
@@ -443,6 +648,10 @@ async function setSiteTitle( { title, tagline } ) {
 }
 
 const RUN = {
+	'cnl-connect': connect,
+	'cnl-start-task': startTaskTool,
+	'cnl-set-workspace': setWorkspace,
+	'cnl-set-canvas': setCanvas,
 	'cnl-list-pages': listPages,
 	'cnl-open-page': openPageTool,
 	'cnl-get-page': () => describePage(),

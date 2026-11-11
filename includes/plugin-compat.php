@@ -56,12 +56,23 @@ function cnl_editor_enqueue_ai_webmcp() {
  * The tools only register on a page with core's block editor body class,
  * which this page doesn't otherwise need, so it adds that.
  *
- * The canvas shows the page in its template, so the editor's top-level
- * blocks are the template's, and the page's own blocks sit inside Post
- * Content, as a header's do inside its template part. Those are controlled
- * inner blocks, which `editor-get-document` doesn't walk into, so an agent
- * would never learn their clientIds. This gives it the whole tree, saying
- * which blocks can't be edited until the person opens them, like the header.
+ * The tools are written for the post editor, where the editor's top-level
+ * blocks are the post's. Here the canvas shows the page in its template, so
+ * they are the template's, and the page's own blocks sit inside its Post
+ * Content block. Through the plugin's `wpai.webmcp.tools` filter, this:
+ *
+ * - Gives `editor-get-document` the whole tree. Post Content's blocks, and a
+ *   header's in its template part, are controlled inner blocks, which it
+ *   doesn't walk into, so an agent would never learn their clientIds. Blocks
+ *   that can't be edited until the person opens them, like the header's, are
+ *   marked locked.
+ * - Puts what `editor-insert-block` adds, and asks `editor-get-block-types`
+ *   about, inside Post Content when no place is given, as the post editor
+ *   would, rather than in the template, which takes nothing.
+ * - Shows each block the tools change, scrolled into view and flashed, as
+ *   the editor's own WebMCP tools do (`src/webmcp/flash.js`), by sending
+ *   `cnl-editor-show-change` with its clientId.
+ *
  * The other tools look blocks up by clientId, so they work as they are.
  *
  * @return string JavaScript.
@@ -94,23 +105,78 @@ function cnl_editor_get_ai_webmcp_setup_script() {
 				return [ item, ...outline( block.clientId, depth + 1 ) ];
 			} );
 
-	wp.hooks.addFilter( 'wpai.webmcp.tools', 'create-not-learn-editor/outline', ( tools ) =>
-		tools.map( ( tool ) =>
-			'editor-get-document' !== tool.name
-				? tool
-				: {
-						...tool,
-						description:
-							tool.description +
-							' The outline includes the template around the post: the page\'s own blocks are inside core/post-content. Blocks marked locked, like the header and footer, can\'t be changed until the person opens them.',
-						execute: async ( input ) => {
-							const result = await tool.execute( input );
-							const document = JSON.parse( result.content[ 0 ].text );
-							document.blocks = outline( undefined, 0 );
-							return { content: [ { type: 'text', text: JSON.stringify( document ) } ] };
-						},
-				  }
-		)
+	const result = ( value ) => ( {
+		content: [ { type: 'text', text: JSON.stringify( value ) } ],
+	} );
+	const postContent = () =>
+		blockEditor().getBlocksByName( 'core/post-content' )[ 0 ];
+	const inPostContent = ( tool, note ) => ( {
+		...tool,
+		description: tool.description + note,
+		execute: ( input = {} ) =>
+			tool.execute(
+				input.parentClientId || input.afterClientId || ! postContent()
+					? input
+					: { ...input, parentClientId: postContent() }
+			),
+	} );
+	const showsChange = ( tool ) => ( {
+		...tool,
+		execute: async ( input = {} ) => {
+			const output = await tool.execute( input );
+			let changed = {};
+			try {
+				changed = JSON.parse( output.content[ 0 ].text ) || {};
+			} catch {}
+			document.dispatchEvent(
+				new CustomEvent( 'cnl-editor-show-change', {
+					detail: {
+						clientId:
+							changed.clientId ||
+							changed.clientIds?.[ 0 ] ||
+							input.clientId,
+						tool: tool.name,
+					},
+				} )
+			);
+			return output;
+		},
+	} );
+	const adapt = {
+		'editor-get-document': ( tool ) => ( {
+			...tool,
+			description:
+				tool.description +
+				" The outline includes the template around the post: the page's own blocks are inside core/post-content. Blocks marked locked, like the header and footer, can't be changed until the person opens them.",
+			execute: async ( input ) => {
+				const document = JSON.parse(
+					( await tool.execute( input ) ).content[ 0 ].text
+				);
+				document.blocks = outline( undefined, 0 );
+				return result( document );
+			},
+		} ),
+		'editor-insert-block': ( tool ) =>
+			showsChange(
+				inPostContent(
+					tool,
+					" Without afterClientId or parentClientId, it goes at the end of the page's own content, in core/post-content."
+				)
+			),
+		'editor-update-block-text': showsChange,
+		'editor-update-block-attributes': showsChange,
+		'editor-move-block': showsChange,
+		'editor-duplicate-block': showsChange,
+		'editor-transform-block': showsChange,
+		'editor-get-block-types': ( tool ) =>
+			inPostContent(
+				tool,
+				" Without parentClientId, it lists what the page's own content, in core/post-content, allows."
+			),
+	};
+
+	wp.hooks.addFilter( 'wpai.webmcp.tools', 'create-not-learn-editor/fit', ( tools ) =>
+		tools.map( ( tool ) => ( adapt[ tool.name ] ? adapt[ tool.name ]( tool ) : tool ) )
 	);
 } )();
 JS;

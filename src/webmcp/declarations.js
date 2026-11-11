@@ -18,6 +18,76 @@ const CHANGES = { readOnlyHint: false };
 
 export const TOOLS = [
 	{
+		name: 'cnl-connect',
+		description:
+			'Say which agent you are, so the editor\'s top bar can show the person "Connected to" your name while you work. Call this once, first, with your product\'s name. Changes nothing on the site.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				agent: {
+					type: 'string',
+					description: "Your product's name, as the person knows it.",
+				},
+			},
+			required: [ 'agent' ],
+		},
+		annotations: READ_ONLY,
+	},
+	{
+		name: 'cnl-start-task',
+		description:
+			'Name what you\'re about to work on, in a few words the person would use, such as "Autumn homepage". The editor groups the changes you make after it under that name, in the top bar, so the person can see your work as a few pieces rather than every step. Call it each time you start on something new the person asked for. Changes nothing on the site.',
+		inputSchema: {
+			type: 'object',
+			properties: {
+				title: {
+					type: 'string',
+					description: 'What you are working on, in a few words.',
+				},
+			},
+			required: [ 'title' ],
+		},
+		annotations: READ_ONLY,
+	},
+	{
+		name: 'cnl-set-workspace',
+		description:
+			"Switch the editor to one of its workspaces, as the person can from the sidebar. Switch to the Agent workspace before making changes on your own: the canvas takes the whole screen, so the person can watch each change as it happens. Switch back to the workspace they were in when you're done. The page open in the canvas stays open. Returns the workspace in use, the one before, and the others there are.",
+		inputSchema: {
+			type: 'object',
+			properties: {
+				workspace: {
+					type: 'string',
+					description:
+						'The workspace, by name or ID: "agent" for the Agent workspace.',
+				},
+			},
+			required: [ 'workspace' ],
+		},
+		annotations: { readOnlyHint: false, idempotentHint: true },
+	},
+	{
+		name: 'cnl-set-canvas',
+		description:
+			"Change how the editor's canvas shows the page open in it, as the canvas's own toolbar does: its mode, its device, or both. Browse shows the saved site as visitors see it, with links that can be followed; it only shows what is saved, so with unsaved changes the editor asks the person to save or discard them first, and the canvas moves to Browse only once they have. Edit is where the page is changed. Compose zooms out, to see the page's sections as a whole, and always shows it on a desktop. The tools that change the page move the canvas to Edit themselves. Returns the mode and device the canvas is on.",
+		inputSchema: {
+			type: 'object',
+			properties: {
+				mode: {
+					type: 'string',
+					enum: [ 'browse', 'edit', 'compose' ],
+					description: 'The mode.',
+				},
+				device: {
+					type: 'string',
+					enum: [ 'desktop', 'tablet', 'mobile' ],
+					description: 'The device to show the page on.',
+				},
+			},
+		},
+		annotations: { readOnlyHint: false, idempotentHint: true },
+	},
+	{
 		name: 'cnl-list-pages',
 		description:
 			"List the site's pages: each one's ID, title and status, which one is the homepage, and which one is open in the editor's canvas. Changes nothing.",

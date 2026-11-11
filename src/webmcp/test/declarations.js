@@ -33,6 +33,8 @@ describe( 'TOOLS', () => {
 		).map( ( tool ) => tool.name );
 
 		expect( readOnly ).toEqual( [
+			'cnl-connect',
+			'cnl-start-task',
 			'cnl-list-pages',
 			'cnl-open-page',
 			'cnl-get-page',

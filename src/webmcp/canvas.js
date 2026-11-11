@@ -12,8 +12,9 @@
  * WordPress dependencies
  */
 import { store as blockEditorStore } from '@wordpress/block-editor';
-import { dispatch, select, subscribe } from '@wordpress/data';
+import { select, subscribe } from '@wordpress/data';
 import { store as editorStore } from '@wordpress/editor';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
@@ -129,6 +130,18 @@ export function getSectionBlock( clientId ) {
 }
 
 /**
+ * A section's name, as the canvas shows it in the section's tab.
+ *
+ * @param {Object} section From `getSections`.
+ * @return {string} Its name.
+ */
+export function getSectionName( section ) {
+	return section.isText
+		? __( 'Text' )
+		: getSectionTitle( getSectionBlock( section.clientIds[ 0 ] ) );
+}
+
+/**
  * A section's colours, as Edit design offers them, or null.
  *
  * @param {Object} block From `getSectionBlock`.
@@ -217,28 +230,14 @@ export function describePage() {
 }
 
 /**
- * Pick a section on the canvas, as clicking it does, so the person sees
- * what changed.
- *
- * @param {Object} section From `getSections`.
- */
-export function pickSection( section ) {
-	if ( section ) {
-		dispatch( blockEditorStore ).selectBlock(
-			section.clientIds[ 0 ],
-			null
-		);
-	}
-}
-
-/**
  * Wait for something in the editor's stores.
  *
  * @param {Function} check   Returns what was waited for, or nothing yet.
  * @param {string}   timeout What to say if it doesn't come.
+ * @param {number}   ms      How long to wait.
  * @return {Promise<*>} What `check` returned.
  */
-export function waitFor( check, timeout ) {
+export function waitFor( check, timeout, ms = WAIT_MS ) {
 	return new Promise( ( resolve, reject ) => {
 		const now = check();
 
@@ -251,7 +250,7 @@ export function waitFor( check, timeout ) {
 		const timer = setTimeout( () => {
 			unsubscribe();
 			reject( new Error( timeout ) );
-		}, WAIT_MS );
+		}, ms );
 
 		unsubscribe = subscribe( () => {
 			const result = check();
