@@ -106,9 +106,12 @@ jobs:
       matrix:
         shard: [ 1, 2, 3, 4, 5, 6 ]
     env:
-      CNL_WP_ENV_CACHE: ${{ github.workspace }}/../wp-env-cache
       WP_BASE_URL: http://localhost:8889
     steps:
+      # Outside the checkout: actions/cache refuses paths with `..` in them.
+      - name: Point wp-env at the cached downloads
+        run: echo "CNL_WP_ENV_CACHE=$RUNNER_TEMP/wp-env-cache" >> "$GITHUB_ENV"
+
 
       - name: Checkout
         uses: actions/checkout@v5
@@ -131,9 +134,9 @@ jobs:
       # them afresh.
       - name: Restore wp-env sources
         id: wp-env-cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
-          path: ${{ env.CNL_WP_ENV_CACHE }}
+          path: ${{ runner.temp }}/wp-env-cache
           key: wp-env-${{ hashFiles('scripts/wp-env.mjs') }}
 
       # The runner already has the system libraries headless Chromium needs,
@@ -141,7 +144,7 @@ jobs:
       # would apt-get them again in every shard, which takes minutes.
       - name: Cache Playwright's browser
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -164,10 +167,10 @@ jobs:
       # downloads for the next run.
       - name: Save wp-env sources
         if: steps.wp-env-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         continue-on-error: true
         with:
-          path: ${{ env.CNL_WP_ENV_CACHE }}
+          path: ${{ runner.temp }}/wp-env-cache
           key: wp-env-${{ hashFiles('scripts/wp-env.mjs') }}
 
       - name: Run e2e tests
