@@ -86,11 +86,23 @@ function cnl_editor_set_product_default_rendering_mode() {
  * @return string|null Permalink, or null when the page isn't set up.
  */
 function cnl_editor_get_shop_page_url( $page ) {
+	$page_id = cnl_editor_get_shop_page_id( $page );
+
+	return $page_id ? get_permalink( $page_id ) : null;
+}
+
+/**
+ * Get the ID of a WooCommerce page, such as the cart.
+ *
+ * @param string $page WooCommerce page name.
+ * @return int|null Page ID, or null when the page isn't set up.
+ */
+function cnl_editor_get_shop_page_id( $page ) {
 	if ( ! function_exists( 'wc_get_page_id' ) || wc_get_page_id( $page ) <= 0 ) {
 		return null;
 	}
 
-	return get_permalink( wc_get_page_id( $page ) );
+	return (int) wc_get_page_id( $page );
 }
 
 /**
@@ -160,6 +172,12 @@ function cnl_editor_get_shop_settings() {
 			'product'  => cnl_editor_get_sample_product_url(),
 			'cart'     => cnl_editor_get_shop_page_url( 'cart' ),
 			'checkout' => cnl_editor_get_shop_page_url( 'checkout' ),
+		),
+		// The pages themselves, for the editor to open rather than whatever
+		// their address shows: an empty cart's checkout redirects to the cart.
+		'pageIds'        => array(
+			'cart'     => cnl_editor_get_shop_page_id( 'cart' ),
+			'checkout' => cnl_editor_get_shop_page_id( 'checkout' ),
 		),
 		'adminUrls'      => array(
 			'orders'     => cnl_editor_get_orders_admin_url(),
