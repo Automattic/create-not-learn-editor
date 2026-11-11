@@ -64,6 +64,8 @@ Every turn re-reads the whole conversation, so long sessions cost far more than 
 - `demos/` holds the Playground blueprints. Never commit to the `playground-build` branch, or create, push to or move `refs/playground/*` refs or `playground-v*` tags, by hand.
 - Read [docs/demo-site-and-playground.md](docs/demo-site-and-playground.md) before changing any of these.
 
+Check the UI with `npm run ui` by default, and fall back to the browser MCP only when it can't do what you need. It opens an editor path logged in (with the login `tests/e2e/global-setup.js` saves), runs a few clicks, prints a short text summary of the page and can save a 1x JPEG to `.context/`, e.g. `npm run ui -- p=/types/page --click "Add page" --shot add-page`. See `npm run ui -- --help`. Don't write Playwright scripts or login code inline.
+
 ## Verification Expectations
 
 Before handing off code changes, run:
