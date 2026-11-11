@@ -4,7 +4,8 @@
  * in. See `src/post-kinds.js`.
  *
  * Opened from "Write a post", wherever it is offered. Imported package by
- * package, like the other pickers, so the chat could offer it too.
+ * package, like the other pickers, so it can be used from app init without
+ * loading the editor.
  */
 
 /**

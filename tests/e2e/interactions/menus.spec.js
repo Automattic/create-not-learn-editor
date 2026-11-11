@@ -23,7 +23,7 @@ const LINK_MENU_CONTENT =
 async function openMenu( page, menu ) {
 	await visitEditor( page, `/navigation/edit/${ menu.id }` );
 	await expect(
-		getStage( page ).getByRole( 'heading', { level: 2, name: menu.title } )
+		getStage( page ).getByRole( 'heading', { level: 1, name: menu.title } )
 	).toBeVisible( { timeout: 15000 } );
 
 	const tree = page.getByRole( 'treegrid', {
@@ -132,6 +132,34 @@ test.describe( 'Menus interactions', () => {
 		await expect( urlField ).toHaveCount( 0 );
 	} );
 
+	test( 'types and corrects a custom link URL', async ( { page, rest } ) => {
+		const menu = await rest.createNavigationMenu( {
+			content: LINK_MENU_CONTENT,
+		} );
+		const tree = await openMenu( page, menu );
+		const urlField = page.getByRole( 'combobox', {
+			name: 'Search or type URL',
+		} );
+
+		await page.getByRole( 'button', { name: 'Add menu item' } ).click();
+		await page.getByRole( 'menuitem', { name: 'Custom link' } ).click();
+
+		// Editing keys stay in the field rather than reaching the new item's
+		// row, where Backspace and Delete would remove the item.
+		await urlField.pressSequentially( 'wordpress.orgg' );
+		await page.keyboard.press( 'Backspace' );
+		await page.keyboard.press( 'Home' );
+		await page.keyboard.press( 'Delete' );
+		await page.keyboard.type( 'w' );
+		await expect( urlField ).toHaveValue( 'wordpress.org' );
+
+		await page.keyboard.press( 'Enter' );
+		await expect( urlField ).toHaveCount( 0 );
+		await expect(
+			tree.getByRole( 'link', { name: 'wordpress.org' } )
+		).toBeVisible();
+	} );
+
 	test( 'adds a label-only submenu, then links inside it', async ( {
 		page,
 		rest,
@@ -223,7 +251,7 @@ test.describe( 'Menus interactions', () => {
 		await expectUnsavedChanges( page );
 		await expect(
 			getStage( page ).getByRole( 'heading', {
-				level: 2,
+				level: 1,
 				name: newTitle,
 			} )
 		).toBeVisible();

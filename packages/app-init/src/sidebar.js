@@ -2,7 +2,7 @@
  * WordPress dependencies
  */
 import { Button, Dropdown, MenuGroup, MenuItem } from '@wordpress/components';
-import { subscribe, useSelect } from '@wordpress/data';
+import { useSelect } from '@wordpress/data';
 import {
 	createElement as el,
 	createRoot,
@@ -23,11 +23,6 @@ import { Icon, Tooltip } from '@wordpress/ui';
 /**
  * Internal dependencies
  */
-import {
-	STORE_NAME as CHAT_STORE,
-	chatActions,
-	getChat,
-} from '../../../src/chat/store';
 import {
 	getActiveWorkspace,
 	getAvailableWorkspaces,
@@ -295,48 +290,6 @@ function expandOnStripDrilldown() {
 }
 
 /**
- * The sidebar and the chat take turns: opening the chat folds the sidebar to
- * its strip of icons, and expanding the sidebar again, or clicking anything
- * in it, closes the chat.
- */
-function shareRoomWithChat() {
-	let wasOpen = getChat().isOpen();
-
-	subscribe( () => {
-		const isOpen = getChat().isOpen();
-
-		if ( isOpen && ! wasOpen ) {
-			expansion.set( false );
-		}
-
-		wasOpen = isOpen;
-	}, CHAT_STORE );
-
-	expansion.subscribe( () => {
-		if ( expansion.get() && getChat().isOpen() ) {
-			chatActions().setOpen( false );
-		}
-	} );
-
-	// Using the sidebar at all is going back to working without the chat.
-	document.addEventListener(
-		'click',
-		( event ) => {
-			if (
-				getChat().isOpen() &&
-				event.target.closest?.(
-					'#create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"]'
-				)
-			) {
-				chatActions().setOpen( false );
-			}
-		},
-		// Before the strip's own handling, which may then expand the sidebar.
-		true
-	);
-}
-
-/**
  * Switch between workspaces: a quiet button showing the active workspace,
  * opening a menu of all of them above it.
  *
@@ -512,8 +465,6 @@ function createWorkspaceSwitcher() {
  *   Back on a top-level screen in the stage opens the sidebar at home.
  * - Clicking an icon in the strip that opens a menu section expands the
  *   sidebar to show it.
- * - Opening the chat folds the sidebar to its strip, and expanding or
- *   clicking anything in the sidebar closes the chat.
  *
  * Boot's sidebar has no slot for extra content, so these are placed relative
  * to boot's own Dashboard link and the menu that follows it. The sidebar can remount, on narrow screens for
@@ -530,7 +481,6 @@ export function enhanceSidebar( { userName } = {} ) {
 	returnHomeWithSidebar();
 	openSidebarHomeOnBack();
 	expandOnStripDrilldown();
-	shareRoomWithChat();
 
 	let routePath = getRoutePath();
 

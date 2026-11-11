@@ -54,8 +54,7 @@ const TYPE_LABELS = {
 
 /*
  * Changes that show on every page of the site rather than one: its look, its
- * header, footer and menus, and the name, tagline and images they show. The
- * same as the chat's site-wide pickers, in `src/chat/scope.js`.
+ * header, footer and menus, and the name, tagline and images they show.
  */
 const SITE_WIDE_SETTINGS = [ 'title', 'description', 'site_logo', 'site_icon' ];
 
@@ -151,6 +150,79 @@ function getChangeId( { kind, name, key, property } ) {
 
 function getRecordId( { kind, name, key } ) {
 	return [ kind, name, key ?? '' ].join( '|' );
+}
+
+/**
+ * The changes waiting to be saved, in the user's terms.
+ *
+ * @param {Object[]} dirtyEntityRecords      Edited records, with each edited site
+ *                                           setting a record of its own, as core's
+ *                                           `useEntitiesSavedStatesIsDirty` and
+ *                                           `getDirtyRecords` give them.
+ * @param {Object}   context
+ * @param {Object}   context.site            The site's settings, edited.
+ * @param {Function} context.getEntityConfig Core's selector.
+ * @param {Function} context.getPageTitle    A page's title, from its ID.
+ * @return {Object[]} The records, each with `id`, `isSiteWide`, `label`
+ *                    and `detail`.
+ */
+export function describeChanges( dirtyEntityRecords, context ) {
+	const isHomepageSwitched = dirtyEntityRecords.some(
+		( { kind, name, property } ) =>
+			kind === 'root' && name === 'site' && property === 'show_on_front'
+	);
+
+	return dirtyEntityRecords
+		.filter(
+			( { kind, name, property } ) =>
+				! isHomepageSwitched ||
+				kind !== 'root' ||
+				name !== 'site' ||
+				property === 'show_on_front' ||
+				! HOMEPAGE_SETTINGS.includes( property )
+		)
+		.map( ( record ) => ( {
+			...record,
+			id: getChangeId( record ),
+			isSiteWide: isSiteWideChange( record ),
+			...describeChange( record, context ),
+		} ) );
+}
+
+/**
+ * The edited records, read now, for code outside a component: as core's
+ * `useEntitiesSavedStatesIsDirty` lists them, with each edited site setting
+ * a record of its own.
+ *
+ * @param {Function} select Registry `select`.
+ * @return {Object[]} `{ kind, name, key, title, property }` for each.
+ */
+export function getDirtyRecords( select ) {
+	const store = select( coreStore );
+	const labels = store.getEntityConfig( 'root', 'site' )?.meta?.labels ?? {};
+	const siteEdits = store.getEntityRecordEdits( 'root', 'site' ) ?? {};
+	const firsts = [ 'title', 'description', 'site_logo', 'site_icon' ];
+	const properties = [
+		...firsts.filter( ( property ) => siteEdits[ property ] !== undefined ),
+		...Object.keys( siteEdits ).filter(
+			( property ) => ! firsts.includes( property )
+		),
+	];
+
+	return [
+		...store
+			.__experimentalGetDirtyEntityRecords()
+			.filter(
+				( record ) =>
+					! ( record.kind === 'root' && record.name === 'site' )
+			),
+		...properties.map( ( property ) => ( {
+			kind: 'root',
+			name: 'site',
+			title: labels[ property ] || property,
+			property,
+		} ) ),
+	];
 }
 
 // Long enough for the editor to load a discarded layout's parts and menus.
@@ -254,29 +326,11 @@ export function useChanges() {
 	const { saveDirtyEntities } = unlock( useDispatch( coreStore ) );
 	const registry = useRegistry();
 
-	const isHomepageSwitched = dirtyEntityRecords.some(
-		( { kind, name, property } ) =>
-			kind === 'root' && name === 'site' && property === 'show_on_front'
-	);
-	const changes = dirtyEntityRecords
-		.filter(
-			( { kind, name, property } ) =>
-				! isHomepageSwitched ||
-				kind !== 'root' ||
-				name !== 'site' ||
-				property === 'show_on_front' ||
-				! HOMEPAGE_SETTINGS.includes( property )
-		)
-		.map( ( record ) => ( {
-			...record,
-			id: getChangeId( record ),
-			isSiteWide: isSiteWideChange( record ),
-			...describeChange( record, {
-				getEntityConfig,
-				getPageTitle,
-				site: editedSite,
-			} ),
-		} ) );
+	const changes = describeChanges( dirtyEntityRecords, {
+		getEntityConfig,
+		getPageTitle,
+		site: editedSite,
+	} );
 
 	/*
 	 * A site setting is put back to its saved value, which core counts as no

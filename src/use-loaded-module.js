@@ -7,7 +7,8 @@ import { useEffect, useState } from '@wordpress/element';
  * The module a loader from `createModuleLoader()` imports, once it has.
  *
  * Imported straight from `@wordpress/element`, rather than through
- * `wordpress-packages.js`, as the chat uses it from app init.
+ * `wordpress-packages.js`, so it can be used from app init without loading
+ * the editor. See `src/editor-layer/index.jsx`.
  *
  * @param {Object}  loader            From `createModuleLoader()`.
  * @param {boolean} [shouldLoad=true] Whether the caller needs it now. Pass

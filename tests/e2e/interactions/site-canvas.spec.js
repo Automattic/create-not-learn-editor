@@ -211,38 +211,41 @@ test.describe( 'Site canvas interactions', () => {
 		).toBeVisible();
 	} );
 
-	test( 'More options opens the page in the full-screen editor', async ( {
+	test( 'Options opens the page in the full-screen editor', async ( {
 		page,
 	} ) => {
 		await visitEditor( page );
 
 		const openFull = page.getByRole( 'menuitem', {
-			name: 'Open in full editor',
+			name: 'Open in advanced editor',
 		} );
 
-		// It's in the menu, not on the toolbar, in any mode.
+		// It's in the top bar's Options menu; the canvas has no menu of its own.
 		await expect(
 			page
 				.locator( '.cnl-editor-homepage-toolbar' )
-				.getByRole( 'button', { name: 'Open in full editor' } )
+				.getByRole( 'button', { name: 'More options' } )
 		).toHaveCount( 0 );
-		await page.getByRole( 'button', { name: 'More options' } ).click();
+		await page
+			.getByRole( 'button', { name: 'Options', exact: true } )
+			.click();
 		await expect( openFull ).toBeEnabled( { timeout: 15000 } );
 		await openFull.click();
 
 		await expect
 			.poll( () => getRoute( page ), { timeout: 15000 } )
-			.toMatch( /^\/types\/page\/edit\/\d+$/ );
+			// A page, or the layout on a site without a static homepage.
+			.toMatch( /^\/(types\/page\/edit\/\d+|wp_template\?postId=.+)$/ );
 		await expectBlockEditor( page );
 	} );
 
-	test( 'More options opens the site in a new tab', async ( {
+	test( 'the View menu opens the site in a new tab', async ( {
 		context,
 		page,
 	} ) => {
 		await visitEditor( page );
 
-		await page.getByRole( 'button', { name: 'More options' } ).click();
+		await page.getByRole( 'button', { name: 'View', exact: true } ).click();
 		const [ tab ] = await Promise.all( [
 			context.waitForEvent( 'page' ),
 			page.getByRole( 'menuitem', { name: 'Open in a new tab' } ).click(),

@@ -12,7 +12,7 @@
  * once they draw, so those are swapped for their blocks first.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
- * because the chat loads the pickers from app init. See
+ * so it can be used from app init without loading the editor. See
  * `src/editor-layer/index.jsx`.
  */
 

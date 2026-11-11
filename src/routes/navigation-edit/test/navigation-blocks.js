@@ -30,6 +30,7 @@ import {
 	getPageListNavigationBlocks,
 	getParsedBlocks,
 	hasPageListBlock,
+	isAutoMenuBlocks,
 	isAutoMenuContent,
 	normalizeMenuItems,
 	serializeNavigationBlocks,
@@ -63,6 +64,34 @@ describe( 'navigation edit block helpers', () => {
 				'<!-- wp:page-list /--><!-- wp:navigation-link {"label":"Home","url":"/"} /-->'
 			)
 		).toBe( false );
+	} );
+
+	test( 'counts only a lone Page List as an auto menu, in any block shape', () => {
+		const pageList = {
+			attributes: {},
+			innerBlocks: [],
+			name: 'core/page-list',
+		};
+		const homeLink = {
+			attributes: {},
+			innerBlocks: [],
+			name: 'core/home-link',
+		};
+
+		expect( isAutoMenuBlocks( [ pageList ] ) ).toBe( true );
+		expect(
+			isAutoMenuBlocks( [
+				{
+					...pageList,
+					attributes: { excludedPageIDs: [ 4 ] },
+				},
+			] )
+		).toBe( true );
+		expect( isAutoMenuBlocks( [ homeLink, pageList ] ) ).toBe( false );
+		expect(
+			isAutoMenuBlocks( getParsedBlocks( '\n<!-- wp:page-list /-->\n' ) )
+		).toBe( true );
+		expect( isAutoMenuBlocks( [] ) ).toBe( false );
 	} );
 
 	test( 'converts pages to serialized manual navigation links', () => {

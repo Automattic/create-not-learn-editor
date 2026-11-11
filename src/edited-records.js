@@ -1,7 +1,7 @@
 /**
  * Lists of records as the editor shows them, with their unsaved changes.
  *
- * Imports nothing, so the chat can use it as well as the screens.
+ * Imports nothing, so any screen can use it without bringing more along.
  */
 
 const editedLists = new WeakMap();

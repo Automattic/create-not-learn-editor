@@ -22,7 +22,7 @@ import {
 import { withPartColor } from '../compose/section-colors';
 import { getPartColorBlocks } from '../compose/section-styles';
 
-// A section's layouts and colours, shared with the chat's picker.
+// A section's layouts and colours, from the shared section design picker.
 export { useSectionVariations } from '../../pickers/section-design';
 
 /**

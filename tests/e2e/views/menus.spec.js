@@ -25,7 +25,7 @@ test.describe( 'Menus views', () => {
 			stage.getByRole( 'heading', { name: 'Menus' } )
 		).toBeVisible( { timeout: 15000 } );
 		await expect(
-			stage.getByText( /is looked after on the Pages screen/ )
+			stage.getByText( /Choose which on the Pages screen/ )
 		).toBeVisible();
 		await expect(
 			stage.getByRole( 'button', { name: 'Add menu' } )

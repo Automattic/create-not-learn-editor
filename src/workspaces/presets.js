@@ -2,8 +2,7 @@
  * The workspace presets, and which one is active.
  *
  * Kept apart from `index.js`, which switches between them, so that screens
- * and the chat can read the active workspace without bringing its side
- * effects along.
+ * can read the active workspace without bringing its side effects along.
  *
  * A workspace is organised around what someone came to do, not how much they
  * know. Each one is a set of presentation settings. Surfaces read the setting
@@ -24,7 +23,7 @@ import { store as preferencesStore } from '@wordpress/preferences';
 /**
  * Internal dependencies
  */
-import { sparkleIcon } from '../chat/icons';
+import { sparkleIcon } from './icons';
 import { settings } from '../settings';
 
 export const PREFERENCES_SCOPE = 'create-not-learn-editor';
@@ -36,8 +35,8 @@ export const PREFERENCE_NAME = 'workspace';
  * The sidebar lists the same items in every workspace. Only `tuckAdvanced`
  * changes how it shows them.
  *
- * - `home.places`: the places to start on "Home", and in the chat, by id
- *   (see `src/start-places.js`), with `home.copy` rewording any of them. A
+ * - `home.places`: the places to start on "Home", by id (see
+ *   `src/start-places.js`), with `home.copy` rewording any of them. A
  *   place the site has no use for, like a shop on a site without one, is
  *   left out.
  * - `home.adminLinks`: WordPress's own screens to link to under them, by

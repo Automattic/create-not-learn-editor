@@ -236,6 +236,9 @@ function PageRowEnd( { clientId, icon, toggleProps } ) {
 										? __( 'Hide from menu' )
 										: __( 'Show in menu' ),
 									onClick: () => row.menu.toggle( target ),
+									reason: menuSwitch.disabled
+										? menuSwitch.note
+										: undefined,
 								},
 							]
 						: [],
@@ -454,10 +457,10 @@ export default function PagesListView( {
 		[ frontPageId, movePages, tree ]
 	);
 
-	// Move up and down among the pages beside it, which in a menu that updates
-	// by itself moves it there too. A menu set by hand has its own moves.
+	// Move up and down among the pages beside it, which in an auto menu moves
+	// it there too.
 	const getPageMoves = ( pageId ) => {
-		if ( isSearching || ( menu && ! menu.isAutomatic ) ) {
+		if ( isSearching ) {
 			return [];
 		}
 

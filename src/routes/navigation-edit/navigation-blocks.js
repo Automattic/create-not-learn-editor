@@ -59,9 +59,7 @@ function getManualNavigationItems( blocks, depth = 0 ) {
 							depth,
 							id:
 								block.clientId ||
-								`${ blockName }-${ depth }-${ getNavigationItemLabel(
-									block
-								) }`,
+								`${ blockName }-${ depth }-${ getNavigationItemLabel( block ) }`,
 							isSubmenu: blockName === 'core/navigation-submenu',
 							label: getNavigationItemLabel( block ),
 						},
@@ -251,8 +249,16 @@ function getNavigationBlocksFromEditedRecord( record ) {
 	return getParsedBlocks( getNavigationContentFromEditedRecord( record ) );
 }
 
-function isAutoMenuContent( content ) {
-	const meaningfulBlocks = getParsedBlocks( content ).filter(
+/**
+ * Whether a menu is an auto menu: a Page List and nothing else, so it lists
+ * every page by itself. A Page List with anything beside it, even a Home link,
+ * is a menu set by hand. The Pages and Menus screens both go by this.
+ *
+ * @param {Object[]} blocks Parsed, editor or plain menu blocks.
+ * @return {boolean} Whether it is an auto menu.
+ */
+function isAutoMenuBlocks( blocks ) {
+	const meaningfulBlocks = ( blocks || EMPTY_ARRAY ).filter(
 		( block ) => getBlockName( block ) || block.innerHTML?.trim()
 	);
 
@@ -260,6 +266,10 @@ function isAutoMenuContent( content ) {
 		meaningfulBlocks.length === 1 &&
 		getBlockName( meaningfulBlocks[ 0 ] ) === 'core/page-list'
 	);
+}
+
+function isAutoMenuContent( content ) {
+	return isAutoMenuBlocks( getParsedBlocks( content ) );
 }
 
 function comparePageListPages( a, b ) {
@@ -500,6 +510,7 @@ export {
 	getPageListNavigationBlocks,
 	getParsedBlocks,
 	hasPageListBlock,
+	isAutoMenuBlocks,
 	isAutoMenuContent,
 	normalizeMenuItems,
 	serializeNavigationBlocks,

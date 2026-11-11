@@ -9,16 +9,13 @@
  * every brand token, and the admin colour core's older components read, turns
  * purple inside the scope.
  *
- * Imported package by package, as the chat and pickers use it too. See
- * AGENTS.md.
+ * Imported package by package, as the pickers use it too. See AGENTS.md.
  */
 
 /**
  * WordPress dependencies
  */
-import { globe as globeIcon } from '@wordpress/icons';
 import { ThemeProvider } from '@wordpress/theme';
-import { Icon } from '@wordpress/ui';
 
 // Core's `--wp-block-synced-color`. The design system only takes a colour,
 // not a custom property, as its seed. `$cnl-global` in `src/_colors.scss`
@@ -52,28 +49,5 @@ export const GLOBAL_CANVAS_CSS = `body {
 export function GlobalScope( { children } ) {
 	return (
 		<ThemeProvider color={ GLOBAL_THEME_COLOR }>{ children }</ThemeProvider>
-	);
-}
-
-/**
- * Says where a change will show, with a globe: a purple-tinted pill.
- *
- * @param {Object} props
- * @param {string} props.children  The words.
- * @param {string} props.className Extra classes.
- * @return {Element} The note.
- */
-export function GlobalNote( { children, className = '' } ) {
-	return (
-		<GlobalScope>
-			<span className={ `cnl-global-note ${ className }`.trim() }>
-				<Icon
-					className="cnl-global-note__icon"
-					icon={ globeIcon }
-					size={ 16 }
-				/>
-				<span className="cnl-global-note__text">{ children }</span>
-			</span>
-		</GlobalScope>
 	);
 }

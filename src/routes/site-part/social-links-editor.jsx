@@ -1,6 +1,6 @@
 /**
  * The site's social links, edited as a list: the Header and Footer screens'
- * Social links view, and the chat's picker for them.
+ * Social links view.
  */
 
 /**

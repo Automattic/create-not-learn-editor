@@ -21,6 +21,7 @@ const EMPTY_SHOP = {
 	adminUrls: {},
 	can: {},
 	currencySymbol: '$',
+	pageIds: {},
 	pages: {},
 	price: {},
 };
@@ -51,7 +52,8 @@ export function isShopLayout( template, templates ) {
 /**
  * The shop's settings from `cnl_editor_get_shop_settings()`.
  *
- * @return {Object} `{ adminUrls, can, currencySymbol, pages, price }`.
+ * @return {Object} `{ adminUrls, can, currencySymbol, pageIds, pages,
+ *                  price }`.
  */
 export function getShop() {
 	return settings.shop || EMPTY_SHOP;

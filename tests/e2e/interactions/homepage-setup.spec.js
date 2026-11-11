@@ -173,13 +173,19 @@ function getDialog( page ) {
 }
 
 /**
- * Press Continue until the last step, then Finish.
+ * Press Continue until the last step, then its button, which says what it
+ * does.
  *
  * @param {import('@playwright/test').Locator} dialog
  */
 async function continueToFinish( dialog ) {
-	const finish = dialog.getByRole( 'button', { name: 'Finish' } );
+	const finish = dialog.getByRole( 'button', {
+		name: /^(Set homepage|Show latest posts)$/,
+	} );
 	const next = dialog.getByRole( 'button', { name: 'Continue' } );
+
+	// Once it's looked at the site, there's always one or the other.
+	await expect( finish.or( next ) ).toBeVisible();
 
 	while ( ! ( await finish.isVisible() ) ) {
 		await next.click();
@@ -207,31 +213,29 @@ test.describe( 'Homepage setup', () => {
 
 		const dialog = getDialog( page );
 		await expect(
-			dialog.getByRole( 'heading', { name: 'Choose your homepage' } )
+			dialog.getByRole( 'heading', {
+				name: 'Which page should be your homepage?',
+			} )
 		).toBeVisible();
+		// The usual choice is made already, and says so.
+		await expect(
+			dialog.getByRole( 'radio', {
+				name: 'A new page called “Home” Recommended',
+			} )
+		).toBeChecked();
 		await dialog.getByRole( 'button', { name: 'Continue' } ).click();
 
 		await expect(
 			dialog.getByRole( 'heading', {
-				name: 'Where will you put your posts?',
+				name: 'Where should your posts go?',
 			} )
 		).toBeVisible();
 		await expect(
-			dialog.getByRole( 'radio', { name: 'Create a page for posts' } )
+			dialog.getByRole( 'radio', { name: 'On a new page' } )
 		).toBeChecked();
 		await dialog
 			.getByRole( 'textbox', { name: 'Page name' } )
 			.fill( postsTitle );
-		await dialog.getByRole( 'button', { name: 'Continue' } ).click();
-
-		await expect(
-			dialog.getByRole( 'heading', { name: 'Ready to switch?' } )
-		).toBeVisible();
-		await expect(
-			dialog.getByText(
-				`Your posts will be listed on “${ postsTitle }”.`
-			)
-		).toBeVisible();
 		await continueToFinish( dialog );
 
 		await expectSnackbar( page, `Your posts are on “${ postsTitle }”.` );
@@ -276,12 +280,6 @@ test.describe( 'Homepage setup', () => {
 		await expect(
 			dialog.getByRole( 'textbox', { name: 'Page name' } )
 		).toBeHidden();
-		await dialog.getByRole( 'button', { name: 'Continue' } ).click();
-		await expect(
-			dialog.getByText( 'No page will list your posts.', {
-				exact: false,
-			} )
-		).toBeVisible();
 		await continueToFinish( dialog );
 
 		const reading = await getReading( rest );
@@ -309,39 +307,18 @@ test.describe( 'Homepage setup', () => {
 
 		const dialog = getDialog( page );
 		await expect(
-			dialog.getByRole( 'heading', {
-				name: 'Show your latest posts first',
-			} )
-		).toBeVisible();
-		await dialog.getByRole( 'button', { name: 'Continue' } ).click();
-
-		await expect(
-			dialog.getByRole( 'heading', { name: 'Your old homepage' } )
+			dialog.getByRole( 'heading', { name: 'Keep your old page?' } )
 		).toBeVisible();
 		await expect(
 			dialog.getByRole( 'radio', {
-				name: `Keep my old “${ oldHome.title }” page`,
+				name: `Keep “${ oldHome.title }” Recommended`,
 			} )
 		).toBeChecked();
 		await dialog
-			.getByRole( 'radio', {
-				name: `Delete my old “${ oldHome.title }” page`,
-			} )
+			.getByRole( 'radio', { name: `Delete “${ oldHome.title }”` } )
 			.check();
-
-		// A deleted page can't stay in the menu.
-		const leaveMenu = dialog.getByRole( 'checkbox', {
-			name: 'Remove it from my menu',
-		} );
-		if ( await leaveMenu.isVisible() ) {
-			await expect( leaveMenu ).toBeChecked();
-			await expect( leaveMenu ).toBeDisabled();
-		}
-
-		await dialog.getByRole( 'button', { name: 'Continue' } ).click();
-		await expect(
-			dialog.getByText( `“${ oldHome.title }” will go to the trash.` )
-		).toBeVisible();
+		// One question, so no steps to count.
+		await expect( dialog.getByText( /^Step \d/ ) ).toHaveCount( 0 );
 		await continueToFinish( dialog );
 
 		await expectSnackbar(
@@ -477,14 +454,21 @@ test.describe( 'Homepage setup', () => {
 		await expect(
 			dialog.getByRole( 'radio', { name: 'Your latest posts' } )
 		).toBeChecked();
-		await expect( dialog.getByText( 'Step 1 of 3' ) ).toBeVisible();
+		// What the workspace expects is recommended, whatever shows now.
+		await expect(
+			dialog.getByRole( 'radio', { name: 'A page Recommended' } )
+		).toBeVisible();
+		// Nothing else to ask, so there are no steps to count.
+		await expect( dialog.getByText( /^Step \d/ ) ).toHaveCount( 0 );
 
 		// Choosing a page brings in the steps for one.
 		await dialog.getByRole( 'radio', { name: 'A page' } ).check();
-		await expect( dialog.getByText( /^Step 1 of [45]$/ ) ).toBeVisible();
+		await expect( dialog.getByText( /^Step 1 of [34]$/ ) ).toBeVisible();
 		await dialog.getByRole( 'button', { name: 'Continue' } ).click();
 		await expect(
-			dialog.getByRole( 'heading', { name: 'Choose your homepage' } )
+			dialog.getByRole( 'heading', {
+				name: 'Which page should be your homepage?',
+			} )
 		).toBeVisible();
 
 		// Closing it changes nothing.

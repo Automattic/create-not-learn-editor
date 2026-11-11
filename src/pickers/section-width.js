@@ -8,8 +8,9 @@
  * A section that isn't laid out like that, like a cover on its own, changes
  * its own alignment instead.
  *
- * Shared by Edit design's panel, and ready for the chat, so it is imported
- * package by package. See `src/editor-layer/index.jsx`.
+ * Used by Edit design's panel. Imported package by package, like the other
+ * pickers, so it can be used from app init without loading the editor. See
+ * `src/editor-layer/index.jsx`.
  */
 
 /**

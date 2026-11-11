@@ -1,12 +1,15 @@
 /**
  * The Pages screen's list: every page, in page order, in the same list view
- * as the Menus screen, with a switch on each for whether it is in the site's
- * main menu.
+ * as the Menus screen. While the site's main menu is an auto menu, each page
+ * has a switch for whether it is in it.
  *
- * The menu stays one that updates by itself for as long as it can: pages can
- * be switched off, moved and added without it ever becoming a list of links
- * set by hand. Only adding something that isn't a page does that, from the
- * screen's Add menu (`use-add-menu-item.jsx`).
+ * The menu stays an auto menu for as long as it can: pages can be switched
+ * off, moved and added without it ever becoming a list of links set by hand.
+ * Only adding something that isn't a page does that, from the screen's Add
+ * menu (`use-add-menu-item.jsx`). Once it is set by hand, it is changed on the
+ * Menus screen, and the list is a plain DataViews list of pages
+ * (`pages-data-view.jsx`), under a notice that says so, so it doesn't look
+ * like the menu.
  */
 
 /**
@@ -25,6 +28,7 @@ import { HOMEPAGE } from './homepage-state';
 import { useMenuSwitches } from './menu-switches';
 import { countPageTree } from './page-tree';
 import { LIST_PATH, usePageTrash } from './page-tree-list';
+import PagesDataView from './pages-data-view';
 import PagesListView from './pages-list-view';
 import { SYSTEM_PAGES_CONTENT } from './system-pages';
 import usePageOrder from './use-page-order';
@@ -38,6 +42,7 @@ import {
 	Skeleton,
 	Stack,
 	UiButton,
+	UiNotice,
 	useMemo,
 	useState,
 } from '../../../wordpress-packages';
@@ -104,7 +109,7 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 	const searchParams = useSearch( { strict: false } );
 	const mainMenu = useMainMenu();
 	const { menuId } = mainMenu;
-	const { frontPageId, isLoading, pages } = usePages();
+	const { frontPageId, isLoading, pages, postsPageId } = usePages();
 	const homepage = useHomepageState();
 	const pageOrder = usePageOrder( { frontPageId, pages } );
 	const switches = useMenuSwitches( {
@@ -112,7 +117,11 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 		menuId,
 		pages: pageOrder.effectivePages,
 	} );
-	const menu = menuId && switches.isReady ? switches : null;
+	// The list only changes the main menu while it is an auto menu.
+	const menu =
+		menuId && switches.isReady && switches.isAutomatic ? switches : null;
+	const isMenuSetByHand =
+		Boolean( menuId ) && switches.isReady && ! switches.isAutomatic;
 	const [ search, setSearch ] = useState( '' );
 	// The canvas shows the homepage until something else is picked.
 	let previewedId = parseTarget( searchParams.previewId ) || HOMEPAGE;
@@ -129,6 +138,18 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 		() => countPageTree( pageOrder.tree ),
 		[ pageOrder.tree ]
 	);
+	// A menu set by hand loses its link to the page too.
+	const deletePage = ( pageId ) =>
+		trash.requestDelete(
+			pageId,
+			menuId ? () => switches.removePage( pageId ) : undefined
+		);
+	// Into a page's details, with it on the canvas.
+	const openPage = ( target ) =>
+		navigate( {
+			search: { ...searchParams, postId: target, previewId: target },
+			to: LIST_PATH,
+		} );
 	const showPage = ( target ) =>
 		navigate( {
 			search: { ...searchParams, previewId: target },
@@ -165,7 +186,42 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 	return (
 		<div className="cnl-pages-list">
 			<div className="cnl-pages-list__group">
-				{ pageCount > SEARCH_THRESHOLD && (
+				{ isMenuSetByHand && (
+					<UiNotice.Root
+						className="cnl-pages-list__menu-notice"
+						intent="info"
+					>
+						<UiNotice.Description>
+							{ __(
+								'Your menu is set by hand, so new pages aren’t added to it. Change what’s in it on the Menus screen.'
+							) }
+						</UiNotice.Description>
+						<UiNotice.Actions>
+							<UiNotice.ActionButton
+								onClick={ () =>
+									navigate( {
+										to: `/navigation/edit/${ encodeURIComponent( menuId ) }`,
+									} )
+								}
+								variant="outline"
+							>
+								{ __( 'Edit menu' ) }
+							</UiNotice.ActionButton>
+						</UiNotice.Actions>
+					</UiNotice.Root>
+				) }
+				{ isMenuSetByHand && (
+					<PagesDataView
+						frontPageId={ frontPageId }
+						isLoading={ isLoading }
+						onDelete={ deletePage }
+						onOpen={ openPage }
+						pages={ pageOrder.effectivePages }
+						postsPageId={ postsPageId }
+						previewedId={ previewedId }
+					/>
+				) }
+				{ ! isMenuSetByHand && pageCount > SEARCH_THRESHOLD && (
 					<SearchControl
 						__nextHasNoMarginBottom
 						label={ __( 'Find a page' ) }
@@ -174,37 +230,23 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 						value={ search }
 					/>
 				) }
-				<PagesListView
-					homepage={ homepage }
-					menu={ menu }
-					onAddMenuItem={ menu ? onAddMenuItem : undefined }
-					onAddPage={ canCreate ? () => onAddPage() : undefined }
-					onDelete={ ( pageId ) =>
-						trash.requestDelete(
-							pageId,
-							menu ? () => menu.removePage( pageId ) : undefined
-						)
-					}
-					onPreview={ ( target ) => showPage( target ) }
-					pageOrder={ pageOrder }
-					previewedId={ previewedId }
-					search={ search }
-				/>
+				{ ! isMenuSetByHand && (
+					<PagesListView
+						homepage={ homepage }
+						menu={ menu }
+						onAddMenuItem={ menu ? onAddMenuItem : undefined }
+						onAddPage={ canCreate ? () => onAddPage() : undefined }
+						onDelete={ deletePage }
+						onPreview={ ( target ) => showPage( target ) }
+						pageOrder={ pageOrder }
+						previewedId={ previewedId }
+						search={ search }
+					/>
+				) }
 			</div>
 			<ScreenLinks
 				label={ __( 'More options' ) }
 				links={ [
-					menuId &&
-						menu?.hasMoreThanPages && {
-							description: __(
-								'Your menu has links too. Change them here.'
-							),
-							icon: compassIcon,
-							title: __( 'Everything in your menu' ),
-							to: `/navigation/edit/${ encodeURIComponent(
-								menuId
-							) }`,
-						},
 					// Pages that are templates in WordPress, a step down.
 					{
 						description: __(
