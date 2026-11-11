@@ -1,6 +1,6 @@
 const {
 	expect,
-	getSitePreview,
+	getCanvasEditor,
 	getStage,
 	test,
 	visitEditor,
@@ -37,7 +37,8 @@ test.describe( 'Design views', () => {
 		await expect(
 			stage.getByRole( 'link', { name: 'full Styles editor' } )
 		).toBeVisible();
-		await expect( getSitePreview( page ) ).toBeVisible( {
+		// The canvas opens in Edit.
+		await expect( getCanvasEditor( page ) ).toBeVisible( {
 			timeout: 15000,
 		} );
 	} );
@@ -133,7 +134,10 @@ test.describe( 'Design views', () => {
 			stage.getByText( 'Browser icon', { exact: true } )
 		).toBeVisible();
 		await expect(
-			stage.getByRole( 'button', { name: 'Choose image' } )
-		).toHaveCount( 2 );
+			stage.getByRole( 'button', { name: 'Choose logo' } )
+		).toBeVisible();
+		await expect(
+			stage.getByRole( 'button', { name: 'Choose icon' } )
+		).toBeVisible();
 	} );
 } );

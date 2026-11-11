@@ -139,11 +139,12 @@ test.describe( 'Edit mode', () => {
 		await expect
 			.poll( () => getSelection( page ) )
 			.toBe( 'core/paragraph default' );
-		// Core hides the toolbar while typing, until the pointer moves.
-		await page.mouse.move( 10, 10 );
+		// Formatting floats by selected text, so select some.
+		await page.keyboard.press( 'Shift+Home' );
 		await expect(
-			getBlockToolbar( page ).getByRole( 'button', { name: 'Bold' } )
+			page.getByRole( 'button', { name: 'Bold' } )
 		).toBeVisible();
+		await page.keyboard.press( 'End' );
 
 		// Escape steps back to the section, still picked, its bar showing
 		// with the pointer away, then Escape again un-picks it.

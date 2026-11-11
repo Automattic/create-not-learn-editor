@@ -1,0 +1,132 @@
+name: CI
+
+# Checks every pull request, and trunk after each merge, so agents and people
+# read the results here rather than running everything locally.
+#
+# - `checks` builds, lints, checks the vendored ListView, lints PHP and runs the
+#   unit tests.
+# - `e2e` runs the Playwright suite against wp-env's tests site, split over
+#   four shards. The suite runs one test at a time on each site, as its tests
+#   share one WordPress, so each shard gets a wp-env of its own.
+#
+# Branch protection on trunk requires both, so a pull request can't merge
+# while either fails. `e2e-result` is the one check to require for e2e, so the
+# shard count can change without editing the protection rule.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - trunk
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Build, lint and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+
+      - name: Check vendored ListView
+        run: npm run check:list-view
+
+      - name: Lint JS
+        run: npm run lint:js
+
+      - name: Lint CSS
+        run: npm run lint:css
+
+      - name: Lint PHP
+        run: |
+          find . -path ./node_modules -prune -o -path ./build -prune -o -path ./.wp-env -prune -o -name '*.php' -print0 \
+            | xargs -0 -n1 php -l > /dev/null
+
+      - name: Unit tests
+        run: npm run test:unit
+
+  e2e:
+    name: E2E (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [ 1, 2, 3, 4 ]
+    env:
+      CNL_WP_ENV_CACHE: ${{ github.workspace }}/../wp-env-cache
+      WP_BASE_URL: http://localhost:8889
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # The versions live in scripts/wp-env.mjs, so a change there downloads
+      # them afresh.
+      - name: Cache wp-env sources
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CNL_WP_ENV_CACHE }}
+          key: wp-env-${{ hashFiles('scripts/wp-env.mjs') }}
+
+      - name: Build
+        run: npm run build
+
+      - name: Install Playwright's browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Start wp-env
+        run: npm run wp-env start
+
+      - name: Run e2e tests
+        run: npx playwright test --shard=${{ matrix.shard }}/4 --reporter=list
+
+      - name: Upload failure traces
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-results-${{ matrix.shard }}
+          path: test-results/
+          retention-days: 7
+
+  # One check for branch protection to require, whatever the shard count.
+  e2e-result:
+    name: E2E
+    if: always()
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check every shard passed
+        run: |
+          [ "${{ needs.e2e.result }}" = "success" ] || { echo "::error::E2E shards: ${{ needs.e2e.result }}"; exit 1; }

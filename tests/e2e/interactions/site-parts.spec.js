@@ -5,7 +5,7 @@
 const {
 	expect,
 	getCanvasEditor,
-	getModeToggle,
+	pickCanvasMode,
 	getSitePreview,
 	test,
 	visitEditor,
@@ -57,14 +57,7 @@ test.describe( 'Header and footer interactions', () => {
 		} ) => {
 			await visitEditor( page, '/design/footer' );
 
-			// The screen has no Compose, so the mode is picked here rather
-			// than with `setCanvasMode`, which looks for it.
-			const radio = getModeToggle( page ).getByRole( 'radio', {
-				name: mode,
-			} );
-
-			await expect( radio ).toBeEnabled( { timeout: 15000 } );
-			await radio.click();
+			await pickCanvasMode( page, mode );
 
 			const frame = getFrame( page );
 
@@ -85,6 +78,7 @@ test.describe( 'Header and footer interactions', () => {
 		page,
 	} ) => {
 		await visitEditor( page, '/design/footer' );
+		await pickCanvasMode( page, 'Browse' );
 
 		const frame = getSitePreview( page );
 

@@ -168,7 +168,8 @@ test.describe( 'Choose a pattern', () => {
 		const id = await createEmptyPage( rest );
 
 		await visitEditor( page, `/types/page/list/all?previewId=${ id }` );
-		await expectCanvasMode( page, 'Browse' );
+		// The canvas opens in Edit, where the modal would show.
+		await expectCanvasMode( page, 'Edit' );
 
 		await expectStartPatternsClosed( page );
 	} );

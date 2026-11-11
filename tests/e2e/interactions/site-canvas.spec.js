@@ -8,7 +8,7 @@ const {
 	expectBlockEditor,
 	expectCanvasMode,
 	getCanvasEditor,
-	getModeToggle,
+	getBrowseSwitch,
 	getZoomOutToggle,
 	getRoute,
 	getSitePreview,
@@ -26,7 +26,9 @@ test.describe( 'Site canvas interactions', () => {
 		page,
 	} ) => {
 		await visitEditor( page );
-		await expectCanvasMode( page, 'Browse' );
+		// The canvas opens in Edit.
+		await expectCanvasMode( page, 'Edit' );
+		await setCanvasMode( page, 'Browse' );
 
 		const preview = getSitePreview( page );
 		const frame = page.frameLocator( 'iframe[title="Site preview"]' );
@@ -54,29 +56,36 @@ test.describe( 'Site canvas interactions', () => {
 		).toBeVisible();
 	} );
 
-	test( 'Browse and Edit are a toggle; Compose is offered while editing', async ( {
+	test( 'Browse is a switch; Compose is offered while editing a page', async ( {
 		page,
+		rest,
 	} ) => {
-		await visitEditor( page );
+		// Only pages have sections to compose, not the posts list's layout.
+		const testPage = await rest.createPage();
 
-		const toggle = getModeToggle( page );
+		await visitEditor(
+			page,
+			`/types/page/list/all?previewId=${ testPage.id }`
+		);
+		await expect(
+			page.locator( '.cnl-editor-homepage-document__title' )
+		).toHaveText( testPage.title, { timeout: 15000 } );
+
+		const browseSwitch = getBrowseSwitch( page );
 		const zoomOut = getZoomOutToggle( page );
 
-		await expect(
-			toggle.getByRole( 'radio', { name: 'Browse' } )
-		).toBeChecked();
+		await setCanvasMode( page, 'Browse' );
+		await expect( browseSwitch ).toBeChecked();
 		await expect( zoomOut ).toHaveCount( 0 );
 
 		await setCanvasMode( page, 'Edit' );
 		await expect( zoomOut ).toBeVisible( { timeout: 15000 } );
 		await expect( zoomOut ).toHaveAttribute( 'aria-pressed', 'false' );
 
-		// Compose is editing from further away: the toggle stays on Edit.
+		// Compose is editing from further away: Browse stays off.
 		await zoomOut.click();
 		await expectCanvasMode( page, 'Compose' );
-		await expect(
-			toggle.getByRole( 'radio', { name: 'Edit' } )
-		).toBeChecked();
+		await expect( browseSwitch ).not.toBeChecked();
 
 		// Escape, with nothing picked, steps back in to Edit.
 		await page.keyboard.press( 'Escape' );
@@ -87,14 +96,14 @@ test.describe( 'Site canvas interactions', () => {
 		page,
 	} ) => {
 		await visitEditor( page );
-		await setCanvasMode( page, 'Edit' );
+		await setCanvasMode( page, 'Browse' );
 
 		await openSidebarLink( page, 'Pages' );
 		await expect.poll( () => getRoute( page ) ).toMatch( /^\/types\/page/ );
-		await expectCanvasMode( page, 'Edit' );
+		await expectCanvasMode( page, 'Browse' );
 
 		await page.reload();
-		await expectCanvasMode( page, 'Browse' );
+		await expectCanvasMode( page, 'Edit' );
 	} );
 
 	test( 'leaving Edit with unsaved changes asks to save them', async ( {
@@ -185,7 +194,7 @@ test.describe( 'Site canvas interactions', () => {
 		const frame = page.frameLocator( 'iframe[title="Site preview"]' );
 
 		await expect( title ).toHaveText( source.title, { timeout: 15000 } );
-		await expectCanvasMode( page, 'Browse' );
+		await setCanvasMode( page, 'Browse' );
 		await expect( title ).toHaveText( source.title );
 		await expect( meta ).toHaveText( 'Page · Published' );
 		await expect( back ).toBeDisabled();

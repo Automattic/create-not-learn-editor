@@ -22,7 +22,7 @@ test.describe( 'Menus views', () => {
 		const stage = getStage( page );
 
 		await expect(
-			stage.getByRole( 'heading', { name: 'Menus' } )
+			stage.getByRole( 'heading', { name: 'Menus', exact: true } )
 		).toBeVisible( { timeout: 15000 } );
 		await expect(
 			stage.getByText( /Choose which on the Pages screen/ )
@@ -81,7 +81,7 @@ test.describe( 'Menus views', () => {
 		const stage = getStage( page );
 
 		await expect(
-			stage.getByRole( 'heading', { level: 2, name: menu.title } )
+			stage.getByRole( 'heading', { level: 1, name: menu.title } )
 		).toBeVisible( { timeout: 15000 } );
 		// It says it's an auto menu, and shows the pages it lists.
 		await expect(

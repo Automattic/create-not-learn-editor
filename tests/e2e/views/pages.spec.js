@@ -3,7 +3,6 @@ const {
 	getEditorCanvas,
 	expectCanvasMode,
 	getPageItem,
-	getSitePreview,
 	getStage,
 	openPageLayouts,
 	setCanvasMode,
@@ -41,11 +40,8 @@ test.describe( 'Pages view', () => {
 			} )
 		).toBeAttached();
 
-		// The site is on show in Browse before any page is picked.
-		await expect( getSitePreview( page ) ).toBeVisible( {
-			timeout: 15000,
-		} );
-		await expectCanvasMode( page, 'Browse' );
+		// The site is open in Edit before any page is picked.
+		await expectCanvasMode( page, 'Edit' );
 	} );
 
 	test( 'shows a page’s summary, with its layout and details a step in', async ( {
@@ -177,9 +173,9 @@ test.describe( 'Pages view', () => {
 		await visitEditor( page, '/types/page' );
 
 		// One Homepage row, in the menu or out of it, whatever it shows.
-		await expect( getPageItem( page, 'Homepage' ) ).toHaveCount( 1, {
-			timeout: 15000,
-		} );
+		await expect(
+			stage.getByRole( 'button', { name: 'Options for Homepage' } )
+		).toHaveCount( 1, { timeout: 15000 } );
 
 		await stage
 			.getByRole( 'button', { name: 'Page options', exact: true } )
@@ -217,13 +213,16 @@ test.describe( 'Pages view', () => {
 			stage.getByText( /Layouts decide how your pages are arranged/ )
 		).toBeVisible();
 		await expect(
-			stage.locator( '.routes-post-list__template-card' ).first()
+			stage
+				.getByRole( 'list', { name: 'Layouts' } )
+				.getByRole( 'button' )
+				.first()
 		).toBeVisible( { timeout: 15000 } );
 		await expect(
 			stage.locator( '.routes-post-list__dataviews-toolbar' )
 		).toHaveCount( 0 );
 		await expect(
-			stage.getByRole( 'button', { name: 'See all layouts.' } )
+			stage.getByRole( 'button', { name: 'view all Page layouts' } )
 		).toBeVisible();
 	} );
 } );
