@@ -7,7 +7,7 @@ const {
 	expectBlockEditor,
 	getRoute,
 	getPageItem,
-	getSitePreview,
+	getCanvasEditor,
 	getStage,
 	openSidebarLink,
 	test,
@@ -26,7 +26,8 @@ test( 'every main screen loads without errors', async ( { page, rest } ) => {
 		await expect(
 			page.getByRole( 'heading', { level: 1, name: 'Home' } )
 		).toBeVisible();
-		await expect( getSitePreview( page ) ).toBeVisible( {
+		// The canvas opens in Edit.
+		await expect( getCanvasEditor( page ) ).toBeVisible( {
 			timeout: 15000,
 		} );
 	} );

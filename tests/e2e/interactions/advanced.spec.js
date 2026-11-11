@@ -7,7 +7,7 @@ const {
 	getRoute,
 	getStage,
 	getCanvasEditor,
-	getModeToggle,
+	pickCanvasMode,
 	openSidebarLink,
 	test,
 	visitEditor,
@@ -49,18 +49,13 @@ function getPatternBlockModes( page ) {
 }
 
 /**
- * Open Posts' Layouts in Edit. Not with `setCanvasMode`, which reads Zoom
- * out, and a layout has no Zoom out.
+ * Open Posts' Layouts in Edit.
  *
  * @param {import('@playwright/test').Page} page
  */
 async function editPostLayout( page ) {
 	await visitEditor( page, POST_LAYOUTS );
-
-	const edit = getModeToggle( page ).getByRole( 'radio', { name: 'Edit' } );
-
-	await expect( edit ).toBeEnabled( { timeout: 15000 } );
-	await edit.click();
+	await pickCanvasMode( page, 'Edit' );
 	await expect( getCanvasEditor( page ) ).toBeVisible( { timeout: 15000 } );
 }
 

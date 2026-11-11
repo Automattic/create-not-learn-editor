@@ -1,0 +1,204 @@
+name: CI
+
+# Checks every pull request, and trunk after each merge, so agents and people
+# read the results here rather than running everything locally.
+#
+# - `checks` builds, lints, checks the vendored ListView, lints PHP and runs the
+#   unit tests.
+# - `e2e` runs the Playwright suite over six shards, each with a wp-env of its
+#   own. Tests run one at a time on each site, as they share its data, so
+#   more shards is how to make the suite faster.
+# - A pull request that only changes docs or other files that can't change a
+#   test's result skips e2e, which counts as passing.
+#
+# Branch protection on trunk requires `checks` and `e2e-result`, so a pull
+# request can't merge while either fails. `e2e-result` is the one check to
+# require for e2e, so the shard count can change without editing the rule.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - trunk
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Build, lint and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+
+      - name: Check vendored ListView
+        run: npm run check:list-view
+
+      - name: Lint JS
+        run: npm run lint:js
+
+      - name: Lint CSS
+        run: npm run lint:css
+
+      - name: Lint PHP
+        run: |
+          find . -path ./node_modules -prune -o -path ./build -prune -o -path ./.wp-env -prune -o -name '*.php' -print0 \
+            | xargs -0 -n1 php -l > /dev/null
+
+      - name: Unit tests
+        run: npm run test:unit
+
+  # Starts from every file and leaves out what can't change an e2e result, so
+  # a new folder is tested until someone decides otherwise.
+  changes:
+    name: Detect changes relevant to e2e
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      relevant: ${{ github.event_name != 'pull_request' || steps.filter.outputs.relevant == 'true' }}
+    steps:
+      - name: Check for changes that may change e2e results
+        id: filter
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v4
+        with:
+          predicate-quantifier: every
+          filters: |
+            relevant:
+              - '**'
+              - '!**/*.md'
+              - '!docs/**'
+              - '!demos/**'
+              - '!tests/unit/**'
+              - '!**/test/**'
+              - '!.github/!(workflows)/**'
+              - '!.github/workflows/!(ci.yml)'
+
+  e2e:
+    name: E2E (${{ matrix.shard }}/6)
+    needs: changes
+    if: needs.changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [ 1, 2, 3, 4, 5, 6 ]
+    env:
+      WP_BASE_URL: http://localhost:8889
+    steps:
+      # Outside the checkout: actions/cache refuses paths with `..` in them.
+      - name: Point wp-env at the cached downloads
+        run: echo "CNL_WP_ENV_CACHE=$RUNNER_TEMP/wp-env-cache" >> "$GITHUB_ENV"
+
+
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        run: npm run build
+
+      # The versions live in scripts/wp-env.mjs, so a change there downloads
+      # them afresh.
+      - name: Restore wp-env sources
+        id: wp-env-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/wp-env-cache
+          key: wp-env-${{ hashFiles('scripts/wp-env.mjs') }}
+
+      # The runner already has the system libraries headless Chromium needs,
+      # so only the browser is installed, and kept between runs. `--with-deps`
+      # would apt-get them again in every shard, which takes minutes.
+      - name: Cache Playwright's browser
+        id: playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright's browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --only-shell chromium
+
+      # Downloads now and then fail part way, so it tries again.
+      - name: Start wp-env
+        run: |
+          for attempt in 1 2 3; do
+            npm run wp-env start && exit 0
+            echo "::warning::wp-env start failed (attempt $attempt), retrying"
+            sleep 10
+          done
+          exit 1
+
+      # Saved as soon as wp-env is up, so a failing test still keeps the
+      # downloads for the next run.
+      - name: Save wp-env sources
+        if: steps.wp-env-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        continue-on-error: true
+        with:
+          path: ${{ runner.temp }}/wp-env-cache
+          key: wp-env-${{ hashFiles('scripts/wp-env.mjs') }}
+
+      - name: Run e2e tests
+        run: npx playwright test --shard=${{ matrix.shard }}/6 --reporter=list
+
+      - name: Upload failure traces
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-results-${{ matrix.shard }}
+          path: test-results/
+          retention-days: 7
+
+  # One check for branch protection to require, whatever the shard count.
+  # Passes when e2e was skipped because nothing relevant changed.
+  e2e-result:
+    name: E2E
+    if: always()
+    needs: [ changes, e2e ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check every shard passed
+        env:
+          RELEVANT: ${{ needs.changes.outputs.relevant }}
+          RESULT: ${{ needs.e2e.result }}
+        run: |
+          if [ "$RELEVANT" != "true" ]; then
+            echo "No changes that could affect e2e tests."
+            exit 0
+          fi
+          [ "$RESULT" = "success" ] || { echo "::error::E2E shards: $RESULT"; exit 1; }

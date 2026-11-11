@@ -2,6 +2,7 @@ const {
 	expect,
 	expectCanvasMode,
 	getSitePreview,
+	setCanvasMode,
 	getStage,
 	openSidebarLink,
 	test,
@@ -18,8 +19,9 @@ test.describe( 'Home view', () => {
 		await expect(
 			page.getByRole( 'heading', { level: 1, name: 'Home' } )
 		).toBeVisible();
+		// The site's address links to the live site.
 		await expect(
-			page.getByRole( 'link', { name: /View site/ } )
+			page.getByRole( 'link', { name: /opens in a new tab/ } ).first()
 		).toHaveAttribute( 'target', '_blank' );
 
 		const links = page.getByRole( 'navigation', {
@@ -70,16 +72,18 @@ test.describe( 'Home view', () => {
 		expect( await getHeights() ).toEqual( before );
 	} );
 
-	test( 'opens the homepage in Browse', async ( { page } ) => {
+	test( 'opens the homepage, and shows it in Browse', async ( { page } ) => {
 		await page.setViewportSize( { height: 1003, width: 2048 } );
 
 		const toolbar = page.locator( '.cnl-editor-homepage-toolbar' );
 		const document = toolbar.locator( '.cnl-editor-homepage-document' );
 
+		// The canvas opens in Edit; Browse is a switch away.
+		await expectCanvasMode( page, 'Edit' );
+		await setCanvasMode( page, 'Browse' );
 		await expect( getSitePreview( page ) ).toBeVisible( {
 			timeout: 15000,
 		} );
-		await expectCanvasMode( page, 'Browse' );
 		await expect(
 			toolbar.getByRole( 'group', { name: 'Preview history' } )
 		).toBeVisible();

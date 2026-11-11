@@ -370,14 +370,14 @@ test.describe( 'Pages interactions', () => {
 		await visitEditor( page, '/types/page' );
 
 		const stage = getStage( page );
-		const canvas = page.locator( '.cnl-editor-canvas' );
 
 		await openPageLayouts( page );
 		await expect( page ).toHaveURL( /content%3Dtemplates/ );
 
 		// Picking a layout previews it, styled by the theme.
 		await stage
-			.locator( '.routes-post-list__template-card' )
+			.getByRole( 'list', { name: 'Layouts' } )
+			.getByRole( 'button' )
 			.first()
 			.click();
 		await expect
@@ -399,10 +399,13 @@ test.describe( 'Pages interactions', () => {
 			.getByRole( 'link', { name: 'Pages' } )
 			.click();
 		await openPageLayouts( page );
-		await canvas.getByRole( 'button', { name: 'More options' } ).click();
+		// The advanced editor is in the top bar's Options menu.
+		await page
+			.getByRole( 'button', { name: 'Options', exact: true } )
+			.click();
 
 		const openFull = page.getByRole( 'menuitem', {
-			name: 'Open in full editor',
+			name: /Open in advanced editor/,
 		} );
 
 		await expect( openFull ).toBeEnabled( { timeout: 15000 } );

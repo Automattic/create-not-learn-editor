@@ -154,7 +154,7 @@ function getURL( baseURL, target ) {
 
 async function login( baseURL ) {
 	mkdirSync( path.dirname( STORAGE_STATE_PATH ), { recursive: true } );
-	await globalSetup( { projects: [ { use: { baseURL } } ] } );
+	await globalSetup.logIn( baseURL );
 }
 
 /**

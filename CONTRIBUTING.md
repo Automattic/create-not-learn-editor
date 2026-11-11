@@ -90,15 +90,17 @@ Generated `build/` assets and plugin zips are intentionally ignored by git. The 
 
 ## Verification
 
-Before handing off functional changes, run:
+[The CI workflow](.github/workflows/ci.yml) runs on every pull request. One job builds, lints JS, CSS and PHP, checks the ListView bridge and runs the unit tests. The other runs the end-to-end tests over six shards, each with its own `wp-env`. Pull requests that only change docs skip the end-to-end tests. Trunk only takes a pull request once both pass.
+
+Before pushing, run the quick checks locally:
 
 ```sh
 npm run build
-npm run check:list-view
 npm run lint:js
 npm run lint:css
-find . -path ./node_modules -prune -o -path ./build -prune -o -path ./.wp-env -prune -o -name '*.php' -print | xargs -n1 php -l
 ```
+
+Then let CI run the rest. `gh pr checks --watch` waits for the results, and `gh run view <run-id> --log-failed` shows only the steps that failed. A failed end-to-end shard uploads its screenshots and traces as an artifact. Run a single end-to-end spec locally when you are fixing it, rather than the whole suite.
 
 When checking runtime behavior, start `wp-env` with explicit local ports and visit:
 

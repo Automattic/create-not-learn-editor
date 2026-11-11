@@ -68,15 +68,15 @@ Check the UI with `npm run ui` by default, and fall back to the browser MCP only
 
 ## Verification Expectations
 
-Before handing off code changes, run:
+CI (`.github/workflows/ci.yml`) runs the build, lints, ListView check, PHP lint, unit tests and the sharded e2e suite on every pull request, and trunk requires them to pass. Don't run the full e2e suite locally; it is slow and costs tokens.
 
-```sh
-npm run build
-npm run check:list-view
-npm run lint:js
-npm run lint:css
-find . -path ./node_modules -prune -o -path ./build -prune -o -path ./.wp-env -prune -o -name '*.php' -print | xargs -n1 php -l
-```
+Before handing off code changes:
+
+1. Run the quick checks locally: `npm run build`, `npm run lint:js` and `npm run lint:css`.
+2. Run only the e2e specs that cover what you changed, against the `wp-env` tests site, e.g. `WP_BASE_URL=http://localhost:<tests-port> npx playwright test tests/e2e/interactions/compose.spec.js`.
+3. Once the branch is pushed, wait with `gh pr checks --watch` and, if something fails, read just `gh run view <run-id> --log-failed`. Fix and push again until the checks pass.
+
+A change that alters behaviour a test checks must update that test in the same pull request.
 
 For runtime checks, use the `wp-env` instance above.
 

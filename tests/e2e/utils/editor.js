@@ -141,13 +141,15 @@ function getSitePreview( page ) {
 const CANVAS_MODES = [ 'Browse', 'Edit', 'Compose' ];
 
 /**
- * The site canvas's Browse | Edit toggle.
+ * The site canvas's Browse switch: on shows the saved site, off edits it.
  *
  * @param {import('@playwright/test').Page} page
- * @return {import('@playwright/test').Locator} The toggle.
+ * @return {import('@playwright/test').Locator} The switch.
  */
-function getModeToggle( page ) {
-	return page.locator( '.cnl-site-canvas__mode-toggle' );
+function getBrowseSwitch( page ) {
+	return page
+		.locator( '.cnl-site-canvas__browse-toggle' )
+		.getByRole( 'checkbox', { name: 'Browse' } );
 }
 
 /**
@@ -165,7 +167,7 @@ async function openViewMenu( page ) {
 		await toggle.click();
 	}
 
-	const menu = page.getByRole( 'menu' );
+	const menu = page.getByRole( 'menu', { name: 'View' } );
 
 	await expect( menu ).toBeVisible();
 
@@ -185,7 +187,7 @@ async function closeViewMenu( page ) {
 		await toggle.click();
 	}
 
-	await expect( page.getByRole( 'menu' ) ).toHaveCount( 0 );
+	await expect( page.getByRole( 'menu', { name: 'View' } ) ).toHaveCount( 0 );
 }
 
 /**
@@ -200,24 +202,24 @@ function getZoomOutToggle( page ) {
 
 /**
  * The mode the site canvas is in, from its controls: Browse or Edit from the
- * toggle, and Compose when Zoom out is pressed.
+ * Browse switch, and Compose when Zoom out is pressed.
  *
  * @param {import('@playwright/test').Page} page
  * @return {Promise<?string>} `Browse`, `Edit` or `Compose`.
  */
 async function getCanvasMode( page ) {
-	const toggle = getModeToggle( page );
-
-	if (
-		( await toggle
-			.getByRole( 'radio', { name: 'Browse' } )
-			.getAttribute( 'aria-checked' ) ) === 'true'
-	) {
+	if ( await getBrowseSwitch( page ).isChecked() ) {
 		return 'Browse';
 	}
 
-	return ( await getZoomOutToggle( page ).getAttribute( 'aria-pressed' ) ) ===
-		'true'
+	const zoomOut = getZoomOutToggle( page );
+
+	// Canvases without sections have no Zoom out, so no Compose.
+	if ( ( await zoomOut.count() ) === 0 ) {
+		return 'Edit';
+	}
+
+	return ( await zoomOut.getAttribute( 'aria-pressed' ) ) === 'true'
 		? 'Compose'
 		: 'Edit';
 }
@@ -247,15 +249,15 @@ async function pickCanvasMode( page, mode ) {
 		return;
 	}
 
-	const radio = getModeToggle( page ).getByRole( 'radio', {
-		name: mode === 'Browse' ? 'Browse' : 'Edit',
-	} );
+	const browseSwitch = getBrowseSwitch( page );
 
-	// Edit waits for there to be something to edit.
-	await expect( radio ).toBeEnabled( { timeout: 15000 } );
+	// Leaving Browse waits for there to be something to edit.
+	await expect( browseSwitch ).toBeEnabled( { timeout: 15000 } );
 
-	if ( current !== ( mode === 'Browse' ? 'Browse' : 'Edit' ) ) {
-		await radio.click();
+	// Clicked rather than checked, as the canvas may hold the switch back,
+	// to ask about unsaved changes first.
+	if ( ( mode === 'Browse' ) !== ( current === 'Browse' ) ) {
+		await browseSwitch.click();
 	}
 
 	if ( mode === 'Compose' ) {
@@ -594,7 +596,7 @@ module.exports = {
 	getEditorCanvas,
 	getFrameTexts,
 	getCanvasMode,
-	getModeToggle,
+	getBrowseSwitch,
 	getPageItem,
 	getZoomOutToggle,
 	getRoute,

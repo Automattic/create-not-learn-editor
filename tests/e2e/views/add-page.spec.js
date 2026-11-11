@@ -28,9 +28,8 @@ test.describe( 'Add a page view', () => {
 		await expect(
 			picker
 				.getByRole( 'navigation', { name: 'Page types' } )
-				.getByRole( 'button' )
-				.first()
-		).toHaveAttribute( 'aria-current', 'true' );
+				.locator( '[aria-current="true"]' )
+		).toHaveCount( 1 );
 		await expect(
 			picker.getByRole( 'radio', { name: 'Small previews' } )
 		).toBeChecked();

@@ -1,17 +1,13 @@
 /**
- * Writing mode, for posts: written rather than designed. Edit has no section
- * layer, so a click reaches the words. Zoom out is only offered once a post
- * has a container to arrange, and then each run of text between containers
- * is one section.
+ * Writing mode, for posts: written rather than designed. Posts aren't built
+ * from sections, so a click reaches the words and there is no Zoom out.
  */
 const {
 	expect,
 	getCanvasEditor,
-	getModeToggle,
+	pickCanvasMode,
 	getZoomOutToggle,
 	getSitePreview,
-	pointAtSection,
-	setCanvasMode,
 	test,
 	visitEditor,
 } = require( '../utils' );
@@ -19,10 +15,6 @@ const {
 function paragraph( words ) {
 	return `<!-- wp:paragraph --><p>${ words }</p><!-- /wp:paragraph -->`;
 }
-
-const GROUP = `<!-- wp:group {"style":{"spacing":{"padding":{"top":"200px","bottom":"200px"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group" style="padding-top:200px;padding-bottom:200px">${ paragraph(
-	'In a group'
-) }</div><!-- /wp:group -->`;
 
 /**
  * Open a post on the Home screen's site canvas, which follows the preview
@@ -37,6 +29,8 @@ async function openPost( page, rest, content ) {
 	const title = page.locator( '.cnl-editor-homepage-document__title' );
 
 	await visitEditor( page );
+	// Posts are reached by following a link in Browse.
+	await pickCanvasMode( page, 'Browse' );
 	await expect( getSitePreview( page ) ).toBeVisible( { timeout: 15000 } );
 	await expect(
 		page.locator( '.cnl-editor-preview-canvas__spinner' )
@@ -74,27 +68,6 @@ function getSelection( page ) {
 	} );
 }
 
-/**
- * The first words of each of the post's blocks, top to bottom.
- *
- * @param {import('@playwright/test').Page} page
- * @return {Promise<string[]>} The words, or a block's name without any.
- */
-function getBlockWords( page ) {
-	return page.evaluate( () => {
-		const store = window.wp.data.select( 'core/block-editor' );
-		const [ root ] = store.getBlocksByName( 'core/post-content' );
-
-		return store
-			.getBlocks( root )
-			.map( ( block ) =>
-				(
-					block.innerBlocks[ 0 ] || block
-				).attributes.content?.toString()
-			);
-	} );
-}
-
 test.describe( 'Writing mode', () => {
 	test( 'a post is edited without sections, and has nothing to zoom out to', async ( {
 		page,
@@ -106,11 +79,8 @@ test.describe( 'Writing mode', () => {
 			paragraph( 'The first paragraph' ) +
 				paragraph( 'The second paragraph' )
 		);
-		// Without Zoom out to read the mode from, Edit is waited for by its
-		// editor.
-		await getModeToggle( page )
-			.getByRole( 'radio', { name: 'Edit' } )
-			.click();
+		// Without Zoom out, Edit is waited for by its editor.
+		await pickCanvasMode( page, 'Edit' );
 		await expect( getCanvasEditor( page ) ).toBeVisible( {
 			timeout: 15000,
 		} );
@@ -120,7 +90,6 @@ test.describe( 'Writing mode', () => {
 				.getByText( 'The second paragraph' )
 		).toBeVisible();
 
-		await expect( page.locator( '.cnl-section-modes' ) ).toHaveCount( 0 );
 		await expect( getZoomOutToggle( page ) ).toHaveCount( 0 );
 		await expect(
 			page.locator( '.cnl-site-canvas__zoom-controls' )
@@ -142,60 +111,5 @@ test.describe( 'Writing mode', () => {
 				.contentFrame()
 				.locator( '.block-editor-warning' )
 		).toHaveCount( 0 );
-	} );
-
-	test( 'zoomed out, a post’s containers and runs of text are its sections', async ( {
-		page,
-		rest,
-	} ) => {
-		await openPost(
-			page,
-			rest,
-			paragraph( 'Opening words' ) +
-				paragraph( 'More opening words' ) +
-				GROUP +
-				paragraph( 'Closing words' )
-		);
-		await setCanvasMode( page, 'Compose' );
-
-		const canvas = getCanvasEditor( page ).contentFrame();
-		const bar = page.locator( '.cnl-section-modes__bar' );
-		// Pointed at again while the page settles from zooming out, which
-		// can move another section under the pointer.
-		const pointAt = ( words, name ) =>
-			expect( async () => {
-				await pointAtSection( page, canvas.getByText( words ) );
-				await expect(
-					page.locator( '.cnl-section-modes__tab' )
-				).toHaveText( name, { timeout: 1000 } );
-			} ).toPass( { timeout: 15000 } );
-
-		// The opening run of text is one section, with no design of its own.
-		await pointAt( 'More opening words', 'Text' );
-		await expect(
-			bar.getByRole( 'button', { name: 'Edit design' } )
-		).toHaveCount( 0 );
-
-		// The group is a section, designed as on a page, and moves up past
-		// the whole run of text at once.
-		await pointAt( 'In a group', 'In a group' );
-		await expect(
-			bar.getByRole( 'button', { name: 'Edit design' } )
-		).toBeVisible();
-		/*
-		 * Pressed without moving the pointer: zoomed out, the sections are
-		 * small, and the pointer would cross others on its way to the bar.
-		 */
-		await bar
-			.getByRole( 'button', { name: 'Move section up' } )
-			.evaluate( ( button ) => button.click() );
-		await expect
-			.poll( () => getBlockWords( page ) )
-			.toEqual( [
-				'In a group',
-				'Opening words',
-				'More opening words',
-				'Closing words',
-			] );
 	} );
 } );
