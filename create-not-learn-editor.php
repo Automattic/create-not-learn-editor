@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Create Not Learn Editor
  * Description: A standalone experimental site editor built on released WordPress and Gutenberg editor packages.
- * Version: 0.4.0
+ * Version: 0.5.0
  * Requires at least: 7.0
  * Requires PHP: 7.4
  * Requires Plugins: gutenberg
@@ -15,7 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CNL_EDITOR_VERSION', '0.4.0' );
+define( 'CNL_EDITOR_VERSION', '0.5.0' );
 define( 'CNL_EDITOR_MIN_GUTENBERG_VERSION', '24.0.0' );
 define( 'CNL_EDITOR_FILE', __FILE__ );
 define( 'CNL_EDITOR_PATH', plugin_dir_path( __FILE__ ) );
