@@ -90,6 +90,25 @@ Every release keeps its own links, so testers can stay on one while trunk moves 
 
 `scripts/playground-build.sh` puts the files for each kind of demo together.
 
+## Rules for changing the demos
+
+### Mainstay and the seed
+
+- Mainstay is the only theme `.wp-env.json` adds, and the default theme on the development site. The tests site runs WordPress's bundled default theme, because wp-env doesn't activate themes. Mainstay is not part of the plugin and is not in the plugin zip.
+- Keep `scripts/demo-site/seed.php` additive and idempotent. It must never overwrite content someone has changed, and it only touches the development site, not the tests site.
+- Section colours in Compose come from the theme's `styles/sections/*.json` block style variations, which must set colours. Header and footer layouts are patterns with `Block Types: core/template-part/header` or `core/template-part/footer`.
+- Bundled photos are CC0 (StockSnap) and fonts are OFL. Credit new ones in `themes/mainstay/readme.txt`.
+
+### Blueprints
+
+- Keep blueprints and other Playground demo files in `demos/`. The seed scripts stay in `scripts/demo-site/` because wp-env runs them too.
+- Keep WooCommerce out of every blueprint but the shop one, and the AI plugin out of every blueprint but the AI one, so the others stay what the editor needs.
+- `demos/blueprint-ai.json` pins the AI plugin's version, as `includes/plugin-compat.php` adapts that version's WebMCP tools through its filters. Check those filters before moving the version on.
+- Anything a demo needs at runtime must be in the plugin zip, the Mainstay theme, `scripts/demo-site/seed.php` or `demos/playground-canvas-fix.php`, as those are all the blueprint gets. The blank site gets only the plugin zip and the canvas fix, so the editor must work on a site it hasn't seeded. The shop demo also gets WooCommerce from wordpress.org and `scripts/demo-site/seed-shop.php`.
+- `demos/playground-canvas-fix.php` is a demo-only must-use plugin that stops the edit canvas staying blank in Playground. See its docblock. It never ships in the plugin.
+- `scripts/playground-build.sh` generates the branch and release blueprints from the ones in `demos/`. It rewrites each blueprint's description and its `/playground-build/` URLs, so keep every description starting "The latest Create Not Learn Editor from trunk" and every URL pointing at `/playground-build/`. It leaves a blueprint on the WordPress beta when it pins a release's WordPress, as the Ipsum one needs.
+- Never commit to the `playground-build` branch, or create, push to or move `refs/playground/*` refs or `playground-v*` tags, by hand. The workflows own them.
+
 ## Plugin directory images
 
 `.wordpress-org/` holds the images for a WordPress.org plugin directory listing: the icon, the banner and screenshots, named the way the directory expects. They are not part of the plugin zip.

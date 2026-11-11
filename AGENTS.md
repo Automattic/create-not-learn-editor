@@ -4,16 +4,27 @@ This is a standalone WordPress plugin repo for Create Not Learn Editor.
 
 ## Documentation
 
-The README is for people trying the editor and explains the ideas behind it. The detail you need to work on the code lives elsewhere, so read these before making changes:
+The README is for people trying the editor and explains the ideas behind it. The detail you need to work on the code lives elsewhere. Read only the doc for the area you're changing, not all of them:
 
-- [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, building, scripts, verification, the repository layout and the design constraints.
+- [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, wp-env and its shared downloads, scripts, verification and the repository layout.
 - [docs/architecture.md](docs/architecture.md) covers the editor shell and routes, what is edited as sections and what as blocks, the visual theme, explicit site changes, the Gutenberg version check and opening in a workspace.
 - [docs/webmcp.md](docs/webmcp.md) covers the editor's WebMCP tools, the official AI plugin's tools alongside them, and how an agent connects.
-- [docs/demo-site-and-playground.md](docs/demo-site-and-playground.md) covers the demo seed, the shop and the Playground demos.
+- [docs/demo-site-and-playground.md](docs/demo-site-and-playground.md) covers the Mainstay theme, the demo seed, the shop and the Playground demos, and the rules for changing them. Read it before touching `themes/`, `scripts/demo-site/`, `demos/` or the Playground workflows.
 - [docs/editor-workarounds.md](docs/editor-workarounds.md) lists every reliance on private APIs or core internals. Add an entry there whenever you add one.
 - [docs/vendored-list-view.md](docs/vendored-list-view.md) covers the vendored ListView bridge.
+- Folders such as `src/editor-layer/`, `src/block-toolbar/` and `src/site-canvas/` have their own README. Read it when you work in that folder.
 
 Keep those files current when behaviour they describe changes. Keep the README to what the editor is, why it exists and how to try it.
+
+## Working Lean
+
+Every turn re-reads the whole conversation, so long sessions cost far more than short ones.
+
+- One task per session. When a PR merges, or the task changes, suggest that David starts a fresh session rather than carrying on in this one.
+- Search before reading. Read large files by line range around what search finds, rather than whole. Several files in `src/` are over 20KB.
+- Keep command output short. Pipe long output through `tail`, `head` or `grep`, and don't re-run a command just to see its output again.
+- Keep screenshots few and small. Clip them to the part that matters and save them under `.context/`.
+- Gutenberg's JavaScript source is in `node_modules/@wordpress/*/src`, and the Gutenberg plugin wp-env runs, PHP included, is in `~/.cache/create-not-learn-editor/wp-env/gutenberg-<version>/`. Look there rather than searching the web or the whole disk.
 
 ## Core Direction
 
@@ -43,56 +54,15 @@ Keep those files current when behaviour they describe changes. Keep the README t
 - `*.zip` plugin packages are generated and ignored by git.
 - Do not commit `node_modules/`, `build/`, or plugin zip files.
 - Run `npm run build` before runtime checks or `npm run plugin-zip`.
-- `.wp-env/sources/` is generated and ignored by git; see wp-env Sources below.
 
-## wp-env Sources
+## wp-env, Demos and Playground
 
-Always run wp-env through `npm run wp-env ...`, not the `wp-env` binary. `npm run wp-env` runs `scripts/wp-env.mjs`, which serves wp-env's downloads from a cache shared by every checkout before passing the command on.
-
-- Every checkout gets its own wp-env work directory, so letting wp-env download for itself means WordPress, Gutenberg and two PHPUnit clones per checkout. That is enough traffic to get throttled by wordpress.org and GitHub. Don't point `.wp-env.json` back at download URLs.
-- On `start`, the script fills the cache (`~/.cache/create-not-learn-editor/wp-env`, or `CNL_WP_ENV_CACHE`) with anything missing, then sets up `.wp-env/sources/`, which `.wp-env.json` points at. Gutenberg is a symlink into the cache. WordPress is copied into the checkout, because wp-env writes `wp-config.php` and uploads into it.
-- Versions live in `scripts/wp-env.mjs`, not `.wp-env.json`. Each version downloads once; to change one, update its `key` with its URL.
-- wp-env always runs `git fetch` in its PHPUnit clones. The script points them at a cached wordpress-develop clone, so that fetch stays local.
-- Keep the environment to what the editor needs: WordPress, Gutenberg, this plugin and the Mainstay theme. Optional plugins such as [Canvas](https://github.com/Automattic/canvas) belong in a local, git-ignored `.wp-env.override.json`, as CONTRIBUTING.md describes, not in `.wp-env.json`.
-
-## Demo Theme and Site
-
-- `themes/mainstay/` is a block theme built for this editor and the default theme on the `wp-env` development site. It is the only theme `.wp-env.json` adds; the tests site runs WordPress's bundled default theme, because wp-env doesn't activate themes. It is not part of the plugin and is not in the plugin zip.
-- `.wp-env.json` runs `scripts/setup-demo-site.mjs` after start. It runs `scripts/demo-site/seed.php` once per site (guarded by the `cnl_demo_site_version` option) to activate Mainstay and add the Fernhouse demo pages, posts and menu. Keep it additive and idempotent: never overwrite content someone has changed. It only touches the development environment, not the tests site.
-- Section colours in Compose come from the theme's `styles/sections/*.json` block style variations, which must set colours. Header and footer layouts are patterns with `Block Types: core/template-part/header` or `core/template-part/footer`.
-- Bundled photos are CC0 (StockSnap) and fonts are OFL; credit new ones in `themes/mainstay/readme.txt`.
-
-## Playground Demo
-
-- The README links each demo. `demos/blueprint.json` opens WordPress Playground on the Fernhouse demo site, and `demos/blueprint-blank.json` opens it on a blank site with no theme or content added, so it runs WordPress's default theme. `demos/blueprint-ipsum.json` opens it on a fresh site with the Ipsum theme and only Ipsum's demo posts, in the Writing workspace, on the WordPress beta, which Ipsum needs; `scripts/playground-build.sh` leaves a blueprint on the beta when it pins a release's WordPress. `demos/blueprint-shop.json` is the Fernhouse demo with WooCommerce and a demo shop added, and `demos/blueprint-ai.json` is the Fernhouse demo with the AI plugin and its WebMCP experiment turned on, landing in the Agent workspace; keep WooCommerce and the AI plugin out of the others, as they should stay what the editor needs. `demos/blueprint-ai.json` pins the AI plugin's version, as `includes/plugin-compat.php` adapts that version's WebMCP tools through its filters; check them before moving it on. Keep blueprints and other Playground demo files in `demos/`. The seed script stays in `scripts/demo-site/` because wp-env runs it too.
-- The blueprints install from the `playground-build` branch, which `.github/workflows/plugin-zip.yml` replaces on every push to `trunk`. Never commit to that branch by hand.
-- Every other branch publishes a demo to the ref `refs/playground/<branch>`, which is neither a branch nor a tag, and a `v*` tag publishes a release demo to a `playground-v*` tag that also pins WordPress to the `scripts/wp-env.mjs` version. `scripts/playground-build.sh` generates their blueprints from the ones in `demos/`. Keep each blueprint's description starting "The latest Create Not Learn Editor from trunk", as the script rewrites that too. Never create, push to or move `refs/playground/*` refs or `playground-v*` tags by hand. Keep the URLs in both blueprints pointing at `/playground-build/`, as that is what the script rewrites.
-- Keep the blueprints' Gutenberg version in step with `.wp-env.json`.
-- Anything the demo site needs at runtime must be in the plugin zip, the Mainstay theme, `scripts/demo-site/seed.php` or `demos/playground-canvas-fix.php`, as those are all the blueprint gets. The blank site gets only the plugin zip and the canvas fix, so the editor must work on a site it hasn't seeded. The shop demo also gets WooCommerce from wordpress.org and `scripts/demo-site/seed-shop.php`.
-- `demos/playground-canvas-fix.php` is a demo-only must-use plugin that stops the edit canvas staying blank in Playground. See its docblock. It never ships in the plugin.
-
-## Development Commands
-
-Use these commands from the repo root:
-
-```sh
-npm install
-npm run dev
-npm run build
-npm run check:list-view
-npm run lint:js
-npm run lint:css
-npm run plugin-zip
-npm run wp-env start -- --auto-port
-```
-
-`npm run dev` is the watch build. Stop it before finishing unless the user explicitly wants it left running.
-
-When developing, spin up a `wp-env` instance to preview changes rather than reasoning about behaviour from code alone. Pass the `--auto-port` flag when starting `wp-env` so it automatically picks available ports instead of colliding with other running environments; `wp-env start` prints the port it picked. Inspect the editor at:
-
-```text
-http://localhost:<port>/wp-admin/admin.php?page=create-not-learn-editor
-```
+- Always run wp-env through `npm run wp-env ...`, never the `wp-env` binary, and don't point `.wp-env.json` at download URLs. Versions live in `scripts/wp-env.mjs`. CONTRIBUTING.md explains the shared downloads.
+- Start it with `npm run wp-env start -- --auto-port`, which prints the port it picked, and preview changes there rather than reasoning about behaviour from code alone. The editor is at `http://localhost:<port>/wp-admin/admin.php?page=create-not-learn-editor`.
+- `npm run dev` is the watch build. Stop it before finishing unless David wants it left running.
+- `themes/mainstay/` and `scripts/demo-site/` are the development site's demo, not part of the plugin. Keep the seed additive and idempotent.
+- `demos/` holds the Playground blueprints. Never commit to the `playground-build` branch, or create, push to or move `refs/playground/*` refs or `playground-v*` tags, by hand.
+- Read [docs/demo-site-and-playground.md](docs/demo-site-and-playground.md) before changing any of these.
 
 ## Verification Expectations
 
@@ -106,7 +76,7 @@ npm run lint:css
 find . -path ./node_modules -prune -o -path ./build -prune -o -path ./.wp-env -prune -o -name '*.php' -print | xargs -n1 php -l
 ```
 
-For runtime checks, use the `wp-env` instance from Development Commands above.
+For runtime checks, use the `wp-env` instance above.
 
 ## Editor Architecture
 
@@ -129,6 +99,8 @@ For runtime checks, use the `wp-env` instance from Development Commands above.
 Import WordPress packages from `@wordpress/*` modules instead of reading them from `window.wp`. Build assets are generated by `@wordpress/build`, which writes the dependency metadata PHP needs to enqueue package scripts and script modules.
 
 Write components in JSX, not `createElement` calls. `@wordpress/build` only parses JSX in `.jsx` files, so any module containing JSX must use the `.jsx` extension; modules without JSX stay `.js`. The root `eslint.config.cjs` extends the `@wordpress/scripts` config so `.jsx` files are linted.
+
+Code comments explain why the code is as it is, briefly. The story of a feature's design, and how its parts fit together, goes in the folder's README or `docs/`, with a link from the code if it helps. Tidy over-long comments in code you're already changing, but don't sweep files just to trim them.
 
 Root `routes/*` files should stay thin re-export wrappers around the source route modules. Do not put substantive route implementation in the wrappers unless the build tool requires it.
 
