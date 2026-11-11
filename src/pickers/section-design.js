@@ -4,8 +4,8 @@
  * Shared by Compose's section toolbar and Edit's, so a section offers the
  * same choices wherever it is changed:
  *
- * - Its layouts are arrangements of the same content, for sections built from
- *   our layouts. See `src/layouts/variants.js`.
+ * - Its layouts are arrangements of the same content, then layouts made from
+ *   the content of any section. See `src/layouts/variants/index.js`.
  * - Its colours are the theme's section styles, or sets made from its palette
  *   for a theme without any, offered only where they can show and be read.
  *   See `src/site-canvas/compose/section-colors.js`.

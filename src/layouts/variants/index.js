@@ -16,19 +16,46 @@
  * moves things around: an image to another side or behind the text, more
  * or fewer items in a row.
  *
+ * After the families' arrangements come layouts made from the section's
+ * content (`./from-content`), which suit any section: stacked, centered, a
+ * picture moved or behind the text, text split in two, a card, more or fewer
+ * columns, and other grid shapes. Those a family already offers in its own
+ * way are left out, so the same change isn't offered twice.
+ *
  * Pure functions only: no React, no stores.
  */
+
+/**
+ * WordPress dependencies
+ */
+import { cloneBlock, createBlock } from '@wordpress/blocks';
+import { __ } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
  */
 import { cloneAll, isPlainGroup, isText, rebuild } from './blocks';
+import { arrangements as getContentLayouts } from './from-content';
 import { ALTERNATING_ROWS } from './families/alternating-rows';
 import { GALLERY, GRID } from './families/grid';
 import { IMAGE_AND_TEXT } from './families/image-and-text';
 
 // Layout families, tried in this order.
 const LAYOUTS = [ IMAGE_AND_TEXT, ALTERNATING_ROWS, GRID, GALLERY ];
+
+// The layouts made from content that each family already offers its own way:
+// a picture moved or behind, or how many sit in a row.
+const SAME_AS_FAMILY = new Map( [
+	[
+		IMAGE_AND_TEXT,
+		/^content:(picture-moved|split-left|split-right|cover)$/,
+	],
+	[ GRID, /^content:(columns-\d|grid-\d)$/ ],
+	[ GALLERY, /^content:(columns-\d|grid-\d)$/ ],
+] );
+
+// The section as it is, offered first when it isn't one of the arrangements.
+const AS_IT_IS = 'as-it-is';
 
 // How many wrapping groups to look through.
 const MAX_DEPTH = 3;
@@ -154,12 +181,81 @@ function arrange( family, state, candidate ) {
  * The arrangements for one place a layout could be.
  *
  * @param {Object} candidate Where.
- * @return {?Object} `{ current, options }`, or null.
+ * @return {?Object} `{ current, options, family }`, or null.
  */
 function getArrangements( candidate ) {
 	for ( const family of LAYOUTS ) {
 		const state = family.read( candidate.target );
 		const arrangements = state && arrange( family, state, candidate );
+
+		if ( arrangements ) {
+			return { ...arrangements, family };
+		}
+	}
+
+	return null;
+}
+
+/**
+ * A layout made from content as editor blocks, with fresh client IDs.
+ *
+ * @param {Object} block `{ name, attributes, innerBlocks }`.
+ * @return {Object} The block.
+ */
+function toBlock( block ) {
+	return createBlock(
+		block.name,
+		block.attributes,
+		( block.innerBlocks ?? [] ).map( toBlock )
+	);
+}
+
+/**
+ * A layout made from content with the section's metadata, as the families'
+ * arrangements keep it. Ito leaves out the pattern the section came from, as
+ * it is no longer that pattern, but here a section is known by it: Edit
+ * section and the section's colours look for it.
+ *
+ * @param {Object} layout  The layout's top block.
+ * @param {Object} section The section.
+ * @return {Object} The layout's top block, with the section's metadata.
+ */
+function withSectionMetadata( layout, section ) {
+	const { metadata } = section.attributes ?? {};
+
+	if ( ! metadata ) {
+		return layout;
+	}
+
+	return { ...layout, attributes: { ...layout.attributes, metadata } };
+}
+
+/**
+ * A block's name, attributes and inner blocks, without client IDs, to tell
+ * whether two arrangements would give the same blocks.
+ *
+ * @param {Object} block Block.
+ * @return {string} Its shape.
+ */
+function shapeOf( block ) {
+	return JSON.stringify( [
+		block.name,
+		block.attributes,
+		( block.innerBlocks ?? [] ).map( shapeOf ),
+	] );
+}
+
+/**
+ * The families' arrangements for a section, if any, without the layouts made
+ * from its content.
+ *
+ * @param {Object} block Section.
+ * @return {?Object} `{ current, options, family }`, or null. See
+ *                   `getSectionArrangements`.
+ */
+export function getFamilyArrangements( block ) {
+	for ( const candidate of getCandidates( block ) ) {
+		const arrangements = getArrangements( candidate );
 
 		if ( arrangements ) {
 			return arrangements;
@@ -175,23 +271,61 @@ function getArrangements( candidate ) {
  *
  * @param {Object} block A section block (from the block editor, with
  *                       clientId, name, attributes, innerBlocks).
- * @return {?Object} null when the section has no arrangements, else
- *   `{ current, options }`. Each option is `{ name, label, block }`, where
- *   `block` is the section rearranged that way, ready for `replaceBlock`.
- *   `current` is the name of the option the section matches now, or null.
+ * @return {?Object} null when the section has no arrangements, as when it
+ *   has no content, else `{ current, options }`. Each option is
+ *   `{ name, label, block }`, where `block` is the section rearranged that
+ *   way, ready for `replaceBlock`. `current` is the name of the option the
+ *   section matches now. When it matches none, the first option is the
+ *   section as it is, named `as-it-is`.
  */
 export function getSectionArrangements( block ) {
 	if ( ! Array.isArray( block?.innerBlocks ) ) {
 		return null;
 	}
 
-	for ( const candidate of getCandidates( block ) ) {
-		const arrangements = getArrangements( candidate );
+	const family = getFamilyArrangements( block );
+	const same = family && SAME_AS_FAMILY.get( family.family );
+	const options = family ? [ ...family.options ] : [];
+	const shapes = new Set(
+		[ block, ...options.map( ( o ) => o.block ) ].map( shapeOf )
+	);
 
-		if ( arrangements ) {
-			return arrangements;
+	for ( const layout of getContentLayouts( block ) ) {
+		const shape = shapeOf( layout.block );
+
+		if ( same?.test( layout.key ) || shapes.has( shape ) ) {
+			continue;
 		}
+
+		shapes.add( shape );
+		options.push( {
+			name: layout.key,
+			label: layout.label,
+			block: toBlock( withSectionMetadata( layout.block, block ) ),
+		} );
 	}
 
-	return null;
+	if ( ! options.length ) {
+		return null;
+	}
+
+	const current = family?.current ?? null;
+
+	if ( current ) {
+		return { current, options };
+	}
+
+	// Layouts made from content never include the one in use, so the section
+	// as it is comes first, and picking it changes nothing.
+	return {
+		current: AS_IT_IS,
+		options: [
+			{
+				name: AS_IT_IS,
+				label: __( 'As it is' ),
+				block: cloneBlock( block ),
+			},
+			...options,
+		],
+	};
 }
