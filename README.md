@@ -77,76 +77,56 @@ So it should feel familiar to anyone who knows WordPress, while staying easy for
 
 ### Optimise for new users
 
-The first thing anyone sees should be simple enough for someone meeting WordPress for the first time. WordPress serves a huge range of people, but an editor that's approachable for a newcomer is better for everyone, whatever their experience.
-
-You know this from other products. If something is too complicated to get started with, you give up. That's what WordPress does to a lot of people today, and it needs to change.
+The first screen should make sense to someone meeting WordPress for the first time. An editor that's approachable for newcomers is better for everyone.
 
 ### Use the words people use, not WordPress concepts
 
-The current Site Editor puts Templates and Patterns in front of you straight away. This editor leads with what people came to do, in their own words. Those words come from user research at Automattic.
+Labels describe what people came to do, based on user research at Automattic.
 
-- You edit your header and footer from Home, without going through template parts.
+- Edit the header and footer from Home, not through template parts.
 - Menus are called Menus, not Navigation.
-- Pages are made of sections, and you click "Add section" rather than inserting a pattern.
+- Pages are built from sections, with "Add section" rather than patterns.
 
-The system-level tools are all still there, under Advanced in the sidebar.
+Templates, patterns and the other system-level tools are still there, under Advanced.
 
 ### Reveal complexity when it's asked for
 
-An interface that's too complicated the first time you meet it will fail, whatever your experience. So every screen starts simple and shows more power when you ask for it.
-
-Page editing is a good example. You start by working with sections, and the full block tree and block tools are one step deeper in the toolbar. Nothing has been taken away. It just isn't the first thing you see.
-
-That does add some deliberate friction before you reach the full power of the block editor. A calmer first experience is worth it.
+Every screen starts simple and shows more on demand. Page editing starts with sections, and the full block tree and tools are one step deeper in the toolbar. That's some deliberate friction, in return for a calmer first experience.
 
 ### One objective, many routes
 
-User research found that people don't follow one path when they build a website. For example, some
-
-- start with the design
-- start with their content
-- want every page and menu in place before anything else
-
-So instead of a fixed onboarding flow, the editor gives you several routes to the same place. You can edit your header menu
+People don't follow one path when they build a site, so the editor offers several routes to each task. The header menu can be edited
 
 - on the canvas
 - from Pages & menu
 - from the Menus screen
-- from Home, then Header, then Menu
+- from Home, then Header
 
-Blocks aren't always the right tool for every job or every person either. Common tasks get focused, Customizer-like screens instead. In Menus, for example, you add pages, links and dropdowns in a familiar tree rather than adding blocks.
+Blocks aren't always the right tool either. Common tasks get focused, Customizer-like screens, like adding pages and links to a menu in a familiar tree.
 
 ### One default, many modes
 
-WordPress serves bloggers, site builders, shops and much more, and a blogger needs different defaults and tools to someone building a portfolio. Until now the editor has tried to serve all of them with one interface, and it has drifted towards the experienced site builder.
+One interface can't serve bloggers, site builders and shops equally well. Workspaces adapt the editor to what someone came to do.
 
-This editor uses workspaces instead. Each one adapts the interface to what someone came to do, not how much they know.
+- **Default** for building a site
+- **Writing** for bloggers
+- **Selling** for shops, when WooCommerce is active
+- **Builder** for agencies, developers and theme authors
+- **Agent** for letting an agent do the work on the canvas
 
-- **Default** is for building a site, which is what most people come to WordPress for.
-- **Writing** puts posts and writing first, for bloggers.
-- **Selling** puts the shop first, when WooCommerce is active.
-- **Builder** puts templates, template parts and patterns up front, for agencies, developers and theme authors who know what they've come to change.
-- **Agent** gives the canvas the room while an agent does the work.
-
-None of these is finished. The idea being tested is that one editor can have several expressions of the same tools, because one interface can't serve everyone equally well.
+None of them is finished yet.
 
 ### Keep public content in the editor
 
-WordPress has long asked people to jump between WP Admin and the editor to manage their content, including posts. That hurts the experience, because your content is a big part of building your website.
-
-So this editor brings everything public into the Site Editor. Posts, pages and other public post types are all under Content.
+Posts, pages and other public post types all live under Content, so there's no jumping back to WP Admin to manage them.
 
 ### Make room for plugins
 
-Plugins are where a lot of WordPress's power comes from, and also where a lot of the clutter in WP Admin comes from. This editor lets plugins register their own screens and routes, which get their own place in the sidebar. Any public post types they register appear under Content.
-
-That gives plugins such as WooCommerce a way to offer the kind of focused experience the current editor can't.
+Plugins can register their own screens in the sidebar, and their public post types appear under Content. That gives plugins such as WooCommerce room for a focused experience, without adding to the clutter in WP Admin.
 
 ### Show everything, with clear scope
 
-When you edit a page you should see it the way visitors do, with the header and footer in place. So they stay on the canvas while you edit.
-
-That makes it important to say when a change affects the whole site rather than just this page. Changes that reach every page, like the header, footer, menu, colours and fonts, are marked as site-wide.
+The header and footer stay on the canvas while you edit a page, so you see it the way visitors do. Changes that reach every page, like the header, menu, colours and fonts, are marked as site-wide.
 
 ## Built for an agent-ready WordPress
 
