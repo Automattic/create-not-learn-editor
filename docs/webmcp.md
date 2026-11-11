@@ -14,6 +14,10 @@ claude mcp add cnl-webmcp -- npx -y chrome-devtools-mcp@latest --categoryExperim
 
 Ask the agent to open the editor in that browser and log in. It can then list the page's tools with `list_webmcp_tools` and call them with `execute_webmcp_tool`.
 
+## Trying it in Playground
+
+The quickest way to try it is the [AI demo in Playground](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-ai.json), which needs nothing set up beyond Chrome DevTools MCP above. Give the agent the link and ask it to open it in its browser. Playground logs in and opens the editor in the Agent workspace, with the Fernhouse site, the AI plugin and both sets of tools ready. Playground passes on the site's tools along with tools of its own, named `playground_*`, which work on Playground rather than in the editor.
+
 ## Trying it locally
 
 On a development copy, map the AI plugin and the [MCP Adapter](https://wordpress.org/plugins/mcp-adapter/) into `wp-env` with a `.wp-env.override.json`, as [CONTRIBUTING.md](../CONTRIBUTING.md#trying-another-plugin-alongside-the-editor) describes. Then activate them and turn on the WebMCP experiment under Settings > AI:
