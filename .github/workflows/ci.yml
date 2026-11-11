@@ -103,8 +103,19 @@ jobs:
       - name: Build
         run: npm run build
 
+      # The runner already has the system libraries headless Chromium needs,
+      # so only the browser is installed, and kept between runs. `--with-deps`
+      # would apt-get them again in every shard, which takes minutes.
+      - name: Cache Playwright's browser
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Install Playwright's browser
-        run: npx playwright install --with-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --only-shell chromium
 
       - name: Start wp-env
         run: npm run wp-env start
