@@ -16,10 +16,12 @@
 # There is a blueprint for each demo in demos/: blueprint.json for the
 # Fernhouse demo site, blueprint-shop.json for the same site with WooCommerce
 # and a demo shop, blueprint-ai.json for the same site with the AI plugin's
-# WebMCP tools, for an agent to drive, and blueprint-blank.json for a blank
-# site on WordPress's default theme. Trunk uses them as they are. A branch or release gets copies of
-# its own, rewritten to install from <ref>. A release also pins WordPress to the
-# version wp-env runs, so it stays the same while WordPress moves on.
+# WebMCP tools, for an agent to drive, blueprint-blank.json for a blank
+# site on WordPress's default theme, and blueprint-ipsum.json for a fresh site
+# on the Ipsum theme with only its demo posts. Trunk uses them as they are. A
+# branch or release gets copies of its own, rewritten to install from <ref>. A
+# release also pins WordPress to the version wp-env runs, so it stays the same
+# while WordPress moves on, except for the Ipsum demo, which needs the beta.
 
 set -euo pipefail
 
@@ -53,14 +55,14 @@ wp=''
 case $kind in
 	trunk)
 		about="Do not edit or commit to this branch, it is replaced on every push to trunk."
-		files="[\`demos/blueprint.json\`](https://github.com/$repo/blob/trunk/demos/blueprint.json), [\`demos/blueprint-shop.json\`](https://github.com/$repo/blob/trunk/demos/blueprint-shop.json), [\`demos/blueprint-ai.json\`](https://github.com/$repo/blob/trunk/demos/blueprint-ai.json) and [\`demos/blueprint-blank.json\`](https://github.com/$repo/blob/trunk/demos/blueprint-blank.json)"
+		files="[\`demos/blueprint.json\`](https://github.com/$repo/blob/trunk/demos/blueprint.json), [\`demos/blueprint-shop.json\`](https://github.com/$repo/blob/trunk/demos/blueprint-shop.json), [\`demos/blueprint-ai.json\`](https://github.com/$repo/blob/trunk/demos/blueprint-ai.json), [\`demos/blueprint-blank.json\`](https://github.com/$repo/blob/trunk/demos/blueprint-blank.json) and [\`demos/blueprint-ipsum.json\`](https://github.com/$repo/blob/trunk/demos/blueprint-ipsum.json)"
 		;;
 	branch)
 		# Replaces the start of each blueprint's description, "The latest
 		# Create Not Learn Editor from trunk".
 		version="Create Not Learn Editor from the $name branch"
 		about="It is the Playground build of the [\`$name\`](https://github.com/$repo/tree/$name) branch, replaced on every push to it and deleted with it. Do not edit or commit to this ref."
-		files="[\`blueprint.json\`](blueprint.json), [\`blueprint-shop.json\`](blueprint-shop.json), [\`blueprint-ai.json\`](blueprint-ai.json) and [\`blueprint-blank.json\`](blueprint-blank.json)"
+		files="[\`blueprint.json\`](blueprint.json), [\`blueprint-shop.json\`](blueprint-shop.json), [\`blueprint-ai.json\`](blueprint-ai.json), [\`blueprint-blank.json\`](blueprint-blank.json) and [\`blueprint-ipsum.json\`](blueprint-ipsum.json)"
 		;;
 	release)
 		# Playground takes major versions, such as 7.1, not patch releases.
@@ -70,19 +72,27 @@ case $kind in
 			exit 1
 		fi
 		version="Create Not Learn Editor $name, on WordPress $wp"
+		beta_version="Create Not Learn Editor $name"
 		about="It is the Playground build of the \`$name\` release. Do not edit or move this tag."
-		files="[\`blueprint.json\`](blueprint.json), [\`blueprint-shop.json\`](blueprint-shop.json), [\`blueprint-ai.json\`](blueprint-ai.json) and [\`blueprint-blank.json\`](blueprint-blank.json)"
+		files="[\`blueprint.json\`](blueprint.json), [\`blueprint-shop.json\`](blueprint-shop.json), [\`blueprint-ai.json\`](blueprint-ai.json), [\`blueprint-blank.json\`](blueprint-blank.json) and [\`blueprint-ipsum.json\`](blueprint-ipsum.json)"
 		;;
 esac
 
 if [ "$kind" != trunk ]; then
-	for blueprint in demos/blueprint.json demos/blueprint-shop.json demos/blueprint-ai.json demos/blueprint-blank.json; do
+	for blueprint in demos/blueprint.json demos/blueprint-shop.json demos/blueprint-ai.json demos/blueprint-blank.json demos/blueprint-ipsum.json; do
 		target="$out/$(basename "$blueprint")"
+		blueprint_version=$version
+		blueprint_wp=$wp
+		# The Ipsum demo needs the WordPress beta, so a release leaves it there.
+		if [ "$(jq -r .preferredVersions.wp "$blueprint")" = beta ]; then
+			blueprint_version=${beta_version:-$version}
+			blueprint_wp=''
+		fi
 		jq --tab \
 			--arg ref "$ref" \
 			--arg name "$name" \
-			--arg version "$version" \
-			--arg wp "$wp" '
+			--arg version "$blueprint_version" \
+			--arg wp "$blueprint_wp" '
 				walk(if type == "string" then sub("/playground-build/"; "/\($ref)/") else . end)
 				| .meta.title = "\(.meta.title) (\($name))"
 				| .meta.description |= sub("^The latest Create Not Learn Editor from trunk"; $version)
@@ -93,7 +103,7 @@ if [ "$kind" != trunk ]; then
 			echo "$target still installs from the playground-build branch." >&2
 			exit 1
 		fi
-		if ! jq -e --arg version "$version" '.meta.description | startswith($version)' "$target" > /dev/null; then
+		if ! jq -e --arg version "$blueprint_version" '.meta.description | startswith($version)' "$target" > /dev/null; then
 			echo "The description in $blueprint must start \"The latest Create Not Learn Editor from trunk\"." >&2
 			exit 1
 		fi

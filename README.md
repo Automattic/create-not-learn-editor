@@ -20,6 +20,7 @@ It looks like WordPress and behaves like WordPress, because it's built from the 
 Each demo runs the latest build in your browser, with nothing to install.
 
 - [Blank website](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-blank.json) - default theme, no content
+- [Out of the box with Ipsum](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-ipsum.json) - a fresh site on [Ipsum](https://github.com/WordPress/ipsum), the proposed new default theme, with only its demo posts added, in the Writing workspace. It runs the WordPress beta, which Ipsum needs
 - [E-commerce site](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-shop.json) - may take a minute or two longer to load
 - [Driven by an AI agent](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/trunk/demos/blueprint-ai.json) - opens in the Agent workspace, for an agent to drive through WebMCP ([how to connect one](docs/webmcp.md#trying-it-in-playground))
 - Workspace demos
