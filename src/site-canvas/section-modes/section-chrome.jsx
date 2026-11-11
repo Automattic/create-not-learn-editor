@@ -122,13 +122,36 @@ export function getModes(
 }
 
 /**
- * What opening a header or footer is called: Edit header or Edit footer.
+ * A template part's name: Header or Footer for those areas, else its own,
+ * like Sidebar.
+ *
+ * @param {Object} part `{ area, title }` from `useComposeStructure`.
+ * @return {string} The name.
+ */
+export function getPartTitle( part ) {
+	if ( part.area === 'header' ) {
+		return __( 'Header' );
+	}
+
+	if ( part.area === 'footer' ) {
+		return __( 'Footer' );
+	}
+
+	return part.title || __( 'Template part' );
+}
+
+/**
+ * What opening a template part is called, like Edit header.
  *
  * @param {string} title The part's name, like Header.
  * @return {string} The words.
  */
 export function getPartModeLabel( title ) {
-	return title === __( 'Footer' ) ? __( 'Edit footer' ) : __( 'Edit header' );
+	return sprintf(
+		/* translators: %s: template part name, like header, lowercase. */
+		__( 'Edit %s' ),
+		title.toLowerCase()
+	);
 }
 
 /**
@@ -139,7 +162,7 @@ export function getPartModeLabel( title ) {
  */
 export function getSitewideText( title ) {
 	return sprintf(
-		/* translators: %s: header or footer, lowercase. */
+		/* translators: %s: template part name, like header, lowercase. */
 		__( 'Changes to the %s show on every page of your site' ),
 		title.toLowerCase()
 	);

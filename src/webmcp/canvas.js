@@ -29,7 +29,8 @@ import {
 	getSectionTitle,
 } from '../routes/content/pages/page-sections';
 import { MODE_EDIT, setCanvasMode } from '../site-canvas/mode';
-import { getWritingSections, groupsTextIn } from '../site-canvas/writing-mode';
+import { hasSections } from '../sections';
+import { getWritingSections } from '../site-canvas/writing-mode';
 
 export const NO_PAGE_OPEN =
 	"No page is open in the editor's canvas. Open one with cnl-open-page first.";
@@ -75,17 +76,19 @@ export function requireCanvas() {
 /**
  * The page's sections, in order.
  *
- * @param {Object} canvas              From `getCanvas`.
- * @param {string} canvas.postType     The page's type.
- * @param {string} canvas.rootClientId The section root.
+ * @param {Object}        canvas              From `getCanvas`.
+ * @param {number|string} canvas.postId       The page's ID.
+ * @param {string}        canvas.postType     The page's type.
+ * @param {string}        canvas.rootClientId The section root.
  * @return {Object[]} `{ clientIds, isText }` for each. A section is known by
- *                    its first block.
+ *                    its first block. Runs of text are grouped only in what
+ *                    is built from sections (`src/sections.js`).
  */
-export function getSections( { postType, rootClientId } ) {
+export function getSections( { postId, postType, rootClientId } ) {
 	const blockEditor = select( blockEditorStore );
 	const order = blockEditor.getBlockOrder( rootClientId );
 
-	if ( ! groupsTextIn( postType ) ) {
+	if ( ! hasSections( select, postType, postId ) ) {
 		return order.map( ( clientId ) => ( {
 			clientIds: [ clientId ],
 			isText: false,

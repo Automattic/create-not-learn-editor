@@ -6,12 +6,7 @@ import { describe, expect, it } from 'vitest';
 /**
  * Internal dependencies
  */
-import {
-	getBlockIndex,
-	getWritingSections,
-	groupsTextIn,
-	isWritingType,
-} from '../writing-mode';
+import { getBlockIndex, getWritingSections } from '../writing-mode';
 
 const NAMES = {
 	cover: 'core/cover',
@@ -25,24 +20,6 @@ const NAMES = {
 };
 
 const getName = ( clientId ) => NAMES[ clientId ];
-
-describe( 'isWritingType', () => {
-	it( 'puts posts in writing mode and leaves pages with sections', () => {
-		expect( isWritingType( 'post' ) ).toBe( true );
-		expect( isWritingType( 'page' ) ).toBe( false );
-		expect( isWritingType( 'wp_template' ) ).toBe( false );
-	} );
-} );
-
-describe( 'groupsTextIn', () => {
-	it( 'groups the text of posts and pages but not of layouts', () => {
-		expect( groupsTextIn( 'post' ) ).toBe( true );
-		expect( groupsTextIn( 'page' ) ).toBe( true );
-		expect( groupsTextIn( 'wp_template' ) ).toBe( false );
-		expect( groupsTextIn( 'wp_template_part' ) ).toBe( false );
-		expect( groupsTextIn( undefined ) ).toBe( false );
-	} );
-} );
 
 describe( 'getWritingSections', () => {
 	it( 'makes writing with no containers one section of text', () => {

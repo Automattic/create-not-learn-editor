@@ -1,27 +1,11 @@
 /**
- * Writing mode, for content that is written rather than designed, like a
- * blog post: paragraphs, headings and pictures one after another, not a page
- * of sections.
- *
- * In Edit, writing has no section layer, so its blocks are clicked and typed
- * into as they are. Zooming out is only offered once it has a container, like
- * a group or a cover, as there is nothing to arrange without one. Zoomed out,
- * each container is a section, and each run of blocks between them is one
- * section of text, grouped by the layer only, never in the saved content.
- *
- * For now the content types in writing mode are listed here. Later, a type
- * should say so itself when it is registered.
- *
- * Pages keep their sections, but their runs of text are grouped the same
- * way, in Edit too, so a page that is mostly words, like a privacy policy,
- * is one section of text rather than a section for every paragraph. A
- * layout isn't: its blocks are mostly a post's title, image and content.
+ * Runs of text in what is built from sections, like a page (see
+ * `src/sections.js`): paragraphs, headings and pictures one after another,
+ * grouped into one section of text between the containers, like a group or
+ * a cover, so a page that is mostly words, like a privacy policy, is one
+ * section of text rather than a section for every paragraph. Grouped by the
+ * layer only, never in the saved content.
  */
-
-const WRITING_POST_TYPES = [ 'post' ];
-
-// Content whose blocks are a layout's rather than its own words.
-const LAYOUT_POST_TYPES = [ 'wp_template', 'wp_template_part' ];
 
 /*
  * Blocks that hold a section of their own in writing. Anything else is part
@@ -37,22 +21,6 @@ const CONTAINER_BLOCKS = [
 	'core/query',
 	'core/template-part',
 ];
-
-/**
- * @param {?string} postType A content type.
- * @return {boolean} Whether it is in writing mode.
- */
-export function isWritingType( postType ) {
-	return WRITING_POST_TYPES.includes( postType );
-}
-
-/**
- * @param {?string} postType A content type.
- * @return {boolean} Whether its runs of text are grouped into sections.
- */
-export function groupsTextIn( postType ) {
-	return Boolean( postType ) && ! LAYOUT_POST_TYPES.includes( postType );
-}
 
 /**
  * @param {?string} name A block's name.

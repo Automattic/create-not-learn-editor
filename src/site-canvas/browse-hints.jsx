@@ -298,18 +298,21 @@ function EditNudge( { iframeRef, nudge, onClose, onEdit } ) {
 }
 
 /**
- * @param {Object} props
- * @param {Object} props.canvas Result of `useSiteCanvas`.
+ * @param {Object}  props
+ * @param {Object}  props.canvas      Result of `useSiteCanvas`.
+ * @param {boolean} props.hasSections Whether what is edited is built from
+ *                                    sections. Without, only its template
+ *                                    parts are hinted at.
  * @return {?Element} The hints, while browsing a page that can be edited.
  */
-export function BrowseHints( { canvas } ) {
+export function BrowseHints( { canvas, hasSections } ) {
 	const { canEdit, frame, isEditorReady, isPreviewing, requestMode } = canvas;
 	const { frameDocument } = frame;
 	const iframeRef = frame.frameProps.ref;
 	// Sections are found in the editor, so only once it has the page open.
 	const isActive =
 		isPreviewing && canEdit && isEditorReady && Boolean( frameDocument );
-	const { parts, sectionIds } = useComposeStructure();
+	const { parts, sectionIds } = useComposeStructure( { hasSections } );
 	const partIds = useMemo(
 		() => new Set( parts.map( ( part ) => part.clientId ) ),
 		[ parts ]

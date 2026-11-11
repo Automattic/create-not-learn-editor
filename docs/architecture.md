@@ -48,6 +48,52 @@ The current routes are:
 
 Home and Content currently include visible placeholder canvases. They are deliberately simple surfaces so the boot frame, routing, menu, and content list behavior can be developed before replacing the placeholders with richer previews.
 
+## Sections or blocks
+
+Section editing is Add section, Edit design, the section bars and Compose. It is only for content built from sections. Everything else is edited block by block with core's own tools, and core's inserter between blocks.
+
+Each post answers once whether it is built from sections, and everything in the editor that offers section editing asks that answer rather than checking post types itself. That covers the site canvas and its section layer, Browse's hints, the full-screen editor's section wording and starter designs, and the section options menu.
+
+### Deciding
+
+The answer comes from `includes/sections.php`.
+
+- A post type is built from sections when it supports `create-not-learn-editor-sections`. Pages do. Give the support to a post type built like pages.
+- The `create-not-learn-editor_has_sections` filter changes the answer for one post that differs from the rest of its type.
+- Layouts (templates) and template parts answer the same way, as the `wp_template` and `wp_template_part` post types. They don't support sections by default, so they are edited block by block. Either the support or the filter turns sections on for them.
+
+```php
+// A post type built like pages.
+add_post_type_support( 'landing_page', 'create-not-learn-editor-sections' );
+
+// Every layout, built from sections too.
+add_post_type_support( 'wp_template', 'create-not-learn-editor-sections' );
+
+// One post that isn't.
+add_filter(
+	'create-not-learn-editor_has_sections',
+	function ( $has_sections, $post ) {
+		return $post instanceof WP_Post && 42 === $post->ID ? false : $has_sections;
+	},
+	10,
+	2
+);
+```
+
+The filter gets a `WP_Post`, or a `WP_Block_Template` for a layout or template part that is still only in the theme's files.
+
+Defaults are only defaults. The editor never rules a post type in or out itself, so anything it does by default can be changed through the support or the filter.
+
+The shop integration uses the filter itself. WooCommerce's cart, checkout and account pages are each one of its blocks rather than sections, so `includes/shop.php` answers no for them. Any other plugin with pages like these should do the same, so the editor never has to know about them.
+
+### Reading
+
+The answer is on each post's REST record as `cnl_has_sections`. In JavaScript, ask `hasSections( select, postType, postId )` from `src/sections.js`. It is false until the record has loaded. Don't check for pages anywhere else.
+
+### Template parts
+
+Template parts get the same treatment wherever they appear, on content with sections or without. Each is purple, locked until "Edit header", "Edit footer" or "Edit" and the part's name opens it in the spotlight with the Edit design bar. The editor finds them by block type, not by name, so a sidebar or a second header is treated like the header. See `src/site-canvas/README.md`.
+
 ## Visual theme
 
 The editor uses the WordPress Design System as it ships. Its own surfaces take their colours, corners, spacing and shadows from WPDS tokens and core's elevation scale, so they sit alongside core's components rather than near them. The black sidebar's headings, its "Welcome" greeting and section titles like Content and Design, are the one exception: they are set in EB Garamond, the heading face on [WordPress.org](https://wordpress.org/). The font lives in `assets/fonts/eb-garamond/` under the SIL Open Font License and loads from the plugin, not a third-party CDN.

@@ -688,12 +688,5 @@ export function ProductsCanvas() {
 	);
 	const url = ( id ? saved?.permalink : getShop().pages.shop ) || undefined;
 
-	return (
-		<SitePreviewCanvas
-			// A product's layout is locked, so there are no sections to pick.
-			hasSections={ ! productEntity }
-			pinnedEntity={ productEntity }
-			url={ url }
-		/>
-	);
+	return <SitePreviewCanvas pinnedEntity={ productEntity } url={ url } />;
 }

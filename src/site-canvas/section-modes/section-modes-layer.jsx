@@ -101,11 +101,7 @@ import { expandCanvas } from '../expansion';
 import { useEditorSpotlight } from '../part-spotlight';
 import { useCanvasDocument } from '../use-canvas-document';
 import { useCanvasStyles } from '../use-canvas-styles';
-import {
-	getBlockIndex,
-	getWritingSections,
-	groupsTextIn,
-} from '../writing-mode';
+import { getBlockIndex, getWritingSections } from '../writing-mode';
 import { createBlankSection, InlineSectionPicker } from '../../section-picker';
 import { EmptyPage } from './empty-page';
 import { getLayoutItemTitle, useLayoutName } from './layout-items';
@@ -119,6 +115,7 @@ import {
 	MODE_DESIGN,
 	MODE_ZOOM_IN,
 	DoneButton,
+	getPartTitle,
 	ModeBar,
 	SectionTab,
 } from './section-chrome';
@@ -617,9 +614,12 @@ function useContentHost( editorRef ) {
  *                                       anything but a section's layout,
  *                                       colours or place on the page done
  *                                       back in Edit.
- * @param {boolean}  props.isWriting     Whether the canvas is writing, like
- *                                       a post, arranged in Compose only. It
- *                                       has no header or footer to open.
+ * @param {boolean}  props.hasSections   Whether what is edited is built from
+ *                                       sections, as a page is. Without,
+ *                                       like a layout or a post, the layer
+ *                                       only opens its template parts, and
+ *                                       every other click reaches the
+ *                                       blocks, as core's editor has them.
  * @param {Function} props.onExitCompose Leaves Compose for Edit.
  * @return {?Element} The layer.
  */
@@ -627,22 +627,26 @@ export function SectionModesLayer( {
 	editorRef,
 	entity,
 	focusId = null,
+	hasSections = true,
 	isComposing = false,
-	isWriting = false,
 	onExitCompose,
 } ) {
 	const registry = useRegistry();
 	const layerRef = useRef();
 	const host = useContentHost( editorRef );
-	const structure = useComposeStructure();
-	const { rootClientId } = structure;
-	const parts = isWriting ? EMPTY_ARRAY : structure.parts;
-	const layoutItems = isWriting ? EMPTY_ARRAY : structure.layoutItems;
+	const structure = useComposeStructure( { hasSections } );
+	const { layoutItems, parts, rootClientId } = structure;
+	/*
+	 * Without sections, only the template parts are the layer's: a click
+	 * anywhere else reaches the blocks, and what core selects there stays
+	 * selected. A canvas about one part keeps the rest of the page out of
+	 * reach, as it does on a page.
+	 */
+	const passesOtherClicks = ! hasSections && ! focusId;
 	const layoutName = useLayoutName( layoutItems.length > 0 );
 	// A canvas about one section, like the Header screen's, has nothing to
 	// group.
-	const groupsText =
-		isWriting || ( ! focusId && groupsTextIn( entity?.postType ) );
+	const groupsText = hasSections && ! focusId;
 	/*
 	 * The sections with their runs of text grouped, each known by its first
 	 * block. Kept to a string, so the selector returns the same value until
@@ -1013,6 +1017,10 @@ export function SectionModesLayer( {
 	 * level in.
 	 */
 	const allowsClick = ( target, blockId ) => {
+		if ( ! target && passesOtherClicks ) {
+			return true;
+		}
+
 		if ( ! isOpen( target ) ) {
 			return false;
 		}
@@ -1041,6 +1049,38 @@ export function SectionModesLayer( {
 			)
 		);
 	};
+
+	// A click on the blocks outside the template parts, which reaches
+	// them, leaves any part open or picked, as a click elsewhere does on a
+	// page.
+	useEffect( () => {
+		if ( ! passesOtherClicks || ! canvasDocument ) {
+			return undefined;
+		}
+
+		const onPointerDown = ( event ) => {
+			const block = event.target.closest?.( '[data-block]' );
+
+			if ( block && findTarget( block.dataset.block ) ) {
+				return;
+			}
+
+			if ( activeRef.current ) {
+				exitMode();
+			}
+
+			setPickedSection( null );
+		};
+
+		canvasDocument.addEventListener( 'pointerdown', onPointerDown, true );
+
+		return () =>
+			canvasDocument.removeEventListener(
+				'pointerdown',
+				onPointerDown,
+				true
+			);
+	}, [ canvasDocument, exitMode, findTarget, passesOtherClicks ] );
 
 	useCanvasGuard( {
 		allows: allowsClick,
@@ -1111,10 +1151,7 @@ export function SectionModesLayer( {
 				const innerId = getBlockAtPoint( doc, x, y ) || blockId;
 
 				leaveCompose( () => {
-					// Writing is edited without the layer, so with no mode.
-					if ( ! isWriting ) {
-						enterMode( target, MODE_CONTENT );
-					}
+					enterMode( target, MODE_CONTENT );
 
 					window.requestAnimationFrame( () =>
 						window.requestAnimationFrame( () =>
@@ -1326,6 +1363,10 @@ export function SectionModesLayer( {
 			return;
 		}
 
+		if ( ! target && passesOtherClicks ) {
+			return;
+		}
+
 		registry.dispatch( blockEditorStore ).clearSelectedBlock();
 
 		if ( target && ! activeRef.current ) {
@@ -1474,7 +1515,10 @@ export function SectionModesLayer( {
 	}, [ returnedId ] );
 
 	const isEmpty =
-		! focusId && Boolean( rootClientId ) && sectionIds.length === 0;
+		hasSections &&
+		! focusId &&
+		Boolean( rootClientId ) &&
+		sectionIds.length === 0;
 
 	/*
 	 * The section whose rows of cards can be opened: the one picked, or
@@ -1986,7 +2030,7 @@ export function SectionModesLayer( {
 		const part = partsById[ clientId ];
 
 		if ( part ) {
-			return part.area === 'footer' ? __( 'Footer' ) : __( 'Header' );
+			return getPartTitle( part );
 		}
 
 		if ( isTextSection( clientId ) ) {
@@ -2605,23 +2649,12 @@ export function SectionModesLayer( {
 					end={ isPartOpen && <DoneButton onDone={ exitMode } /> }
 					onClose={ isPartOpen ? undefined : exitMode }
 					onFreeform={ () => {
-						const { id } = active;
-
 						// More control is for getting on with the section's
 						// blocks, so the canvas expands to fill the editor
 						// too, and stays so until its back arrow.
 						expandCanvas( true );
 
-						// Writing has no Freeform, as Edit hands its blocks
-						// to core's own tools: the section is selected there.
-						leaveCompose(
-							isWriting
-								? () =>
-										registry
-											.dispatch( blockEditorStore )
-											.selectBlock( id )
-								: enterFreeform
-						);
+						leaveCompose( enterFreeform );
 					} }
 					onReplace={ onLayoutReplace }
 					onView={ setDesignView }

@@ -263,9 +263,10 @@
  * its line and "Add block" button. Sections are added from the section
  * layer's "Add section" instead, so the inserter is hidden. Only the one
  * pointing brings up: the line core draws while a block is dragged has no
- * inserter, and still shows.
+ * inserter, and still shows. A canvas without sections, like a layout's,
+ * is edited with core's own tools, so it keeps the inserter.
  */
-.cnl-site-canvas.is-edit .cnl-inline-editor {
+.cnl-site-canvas.is-edit.has-sections .cnl-inline-editor {
 
 	.block-editor-block-list__insertion-point.is-with-inserter {
 		display: none;
