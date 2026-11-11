@@ -12,6 +12,7 @@ import {
 	useDispatch,
 	useMemo,
 	useSelect,
+	__,
 } from '../../wordpress-packages';
 import {
 	buildNavigationLinkEntityBinding,
@@ -169,11 +170,17 @@ export default function NavigationListViewLinkUI( {
 		updateBlockAttributes( insertedBlock.clientId, updatedAttributes );
 	};
 
+	// The popover renders inside its list row, so keys pressed in it reach the
+	// row too. The row leaves alone keys from inside a dialog, as core's
+	// navigation link UI is; anything else, Backspace and Delete included,
+	// would act on the new item, removing it while its URL is typed.
 	return (
 		<Popover
+			aria-label={ __( 'Add link' ) }
 			className="routes-navigation-edit-list-view__link-ui-popover"
 			onClose={ cleanupInsertedBlock }
 			placement="bottom-start"
+			role="dialog"
 			shift
 		>
 			<LinkControl
