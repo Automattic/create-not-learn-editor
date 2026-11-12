@@ -83,6 +83,7 @@ Generated `build/` assets and plugin zips are intentionally ignored by git. The 
 - `npm run lint:js` runs JavaScript linting.
 - `npm run lint:css` runs stylesheet linting.
 - `npm run test:unit` runs the unit tests with Vitest. Its settings live in `vitest.config.mjs`.
+- `npm run test:php` runs the PHPUnit tests in `tests/phpunit/` inside wp-env's tests container, with WordPress and Gutenberg loaded. Start wp-env first. The first run installs Composer's dev packages into `vendor/`. Arguments go to PHPUnit, e.g. `npm run test:php -- --filter Setup_Defaults`. Test the PHP here, not through the browser, whenever an e2e test would only be checking what the server returns.
 - `npm run plugin-zip` creates an installable plugin zip.
 - `npm run test:e2e` runs every end-to-end test against the `wp-env` tests site. `test:e2e:smoke`, `test:e2e:views` and `test:e2e:interactions` run one group. See [the end-to-end tests guide](tests/e2e/README.md).
 - `npm run wporg-assets` renders the plugin directory icon and banner PNGs in `.wordpress-org/`.
@@ -90,7 +91,7 @@ Generated `build/` assets and plugin zips are intentionally ignored by git. The 
 
 ## Verification
 
-[The CI workflow](.github/workflows/ci.yml) runs on every pull request. One job builds, lints JS, CSS and PHP, checks the ListView bridge and runs the unit tests. The other runs the end-to-end tests over six shards, each with its own `wp-env`. Pull requests that only change docs skip the end-to-end tests. Trunk only takes a pull request once both pass.
+[The CI workflow](.github/workflows/ci.yml) runs on every pull request. One job builds, lints JS, CSS and PHP, checks the ListView bridge and runs the unit tests. Another runs PHPUnit in a `wp-env`. The last runs the end-to-end tests over six shards, each with its own `wp-env`. Pull requests that only change docs skip the end-to-end tests. Trunk only takes a pull request once they all pass.
 
 Before pushing, run the quick checks locally:
 

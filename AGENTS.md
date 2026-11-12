@@ -72,7 +72,7 @@ CI (`.github/workflows/ci.yml`) runs the build, lints, ListView check, PHP lint,
 
 Before handing off code changes:
 
-1. Run the quick checks locally: `npm run build`, `npm run lint:js` and `npm run lint:css`.
+1. Run the quick checks locally: `npm run build`, `npm run lint:js` and `npm run lint:css`, plus `npm run test:php` when PHP changed. Cover new PHP logic with a PHPUnit test in `tests/phpunit/` rather than an e2e test.
 2. Run only the e2e specs that cover what you changed, against the `wp-env` tests site, e.g. `WP_BASE_URL=http://localhost:<tests-port> npx playwright test tests/e2e/interactions/compose.spec.js`.
 3. Once the branch is pushed, wait with `gh pr checks --watch` and, if something fails, read just `gh run view <run-id> --log-failed`. Fix and push again until the checks pass.
 
