@@ -32,6 +32,45 @@ test.describe( 'Pages interactions', () => {
 		).toBeVisible( { timeout: 15000 } );
 	} );
 
+	test( "the page's name in the canvas toolbar finds and opens another page", async ( {
+		page,
+		rest,
+	} ) => {
+		const from = await rest.createPage();
+		const to = await rest.createPage();
+
+		await visitEditor(
+			page,
+			`/types/page/list/all?previewId=${ from.id }`
+		);
+
+		const bar = page.getByRole( 'button', {
+			name: `${ from.title }, Published. Go to another page`,
+		} );
+		const search = page.getByRole( 'combobox', {
+			name: 'Find or go to any page',
+		} );
+
+		// Escape puts the name back, with focus on it.
+		await bar.click( { timeout: 15000 } );
+		await expect( search ).toBeFocused();
+		await page.keyboard.press( 'Escape' );
+		await expect( search ).toHaveCount( 0 );
+		await expect( bar ).toBeFocused();
+
+		// The search takes the name's place, and picking a page opens it.
+		await bar.click();
+		await search.fill( to.title );
+		await page.getByRole( 'option', { name: to.title } ).click();
+
+		await expect( page ).toHaveURL(
+			new RegExp( `previewId%3D${ to.id }` )
+		);
+		await expect(
+			page.locator( '.cnl-editor-homepage-document__title' )
+		).toHaveText( to.title, { timeout: 15000 } );
+	} );
+
 	test( 'a page opens into its summary, and Pages goes back', async ( {
 		page,
 		rest,
@@ -399,9 +438,10 @@ test.describe( 'Pages interactions', () => {
 			.getByRole( 'link', { name: 'Pages' } )
 			.click();
 		await openPageLayouts( page );
-		// The advanced editor is in the Options menu after Save.
+		// The advanced editor is at the end of the canvas's View menu.
 		await page
-			.getByRole( 'button', { name: 'Options', exact: true } )
+			.locator( '.cnl-editor-homepage-toolbar' )
+			.getByRole( 'button', { name: 'View', exact: true } )
 			.click();
 
 		const openFull = page.getByRole( 'menuitem', {

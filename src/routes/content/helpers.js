@@ -98,25 +98,7 @@ export function isTemplateTab( activeTab ) {
 	return activeTab === 'templates' || activeTab === 'system';
 }
 
-export function getStatusLabel( status ) {
-	switch ( status ) {
-		case 'publish':
-			return __( 'Published' );
-		case 'draft':
-		case 'auto-draft':
-			return __( 'Draft' );
-		case 'future':
-			return __( 'Scheduled' );
-		case 'pending':
-			return __( 'Pending review' );
-		case 'private':
-			return __( 'Private' );
-		case 'trash':
-			return __( 'Trash' );
-		default:
-			return status || __( 'Unknown' );
-	}
-}
+export { getStatusLabel } from '../../post-status';
 
 export function getTemplateTitle( template ) {
 	return getTemplateDisplayTitle( template ) || __( 'Untitled template' );

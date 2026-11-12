@@ -2,15 +2,13 @@
  * Internal dependencies
  */
 import { settings } from '../../settings';
-import { PageSwitcher, SiteCanvas, useSiteCanvas } from '../../site-canvas';
-import { getHomepageDocumentIconStatus } from '../home/preview';
-import { __, homeIcon, postListIcon } from '../../wordpress-packages';
-
-const DOCUMENT_ICON_BY_STATUS = {
-	'home-latest-posts': homeIcon,
-	'home-static': homeIcon,
-	'posts-page': postListIcon,
-};
+import {
+	getPreviewSwitcherProps,
+	PageSwitcher,
+	SiteCanvas,
+	useSiteCanvas,
+} from '../../site-canvas';
+import { __ } from '../../wordpress-packages';
 
 /**
  * The toolbar's centered document label: whatever page the preview is
@@ -23,31 +21,9 @@ const DOCUMENT_ICON_BY_STATUS = {
  * @return {Element} The document label.
  */
 function PreviewDocument( { canvas } ) {
-	const { isLoadingContext, previewContext } = canvas;
-	const previewLabel = previewContext?.previewLabel || __( 'Home' );
-	const previewStatusLabel = isLoadingContext
-		? __( 'Loading preview details' )
-		: previewContext?.previewStatusLabel || __( 'Preview' );
-	const previewTypeLabel = previewContext?.previewTypeLabel || '';
-	const previewMetaLabel = isLoadingContext
-		? previewStatusLabel
-		: [ previewTypeLabel, previewStatusLabel ]
-				.filter( Boolean )
-				.join( ' · ' );
-	const documentIcon =
-		DOCUMENT_ICON_BY_STATUS[
-			getHomepageDocumentIconStatus(
-				previewContext?.previewDocumentStatus
-			)
-		];
-
 	return (
 		<div className="cnl-editor-homepage-document">
-			<PageSwitcher
-				icon={ documentIcon }
-				meta={ previewMetaLabel }
-				title={ previewLabel }
-			/>
+			<PageSwitcher { ...getPreviewSwitcherProps( canvas ) } />
 		</div>
 	);
 }

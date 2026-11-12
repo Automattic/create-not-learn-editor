@@ -6,8 +6,8 @@
  * name in the canvas toolbar (`src/site-canvas/page-switcher.jsx`), and
  * Preferences is in the workspace menu at the foot of the sidebar. What's left
  * sits at the end of the canvas toolbar: which agent is connected, if one is
- * (see `src/webmcp/connection.js`), the save controls, and the Options menu,
- * to open the canvas in the full-screen editor.
+ * (see `src/webmcp/connection.js`), and the save controls. The way to the
+ * full-screen editor is in the canvas's View menu.
  *
  * A screen with no canvas toolbar, like Media or Posts, keeps boot's own save
  * button at the foot of the sidebar instead. `body.cnl-has-canvas-save` says
@@ -23,7 +23,6 @@ import { createRoot } from '@wordpress/element';
  * Internal dependencies
  */
 import { AgentStatus } from './agent-status';
-import { OptionsMenu } from './options-menu';
 import { SaveControls } from './save-controls';
 
 const HAS_CANVAS_SAVE_CLASS = 'cnl-has-canvas-save';
@@ -36,7 +35,6 @@ function CanvasSave() {
 		<div className="cnl-canvas-save">
 			<AgentStatus />
 			<SaveControls />
-			<OptionsMenu />
 		</div>
 	);
 }
@@ -69,7 +67,7 @@ export function mountSaveControls() {
 			return;
 		}
 
-		// Last in the toolbar, as Save and Options are in core's editor.
+		// Last in the toolbar, as Save is in core's editor.
 		if ( toolbarEnd.lastElementChild !== container ) {
 			toolbarEnd.append( container );
 		}

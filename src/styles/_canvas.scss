@@ -3,7 +3,10 @@
 
 @use "../colors" as *;
 
+// The toolbar wraps by the canvas's own width, which the stage beside it
+// narrows, rather than the window's.
 .cnl-editor-canvas {
+	container: cnl-editor-canvas / inline-size;
 	display: grid;
 	grid-template-rows: auto minmax(0, 1fr);
 	height: 100%;
@@ -89,7 +92,9 @@
 
 .cnl-editor-homepage-toolbar {
 	display: grid;
-	grid-template-columns: minmax(210px, 1fr) minmax(0, auto) minmax(190px, 1fr);
+	// The ends never narrower than their controls, so as room runs out the
+	// middle gives way, and the ends don't spill over it.
+	grid-template-columns: minmax(max-content, 1fr) minmax(0, auto) minmax(max-content, 1fr);
 	gap: 12px;
 	align-items: center;
 	box-sizing: border-box;
@@ -234,7 +239,7 @@
 	min-height: 40px;
 }
 
-@media (max-width: 1080px) {
+@container cnl-editor-canvas (max-width: 760px) {
 
 	.cnl-editor-homepage-toolbar {
 		grid-template-columns: minmax(0, 1fr) auto;
@@ -247,7 +252,7 @@
 	}
 }
 
-@media (max-width: 720px) {
+@container cnl-editor-canvas (max-width: 500px) {
 
 	.cnl-editor-homepage-toolbar {
 		grid-template-columns: 1fr;

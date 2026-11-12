@@ -38,7 +38,6 @@ import {
 	Dropdown,
 	EmptyState,
 	externalIcon,
-	homeIcon,
 	layoutIcon,
 	linkIcon,
 	MenuGroup,
@@ -73,44 +72,6 @@ function getListedPage( select, pageId ) {
 	);
 
 	return pages?.find( ( listed ) => listed.id === pageId ) || null;
-}
-
-function getStatusLabel( status ) {
-	switch ( status ) {
-		case 'publish':
-			return __( 'Published' );
-		case 'draft':
-		case 'auto-draft':
-			return __( 'Draft' );
-		case 'future':
-			return __( 'Scheduled' );
-		case 'pending':
-			return __( 'Pending review' );
-		case 'private':
-			return __( 'Private' );
-		default:
-			return '';
-	}
-}
-
-/**
- * The part of a page's address after the domain, as visitors would type it.
- *
- * @param {string} link Page URL.
- * @return {string} The path, or an empty string without a link.
- */
-function getPagePath( link ) {
-	if ( ! link ) {
-		return '';
-	}
-
-	try {
-		const url = new URL( link );
-
-		return decodeURI( url.pathname + url.search ) || '/';
-	} catch {
-		return link;
-	}
 }
 
 /**
@@ -378,34 +339,36 @@ function isPassedToPreview( change, select ) {
 }
 
 function PageDocument( { homepage, page } ) {
-	const isPublished = page?.status === 'publish';
-	let link = page?.link;
-	let path = isPublished ? getPagePath( link ) : '';
+	// Only a published page has an address visitors can reach.
+	let link = page?.status === 'publish' ? page?.link || '' : '';
 	let heading = getPageTitle( page );
-	let meta = [ __( 'Page' ), getStatusLabel( page?.status ) ]
-		.filter( Boolean )
-		.join( ' · ' );
+	let status = page?.status;
+	let meta = '';
 
 	if ( homepage ) {
 		link = settings.homeUrl;
-		path = getPagePath( link );
 		heading = __( 'Homepage' );
 		const { badge, summary } = getHomepageSummary( homepage );
 
+		// What it shows. It is live unless it shows a page that isn't.
+		status =
+			homepage.shows === 'posts' || homepage.shows === 'theme'
+				? 'publish'
+				: homepage.page?.status;
 		meta = summary || badge?.label || '';
 	}
 
 	return (
 		<div className="cnl-editor-homepage-document">
 			<PageSwitcher
-				hint={ path }
-				icon={ homepage ? homeIcon : pageIcon }
 				meta={ meta }
+				status={ status }
 				title={ heading }
+				url={ link }
 			/>
 			<PageOptions
 				isHomepage={ Boolean( homepage ) }
-				link={ path ? link : '' }
+				link={ link }
 				pageId={ page?.id }
 			/>
 		</div>

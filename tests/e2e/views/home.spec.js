@@ -98,7 +98,7 @@ test.describe( 'Home view', () => {
 			document.getByRole( 'heading', { level: 1, name: 'Home' } )
 		).toBeVisible();
 		await expect(
-			document.locator( '.cnl-editor-homepage-document__icon' )
+			document.locator( '.cnl-page-switcher__status' )
 		).toHaveCount( 1 );
 
 		await writeParityScreenshot(

@@ -9,8 +9,13 @@ vi.mock( '@wordpress/route', () => ( {
 } ) );
 vi.mock( '../../../wordpress-packages', async () => ( {
 	...( await vi.importActual( '@wordpress/i18n' ) ),
+	draftsIcon: 'drafts',
 	homeIcon: 'home',
+	lockIcon: 'lock',
 	pageIcon: 'page',
+	pendingIcon: 'pending',
+	publishedIcon: 'published',
+	scheduledIcon: 'scheduled',
 	postIcon: 'post',
 	postListIcon: 'post-list',
 	storeIcon: 'store',
