@@ -58,13 +58,15 @@ class CNL_Editor_Settings_Test extends WP_UnitTestCase {
 		$this->assertSame( array_unique( $ids ), $ids, 'Each menu item is registered once.' );
 	}
 
-	public function test_appearance_menu_links_to_the_editor() {
+	public function test_registers_the_editor_page_without_a_link_in_appearance() {
 		global $submenu;
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$submenu['themes.php'] = array();
 
 		cnl_editor_register_admin_menu();
 
-		$this->assertContains( 'admin.php?page=' . CNL_EDITOR_SLUG, wp_list_pluck( $submenu['themes.php'] ?? array(), 2 ) );
+		// Its link is its own section of the menu (see admin-menu-test.php).
+		$this->assertNotEmpty( $GLOBALS['cnl_editor_admin_hook'] );
+		$this->assertSame( array(), $submenu['themes.php'] );
 	}
 }
