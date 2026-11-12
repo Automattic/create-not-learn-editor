@@ -114,8 +114,8 @@ Don't import `@wordpress/block-library` either: any import puts the whole librar
 
 ## Site Mutation Rules
 
-- Do not mutate site defaults when the editor loads.
-- Keep homepage/navigation setup behind the explicit setup action.
+- Do not mutate site defaults when the editor loads, except that every site needs a menu to edit: `cnl_editor_ensure_default_navigation_menu()` (`includes/setup-defaults.php`) runs on every full-page editor load and makes one, as WordPress's own Navigation block does on the front end when none exists. It is a no-op once a menu exists.
+- Keep homepage setup (the static front page and Reading settings) behind the explicit setup action.
 - The setup action should remain idempotent.
 - The setup endpoint is `POST /wp-json/create-not-learn-editor/v1/setup-defaults`.
 
