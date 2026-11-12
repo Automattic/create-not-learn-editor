@@ -2,6 +2,8 @@
 
 # Create Not Learn Editor
 
+[![CI](https://github.com/Automattic/create-not-learn-editor/actions/workflows/ci.yml/badge.svg?branch=trunk)](https://github.com/Automattic/create-not-learn-editor/actions/workflows/ci.yml)
+
 Create Not Learn is an experimental WordPress plugin that reimagines the Site Editor around what people want to do, not how WordPress works. The goal is simple. Someone who has never used WordPress should be able to set up their site without needing any help.
 
 It looks like WordPress and behaves like WordPress, because it's built from the same packages and APIs as the editor in Core. It's a place to try bigger ideas than Core can take on today and test them with real people, so the ones that work can be proposed back to Core.
