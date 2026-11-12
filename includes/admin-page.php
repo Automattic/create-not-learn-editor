@@ -52,7 +52,12 @@ function cnl_editor_is_full_page_request() {
 
 	$page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
-	return CNL_EDITOR_SLUG === $page;
+	/**
+	 * Filters whether this request is for the full-page editor.
+	 *
+	 * @param bool $is_full_page Whether `admin.php` was asked for the editor's page.
+	 */
+	return (bool) apply_filters( CNL_EDITOR_SLUG . '_is_full_page_request', CNL_EDITOR_SLUG === $page );
 }
 
 /**

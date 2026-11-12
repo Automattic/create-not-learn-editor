@@ -42,8 +42,9 @@ function cnl_editor_is_preview_frame_request() {
 		return false;
 	}
 
-	// Asked for every block the front end renders, and the answer can't
-	// change during a request.
+	// Asked for every block the front end renders, and the query can't
+	// change during a request, so it is read once. The filter still runs on
+	// every call, so tests and other code can change the answer.
 	static $is_preview = null;
 
 	if ( null === $is_preview ) {
@@ -54,7 +55,12 @@ function cnl_editor_is_preview_frame_request() {
 		);
 	}
 
-	return $is_preview;
+	/**
+	 * Filters whether this front-end request is for a canvas preview.
+	 *
+	 * @param bool $is_preview Whether the request has `cnl-editor-preview=1`.
+	 */
+	return (bool) apply_filters( CNL_EDITOR_SLUG . '_is_preview_frame_request', $is_preview );
 }
 
 /**
