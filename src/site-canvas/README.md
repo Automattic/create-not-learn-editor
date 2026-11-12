@@ -29,7 +29,7 @@ Moving to Browse with unsaved changes asks to save or discard them, because the 
 | `use-section-lock.js` | In Edit, every section made of other blocks, in whatever is built from sections, starts content-only, with core's own lock, kept in the editor's settings rather than the page. A section whose own block says its blocks are free isn't locked, with core's `templateLock: false`: a blank section, or a Text page's text, which have no design to keep. |
 | `edit-section-controls.js` | Core's unlock button said as "Edit" and "Done", and core's "Shuffle styles" hidden, in Edit. |
 | `part-spotlight.js` | `useEditorSpotlight()`: a template part, like the header or footer, brought forward on the canvas, the rest of the page faded and dimmed. Shared by Edit's section layer and the Header and Footer screens. |
-| `use-canvas-styles.js` | `useCanvasStyles()`: styles kept in the editor's canvas while wanted, put back when the editor swaps its iframe. Used by Compose and Edit's section layer. |
+| `use-canvas-styles.js` | `useCanvasStyles()`: styles kept in the editor's canvas while wanted, as a style override in core's block editor, which renders them in the canvas itself. Used by Edit's section layer and the template canvas. |
 | `icons.js` | An icon for a page built from stacked sections, for the empty page in Compose. |
 | `section-modes/` | Edit's section layer. See below. |
 | `compose/` | Compose. See below. |

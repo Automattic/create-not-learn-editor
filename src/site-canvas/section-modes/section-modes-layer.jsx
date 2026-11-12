@@ -1370,8 +1370,6 @@ export function SectionModesLayer( {
 	}, [ drag, inlineAdd, sectionIds, groupedById ] );
 
 	useCanvasStyles(
-		true,
-		editorRef,
 		STYLE_ID,
 		getCanvasCss(
 			openId ? getMembers( openId ) : EMPTY_ARRAY,
@@ -1440,12 +1438,7 @@ export function SectionModesLayer( {
 	}, [ drag, inlineAdd, sectionIds.length ] );
 
 	// A header or footer's blocks are picked out in purple while it is open.
-	useCanvasStyles(
-		Boolean( activePart ),
-		editorRef,
-		GLOBAL_STYLE_ID,
-		GLOBAL_CANVAS_CSS
-	);
+	useCanvasStyles( GLOBAL_STYLE_ID, activePart ? GLOBAL_CANVAS_CSS : null );
 
 	// Composing, Escape with nothing picked leaves for Edit, from wherever
 	// focus is, but not from a dialog or popover's own Escape.
