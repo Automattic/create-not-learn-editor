@@ -1,0 +1,90 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "Create Not Learn Editor on the Ipsum theme (getdave/gutenberg-pr-84894-grid)",
+		"author": "getdave",
+		"description": "Create Not Learn Editor from the getdave/gutenberg-pr-84894-grid branch, with Gutenberg and the Ipsum theme, on a fresh site with only Ipsum's demo posts added."
+	},
+	"landingPage": "/wp-admin/admin.php?page=create-not-learn-editor&workspace=writing",
+	"preferredVersions": {
+		"php": "8.3",
+		"wp": "beta"
+	},
+	"features": {
+		"networking": true
+	},
+	"steps": [
+		{
+			"step": "login"
+		},
+		{
+			"step": "writeFile",
+			"path": "/wordpress/wp-content/mu-plugins/cnl-playground-canvas-fix.php",
+			"data": {
+				"resource": "url",
+				"url": "https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/gutenberg-pr-84894-grid/playground-canvas-fix.php"
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "url",
+				"url": "https://downloads.wordpress.org/plugin/gutenberg.24.0.0.zip"
+			},
+			"options": {
+				"activate": true
+			},
+			"progress": {
+				"caption": "Installing Gutenberg"
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "url",
+				"url": "https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/gutenberg-pr-84894-grid/create-not-learn-editor.zip"
+			},
+			"options": {
+				"activate": true
+			},
+			"progress": {
+				"caption": "Installing Create Not Learn Editor"
+			}
+		},
+		{
+			"step": "installTheme",
+			"themeData": {
+				"resource": "git:directory",
+				"url": "https://github.com/WordPress/ipsum",
+				"ref": "trunk",
+				"refType": "branch",
+				"path": "/"
+			},
+			"options": {
+				"activate": true,
+				"targetFolderName": "ipsum"
+			},
+			"progress": {
+				"caption": "Installing the Ipsum theme"
+			}
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require_once 'wordpress/wp-load.php'; wp_delete_post( 1, true );"
+		},
+		{
+			"step": "importWxr",
+			"file": {
+				"resource": "url",
+				"url": "https://raw.githubusercontent.com/WordPress/ipsum/trunk/.github/ipsum-demo-content.xml"
+			},
+			"progress": {
+				"caption": "Adding Ipsum's demo posts"
+			}
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require_once 'wordpress/wp-load.php'; $keep = array( (int) get_option( 'wp_page_for_privacy_policy' ), get_page_by_path( 'sample-page' )->ID ); foreach ( get_posts( array( 'post_type' => array( 'page', 'wp_navigation' ), 'post_status' => 'any', 'numberposts' => -1, 'post__not_in' => $keep ) ) as $post ) { wp_delete_post( $post->ID, true ); }"
+		}
+	]
+}
