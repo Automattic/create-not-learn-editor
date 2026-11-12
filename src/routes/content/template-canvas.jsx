@@ -95,7 +95,7 @@ export default function TemplateCanvas( { isSystemPage, records, template } ) {
 		} ),
 	} );
 
-	useCanvasStyles( true, editorRef, GLOBAL_STYLE_ID, GLOBAL_CANVAS_CSS );
+	useCanvasStyles( GLOBAL_STYLE_ID, GLOBAL_CANVAS_CSS );
 
 	return (
 		<GlobalScope>

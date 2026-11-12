@@ -72,7 +72,7 @@ CI (`.github/workflows/ci.yml`) runs the build, lints, ListView check, PHP lint,
 
 Before handing off code changes:
 
-1. Run the quick checks locally: `npm run build`, `npm run lint:js` and `npm run lint:css`.
+1. Run the quick checks locally: `npm run build`, `npm run lint:js` and `npm run lint:css`, plus `npm run test:php` when PHP changed. Cover new PHP logic with a PHPUnit test in `tests/phpunit/` rather than an e2e test.
 2. Run only the e2e specs that cover what you changed, against the `wp-env` tests site, e.g. `WP_BASE_URL=http://localhost:<tests-port> npx playwright test tests/e2e/interactions/compose.spec.js`.
 3. Once the branch is pushed, wait with `gh pr checks --watch` and, if something fails, read just `gh run view <run-id> --log-failed`. Fix and push again until the checks pass.
 
@@ -114,8 +114,8 @@ Don't import `@wordpress/block-library` either: any import puts the whole librar
 
 ## Site Mutation Rules
 
-- Do not mutate site defaults when the editor loads.
-- Keep homepage/navigation setup behind the explicit setup action.
+- Do not mutate site defaults when the editor loads, except that every site needs a menu to edit: `cnl_editor_ensure_default_navigation_menu()` (`includes/setup-defaults.php`) runs on every full-page editor load and makes one, as WordPress's own Navigation block does on the front end when none exists. It is a no-op once a menu exists.
+- Keep homepage setup (the static front page and Reading settings) behind the explicit setup action.
 - The setup action should remain idempotent.
 - The setup endpoint is `POST /wp-json/create-not-learn-editor/v1/setup-defaults`.
 

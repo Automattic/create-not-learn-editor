@@ -29,7 +29,7 @@ Moving to Browse with unsaved changes asks to save or discard them, because the 
 | `use-section-lock.js` | In Edit, every section made of other blocks, in whatever is built from sections, starts content-only, with core's own lock, kept in the editor's settings rather than the page. A section whose own block says its blocks are free isn't locked, with core's `templateLock: false`: a blank section, or a Text page's text, which have no design to keep. |
 | `edit-section-controls.js` | Core's unlock button said as "Edit" and "Done", and core's "Shuffle styles" hidden, in Edit. |
 | `part-spotlight.js` | `useEditorSpotlight()`: a template part, like the header or footer, brought forward on the canvas, the rest of the page faded and dimmed. Shared by Edit's section layer and the Header and Footer screens. |
-| `use-canvas-styles.js` | `useCanvasStyles()`: styles kept in the editor's canvas while wanted, put back when the editor swaps its iframe. Used by Compose and Edit's section layer. |
+| `use-canvas-styles.js` | `useCanvasStyles()`: styles kept in the editor's canvas while wanted, as a style override in core's block editor, which renders them in the canvas itself. Used by Edit's section layer and the template canvas. |
 | `icons.js` | An icon for a page built from stacked sections, for the empty page in Compose. |
 | `section-modes/` | Edit's section layer. See below. |
 | `compose/` | Compose. See below. |
@@ -85,7 +85,15 @@ Changes rewrite the blocks around an item with core's `replaceInnerBlocks`, whic
 
 | File | What it does |
 | --- | --- |
-| `section-modes-layer.jsx` | The layer: what is pointed at, the mode, and everything drawn over the canvas. |
+| `section-modes-layer.jsx` | The layer: what is pointed at, the mode, and everything drawn over the canvas. It holds the state; the files below do its parts. |
+| `use-grouped-sections.js` | The page's sections, with each run of plain blocks grouped into one section of text. |
+| `use-section-clicks.js` | Clicks, double clicks and Escape on the canvas: picking a section and going into it a level at a time. |
+| `use-mode-sync.js` | Keeps the mode in step with the editor: the part core opens, a part asked for from outside, Compose, undo and selection. |
+| `use-posts-trip-back.js` | Manage all posts, and picking the section again on the way back. |
+| `use-layer-effects.js` | The layer's effects on the editor and window: classes, the spotlight, Escape and outside clicks, measuring, scrolling and highlights. |
+| `section-actions.js` | What the bars and buttons do to the page: add, start blank, delete, move, row items and adding in place. |
+| `hover-chrome.jsx`, `picked-chrome.jsx`, `active-chrome.jsx`, `drag-chrome.jsx`, `inline-add.jsx` | What the layer draws for the section pointed at, picked, in a mode or dragged, and the picker for adding in place. |
+| `layer-constants.js`, `layer-helpers.js` | The layer's sizes and timings, and helpers that need nothing from it. |
 | `section-chrome.jsx` | The tab, the bar with Add, Edit design (or Edit content in Compose, and Manage posts) and the section's moves, or Edit header or Edit footer alone, and the small bar naming the mode, with Done editing. |
 | `design-bar.jsx` | Edit design's bar: the design choices, and each one's options. |
 | `posts-section.js` | A section's query loop: the posts it lists, how it lists them, and Manage posts' changes. |

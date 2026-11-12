@@ -52,7 +52,12 @@ function cnl_editor_is_full_page_request() {
 
 	$page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 
-	return CNL_EDITOR_SLUG === $page;
+	/**
+	 * Filters whether this request is for the full-page editor.
+	 *
+	 * @param bool $is_full_page Whether `admin.php` was asked for the editor's page.
+	 */
+	return (bool) apply_filters( CNL_EDITOR_SLUG . '_is_full_page_request', CNL_EDITOR_SLUG === $page );
 }
 
 /**
@@ -71,6 +76,11 @@ function cnl_editor_render_full_page() {
 	if ( ! current_user_can( 'edit_theme_options' ) ) {
 		wp_die( esc_html__( 'Sorry, you are not allowed to access this page.', 'create-not-learn-editor' ) );
 	}
+
+	// Every site editable here needs a menu to edit. `cnl_editor_has_navigation_menu()`
+	// makes this a cheap no-op once one exists, so it is safe to check on every visit
+	// rather than only behind the explicit setup action, which is for the homepage.
+	cnl_editor_ensure_default_navigation_menu();
 
 	// Core sends these from `admin_init` too, but adds them after this
 	// plugin's hook, so the page exits before they run. Without them another

@@ -281,6 +281,55 @@ test.describe( 'Menus interactions', () => {
 		).rejects.toThrow( /404/ );
 	} );
 
+	test( 'makes a site a menu again when it is left with none', async ( {
+		page,
+		rest,
+	} ) => {
+		const existing = await rest.fetch( '/wp/v2/navigation', {
+			params: { _fields: 'id,status', status: 'publish,draft' },
+		} );
+
+		// Trashing keeps each menu's ID, so a later test's own menu, or a
+		// location pointing at one of these by ID, still finds it.
+		for ( const menu of existing ) {
+			await rest.fetch( `/wp/v2/navigation/${ menu.id }`, {
+				method: 'DELETE',
+			} );
+			rest.onCleanup( () =>
+				rest.fetch( `/wp/v2/navigation/${ menu.id }`, {
+					data: { status: menu.status },
+					method: 'POST',
+				} )
+			);
+		}
+
+		await visitEditor( page );
+
+		let menus;
+		await expect
+			.poll(
+				async () => {
+					menus = await rest.fetch( '/wp/v2/navigation', {
+						params: {
+							_fields: 'id,title,content',
+							context: 'edit',
+							status: 'publish,draft',
+						},
+					} );
+
+					return menus.length;
+				},
+				{ timeout: 15000 }
+			)
+			.toBe( 1 );
+
+		const [ menu ] = menus;
+
+		expect( menu.title.raw ).toBe( 'Main menu' );
+		expect( menu.content.raw ).toBe( '<!-- wp:page-list /-->' );
+		rest.deleteLater( `/wp/v2/navigation/${ menu.id }` );
+	} );
+
 	test( 'opens a location to edit with the menu picked', async ( {
 		page,
 		rest,

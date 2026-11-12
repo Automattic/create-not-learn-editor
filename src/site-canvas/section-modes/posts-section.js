@@ -212,7 +212,8 @@ export function usePostsChoice( clientId ) {
 	const { queryBlock, taxonomy, terms } = useSelect(
 		( select ) => {
 			const block =
-				posts && select( blockEditorStore ).getBlock( posts.queryId );
+				posts?.queryId &&
+				select( blockEditorStore ).getBlock( posts.queryId );
 
 			if ( ! block ) {
 				return {};
