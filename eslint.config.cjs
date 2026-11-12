@@ -26,10 +26,4 @@ module.exports = [
 			],
 		},
 	},
-	{
-		// Over the limit until it's split up. Remove this once it is, and
-		// don't add other files here.
-		files: [ 'src/site-canvas/section-modes/section-modes-layer.jsx' ],
-		rules: { 'max-lines': 'warn' },
-	},
 ];

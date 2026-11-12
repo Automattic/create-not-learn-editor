@@ -47,31 +47,16 @@
 /**
  * WordPress dependencies
  */
-import { BlockPreview } from '@wordpress/block-editor';
 import { createPortal, Fragment } from '@wordpress/element';
-import { plus as plusIcon } from '@wordpress/icons';
-import { useNavigate } from '@wordpress/route';
 
 /**
  * Internal dependencies
  */
-import { observeHost } from '../../editor-layer/portal-host';
-import { GLOBAL_CANVAS_CSS, GlobalScope } from '../../global-scope';
-import {
-	addPatternSection,
-	EditorPreview,
-	openSectionPicker,
-} from '../../editor-layer/section-picker';
+import { GlobalScope } from '../../global-scope';
+import { openSectionPicker } from '../../editor-layer/section-picker';
 import { unlock } from '../../lock-unlock';
-import { getSectionTitle } from '../../routes/content/pages/page-sections';
 import {
-	__,
 	blockEditorStore,
-	blocksStore,
-	Button,
-	coreDataStore,
-	noticesStore,
-	sprintf,
 	useCallback,
 	useDispatch,
 	useEffect,
@@ -81,183 +66,55 @@ import {
 	useSelect,
 	useState,
 } from '../../wordpress-packages';
-import {
-	getCanvasFrame,
-	scrollCanvasTo,
-	useBlockRects,
-} from '../compose/use-block-rects';
+import { scrollCanvasTo, useBlockRects } from '../compose/use-block-rects';
 import { useComposeStructure } from '../compose/use-compose-structure';
 import { afterZoomIn, whenZoomSettles } from '../compose/use-compose-zoom';
 import {
 	PART_CONTENT,
 	PART_FREEFORM,
-	STORE_NAME as CANVAS_STORE,
-	requestOpenPart,
 	setOpenPart,
 	setPickedSection as setSharedPickedSection,
-	setPostsTrip,
 } from '../mode';
-import { expandCanvas } from '../expansion';
-import { useEditorSpotlight } from '../part-spotlight';
 import { useCanvasDocument } from '../use-canvas-document';
 import { useCanvasStyles } from '../use-canvas-styles';
-import { getBlockIndex, getWritingSections } from '../writing-mode';
-import { createBlankSection, InlineSectionPicker } from '../../section-picker';
+import { getBlockIndex } from '../writing-mode';
 import { EmptyPage } from './empty-page';
-import { getLayoutItemTitle, useLayoutName } from './layout-items';
+import { useLayoutName } from './layout-items';
 import { RemoveControl } from './remove-control';
-import DesignBar, { getParentView } from './design-bar';
+import { getParentView } from './design-bar';
 import {
-	HoverBar,
 	LayoutScope,
 	MODE_CONTENT,
 	MODE_FREEFORM,
 	MODE_DESIGN,
-	MODE_ZOOM_IN,
-	DoneButton,
-	getPartTitle,
-	ModeBar,
-	SectionTab,
 } from './section-chrome';
-import { PostsNotice, useHasReadPostsNotice } from './posts-notice';
+import { PostsNotice } from './posts-notice';
 import { usePostsSection } from './posts-section';
-import {
-	getTargetOf,
-	useCanvasGuard,
-	useCanvasHover,
-} from './use-canvas-events';
+import { getTargetOf, useCanvasHover } from './use-canvas-events';
 import { useSectionDrag } from './use-section-drag';
 import { useSectionItems } from './use-section-items';
-import {
-	getBlockAtPoint,
-	getBlocksBeside,
-	getLayoutsPerSlide,
-	INSET,
-	isAtPageEdge,
-	local,
-	placeAtEdge,
-	placeOutside,
-	placeTab,
-	stickyTop,
-	TAB_HEIGHT,
-} from './placement';
+import { getBlocksBeside, INSET, isAtPageEdge, local } from './placement';
 import { EMPTY_SPACE, getCanvasCss } from './canvas-css';
 import { RowHandles } from './row-handles';
 import { useRowActions, useSectionRows } from './use-section-rows';
-
-const CONTENT_REGION = '.interface-interface-skeleton__content';
-
-const STYLE_ID = 'cnl-section-modes';
-const GLOBAL_STYLE_ID = 'cnl-section-modes-global';
-
-// Sizes on screen, in pixels.
-const BAR_HEIGHT = 40;
-// Narrower than this, the bar puts its modes on a row of their own.
-const NARROW_WIDTH = 760;
-const BAR_ROW_GAP = 8;
-// The "Add section" buttons' height. Centred on a section's edges, they
-// reach half of it into the section, and the bar keeps clear of that.
-const ADD_SECTION_HEIGHT = 32;
-const BAR_GAP = 8;
-// The bar naming the mode sits inside a section at least this big, at its
-// top, the size of the bar over a section pointed at; a smaller section has
-// a smaller one outside it, so it hides none of what is being edited.
-const MODE_BAR_ROOM_HEIGHT = 240;
-const MODE_BAR_ROOM_WIDTH = 480;
-const SMALL_MODE_BAR_HEIGHT = 40;
-// Between the small bar and the section's edge.
-const MODE_BAR_GAP = 6;
-// Edit design's bar is never narrower than this, even on a narrow section.
-const DESIGN_BAR_MIN_WIDTH = 360;
-// Edit design's bar is never shorter than this, scrolling its tray rather
-// than running off the canvas.
-const DESIGN_BAR_MIN_HEIGHT = 200;
-// Between a short section and its bar, under it, clear of "Add section" on
-// its bottom edge.
-const SHORT_BAR_GAP = 22;
-// The gap opened for adding a section in place: room around its picker,
-// and the picker's height until it is measured.
-const INLINE_ADD_GAP = 16;
-const INLINE_ADD_HEIGHT = 520;
-// The picker's narrowest, wider than a zoomed-out section if need be.
-const INLINE_ADD_MIN_WIDTH = 560;
-// How long its gap takes to open, before it is scrolled into view.
-const INLINE_ADD_SETTLE_MS = 260;
-// How long a new block is kept focused while it settles, in frames.
-const FOCUS_FRAMES = 30;
-// The longest a page just opened is given to load its pictures, which move
-// what is under them, before a section on it is scrolled to.
-const LOAD_WAIT_MS = 2000;
-const LOAD_POLL_MS = 100;
-
-// How long a new item is highlighted.
-const FRESH_MS = 900;
-
-const EMPTY_ARRAY = [];
-
-/*
- * Section titles, by block. Working one out walks the whole section, and the
- * layer asks for several on every render. The editor's blocks are replaced,
- * never changed, when they're edited, so a block's title stays right for as
- * long as the block is around.
- */
-const sectionTitles = new WeakMap();
-
-function getCachedSectionTitle( block ) {
-	if ( ! sectionTitles.has( block ) ) {
-		sectionTitles.set( block, getSectionTitle( block ) );
-	}
-
-	return sectionTitles.get( block );
-}
-
-/**
- * The route the editor is on, as a link back to it would give it: the
- * router keeps it in the admin page's `p`, its search beside it.
- *
- * @return {string} The route, with its search.
- */
-function getCurrentRoute() {
-	const params = new URLSearchParams( window.location.search );
-	const [ path, pathSearch = '' ] = ( params.get( 'p' ) || '/' ).split( '?' );
-	// The route's own search can be in `p` too; it wins.
-	const search = new URLSearchParams( pathSearch );
-
-	params.forEach( ( value, key ) => {
-		if ( key !== 'p' && key !== 'page' && ! search.has( key ) ) {
-			search.set( key, value );
-		}
-	} );
-
-	const query = search.toString();
-
-	return query ? `${ path }?${ query }` : path;
-}
-
-/**
- * A host for the layer in the editor's content region.
- *
- * @param {Object} editorRef Ref to the editor's container.
- * @return {?HTMLElement} The host, or null until the region exists.
- */
-function useContentHost( editorRef ) {
-	const [ host, setHost ] = useState( null );
-
-	useEffect( () => {
-		if ( ! editorRef.current ) {
-			return undefined;
-		}
-
-		return observeHost(
-			CONTENT_REGION,
-			'cnl-section-modes-host',
-			setHost,
-			editorRef.current
-		);
-	}, [ editorRef ] );
-
-	return host;
-}
+import {
+	STYLE_ID,
+	INLINE_ADD_GAP,
+	INLINE_ADD_HEIGHT,
+	EMPTY_ARRAY,
+} from './layer-constants';
+import { getLayerTitle, mergeRunRects, useContentHost } from './layer-helpers';
+import { useGroupedSections } from './use-grouped-sections';
+import { useSectionClicks } from './use-section-clicks';
+import { useModeSync } from './use-mode-sync';
+import { usePostsTripBack } from './use-posts-trip-back';
+import { useLayerEffects } from './use-layer-effects';
+import { getSectionActions } from './section-actions';
+import { InlineAdd } from './inline-add';
+import { HoverChrome } from './hover-chrome';
+import { PickedChrome } from './picked-chrome';
+import { DragChrome } from './drag-chrome';
+import { ActiveChrome } from './active-chrome';
 
 /**
  * @param {Object}   props
@@ -306,67 +163,13 @@ export function SectionModesLayer( {
 	 */
 	const passesOtherClicks = ! hasSections && ! focusId;
 	const layoutName = useLayoutName( layoutItems.length > 0 );
-	// A canvas about one section, like the Header screen's, has nothing to
-	// group.
-	const groupsText = hasSections && ! focusId;
-	/*
-	 * The sections with their runs of text grouped, each known by its first
-	 * block. Kept to a string, so the selector returns the same value until
-	 * they change.
-	 */
-	const groupedKey = useSelect(
-		( select ) =>
-			groupsText
-				? getWritingSections(
-						structure.sectionIds,
-						select( blockEditorStore ).getBlockName
-					)
-						.map(
-							( { clientIds, isText } ) =>
-								`${ isText ? 'text' : 'block' }:${ clientIds.join(
-									','
-								) }`
-						)
-						.join( ' ' )
-				: '',
-		[ groupsText, structure.sectionIds ]
-	);
-	const groupedSections = useMemo(
-		() =>
-			groupedKey
-				? groupedKey.split( ' ' ).map( ( entry ) => {
-						const [ kind, ids ] = entry.split( ':' );
-
-						return {
-							clientIds: ids.split( ',' ),
-							isText: kind === 'text',
-						};
-					} )
-				: null,
-		[ groupedKey ]
-	);
-	const sectionIds = useMemo(
-		() =>
-			groupedSections
-				? groupedSections.map( ( section ) => section.clientIds[ 0 ] )
-				: structure.sectionIds,
-		[ structure.sectionIds, groupedSections ]
-	);
-	const groupedById = useMemo(
-		() =>
-			Object.fromEntries(
-				( groupedSections || EMPTY_ARRAY ).map( ( section ) => [
-					section.clientIds[ 0 ],
-					section,
-				] )
-			),
-		[ groupedSections ]
-	);
-	// The blocks a section is made of: one, but for a run of text.
-	const getMembers = ( clientId ) =>
-		groupedById[ clientId ]?.clientIds || [ clientId ];
-	const isTextSection = ( clientId ) =>
-		Boolean( groupedById[ clientId ]?.isText );
+	const {
+		groupedSections,
+		sectionIds,
+		groupedById,
+		getMembers,
+		isTextSection,
+	} = useGroupedSections( { focusId, hasSections, structure } );
 	const items = useSectionItems();
 	const rowActions = useRowActions();
 	// `{ id, mode, view }` for the section in a mode, `view` being the
@@ -572,73 +375,6 @@ export function SectionModesLayer( {
 		}
 	}, [ exitMode, setDesignView ] );
 
-	// Select a block, or the nearest one around it that can be, and put the
-	// caret in it if it has text.
-	const selectSoon = ( clientId ) => {
-		const store = registry.select( blockEditorStore );
-		let target = clientId;
-
-		while ( target && store.getBlockEditingMode( target ) === 'disabled' ) {
-			target = store.getBlockRootClientId( target );
-		}
-
-		if ( target ) {
-			registry.dispatch( blockEditorStore ).selectBlock( target, 0 );
-			focusSoon( target );
-		}
-	};
-
-	/*
-	 * Put the caret at a point on the page, or select the block there when
-	 * it has no text, like a picture. Tried again for a few frames while
-	 * core opens a header or footer, whose blocks can't be picked until it
-	 * has.
-	 */
-	const placeCaret = ( doc, x, y, blockId, frames = 0 ) => {
-		const editable = doc
-			.elementFromPoint( x, y )
-			?.closest( '[contenteditable="true"]' );
-
-		if ( editable ) {
-			const range = doc.caretRangeFromPoint?.( x, y );
-			const selection = doc.defaultView.getSelection();
-
-			editable.focus();
-
-			if ( range && selection ) {
-				selection.removeAllRanges();
-				selection.addRange( range );
-			}
-
-			return;
-		}
-
-		const store = registry.select( blockEditorStore );
-		const isReady =
-			! blockId || store.getBlockEditingMode( blockId ) !== 'disabled';
-
-		if ( ! isReady && frames < FOCUS_FRAMES ) {
-			window.requestAnimationFrame( () =>
-				placeCaret( doc, x, y, blockId, frames + 1 )
-			);
-			return;
-		}
-
-		// No text there: the nearest block that can be picked.
-		let clientId = blockId;
-
-		while (
-			clientId &&
-			store.getBlockEditingMode( clientId ) === 'disabled'
-		) {
-			clientId = store.getBlockRootClientId( clientId );
-		}
-
-		if ( clientId ) {
-			registry.dispatch( blockEditorStore ).selectBlock( clientId );
-		}
-	};
-
 	// One for both, so a section never lights up before its clicks are
 	// kept off the page.
 	const canvasDocument = useCanvasDocument( editorRef );
@@ -648,229 +384,28 @@ export function SectionModesLayer( {
 		isActive: true,
 	} );
 
-	const isOpen = ( target ) =>
-		Boolean(
-			activeRef.current &&
-			activeRef.current.mode !== MODE_DESIGN &&
-			target === activeRef.current.id
-		);
-
-	// The row of cards a block is in, or is, in the section picked.
-	const getRowOf = ( blockId ) => {
-		const rowIds = rowsRef.current.map( ( row ) => row.clientId );
-		let clientId = blockId;
-
-		while ( clientId ) {
-			if ( rowIds.includes( clientId ) ) {
-				return clientId;
-			}
-
-			clientId = registry
-				.select( blockEditorStore )
-				.getBlockRootClientId( clientId );
-		}
-
-		return null;
-	};
-
-	/*
-	 * Clicks reach a section whose blocks are open, but a click on a row of
-	 * cards other than the one open opens that row first, as the second
-	 * level in.
-	 */
-	const allowsClick = ( target, blockId ) => {
-		if ( ! target && passesOtherClicks ) {
-			return true;
-		}
-
-		if ( ! isOpen( target ) ) {
-			return false;
-		}
-
-		if ( activeRef.current.mode !== MODE_CONTENT || partsById[ target ] ) {
-			return true;
-		}
-
-		const row = getRowOf( blockId );
-
-		return ! row || row === activeRowRef.current;
-	};
-
-	// Put the caret at the point clicked, once the section takes clicks.
-	const openAt = ( target, event, blockId ) => {
-		const doc = event.target.ownerDocument;
-		const { clientX: x, clientY: y } = event;
-
-		if ( activeRef.current?.mode !== MODE_CONTENT ) {
-			enterMode( target, MODE_CONTENT );
-		}
-
-		window.requestAnimationFrame( () =>
-			window.requestAnimationFrame( () =>
-				placeCaret( doc, x, y, blockId )
-			)
-		);
-	};
-
-	// A click on the blocks outside the template parts, which reaches
-	// them, leaves any part open or picked, as a click elsewhere does on a
-	// page.
-	useEffect( () => {
-		if ( ! passesOtherClicks || ! canvasDocument ) {
-			return undefined;
-		}
-
-		const onPointerDown = ( event ) => {
-			const block = event.target.closest?.( '[data-block]' );
-
-			if ( block && findTarget( block.dataset.block ) ) {
-				return;
-			}
-
-			if ( activeRef.current ) {
-				exitMode();
-			}
-
-			setPickedSection( null );
-		};
-
-		canvasDocument.addEventListener( 'pointerdown', onPointerDown, true );
-
-		return () =>
-			canvasDocument.removeEventListener(
-				'pointerdown',
-				onPointerDown,
-				true
-			);
-	}, [ canvasDocument, exitMode, findTarget, passesOtherClicks ] );
-
-	useCanvasGuard( {
-		allows: allowsClick,
+	const { isOpen, getRowOf, focusSoon } = useSectionClicks( {
+		activeRef,
+		activeRowRef,
 		canvasDocument,
+		editorRef,
+		enterMode,
+		escapeMode,
+		exitMode,
 		findTarget,
-		isActive: true,
-		/*
-		 * A click on a section picks it. On the section picked, it goes a
-		 * level in: to the row of cards it lands on, then to the block. A
-		 * click anywhere else picks what it lands on, or nothing, leaving
-		 * any mode.
-		 */
-		onBlocked: ( target, event ) => {
-			const current = activeRef.current;
-			const held =
-				current?.mode === MODE_CONTENT
-					? current.id
-					: ! current && pickedRef.current;
-
-			setInlineAdd( null );
-
-			if (
-				target &&
-				target === held &&
-				! partsById[ target ] &&
-				! isComposing
-			) {
-				const blockId =
-					event.target.closest?.( '[data-block]' )?.dataset.block;
-				const row = getRowOf( blockId );
-
-				if ( row && row !== activeRowRef.current ) {
-					if ( current ) {
-						exitMode();
-					}
-
-					setActiveRowId( row );
-					return;
-				}
-
-				if ( ! row ) {
-					setActiveRowId( null );
-				}
-
-				openAt( target, event, blockId );
-				return;
-			}
-
-			if ( current ) {
-				exitMode();
-			}
-
-			setActiveRowId( null );
-			setPickedSection( target );
-		},
-		// A double click goes straight to the block, with the caret where it
-		// landed, or the block there selected, like a picture. Not on a
-		// header or footer, which is opened on purpose.
-		onDoubleClick: ( target, event ) => {
-			const doc = event.target.ownerDocument;
-			const { clientX: x, clientY: y } = event;
-			const blockId =
-				event.target.closest( '[data-block]' )?.dataset.block;
-
-			// Composing, the point moves as the page zooms in, so the block
-			// under it now is selected once it has.
-			if ( isComposing ) {
-				const innerId = getBlockAtPoint( doc, x, y ) || blockId;
-
-				leaveCompose( () => {
-					enterMode( target, MODE_CONTENT );
-
-					window.requestAnimationFrame( () =>
-						window.requestAnimationFrame( () =>
-							selectSoon( innerId )
-						)
-					);
-				} );
-				return;
-			}
-
-			if ( partsById[ target ] ) {
-				return;
-			}
-
-			setActiveRowId( getRowOf( blockId ) );
-			enterMode( target, MODE_CONTENT );
-
-			// Once the section takes clicks, and core has opened it.
-			window.requestAnimationFrame( () =>
-				window.requestAnimationFrame( () =>
-					placeCaret( doc, x, y, blockId )
-				)
-			);
-		},
-		// Escape leaves Edit content or Edit design, the section staying
-		// picked, and steps back from a design choice to the choices.
-		onEscape: ( event ) => {
-			const current = activeRef.current;
-
-			if ( inlineAdd ) {
-				event.preventDefault();
-				setInlineAdd( null );
-				return;
-			}
-
-			if ( ! current ) {
-				if ( activeRowRef.current ) {
-					event.preventDefault();
-					setActiveRowId( null );
-				} else if ( pickedSection ) {
-					event.preventDefault();
-					setPickedSection( null );
-				} else if ( isComposing ) {
-					event.preventDefault();
-					onExitCompose();
-				}
-
-				return;
-			}
-
-			event.preventDefault();
-			event.stopPropagation();
-			// Out of the text too, or core selects its block again.
-			event.target.ownerDocument.activeElement?.blur();
-
-			escapeMode();
-		},
+		inlineAdd,
+		isComposing,
+		leaveCompose,
+		onExitCompose,
+		partsById,
+		passesOtherClicks,
+		pickedRef,
+		pickedSection,
+		registry,
+		rowsRef,
+		setActiveRowId,
+		setInlineAdd,
+		setPickedSection,
 	} );
 
 	const { editedSection, exists, selectedId } = useSelect(
@@ -915,135 +450,28 @@ export function SectionModesLayer( {
 
 	const activePart = active ? partsById[ active.id ] : null;
 
-	/*
-	 * The header or footer open in Edit content or Freeform, for the editor
-	 * extension that opens its blocks. Noted just before core opens it, in
-	 * `enterMode` and `enterFreeform`, and cleared here once it closes, however
-	 * it does, after core has closed it.
-	 */
-	const openPartId =
-		activePart && active.mode !== MODE_DESIGN ? active.id : null;
-	useEffect( () => {
-		if ( ! openPartId ) {
-			setOpenPart( null );
-		}
-	}, [ openPartId ] );
-	useEffect( () => () => setOpenPart( null ), [] );
-
-	/*
-	 * Code outside the canvas asked for the header or footer to be opened,
-	 * as Edit header or Edit footer does. Taken up once the part is on this
-	 * canvas, in Edit, where it can open.
-	 */
-	const partRequest = useSelect(
-		( select ) => select( CANVAS_STORE ).getPartRequest(),
-		[]
-	);
-	const requestedPartId =
-		( partRequest &&
-			! isComposing &&
-			parts.find(
-				( part ) =>
-					part.area === partRequest && targets.has( part.clientId )
-			)?.clientId ) ||
-		null;
-	useEffect( () => {
-		if ( ! requestedPartId ) {
-			return;
-		}
-
-		requestOpenPart( null );
-
-		if ( activeRef.current?.id !== requestedPartId ) {
-			enterMode( requestedPartId, MODE_CONTENT );
-		}
-
-		// Nobody clicked it, so it may be out of sight.
-		scrollCanvasTo( editorRef, requestedPartId );
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ requestedPartId ] );
-
-	// Compose works on layouts, colours and the page's order: Edit content
-	// and Freeform give way to it, the section staying picked.
-	useEffect( () => {
-		if ( isComposing && activeRef.current?.mode !== undefined ) {
-			if ( activeRef.current.mode !== MODE_DESIGN ) {
-				exitMode();
-			}
-		}
-	}, [ exitMode, isComposing ] );
-
-	// The section went, as on undo or delete: so does its mode.
-	useEffect( () => {
-		if ( active && ! exists ) {
-			setActive( null );
-		}
-	}, [ active, exists ] );
-
-	// Core's own Done on a section it opened ends Freeform, the section
-	// staying picked, and Edit content on a header or footer.
-	useEffect( () => {
-		if ( ! active || editedSection === active.id ) {
-			return;
-		}
-
-		if ( active.mode === MODE_FREEFORM ) {
-			exitMode();
-		} else if ( activePart && active.mode === MODE_CONTENT ) {
-			setActive( null );
-		}
-	}, [ active, activePart, editedSection, exitMode ] );
-
-	/*
-	 * Nothing outside the section being edited in place stays selected in
-	 * core. A section selected while no section is in a mode, as the
-	 * picker selects the one it adds, is picked instead, and brought into
-	 * view.
-	 */
-	useEffect( () => {
-		if ( ! selectedId ) {
-			return;
-		}
-
-		const target = findTarget( selectedId );
-
-		// A section's own block, when it holds others, is never selected in
-		// core, so core's toolbar for it never shows: its blocks are what is
-		// edited. A section that is a single block is that block.
-		const isSectionItself =
-			selectedId === target &&
-			! isTextSection( target ) &&
-			registry.select( blockEditorStore ).getBlockOrder( target ).length >
-				0;
-
-		if ( isOpen( target ) && ! isSectionItself ) {
-			return;
-		}
-
-		if ( isOpen( target ) ) {
-			registry.dispatch( blockEditorStore ).clearSelectedBlock();
-			return;
-		}
-
-		if ( ! target && passesOtherClicks ) {
-			return;
-		}
-
-		registry.dispatch( blockEditorStore ).clearSelectedBlock();
-
-		if ( target && ! activeRef.current ) {
-			setPickedSection( target );
-			// Once a section just added is drawn.
-			window.requestAnimationFrame( () =>
-				window.requestAnimationFrame( () =>
-					scrollCanvasTo( editorRef, target )
-				)
-			);
-		}
-		// `isOpen` reads the latest mode from its ref, set as `active` is, and
-		// `isTextSection` the sections, as `groupedById` holds them.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ active, editorRef, findTarget, groupedById, registry, selectedId ] );
+	useModeSync( {
+		active,
+		activePart,
+		activeRef,
+		editedSection,
+		editorRef,
+		enterMode,
+		exists,
+		exitMode,
+		findTarget,
+		groupedById,
+		isComposing,
+		isOpen,
+		isTextSection,
+		parts,
+		passesOtherClicks,
+		registry,
+		selectedId,
+		setActive,
+		setPickedSection,
+		targets,
+	} );
 
 	// In Edit content, a block of the section selected can be removed from
 	// core's toolbar; Restore on the small bar puts it back. A run of text's
@@ -1089,92 +517,14 @@ export function SectionModesLayer( {
 			: null
 	);
 
-	/*
-	 * Manage all posts: off to the screen of the posts the section lists, noting
-	 * the way back. The first time, the notice says why first.
-	 */
-	const navigate = useNavigate();
-	const hasReadPostsNotice = useHasReadPostsNotice();
-	const [ postsNotice, setPostsNotice ] = useState( null );
-	const entityKey = entity ? `${ entity.postType }:${ entity.postId }` : '';
-	const goToPosts = ( clientId, posts ) => {
-		const record =
-			entity &&
-			registry
-				.select( coreDataStore )
-				.getEditedEntityRecord(
-					'postType',
-					entity.postType,
-					entity.postId
-				);
-		const title =
-			typeof record?.title === 'string'
-				? record.title
-				: record?.title?.raw;
-
-		setPostsNotice( null );
-		setPostsTrip( {
-			entity: entityKey,
-			label: title || __( 'Your page' ),
-			postType: posts.name,
-			sectionIndex: sectionIds.indexOf( clientId ),
-			to: getCurrentRoute(),
+	const { postsNotice, setPostsNotice, goToPosts, editPosts } =
+		usePostsTripBack( {
+			editorRef,
+			entity,
+			registry,
+			sectionIds,
+			setPickedSection,
 		} );
-		navigate( { to: `/types/${ posts.name }/list/all` } );
-	};
-	const editPosts = ( clientId, posts ) => {
-		if ( hasReadPostsNotice ) {
-			goToPosts( clientId, posts );
-		} else {
-			setPostsNotice( { clientId, posts } );
-		}
-	};
-
-	/*
-	 * Back from there, the section is picked again, as it was left. Only a
-	 * way back noted before this canvas opened counts: one noted on the way
-	 * out is for the next time it opens.
-	 */
-	const tripRef = useRef( registry.select( CANVAS_STORE ).getPostsTrip() );
-	const returnedId =
-		tripRef.current?.entity === entityKey
-			? sectionIds[ tripRef.current.sectionIndex ]
-			: null;
-	useEffect( () => {
-		if ( ! returnedId ) {
-			return;
-		}
-
-		tripRef.current = null;
-		setPostsTrip( null );
-		setPickedSection( returnedId );
-
-		// The page has only just opened: the pictures above the section move
-		// it down as they load, so it is scrolled to once they have.
-		let waited = 0;
-		let timer;
-		const scrollOnceLoaded = () => {
-			const doc = getCanvasFrame( editorRef.current )?.contentDocument;
-			const isLoading =
-				! doc ||
-				Array.from( doc.images ).some(
-					( image ) => image.loading !== 'lazy' && ! image.complete
-				);
-
-			if ( isLoading && waited < LOAD_WAIT_MS ) {
-				waited += LOAD_POLL_MS;
-				timer = setTimeout( scrollOnceLoaded, LOAD_POLL_MS );
-				return;
-			}
-
-			scrollCanvasTo( editorRef, returnedId );
-		};
-
-		scrollOnceLoaded();
-
-		return () => clearTimeout( timer );
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ returnedId ] );
 
 	const isEmpty =
 		hasSections &&
@@ -1237,41 +587,10 @@ export function SectionModesLayer( {
 		layerRef,
 	} );
 	// A run of text is drawn round all of its blocks, under its first's ID.
-	const rects = useMemo( () => {
-		if ( ! groupedSections ) {
-			return blockRects;
-		}
-
-		const next = { ...blockRects };
-
-		groupedSections.forEach( ( { clientIds } ) => {
-			const boxes = clientIds
-				.map( ( clientId ) => blockRects[ clientId ] )
-				.filter( Boolean );
-
-			if ( boxes.length < 2 ) {
-				return;
-			}
-
-			const top = Math.min( ...boxes.map( ( box ) => box.top ) );
-			const left = Math.min( ...boxes.map( ( box ) => box.left ) );
-
-			next[ clientIds[ 0 ] ] = {
-				height:
-					Math.max(
-						...boxes.map( ( box ) => box.top + box.height )
-					) - top,
-				left,
-				top,
-				width:
-					Math.max(
-						...boxes.map( ( box ) => box.left + box.width )
-					) - left,
-			};
-		} );
-
-		return next;
-	}, [ blockRects, groupedSections ] );
+	const rects = useMemo(
+		() => mergeRunRects( blockRects, groupedSections ),
+		[ blockRects, groupedSections ]
+	);
 
 	const { moveBlocksToPosition } = useDispatch( blockEditorStore );
 
@@ -1387,573 +706,78 @@ export function SectionModesLayer( {
 		)
 	);
 
-	// Working on the words in a section locked to its content, its "+"
-	// beside an empty line is hidden, as it can only add another.
-	const isEditingLockedSection =
-		active?.mode === MODE_CONTENT && lockedIds.includes( active.id );
-
-	useEffect( () => {
-		const editor = editorRef.current;
-
-		if ( ! isEditingLockedSection || ! editor ) {
-			return undefined;
-		}
-
-		editor.classList.add( 'is-editing-locked-section' );
-
-		return () => editor.classList.remove( 'is-editing-locked-section' );
-	}, [ editorRef, isEditingLockedSection ] );
-
-	/*
-	 * A header or footer in a mode is put in the spotlight, the rest of the
-	 * page faded and dimmed, as on the Header and Footer screens, so it looks
-	 * the same however it is reached. A canvas about one part, like those
-	 * screens', keeps it in the spotlight itself.
-	 */
-	useEditorSpotlight( {
-		area: activePart?.area,
+	useLayerEffects( {
+		active,
+		activePart,
+		activeRowRef,
 		canvasDocument,
-		clientId: activePart && ! focusId ? active.id : null,
+		chromeNode,
+		drag,
+		editorRef,
+		escapeMode,
+		exitMode,
+		focusId,
+		freshId,
+		host,
+		inlineAdd,
+		inlineAddNode,
+		isComposing,
+		layerRef,
+		lockedIds,
+		onExitCompose,
+		pickedSection,
+		sectionIds,
+		setActiveRowId,
+		setChromeSize,
+		setFreshId,
+		setInlineAdd,
+		setInlineAddHeight,
+		setPickedSection,
 	} );
 
-	// Core's own inserter between blocks would offer a second way to add
-	// in the same gap, so it is hidden while the picker is open.
-	useEffect( () => {
-		const editor = editorRef.current;
-
-		if ( ! inlineAdd || ! editor ) {
-			return undefined;
-		}
-
-		editor.classList.add( 'is-adding-section-inline' );
-
-		return () => editor.classList.remove( 'is-adding-section-inline' );
-	}, [ editorRef, inlineAdd ] );
-
-	// Dragging a section, or the sections going, closes the gap.
-	useEffect( () => {
-		if ( inlineAdd && ( drag || ! sectionIds.length ) ) {
-			setInlineAdd( null );
-		}
-	}, [ drag, inlineAdd, sectionIds.length ] );
-
-	// A header or footer's blocks are picked out in purple while it is open.
-	useCanvasStyles( GLOBAL_STYLE_ID, activePart ? GLOBAL_CANVAS_CSS : null );
-
-	// Composing, Escape with nothing picked leaves for Edit, from wherever
-	// focus is, but not from a dialog or popover's own Escape.
-	useEffect( () => {
-		if ( ! isComposing || pickedSection || active ) {
-			return undefined;
-		}
-
-		const onKeyDown = ( event ) => {
-			if (
-				event.key !== 'Escape' ||
-				event.defaultPrevented ||
-				event.target.closest?.(
-					'.components-modal__frame, .components-popover, [role="dialog"]'
-				)
-			) {
-				return;
-			}
-
-			onExitCompose();
-		};
-
-		window.addEventListener( 'keydown', onKeyDown );
-
-		return () => window.removeEventListener( 'keydown', onKeyDown );
-	}, [ active, isComposing, onExitCompose, pickedSection ] );
-
-	/*
-	 * Escape leaves Edit content or Edit design from wherever focus was left,
-	 * as when the button that opened the mode went and took focus with it,
-	 * the section staying picked, or steps back a level, as `escapeMode` does.
-	 * Not from a dialog or popover's own Escape.
-	 */
-	const isInMode = Boolean( active );
-
-	useEffect( () => {
-		if ( ! isInMode ) {
-			return undefined;
-		}
-
-		const onKeyDown = ( event ) => {
-			if (
-				event.key !== 'Escape' ||
-				event.defaultPrevented ||
-				event.target.closest?.(
-					'.components-modal__frame, .components-popover, [role="dialog"]'
-				)
-			) {
-				return;
-			}
-
-			event.preventDefault();
-			escapeMode();
-		};
-
-		window.addEventListener( 'keydown', onKeyDown );
-
-		return () => window.removeEventListener( 'keydown', onKeyDown );
-	}, [ escapeMode, isInMode ] );
-
-	/*
-	 * Edit design has nothing to confirm, so a click anywhere off its bar
-	 * leaves it, its changes kept: on the page, as for every mode, and
-	 * anywhere else in the editor too. Not from a popover, like a tooltip.
-	 */
-	const isDesigning = active?.mode === MODE_DESIGN;
-
-	useEffect( () => {
-		if ( ! isDesigning ) {
-			return undefined;
-		}
-
-		const doc = layerRef.current?.ownerDocument;
-		const onPointerDown = ( event ) => {
-			if (
-				layerRef.current?.contains( event.target ) ||
-				event.target.closest?.( '.components-popover' )
-			) {
-				return;
-			}
-
-			exitMode();
-		};
-
-		doc?.addEventListener( 'pointerdown', onPointerDown );
-
-		return () => doc?.removeEventListener( 'pointerdown', onPointerDown );
-	}, [ exitMode, isDesigning ] );
-
-	// Escape un-picks the section from wherever focus was left, as on the
-	// page after Done, but not from a dialog or popover's own Escape.
-	useEffect( () => {
-		if ( ! pickedSection || active ) {
-			return undefined;
-		}
-
-		const onKeyDown = ( event ) => {
-			if (
-				event.key !== 'Escape' ||
-				event.defaultPrevented ||
-				event.target.closest?.(
-					'.components-modal__frame, .components-popover, [role="dialog"]'
-				)
-			) {
-				return;
-			}
-
-			// The row of cards open closes first.
-			if ( activeRowRef.current ) {
-				setActiveRowId( null );
-			} else {
-				setPickedSection( null );
-			}
-		};
-
-		window.addEventListener( 'keydown', onKeyDown );
-
-		return () => window.removeEventListener( 'keydown', onKeyDown );
-	}, [ active, pickedSection ] );
-
-	// The size of the panel or bar on the section in a mode, to place it and
-	// steer the bins around it. Watched from whenever it mounts, as it does
-	// again once a section that was swapped for another is measured.
-	useEffect( () => {
-		if ( ! chromeNode ) {
-			setChromeSize( null );
-			return undefined;
-		}
-
-		const observer = new window.ResizeObserver( () =>
-			setChromeSize( {
-				height: chromeNode.offsetHeight,
-				width: chromeNode.offsetWidth,
-			} )
-		);
-
-		observer.observe( chromeNode );
-
-		return () => observer.disconnect();
-	}, [ chromeNode ] );
-
-	// The height of the picker for adding a section in place, for the gap
-	// it sits in.
-	useEffect( () => {
-		if ( ! inlineAddNode ) {
-			setInlineAddHeight( null );
-			return undefined;
-		}
-
-		const observer = new window.ResizeObserver( () =>
-			setInlineAddHeight( inlineAddNode.offsetHeight )
-		);
-
-		observer.observe( inlineAddNode );
-
-		return () => observer.disconnect();
-	}, [ inlineAddNode ] );
-
-	// Once its gap has opened, the picker for adding a section in place is
-	// scrolled into view, if it isn't, keeping its top in view first.
-	useEffect( () => {
-		if ( ! inlineAddNode ) {
-			return undefined;
-		}
-
-		const timer = window.setTimeout( () => {
-			const iframe = getCanvasFrame( editorRef.current );
-
-			if ( ! iframe || ! inlineAddNode.isConnected ) {
-				return;
-			}
-
-			const box = inlineAddNode.getBoundingClientRect();
-			const view = iframe.getBoundingClientRect();
-			const above = box.top - view.top - INSET;
-			const below = box.bottom - view.bottom + INSET;
-			let delta = 0;
-
-			if ( above < 0 ) {
-				delta = above;
-			} else if ( below > 0 ) {
-				delta = Math.min( below, above );
-			}
-
-			if ( delta ) {
-				const reduceMotion = window.matchMedia(
-					'(prefers-reduced-motion: reduce)'
-				).matches;
-
-				iframe.contentWindow?.scrollBy( {
-					behavior: reduceMotion ? 'auto' : 'smooth',
-					top: delta,
-				} );
-			}
-		}, INLINE_ADD_SETTLE_MS );
-
-		return () => window.clearTimeout( timer );
-	}, [ editorRef, inlineAddNode ] );
-
-	// Scrolling over the layer scrolls the canvas under it.
-	useEffect( () => {
-		const layer = layerRef.current;
-
-		if ( ! layer ) {
-			return undefined;
-		}
-
-		const onWheel = ( event ) => {
-			const view = getCanvasFrame( editorRef.current )?.contentWindow;
-
-			const bar = event.target.closest( '.cnl-section-modes__design' );
-
-			if (
-				! view ||
-				event.target.closest( '.components-popover' ) ||
-				( bar && bar.scrollHeight > bar.clientHeight )
-			) {
-				return;
-			}
-
-			event.preventDefault();
-			view.scrollBy( { left: 0, top: event.deltaY } );
-		};
-
-		layer.addEventListener( 'wheel', onWheel, { passive: false } );
-
-		return () => layer.removeEventListener( 'wheel', onWheel );
-	}, [ editorRef, host ] );
-
-	// A new item is highlighted a moment, and scrolled to.
-	useEffect( () => {
-		if ( ! freshId ) {
-			return undefined;
-		}
-
-		const timer = window.setTimeout( () => setFreshId( null ), FRESH_MS );
-
-		scrollCanvasTo( editorRef, freshId );
-
-		return () => window.clearTimeout( timer );
-	}, [ editorRef, freshId ] );
-
-	const getTitle = ( clientId ) => {
-		const part = partsById[ clientId ];
-
-		if ( part ) {
-			return getPartTitle( part );
-		}
-
-		if ( isTextSection( clientId ) ) {
-			return __( 'Text' );
-		}
-
-		if ( layoutItemsById[ clientId ] ) {
-			return getLayoutItemTitle(
-				layoutItemsById[ clientId ].name,
-				registry.select( blocksStore ).getBlockType
-			);
-		}
-
-		const block = registry.select( blockEditorStore ).getBlock( clientId );
-
-		return block ? getCachedSectionTitle( block ) : __( 'Section' );
-	};
-
-	/*
-	 * Put the caret in a new block as soon as it is drawn, so typing straight
-	 * away lands in it rather than scrolling the page. Kept there for a
-	 * moment, as the section's lock redraws it, unless the selection moves
-	 * on first.
-	 */
-	const focusSoon = ( clientId ) => {
-		let frames = 0;
-		const focus = () => {
-			const doc = getCanvasFrame( editorRef.current )?.contentDocument;
-			const block = doc?.getElementById( `block-${ clientId }` );
-			// The text itself, which in a button sits inside the block.
-			const node = block?.matches( '[contenteditable="true"]' )
-				? block
-				: block?.querySelector( '[contenteditable="true"]' ) || block;
-			const isSelected =
-				registry
-					.select( blockEditorStore )
-					.getSelectedBlockClientId() === clientId;
-
-			if ( ! isSelected ) {
-				return;
-			}
-
-			if ( node && doc.activeElement !== node ) {
-				node.focus();
-			}
-
-			if ( ++frames < FOCUS_FRAMES ) {
-				window.requestAnimationFrame( focus );
-			}
-		};
-
-		window.requestAnimationFrame( focus );
-	};
-
-	// Add a block to the end of a section, and open it in Edit content with
-	// the caret in the new block, or the new picture selected. A run of text
-	// takes it after its last block, as one more of its own.
-	const addItem = ( ownerId, type, media ) => {
-		const isText = isTextSection( ownerId );
-		const added = items.add(
-			isText ? getMembers( ownerId ).at( -1 ) : ownerId,
-			type,
-			media
-		);
-
-		if ( ! added ) {
-			return;
-		}
-
-		setFreshId( added.blockId );
-		enterMode( isText ? ownerId : added.sectionId, MODE_CONTENT );
-
-		if ( type === 'image' ) {
-			registry.dispatch( blockEditorStore ).selectBlock( added.blockId );
-			return;
-		}
-
-		registry
-			.dispatch( blockEditorStore )
-			.selectBlock( added.editableId, 0 );
-		focusSoon( added.editableId );
-	};
-
-	// A blank section, opened in Edit content with the caret in its text.
-	const startBlank = ( index = 0 ) => {
-		const section = createBlankSection();
-
-		registry
-			.dispatch( blockEditorStore )
-			.insertBlocks( [ section ], index, rootClientId, false );
-		enterMode( section.clientId, MODE_CONTENT );
-
-		const paragraphId = section.innerBlocks[ 0 ].clientId;
-
-		registry.dispatch( blockEditorStore ).selectBlock( paragraphId, 0 );
-		focusSoon( paragraphId );
-	};
-
-	const deleteSection = ( clientId ) => {
-		const title = getTitle( clientId );
-
-		registry
-			.dispatch( blockEditorStore )
-			.removeBlocks( getMembers( clientId ), false );
-		release();
-		registry.dispatch( noticesStore ).createSuccessNotice(
-			sprintf(
-				/* translators: %s: section name. */
-				__( '“%s” deleted.' ),
-				title
-			),
-			{
-				actions: [
-					{
-						label: __( 'Undo' ),
-						onClick: () =>
-							registry.dispatch( coreDataStore ).undo(),
-					},
-				],
-				id: 'cnl-section-modes-deleted',
-				type: 'snackbar',
-			}
-		);
-	};
-
-	const moveSection = ( clientId, direction ) => {
-		const actions = registry.dispatch( blockEditorStore );
-
-		// Past a whole run of text, or a whole run past a section.
-		if ( groupedSections ) {
-			moveSectionTo(
-				clientId,
-				sectionIds.indexOf( clientId ) + direction
-			);
-		} else if ( direction < 0 ) {
-			actions.moveBlocksUp( [ clientId ], rootClientId || '' );
-		} else {
-			actions.moveBlocksDown( [ clientId ], rootClientId || '' );
-		}
-
-		window.requestAnimationFrame( () =>
-			scrollCanvasTo( editorRef, clientId )
-		);
-	};
-
-	// A copy of a row's card added after it, highlighted a moment. A grid
-	// that grows to take it has a new client ID.
-	const addRowItem = ( rowId, index, options ) => {
-		const added = rowActions.addItem( rowId, index, options );
-
-		if ( ! added ) {
-			return;
-		}
-
-		setFreshId( added.addedId );
-
-		if ( rowId === activeRowId ) {
-			setActiveRowId( added.rowId );
-		}
-	};
-
-	const removeRowItem = ( rowId, index ) => {
-		registry.dispatch( blockEditorStore ).clearSelectedBlock();
-		rowActions.removeItem( rowId, index );
-	};
-
-	const onLayoutReplace = ( next ) => {
-		items.rename( active.id, next.clientId );
-		setActive( ( current ) => ( { ...current, id: next.clientId } ) );
-	};
-
-	// Adding a section in place, in a gap opened where it goes, rather than
-	// in the modal, which "View all sections" opens for the same gap.
-	const openInlineAdd = ( index ) => {
-		setMenuOpenFor( null );
-		setInlineAdd( { index } );
-	};
-
-	const inlineAddActions = {
-		onClose: () => setInlineAdd( null ),
-		onPick: ( pattern ) => {
-			setInlineAdd( null );
-			addPatternSection( registry, pattern, {
-				index: getInsertIndex( inlineAdd.index ),
-				rootClientId: rootClientId || '',
-			} );
-		},
-		// Typed into straight away, which is done in Edit.
-		onStartBlank: () => {
-			const index = getInsertIndex( inlineAdd.index );
-
-			setInlineAdd( null );
-			leaveCompose( () => startBlank( index ) );
-		},
-		onViewAll: () => {
-			const index = getInsertIndex( inlineAdd.index );
-
-			setInlineAdd( null );
-			openSectionPicker( {
-				index,
-				onStartBlank: () => leaveCompose( () => startBlank( index ) ),
-				rootClientId: rootClientId || '',
-			} );
-		},
-	};
-
-	/*
-	 * The picker for adding a section in place, in its gap: under the
-	 * section before it, or over the one after it at the top of the page.
-	 * As wide as the sections, but never so narrow, zoomed out, that its
-	 * cards can't be made out. The gap itself is marked out behind it, edge
-	 * to edge and square, as the place the section will take.
-	 */
-	const renderInlineAdd = () => {
-		const neighbour = inlineAddPlace && rects[ inlineAddPlace.clientId ];
-
-		if ( ! neighbour || ! frame ) {
-			return null;
-		}
-
-		const previous = rects[ sectionIds[ inlineAdd.index - 1 ] ];
-		const box = local( neighbour, frame );
-		const height = inlineAddHeight ?? INLINE_ADD_HEIGHT;
-		const top = previous
-			? previous.top - frame.top + previous.height + INLINE_ADD_GAP
-			: box.top - INLINE_ADD_GAP - height;
-		const width = Math.min(
-			frame.width - INSET * 2,
-			Math.max( box.width - INSET * 2, INLINE_ADD_MIN_WIDTH )
-		);
-		const left = Math.max(
-			INSET,
-			Math.min(
-				box.left + ( box.width - width ) / 2,
-				frame.width - INSET - width
-			)
-		);
-
-		const slotLeft = Math.min( box.left, left - INSET );
-		const slotRight = Math.max(
-			box.left + box.width,
-			left + width + INSET
-		);
-
-		return (
-			<Fragment key={ inlineAdd.index }>
-				<div
-					className="cnl-section-modes__inline-add-slot"
-					style={ {
-						height: height + INLINE_ADD_GAP * 2,
-						left: slotLeft,
-						top: top - INLINE_ADD_GAP,
-						width: slotRight - slotLeft,
-					} }
-				/>
-				<div
-					className="cnl-section-modes__inline-add"
-					ref={ setInlineAddNode }
-					style={ { left, top, width } }
-				>
-					<InlineSectionPicker
-						{ ...inlineAddActions }
-						Preview={ EditorPreview }
-					/>
-				</div>
-			</Fragment>
-		);
-	};
+	const getTitle = ( clientId ) =>
+		getLayerTitle( registry, clientId, {
+			isTextSection,
+			layoutItemsById,
+			partsById,
+		} );
+
+	const {
+		addItem,
+		startBlank,
+		deleteSection,
+		moveSection,
+		addRowItem,
+		removeRowItem,
+		onLayoutReplace,
+		openInlineAdd,
+		inlineAddActions,
+	} = getSectionActions( {
+		active,
+		activeRowId,
+		editorRef,
+		enterMode,
+		focusSoon,
+		getInsertIndex,
+		getMembers,
+		getTitle,
+		groupedSections,
+		inlineAdd,
+		isTextSection,
+		items,
+		leaveCompose,
+		moveSectionTo,
+		registry,
+		release,
+		rootClientId,
+		rowActions,
+		sectionIds,
+		setActive,
+		setActiveRowId,
+		setFreshId,
+		setInlineAdd,
+		setMenuOpenFor,
+	} );
 
 	if ( ! host ) {
 		return null;
@@ -1981,417 +805,6 @@ export function SectionModesLayer( {
 		( isWorkedOn &&
 			clientId === active.id &&
 			Boolean( layoutItemsById[ clientId ] ) );
-
-	const renderHover = () => {
-		const rect = ! drag && shownHoverId && rects[ shownHoverId ];
-
-		if ( ! rect || ! frame ) {
-			return null;
-		}
-
-		const box = local( rect, frame );
-		const isPart = Boolean( partsById[ shownHoverId ] );
-		const isLayoutItem = Boolean( layoutItemsById[ shownHoverId ] );
-		const isText = isTextSection( shownHoverId );
-		const index = sectionIds.indexOf( shownHoverId );
-		const title = getTitle( shownHoverId );
-		/*
-		 * A narrow section has the modes on a row of their own. A section
-		 * too short for that, or for the bar at all, has a compact bar, its
-		 * modes as icons, under it, clear of "Add section" on its bottom
-		 * edge: a click goes into the section, so the bar mustn't cover
-		 * what would be clicked.
-		 */
-		// A header's or footer's bar is one button, a row however narrow.
-		const isNarrow = ! isPart && box.width < NARROW_WIDTH;
-		const showsAddSection =
-			! isPart && ! isLayoutItem && ! active && ! inlineAdd;
-		// A layout item has nothing to change but its words or picture,
-		// reached by clicking, so it has a bar only zoomed out, to zoom in.
-		const showsBar = ! isLayoutItem || isComposing;
-		// Clear of the "Add section" buttons on its edges, where they show.
-		const barInset = showsAddSection
-			? ADD_SECTION_HEIGHT / 2 + BAR_GAP
-			: INSET;
-		/*
-		 * A header or footer has Edit header or Edit footer alone, in the
-		 * middle of the part in view, as nothing in it is reached by a
-		 * click.
-		 */
-		const isCompact =
-			! isPart &&
-			box.height <
-				( isNarrow ? BAR_HEIGHT * 2 + BAR_ROW_GAP : BAR_HEIGHT ) +
-					barInset * 2;
-		const barHeight =
-			isNarrow && ! isCompact ? BAR_HEIGHT * 2 + BAR_ROW_GAP : BAR_HEIGHT;
-		let barTop = isCompact
-			? box.top + box.height + SHORT_BAR_GAP
-			: stickyTop( box, barHeight, barInset );
-
-		if ( isPart ) {
-			const shownTop = Math.max( box.top, 0 );
-			const shownBottom = Math.min( box.top + box.height, frame.height );
-
-			barTop = ( shownTop + shownBottom - barHeight ) / 2;
-		}
-		const holdHover = {
-			onBlur: release,
-			onFocus: () => hold( shownHoverId ),
-			onPointerEnter: () => hold( shownHoverId ),
-			onPointerLeave: release,
-		};
-
-		const Scope = getScope( shownHoverId );
-
-		// Remade for each section pointed at, so it fades in afresh.
-		return (
-			<div className="cnl-section-modes__hover" key={ shownHoverId }>
-				<Scope>
-					{ /* Tinted while pointed at, as a click picks it; only
-					outlined once picked, as a click goes into it. */ }
-					<div
-						className={ `cnl-section-modes__tint${
-							shownHoverId === pickedId &&
-							menuOpenFor !== pickedId
-								? ' is-picked'
-								: ''
-						}` }
-						style={ box }
-					/>
-					<SectionTab
-						{ ...placeTab(
-							box,
-							hangsTabBelow( shownHoverId ),
-							frame.height
-						) }
-						isPart={ isPart }
-						layout={ isLayoutItem ? layoutName : null }
-						title={ title }
-					/>
-					<div { ...holdHover }>
-						{ showsAddSection &&
-							[
-								[ box.top, index ],
-								[ box.top + box.height, index + 1 ],
-							].map( ( [ top, at ] ) => (
-								<Button
-									className="cnl-section-modes__add-section"
-									icon={ plusIcon }
-									key={ at }
-									onClick={ () => openInlineAdd( at ) }
-									size="compact"
-									style={ {
-										left: box.left + box.width / 2,
-										top,
-									} }
-									variant="primary"
-								>
-									{ __( 'Add section' ) }
-								</Button>
-							) ) }
-						{ showsBar && (
-							<HoverBar
-								canMoveDown={ index < sectionIds.length - 1 }
-								canMoveUp={ index > 0 }
-								isCompact={ isCompact }
-								isComposing={ isComposing }
-								isLayoutItem={ isLayoutItem }
-								isNarrow={ isNarrow && ! isCompact }
-								isPart={ isPart }
-								isText={ isText }
-								onAdd={ ( type ) =>
-									leaveCompose( () =>
-										addItem( shownHoverId, type )
-									)
-								}
-								onDelete={ () => deleteSection( shownHoverId ) }
-								onDuplicate={ () =>
-									registry
-										.dispatch( blockEditorStore )
-										.duplicateBlocks(
-											getMembers( shownHoverId ),
-											false
-										)
-								}
-								onMenuToggle={ ( isMenuOpen ) =>
-									setMenuOpenFor(
-										isMenuOpen ? shownHoverId : null
-									)
-								}
-								onMode={ ( mode ) => {
-									if ( mode === MODE_ZOOM_IN ) {
-										zoomInTo( shownHoverId );
-									} else if ( mode === MODE_CONTENT ) {
-										leaveCompose( () =>
-											enterMode( shownHoverId, mode )
-										);
-									} else {
-										enterMode( shownHoverId, mode );
-									}
-								} }
-								onMove={ ( direction ) =>
-									moveSection( shownHoverId, direction )
-								}
-								clientId={ shownHoverId }
-								onManagePosts={ () =>
-									editPosts( shownHoverId, hoverPosts )
-								}
-								posts={ hoverPosts }
-								style={ {
-									left: box.left + INSET,
-									top: barTop,
-									width: box.width - INSET * 2,
-								} }
-								title={ title }
-							/>
-						) }
-					</div>
-				</Scope>
-			</div>
-		);
-	};
-
-	// The picked section, while another is pointed at: outlined and named.
-	const renderPicked = () => {
-		const rect =
-			! drag &&
-			pickedId &&
-			pickedId !== shownHoverId &&
-			frame &&
-			rects[ pickedId ];
-
-		if ( ! rect ) {
-			return null;
-		}
-
-		const box = local( rect, frame );
-		const isPart = Boolean( partsById[ pickedId ] );
-		const Scope = getScope( pickedId );
-
-		return (
-			<Scope>
-				<div className="cnl-section-modes__outline" style={ box } />
-				<SectionTab
-					{ ...placeTab(
-						box,
-						hangsTabBelow( pickedId ),
-						frame.height
-					) }
-					isPart={ isPart }
-					layout={ layoutItemsById[ pickedId ] ? layoutName : null }
-					title={ getTitle( pickedId ) }
-				/>
-			</Scope>
-		);
-	};
-
-	// A section being dragged: dimmed where it is, a ghost of it under the
-	// pointer, and a line where it would drop.
-	const renderDrag = () => {
-		const rect = drag && frame && rects[ drag.clientId ];
-
-		if ( ! rect ) {
-			return null;
-		}
-
-		const box = local( rect, frame );
-		const gapId = sectionIds[ drag.slot ];
-		const lastRect = rects[ sectionIds[ sectionIds.length - 1 ] ];
-		let lineTop = null;
-
-		if ( gapId && rects[ gapId ] ) {
-			lineTop = rects[ gapId ].top - frame.top;
-		} else if ( lastRect ) {
-			lineTop = lastRect.top + lastRect.height - frame.top;
-		}
-
-		return (
-			<>
-				<div className="cnl-section-modes__dragged" style={ box } />
-				{ draggedBlock && (
-					<div
-						aria-hidden
-						className="cnl-section-modes__ghost"
-						style={ {
-							left: drag.ghost.left,
-							top: drag.ghost.top,
-							width: drag.ghost.width,
-						} }
-					>
-						<BlockPreview
-							blocks={ draggedBlock }
-							viewportWidth={ drag.ghost.viewportWidth }
-						/>
-					</div>
-				) }
-				{ lineTop !== null && (
-					<div
-						className="cnl-section-modes__drop-line"
-						style={ {
-							left: box.left,
-							top: lineTop,
-							width: box.width,
-						} }
-					/>
-				) }
-			</>
-		);
-	};
-
-	const renderActive = () => {
-		const rect = active && rects[ active.id ];
-
-		// A section whose blocks are reached is drawn as picked, its bar
-		// kept, with nothing to leave.
-		if ( ! rect || ! frame || isWorkedOn ) {
-			return null;
-		}
-
-		const box = local( rect, frame );
-		const title = getTitle( active.id );
-		const isHeader = activePart?.area === 'header';
-		const Scope = activePart ? GlobalScope : Fragment;
-		const tab = placeTab( box, active.id === pageTopId, frame.height );
-		// What sits outside the section keeps clear of a tab under it.
-		const outerBox = tab.isBelow
-			? { ...box, height: box.height + TAB_HEIGHT }
-			: box;
-		const removedCount = items.removed.filter(
-			( entry ) => entry.ownerId === active.id
-		).length;
-		const restore = () => items.restore( active.id );
-		let chrome = null;
-		// An open header or footer has Edit design's bar, for its words and
-		// pictures and its design together.
-		const isPartOpen =
-			Boolean( activePart ) && active.mode === MODE_CONTENT;
-
-		if ( active.mode === MODE_DESIGN || isPartOpen ) {
-			const height = chromeSize?.height || BAR_HEIGHT;
-			/*
-			 * Where the bar over the section was, its modes giving way to
-			 * the design choices in the same place: at the top of the
-			 * section in view, a tray opened under it kept on the canvas,
-			 * moving the bar up if it has to. A section too short to hold
-			 * it, with its tray, has it outside, under it or over it, so
-			 * what is picked can be seen. So does an open header or footer,
-			 * so the bar never covers the words being changed.
-			 */
-			let top;
-
-			if ( ! isPartOpen && box.height >= height + INSET * 2 ) {
-				top = stickyTop( box, height );
-
-				if (
-					top < frame.height &&
-					top + height > frame.height - INSET
-				) {
-					top = Math.max( INSET, frame.height - height - INSET );
-				}
-			} else {
-				top = placeOutside( outerBox, height, frame.height, isHeader );
-			}
-
-			const maxWidth = Math.min(
-				Math.max( DESIGN_BAR_MIN_WIDTH, box.width - INSET * 2 ),
-				frame.width - INSET * 2
-			);
-
-			chrome = (
-				<DesignBar
-					clientId={ active.id }
-					end={ isPartOpen && <DoneButton onDone={ exitMode } /> }
-					onClose={ isPartOpen ? undefined : exitMode }
-					onFreeform={ () => {
-						// More control is for getting on with the section's
-						// blocks, so the canvas expands to fill the editor
-						// too, and stays so until its back arrow.
-						expandCanvas( true );
-
-						leaveCompose( enterFreeform );
-					} }
-					onReplace={ onLayoutReplace }
-					onView={ setDesignView }
-					part={ activePart }
-					perSlide={ getLayoutsPerSlide( maxWidth ) }
-					ref={ setChromeNode }
-					style={ {
-						left: box.left + box.width / 2,
-						// Scrolls rather than run off the canvas.
-						maxHeight: Math.max(
-							DESIGN_BAR_MIN_HEIGHT,
-							frame.height - Math.max( top, 0 ) - INSET
-						),
-						maxWidth,
-						top,
-					} }
-					title={ title }
-					view={ active.view }
-				/>
-			);
-		} else {
-			/*
-			 * In a big section, in the middle of whichever of its top and
-			 * bottom edges is in view, so it is easy to find. In a small
-			 * one, smaller and outside it, so it never covers what is being
-			 * edited: under its bottom edge while there is room on the
-			 * canvas, else over its top edge. Either way, in the middle.
-			 */
-			const isSmall =
-				box.height < MODE_BAR_ROOM_HEIGHT ||
-				box.width < MODE_BAR_ROOM_WIDTH;
-			const below = outerBox.top + outerBox.height + MODE_BAR_GAP;
-			const above = box.top - SMALL_MODE_BAR_HEIGHT - MODE_BAR_GAP;
-			let place = {
-				left: box.left + box.width / 2,
-				top: placeAtEdge(
-					box,
-					chromeSize?.height || BAR_HEIGHT,
-					frame.height
-				),
-			};
-
-			if ( isSmall ) {
-				place = {
-					...place,
-					top:
-						isHeader ||
-						below + SMALL_MODE_BAR_HEIGHT <= frame.height ||
-						above < 0
-							? below
-							: above,
-				};
-			}
-			chrome = (
-				<ModeBar
-					isSmall={ isSmall }
-					label={
-						active.mode === MODE_FREEFORM
-							? __( 'Freeform' )
-							: __( 'Edit content' )
-					}
-					onDone={ exitMode }
-					onRestore={ restore }
-					ref={ setChromeNode }
-					removedCount={ removedCount }
-					style={ place }
-				/>
-			);
-		}
-
-		return (
-			<Scope>
-				<div className="cnl-section-modes__outline" style={ box } />
-				<SectionTab
-					{ ...tab }
-					isPart={ Boolean( activePart ) }
-					title={ title }
-				/>
-				{ chrome }
-			</Scope>
-		);
-	};
 
 	const freshRect = freshId && frame && rects[ freshId ];
 	const getLevel = () => {
@@ -2455,12 +868,81 @@ export function SectionModesLayer( {
 							} }
 						/>
 					) }
-					{ renderPicked() }
+					<PickedChrome
+						drag={ drag }
+						frame={ frame }
+						getScope={ getScope }
+						getTitle={ getTitle }
+						hangsTabBelow={ hangsTabBelow }
+						layoutItemsById={ layoutItemsById }
+						layoutName={ layoutName }
+						partsById={ partsById }
+						pickedId={ pickedId }
+						rects={ rects }
+						shownHoverId={ shownHoverId }
+					/>
 					{ /* Under the section being edited, so another section
 					pointed at never covers its Done. */ }
-					{ renderHover() }
-					{ renderInlineAdd() }
-					{ renderActive() }
+					<HoverChrome
+						active={ active }
+						addItem={ addItem }
+						deleteSection={ deleteSection }
+						drag={ drag }
+						editPosts={ editPosts }
+						enterMode={ enterMode }
+						frame={ frame }
+						getMembers={ getMembers }
+						getScope={ getScope }
+						getTitle={ getTitle }
+						hangsTabBelow={ hangsTabBelow }
+						hold={ hold }
+						hoverPosts={ hoverPosts }
+						inlineAdd={ inlineAdd }
+						isComposing={ isComposing }
+						isTextSection={ isTextSection }
+						layoutItemsById={ layoutItemsById }
+						layoutName={ layoutName }
+						leaveCompose={ leaveCompose }
+						menuOpenFor={ menuOpenFor }
+						moveSection={ moveSection }
+						openInlineAdd={ openInlineAdd }
+						partsById={ partsById }
+						pickedId={ pickedId }
+						rects={ rects }
+						registry={ registry }
+						release={ release }
+						sectionIds={ sectionIds }
+						setMenuOpenFor={ setMenuOpenFor }
+						shownHoverId={ shownHoverId }
+						zoomInTo={ zoomInTo }
+					/>
+					<InlineAdd
+						frame={ frame }
+						inlineAdd={ inlineAdd }
+						inlineAddActions={ inlineAddActions }
+						inlineAddHeight={ inlineAddHeight }
+						inlineAddPlace={ inlineAddPlace }
+						rects={ rects }
+						sectionIds={ sectionIds }
+						setInlineAddNode={ setInlineAddNode }
+					/>
+					<ActiveChrome
+						active={ active }
+						activePart={ activePart }
+						chromeSize={ chromeSize }
+						enterFreeform={ enterFreeform }
+						exitMode={ exitMode }
+						frame={ frame }
+						getTitle={ getTitle }
+						isWorkedOn={ isWorkedOn }
+						items={ items }
+						leaveCompose={ leaveCompose }
+						onLayoutReplace={ onLayoutReplace }
+						pageTopId={ pageTopId }
+						rects={ rects }
+						setChromeNode={ setChromeNode }
+						setDesignView={ setDesignView }
+					/>
 					{ rowsSectionId && ! drag && rects[ rowsSectionId ] && (
 						<RowHandles
 							activeRowId={ openRowId }
@@ -2489,7 +971,13 @@ export function SectionModesLayer( {
 							section={ local( rects[ rowsSectionId ], frame ) }
 						/>
 					) }
-					{ renderDrag() }
+					<DragChrome
+						drag={ drag }
+						draggedBlock={ draggedBlock }
+						frame={ frame }
+						rects={ rects }
+						sectionIds={ sectionIds }
+					/>
 					{ freshRect && (
 						<div
 							className="cnl-section-modes__fresh"
