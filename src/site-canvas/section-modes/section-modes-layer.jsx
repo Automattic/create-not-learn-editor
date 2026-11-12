@@ -106,7 +106,7 @@ import { createBlankSection, InlineSectionPicker } from '../../section-picker';
 import { EmptyPage } from './empty-page';
 import { getLayoutItemTitle, useLayoutName } from './layout-items';
 import { RemoveControl } from './remove-control';
-import DesignBar, { getParentView, MAX_PER_SLIDE } from './design-bar';
+import DesignBar, { getParentView } from './design-bar';
 import {
 	HoverBar,
 	LayoutScope,
@@ -128,6 +128,20 @@ import {
 } from './use-canvas-events';
 import { useSectionDrag } from './use-section-drag';
 import { useSectionItems } from './use-section-items';
+import {
+	getBlockAtPoint,
+	getBlocksBeside,
+	getLayoutsPerSlide,
+	INSET,
+	isAtPageEdge,
+	local,
+	placeAtEdge,
+	placeOutside,
+	placeTab,
+	stickyTop,
+	TAB_HEIGHT,
+} from './placement';
+import { EMPTY_SPACE, getCanvasCss } from './canvas-css';
 import { RowHandles } from './row-handles';
 import { useRowActions, useSectionRows } from './use-section-rows';
 
@@ -137,14 +151,10 @@ const STYLE_ID = 'cnl-section-modes';
 const GLOBAL_STYLE_ID = 'cnl-section-modes-global';
 
 // Sizes on screen, in pixels.
-const INSET = 12;
 const BAR_HEIGHT = 40;
 // Narrower than this, the bar puts its modes on a row of their own.
 const NARROW_WIDTH = 760;
 const BAR_ROW_GAP = 8;
-// Room either side of the "Add section" button, at the middle of the top
-// edge, that the section's name in its tab keeps clear of.
-const ADD_SECTION_CLEARANCE = 90;
 // The "Add section" buttons' height. Centred on a section's edges, they
 // reach half of it into the section, and the bar keeps clear of that.
 const ADD_SECTION_HEIGHT = 32;
@@ -157,7 +167,6 @@ const MODE_BAR_ROOM_WIDTH = 480;
 const SMALL_MODE_BAR_HEIGHT = 40;
 // Between the small bar and the section's edge.
 const MODE_BAR_GAP = 6;
-const TAB_HEIGHT = 24;
 // Edit design's bar is never narrower than this, even on a narrow section.
 const DESIGN_BAR_MIN_WIDTH = 360;
 // Edit design's bar is never shorter than this, scrolling its tray rather
@@ -166,14 +175,6 @@ const DESIGN_BAR_MIN_HEIGHT = 200;
 // Between a short section and its bar, under it, clear of "Add section" on
 // its bottom edge.
 const SHORT_BAR_GAP = 22;
-// Between a section and what is placed against it, outside.
-const PLACE_GAP = 8;
-// A layout card and the gap after it, and the tray's room around its cards
-// for its padding and the carousel's arrows.
-const LAYOUT_CARD_WIDTH = 144;
-const TRAY_CHROME_WIDTH = 132;
-// Room kept for the placeholder on an empty page.
-const EMPTY_SPACE = 320;
 // The gap opened for adding a section in place: room around its picker,
 // and the picker's height until it is measured.
 const INLINE_ADD_GAP = 16;
@@ -231,345 +232,6 @@ function getCurrentRoute() {
 	const query = search.toString();
 
 	return query ? `${ path }?${ query }` : path;
-}
-
-/**
- * Position a box relative to the canvas it is clipped to.
- *
- * @param {Object} rect  `{ top, left, width, height }` on the layer.
- * @param {Object} frame The canvas's own rect on the layer.
- * @return {Object} `{ top, left, width, height }` on the canvas.
- */
-function local( rect, frame ) {
-	return {
-		height: rect.height,
-		left: rect.left - frame.left,
-		top: rect.top - frame.top,
-		width: rect.width,
-	};
-}
-
-/**
- * Where a section's name goes, in a tab against its outline: over its top
- * edge, or inside it while there is no room above it on the canvas. The
- * section at the very top of the page, usually the header, has nothing above
- * it to sit on, so its tab hangs under its bottom edge instead, clear of what
- * is in it.
- *
- * @param {Object}  box          The section, on the canvas.
- * @param {boolean} isPageTop    Whether it is at the very top of the page.
- * @param {number}  canvasHeight The canvas's height.
- * @return {Object} `{ isBelow, isInside, style }` for `SectionTab`.
- */
-function placeTab( box, isPageTop, canvasHeight ) {
-	const bottom = box.top + box.height;
-	const isBelow = isPageTop && bottom + TAB_HEIGHT <= canvasHeight;
-	const isInside = ! isBelow && box.top < TAB_HEIGHT;
-	let top = box.top - TAB_HEIGHT;
-
-	if ( isBelow ) {
-		top = bottom;
-	} else if ( isInside ) {
-		top = box.top;
-	}
-
-	return {
-		isBelow,
-		isInside,
-		style: {
-			left: box.left,
-			maxWidth: box.width / 2 - ADD_SECTION_CLEARANCE,
-			top,
-		},
-	};
-}
-
-/**
- * Whether a block starts or ends the page: first, or last, among its
- * siblings, and its parents among theirs, all the way up.
- *
- * @param {Function} select   The data registry's `select`.
- * @param {string}   clientId The block.
- * @param {boolean}  isEnd    Whether to check for the end of the page.
- * @return {boolean} Whether it does.
- */
-function isAtPageEdge( select, clientId, isEnd ) {
-	const { getBlockOrder, getBlockRootClientId } = select( blockEditorStore );
-	let id = clientId;
-
-	while ( id ) {
-		const parentId = getBlockRootClientId( id );
-		const siblings = getBlockOrder( parentId || '' );
-
-		if ( siblings[ isEnd ? siblings.length - 1 : 0 ] !== id ) {
-			return false;
-		}
-
-		id = parentId;
-	}
-
-	return true;
-}
-
-/**
- * Where something stuck to the top of a section sits: at its top, or at the
- * top of the canvas while the section's top is scrolled out of view, but
- * never past its bottom.
- *
- * @param {Object} box    The section, on the canvas.
- * @param {number} height The height of what is stuck.
- * @param {number} inset  Its gap from the edges.
- * @return {number} Its top, on the canvas.
- */
-function stickyTop( box, height, inset = INSET ) {
-	return Math.max(
-		box.top + inset,
-		Math.min(
-			Math.max( box.top, 0 ) + inset,
-			box.top + box.height - height - inset
-		)
-	);
-}
-
-/**
- * Where a bar inside a section goes: at its top while that is in view, else
- * at its bottom, kept in view while the section runs past the canvas's
- * bottom, but never past its top.
- *
- * @param {Object} box          The section, on the canvas.
- * @param {number} height       The bar's height.
- * @param {number} canvasHeight The canvas's height.
- * @return {number} Its top, on the canvas.
- */
-function placeAtEdge( box, height, canvasHeight ) {
-	const top = box.top + INSET;
-
-	if ( top >= 0 && top + height <= canvasHeight - INSET ) {
-		return top;
-	}
-
-	return Math.max(
-		top,
-		Math.min( box.top + box.height, canvasHeight ) - height - INSET
-	);
-}
-
-/**
- * Where something placed against a section goes, outside it so the section
- * stays in view: under its bottom edge if it fits on the canvas there, else
- * over its top edge if it fits there, else wherever on the canvas it is
- * nearest to under the section, overlapping it rather than leaving view.
- *
- * @param {Object}  box          The section, on the canvas.
- * @param {number}  height       What is placed's height.
- * @param {number}  canvasHeight The canvas's height.
- * @param {boolean} isBelow      Whether it always goes under, as for the
- *                               header, at the canvas's top.
- * @return {number} Its top, on the canvas.
- */
-function placeOutside( box, height, canvasHeight, isBelow = false ) {
-	const below = box.top + box.height + PLACE_GAP;
-	const above = box.top - height - PLACE_GAP;
-
-	if ( isBelow || below + height <= canvasHeight - INSET ) {
-		return below;
-	}
-
-	if ( above >= INSET ) {
-		return above;
-	}
-
-	return Math.max( INSET, Math.min( below, canvasHeight - height - INSET ) );
-}
-
-/**
- * How many layouts a slide of Edit design's carousel holds on a canvas this
- * wide: as many cards as fit beside its arrows, up to the most it takes.
- *
- * @param {number} canvasWidth The canvas's width.
- * @return {number} Layouts a slide.
- */
-function getLayoutsPerSlide( canvasWidth ) {
-	return Math.max(
-		1,
-		Math.min(
-			MAX_PER_SLIDE,
-			Math.floor(
-				( canvasWidth - TRAY_CHROME_WIDTH ) / LAYOUT_CARD_WIDTH
-			)
-		)
-	);
-}
-
-/**
- * The innermost block at a point on the canvas. Zoomed out, core stops the
- * pointer inside each section, so the section is what the point hits, and
- * the block within it is found by where its blocks are drawn: in document
- * order a block comes after those around it, so the last to hold the point
- * is the innermost.
- *
- * @param {Document} doc The canvas.
- * @param {number}   x   Across the canvas, in pixels.
- * @param {number}   y   Down the canvas, in pixels.
- * @return {?string} The block's client ID.
- */
-function getBlockAtPoint( doc, x, y ) {
-	const hit = doc.elementFromPoint( x, y )?.closest( '[data-block]' );
-
-	if ( ! hit ) {
-		return null;
-	}
-
-	let block = hit;
-
-	hit.querySelectorAll( '[data-block]' ).forEach( ( node ) => {
-		const rect = node.getBoundingClientRect();
-
-		if (
-			x >= rect.left &&
-			x <= rect.right &&
-			y >= rect.top &&
-			y <= rect.bottom
-		) {
-			block = node;
-		}
-	} );
-
-	return block.dataset.block;
-}
-
-/**
- * The blocks beside a section, and beside each block around it: the rest of
- * the page, without what holds the section.
- *
- * @param {Function} select   The data registry's `select`.
- * @param {string}   clientId The section.
- * @return {string[]} Their client IDs.
- */
-function getBlocksBeside( select, clientId ) {
-	const { getBlockOrder, getBlockParents, getBlockRootClientId } =
-		select( blockEditorStore );
-
-	return [ ...getBlockParents( clientId ), clientId ].flatMap( ( id ) =>
-		getBlockOrder( getBlockRootClientId( id ) || '' ).filter(
-			( other ) => other !== id
-		)
-	);
-}
-
-/**
- * Styles the layer adds to the canvas: no text cursor, hover outline or
- * block name outside the section being edited in place, none of core's
- * outline around the page's content as a whole, room for the placeholder on
- * an empty page, the rest of the page faded around a section core has
- * opened, and, composing, a hand to grab sections with.
- *
- * @param {string[]} openIds      The blocks of the section whose blocks can
- *                                be clicked: one, but for a run of text.
- * @param {?string}  rootClientId The sections' parent.
- * @param {boolean}  isEmpty      Whether the page has nothing in it.
- * @param {?string}  compose      While composing, `grab`, or `dragging` while
- *                                a section is dragged.
- * @param {string[]} fadedIds     The blocks faded around a section core has
- *                                opened.
- * @param {?Object}  gap          The gap opened for adding a section in
- *                                place: `{ clientId, isAfter, height }`, the
- *                                section it opens before, or after at the
- *                                page's end, and its height on screen.
- * @param {string[]} lockedIds    The sections locked to their content,
- *                                which take no new block but a line of
- *                                text, unlike a blank section or a run of
- *                                text.
- * @return {string} CSS.
- */
-function getCanvasCss(
-	openIds,
-	rootClientId,
-	isEmpty,
-	compose,
-	fadedIds,
-	gap,
-	lockedIds
-) {
-	const outside = openIds
-		.map( ( id ) => `:not(#block-${ id }):not(#block-${ id } *)` )
-		.join( '' );
-	const sections = rootClientId
-		? `#block-${ rootClientId } > .block-editor-block-list__block`
-		: null;
-
-	return [
-		`.is-root-container *${ outside } { cursor: default !important; }`,
-		`.is-root-container .block-editor-block-list__block${ outside }.is-hovered::after { display: none !important; }`,
-		// The block names shown on hover, from `block-canvas-styles.php`,
-		// but not the badge on a change an agent made.
-		`.is-root-container .block-editor-block-list__block${ outside }:not([data-cnl-change]):hover::before { content: none !important; }`,
-		rootClientId &&
-			`#block-${ rootClientId }.is-hovered::after { display: none !important; }`,
-		/*
-		 * Core prompts an empty line to type "/" for a block, but a section
-		 * locked to its content takes no other block that way, so there the
-		 * prompt points to the section's Add instead.
-		 */
-		lockedIds.length > 0 &&
-			`.is-root-container :is(${ lockedIds
-				.map( ( id ) => `#block-${ id }` )
-				.join( ', ' ) }) [data-rich-text-placeholder=${ JSON.stringify(
-				__( 'Type / to choose a block' )
-			) }]::after { content: ${ JSON.stringify(
-				__( 'Type here, or use Add for a heading, button or image' )
-			) }; }`,
-		// An empty page keeps room for its placeholder, in place of core's
-		// prompt to type, the only thing core draws there.
-		rootClientId &&
-			isEmpty &&
-			`#block-${ rootClientId } { min-height: ${ EMPTY_SPACE }px !important; }
-			#block-${ rootClientId } > * { visibility: hidden !important; }`,
-		/*
-		 * Core fades the page around a section it has opened, but expects
-		 * the section selected, and fades it too until something in it is.
-		 * The layer never selects a section's own block, so the fade is
-		 * drawn here instead, as core leaves it once something in the
-		 * section is selected: the section and what holds it clear, the rest
-		 * of the page faded. The selectors are kept light, so a canvas's own
-		 * spotlight, like the Header screen's, still fades the page its own
-		 * way.
-		 */
-		fadedIds.length > 0 &&
-			`:where(.is-focus-mode) .block-editor-block-list__block { opacity: 1 !important; }
-			.is-focus-mode :where(${ fadedIds
-				.map( ( id ) => `#block-${ id }` )
-				.join( ', ' ) }) { opacity: 0.2 !important; }`,
-		// Composing, sections are grabbed to move them, and none of core's
-		// zoomed-out separators and prompts show.
-		compose &&
-			`.block-editor-block-list__zoom-out-separator,
-			.block-list-appender,
-			.block-editor-default-block-appender { display: none !important; }`,
-		compose &&
-			sections &&
-			`${ sections }, ${ sections } * { cursor: ${
-				compose === 'dragging' ? 'grabbing' : 'grab'
-			} !important; }`,
-		// The gap for adding a section in place, opening as the sections
-		// move apart. Its height is on screen, so zoomed out it is scaled
-		// up by as much as core scales the page down.
-		gap &&
-			`#block-${ gap.clientId } {
-				margin-block-${ gap.isAfter ? 'end' : 'start' }: ${ gap.height }px !important;
-				transition: margin var(--wpds-motion-duration-md, 200ms) ease-out;
-			}
-			html.is-zoomed-out #block-${ gap.clientId } {
-				margin-block-${ gap.isAfter ? 'end' : 'start' }: calc(${
-					gap.height
-				}px / var(--wp-block-editor-iframe-zoom-out-scale, 1)) !important;
-			}
-			@media (prefers-reduced-motion: reduce) {
-				#block-${ gap.clientId } { transition: none; }
-			}`,
-	]
-		.filter( Boolean )
-		.join( '\n' );
 }
 
 /**
