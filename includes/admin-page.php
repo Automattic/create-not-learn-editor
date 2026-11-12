@@ -16,7 +16,8 @@ function cnl_editor_register_admin_page_hooks() {
 }
 
 /**
- * Register the hidden full-page editor and visible Appearance link.
+ * Register the hidden full-page editor. Its link in wp-admin's menu is its
+ * own section, from `cnl_editor_add_editor_menu()`.
  */
 function cnl_editor_register_admin_menu() {
 	$GLOBALS['cnl_editor_admin_hook'] = add_submenu_page(
@@ -27,16 +28,6 @@ function cnl_editor_register_admin_menu() {
 		CNL_EDITOR_SLUG,
 		'cnl_editor_render_full_page'
 	);
-
-	global $submenu;
-
-	if ( isset( $submenu['themes.php'] ) ) {
-		$submenu['themes.php'][] = array(
-			__( 'Create Not Learn', 'create-not-learn-editor' ),
-			'edit_theme_options',
-			'admin.php?page=' . CNL_EDITOR_SLUG,
-		);
-	}
 }
 
 /**

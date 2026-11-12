@@ -37,61 +37,31 @@ function getRoute( page ) {
 	return new URL( page.url() ).searchParams.get( 'p' ) || '';
 }
 
-/*
- * Where the editor's screens are in wp-admin's menu, which the editor shows
- * in place of its sidebar (`includes/admin-menu.php`): the menu, then its
- * submenu link when the menu's own link goes elsewhere. Screens wp-admin's
- * menu has no place for are opened by their route.
- */
-const SIDEBAR_LINKS = {
-	Home: [ 'Dashboard' ],
-	Pages: [ 'Pages' ],
-	Posts: [ 'Posts' ],
-	Media: [ 'Media' ],
-	Colors: [ 'Appearance', 'Colors' ],
-	Fonts: [ 'Appearance', 'Fonts' ],
-	'Site Identity': [ 'Appearance', 'Site Identity' ],
-};
-
-const SCREEN_ROUTES = {
-	Menus: '/navigation',
-	Patterns: '/patterns',
-	'Site Overview': '/site-overview',
-	'Site parts': '/template-parts',
-	Styles: '/styles',
-	Templates: '/templates',
-};
-
 /**
- * Open one of the editor's screens: from wp-admin's menu, hovering its menu
- * to show the submenu link if need be, or by its route when the menu has no
- * link to it.
+ * Open one of the editor's screens from its section of wp-admin's menu,
+ * which the editor shows in place of its sidebar (`includes/admin-menu.php`).
+ * Home is the section's own link; the rest are in its submenu, which shows
+ * while the editor is open, and otherwise when the section is hovered.
  *
  * @param {import('@playwright/test').Page} page
  * @param {string}                          name The screen's name.
  */
 async function openSidebarLink( page, name ) {
-	if ( SCREEN_ROUTES[ name ] ) {
-		await visitEditor( page, SCREEN_ROUTES[ name ] );
+	const section = page.locator( '#menu-cnl-editor' );
+	const sectionLink = section.locator( ':scope > a' );
+
+	if ( name === 'Home' ) {
+		await sectionLink.click();
 		return;
 	}
 
-	const menu = page.locator( '#adminmenu' );
-	const [ top, sub ] = SIDEBAR_LINKS[ name ] || [ name ];
-	const topLink = menu
-		.locator( 'li.menu-top > a' )
-		.filter( { hasText: new RegExp( `^${ top }` ) } );
-
-	if ( ! sub ) {
-		await topLink.click();
-		return;
-	}
-
-	// wp-admin parks a submenu off screen until its menu is current or
-	// hovered, where it still counts as visible.
-	const link = menu.getByRole( 'link', { name: sub, exact: true } );
+	// wp-admin parks a submenu off screen while it's closed, where it still
+	// counts as visible.
+	const link = section
+		.locator( '.wp-submenu' )
+		.getByRole( 'link', { name, exact: true } );
 	await expect( async () => {
-		await topLink.hover();
+		await sectionLink.hover();
 		await expect( link ).toBeInViewport( { timeout: 1000 } );
 	} ).toPass( { timeout: 15000 } );
 	await link.click();

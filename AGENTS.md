@@ -43,7 +43,7 @@ Every turn re-reads the whole conversation, so long sessions cost far more than 
 
 - Plugin slug: `create-not-learn-editor`.
 - Full-page admin URL: `/wp-admin/admin.php?page=create-not-learn-editor`.
-- WordPress menu location: `Appearance > Create Not Learn`.
+- WordPress menu location: its own section, `Editor`, after Dashboard, listing the editor's screens.
 - Required Gutenberg version: `24.0.0` or newer.
 - Minimum PHP version: `7.4`.
 - WordPress dependency header must keep `Requires Plugins: gutenberg`.

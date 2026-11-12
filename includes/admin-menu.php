@@ -17,68 +17,64 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Add the editor's design screens to wp-admin's Appearance menu.
+ * Add the editor to wp-admin's menu as a section of its own.
  */
 function cnl_editor_register_admin_menu_hooks() {
-	// After the editor's own Appearance link, and core's and plugins' items.
-	add_action( 'admin_menu', 'cnl_editor_add_design_menu_items', 1000 );
+	// After plugins have registered the post types the editor lists.
+	add_action( 'admin_menu', 'cnl_editor_add_editor_menu', 1000 );
 }
 
 /**
- * The design screens Appearance links to, which wp-admin has no item for.
+ * Add an Editor section to wp-admin's menu, after Dashboard, whose submenu
+ * is the editor's screens, as its own sidebar lists them. wp-admin shows it
+ * on every admin screen, where its links open the editor on that screen.
  *
- * @return array[] Each screen's label and editor path.
+ * `$menu` and `$submenu` are set directly, as for the editor's old link in
+ * Appearance, because the editor's page is already registered, hidden, and
+ * `add_menu_page()` would register it again.
  */
-function cnl_editor_get_design_menu_items() {
-	return array(
-		array( __( 'Colors', 'create-not-learn-editor' ), '/design/colors' ),
-		array( __( 'Site Identity', 'create-not-learn-editor' ), '/design/identity' ),
-		array( __( 'Header & footer', 'create-not-learn-editor' ), '/design/header-footer' ),
-	);
-}
+function cnl_editor_add_editor_menu() {
+	global $menu, $submenu;
 
-/**
- * Put the design screens in Appearance, after Editor, as links into this
- * editor. They're real submenu items, so wp-admin shows them on every admin
- * screen too, where they open the editor on that screen.
- */
-function cnl_editor_add_design_menu_items() {
-	global $submenu;
-
-	if ( empty( $submenu['themes.php'] ) || ! current_user_can( 'edit_theme_options' ) ) {
+	if ( ! current_user_can( 'edit_theme_options' ) ) {
 		return;
 	}
 
-	$items = array();
-	foreach ( cnl_editor_get_design_menu_items() as list( $label, $path ) ) {
+	$parent = 'admin.php?page=' . CNL_EDITOR_SLUG;
+	$items  = array();
+
+	foreach ( cnl_editor_get_menu_items() as $item ) {
+		if ( ! empty( $item['parent'] ) || empty( $item['to'] ) ) {
+			continue;
+		}
+
 		$items[] = array(
-			$label,
+			$item['label'],
 			'edit_theme_options',
-			'admin.php?page=' . CNL_EDITOR_SLUG . '&p=' . rawurlencode( $path ),
-			$label,
+			'/' === $item['to'] ? $parent : $parent . '&p=' . rawurlencode( $item['to'] ),
+			$item['label'],
 		);
 	}
 
-	$entries = array_values( $submenu['themes.php'] );
-
-	// Fonts, core's or the Gutenberg plugin's, joins them, after Colors.
-	foreach ( $entries as $index => $entry ) {
-		if ( '/design/fonts' === cnl_editor_get_admin_menu_route( cnl_editor_get_admin_submenu_url( $entry[2] ?? '', 'themes.php' ) ) ) {
-			array_splice( $items, 1, 0, array_splice( $entries, $index, 1 ) );
-			break;
-		}
+	if ( ! $items ) {
+		return;
 	}
 
-	$after = count( $entries );
-	foreach ( $entries as $index => $entry ) {
-		if ( 0 === strpos( $entry[2] ?? '', 'site-editor.php' ) ) {
-			$after = $index + 1;
-			break;
-		}
+	$position = 3;
+	while ( isset( $menu[ $position ] ) ) {
+		$position += 0.1;
 	}
 
-	array_splice( $entries, $after, 0, $items );
-	$submenu['themes.php'] = $entries; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+	$menu[ (string) $position ] = array( // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		__( 'Editor', 'create-not-learn-editor' ),
+		'edit_theme_options',
+		$parent,
+		__( 'Editor', 'create-not-learn-editor' ),
+		'menu-top menu-icon-cnl-editor',
+		'menu-cnl-editor',
+		'dashicons-layout',
+	);
+	$submenu[ $parent ] = $items; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 }
 
 /**
@@ -212,7 +208,7 @@ function cnl_editor_get_admin_menu_route( $url ) {
 
 	$types = wp_list_pluck( cnl_editor_get_content_post_type_data(), 'name' );
 
-	// Appearance's links into this editor: its own, and its design screens'.
+	// Links into this editor, from its section of the menu.
 	if ( CNL_EDITOR_SLUG === ( $args['page'] ?? '' ) ) {
 		return empty( $args['p'] ) ? '/' : (string) $args['p'];
 	}

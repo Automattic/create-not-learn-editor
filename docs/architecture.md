@@ -22,11 +22,7 @@ The first slice provides a full-page editor shell under:
 /wp-admin/admin.php?page=create-not-learn-editor
 ```
 
-The editor appears in the WordPress admin menu at:
-
-```text
-Appearance > Create Not Learn
-```
+The editor appears in the WordPress admin menu as a section of its own, Editor, after Dashboard, whose submenu is its screens.
 
 The shell mirrors Gutenberg's `site-editor-v2` experiment setup:
 
@@ -52,9 +48,9 @@ In place of boot's sidebar, the page prints wp-admin's own menu, with core's `wp
 
 `packages/app-init/src/admin-menu.js` does what wp-admin's `common.js` would: it marks the screen on show current, which opens its submenu in the column, flies submenus out on hover, folds the menu with Collapse Menu and remembers it in the `mfold` user setting, and opens it on small screens from the admin bar's menu button or boot's.
 
-wp-admin's menu has no place for the design screens people building a site most often want, so the plugin adds them to Appearance after Editor, as real submenu items: Colors, Fonts (core's or the Gutenberg plugin's, moved beside Colors), Site Identity and Header & footer (`cnl_editor_add_design_menu_items()`). wp-admin shows them on every admin screen too, where they open this editor on that screen.
+The editor is a section of the menu, Editor, after Dashboard (`cnl_editor_add_editor_menu()`). Its submenu is the editor's screens, the ones its own sidebar lists (`cnl_editor_get_menu_items()`): Home, the content lists, Site Overview, Menus, Site Identity, Media, Colors, Fonts, Styles, Patterns, Site parts and Templates. While the editor is open that section is the current one, so its screens show in the column, and the one on show is marked. It's added to `$menu` and `$submenu` directly, since the editor's page is already registered, hidden, and `add_menu_page()` would register it again. wp-admin shows the section on every admin screen too, where its links open the editor on that screen.
 
-Links the editor has a screen for open it in place, through the router, and in a new tab still open the editor on that screen: Dashboard › Home is Home, All Pages and All Posts are the content lists, Add New opens a new one, Media is Media, Appearance › Editor is Site Overview, the design items are their screens and Appearance › Create Not Learn is Home. The map from wp-admin URL to route is built in PHP and passed as `adminMenuRoutes`. The rest, like Comments, Plugins and Settings, open wp-admin's own screen. Screens with no menu item, like Patterns, Templates and, on block themes, Menus, are reached from Home and the screens that link to them, or by their route. So is the workspace switcher, which was in boot's sidebar, and is reached with `?workspace=`.
+Links into the editor open their screen in place, through the router, and in a new tab still open the editor on that screen. So do wp-admin's own links to screens the editor has: Dashboard › Home is Home, All Pages and All Posts are the content lists, Add New opens a new one, Media is Media, Appearance › Editor is Site Overview and Appearance › Fonts is Fonts. Where a screen is in both, the Editor section's link is the one marked. The map from wp-admin URL to route is built in PHP and passed as `adminMenuRoutes`. The rest, like Comments, Plugins and Settings, open wp-admin's own screen. The workspace switcher, which was in boot's sidebar, is reached with `?workspace=`.
 
 Home and Content currently include visible placeholder canvases. They are deliberately simple surfaces so the boot frame, routing, menu, and content list behavior can be developed before replacing the placeholders with richer previews.
 
