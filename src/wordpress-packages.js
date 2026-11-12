@@ -22,6 +22,7 @@ import {
 	store as blockEditorStore,
 	useBlockBindingsUtils,
 	useBlockEditingMode,
+	useStyleOverride,
 } from '@wordpress/block-editor';
 import {
 	Button,
@@ -377,6 +378,7 @@ export {
 	uploadMedia,
 	useBlockBindingsUtils,
 	useBlockEditingMode,
+	useStyleOverride,
 	useCallback,
 	useContext,
 	useDispatch,
