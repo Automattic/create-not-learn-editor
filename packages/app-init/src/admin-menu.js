@@ -15,6 +15,7 @@
 /**
  * WordPress dependencies
  */
+import { flushSync } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 
 /**
@@ -53,6 +54,27 @@ function getEditorUrl( route ) {
 	url.searchParams.set( 'page', 'create-not-learn-editor' );
 	url.searchParams.set( 'p', route );
 	return url.toString();
+}
+
+/**
+ * Go to a route as boot's own links do: through the router, and at once, as
+ * a link's click inside React is handled, so the screen being left unmounts
+ * and hands back what it set before the next screen's editor starts. A layout's
+ * canvas otherwise leaves core's patterns unlocked on the next screen. See
+ * `docs/editor-workarounds.md`.
+ *
+ * @param {string} route Route path.
+ */
+function navigate( route ) {
+	const router = window.__TSR_ROUTER__;
+
+	flushSync( () => {
+		if ( typeof router?.navigate === 'function' ) {
+			router.navigate( { to: route } );
+		} else {
+			openRoute( route );
+		}
+	} );
 }
 
 function setClass( element, name, isOn ) {
@@ -155,7 +177,7 @@ export function mountAdminMenu() {
 		}
 
 		event.preventDefault();
-		openRoute( link.dataset.cnlRoute );
+		navigate( link.dataset.cnlRoute );
 		link.blur();
 		wrap?.classList.remove( 'wp-responsive-open' );
 	} );

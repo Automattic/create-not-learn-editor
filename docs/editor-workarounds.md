@@ -55,3 +55,9 @@ The label normally sits above its block. The topmost block has nothing above it,
 Template parts and synced patterns get the label in `--wp-block-synced-color` rather than the admin colour, since they are shared across the site rather than owned by the page. They are matched by `.wp-block-template-part` and `.is-reusable`, the same two selectors core uses to colour its own outline around them.
 
 Both of those rules repeat the base rule's `:not()` chain. Without it the base rule wins on specificity and the override silently does nothing.
+
+## wp-admin's menu navigating through the router
+
+`packages/app-init/src/admin-menu.js` opens editor screens from wp-admin's menu, which is printed outside React, with `window.__TSR_ROUTER__.navigate()`. That's where TanStack Router, which `@wordpress/route` and boot are built on, keeps its router in the browser, since nothing public reaches it outside a component. If the global goes away, the menu falls back to `openRoute()`.
+
+It navigates inside `flushSync()`. Boot's links navigate from a click React handles, which renders at once, so the screen being left unmounts before the next one's editor merges in its settings. A navigation from outside React renders later, after that merge. A layout's canvas then hands back its `disableContentOnlyForUnsyncedPatterns` too late, and core's patterns stay unlocked on the next screen. `openRoute()` from outside React, as the command palette and page finder call it, may have the same problem.
