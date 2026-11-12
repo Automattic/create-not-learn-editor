@@ -1,0 +1,103 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "Create Not Learn Editor for AI agents (getdave/section-modes-layer.jsx-split)",
+		"author": "getdave",
+		"description": "Create Not Learn Editor from the getdave/section-modes-layer.jsx-split branch, with Gutenberg, the Mainstay theme, the Fernhouse demo site and the AI plugin, for an AI agent to drive through WebMCP."
+	},
+	"landingPage": "/wp-admin/admin.php?page=create-not-learn-editor&workspace=agent",
+	"preferredVersions": {
+		"php": "8.3",
+		"wp": "latest"
+	},
+	"features": {
+		"networking": true
+	},
+	"steps": [
+		{
+			"step": "login"
+		},
+		{
+			"step": "writeFile",
+			"path": "/wordpress/wp-content/mu-plugins/cnl-playground-canvas-fix.php",
+			"data": {
+				"resource": "url",
+				"url": "https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/section-modes-layer.jsx-split/playground-canvas-fix.php"
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "url",
+				"url": "https://downloads.wordpress.org/plugin/gutenberg.24.0.0.zip"
+			},
+			"options": {
+				"activate": true
+			},
+			"progress": {
+				"caption": "Installing Gutenberg"
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "url",
+				"url": "https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/section-modes-layer.jsx-split/create-not-learn-editor.zip"
+			},
+			"options": {
+				"activate": true
+			},
+			"progress": {
+				"caption": "Installing Create Not Learn Editor"
+			}
+		},
+		{
+			"step": "installTheme",
+			"themeData": {
+				"resource": "url",
+				"url": "https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/section-modes-layer.jsx-split/mainstay.zip"
+			},
+			"options": {
+				"activate": true
+			},
+			"progress": {
+				"caption": "Installing the Mainstay theme"
+			}
+		},
+		{
+			"step": "writeFile",
+			"path": "/tmp/cnl-demo-site-seed.php",
+			"data": {
+				"resource": "url",
+				"url": "https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/playground/getdave/section-modes-layer.jsx-split/seed.php"
+			}
+		},
+		{
+			"step": "wp-cli",
+			"command": "wp eval-file /tmp/cnl-demo-site-seed.php",
+			"progress": {
+				"caption": "Setting up the Fernhouse demo site"
+			}
+		},
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "url",
+				"url": "https://downloads.wordpress.org/plugin/ai.1.5.0.zip"
+			},
+			"options": {
+				"activate": true
+			},
+			"progress": {
+				"caption": "Installing the AI plugin"
+			}
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php require_once '/wordpress/wp-load.php'; update_option( 'wpai_feature_webmcp_enabled', '1' );",
+			"progress": {
+				"caption": "Turning on the AI plugin's WebMCP tools"
+			}
+		}
+	]
+}
