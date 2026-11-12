@@ -32,3 +32,4 @@ pnpm-debug.log*
 
 # Playwright login state.
 artifacts/
+.phpunit.result.cache

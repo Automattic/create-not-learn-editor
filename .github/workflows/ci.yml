@@ -5,13 +5,14 @@ name: CI
 #
 # - `checks` builds, lints, checks the vendored ListView, lints PHP and runs the
 #   unit tests.
+# - `php` runs the PHPUnit suite against WordPress and Gutenberg in wp-env.
 # - `e2e` runs the Playwright suite over six shards, each with a wp-env of its
 #   own. Tests run one at a time on each site, as they share its data, so
 #   more shards is how to make the suite faster.
 # - A pull request that only changes docs or other files that can't change a
 #   test's result skips e2e, which counts as passing.
 #
-# Branch protection on trunk requires `checks` and `e2e-result`, so a pull
+# Branch protection on trunk requires `checks`, `php` and `e2e-result`, so a pull
 # request can't merge while either fails. `e2e-result` is the one check to
 # require for e2e, so the shard count can change without editing the rule.
 
@@ -62,11 +63,55 @@ jobs:
 
       - name: Lint PHP
         run: |
-          find . -path ./node_modules -prune -o -path ./build -prune -o -path ./.wp-env -prune -o -name '*.php' -print0 \
+          find . -path ./node_modules -prune -o -path ./build -prune -o -path ./.wp-env -prune -o -path ./vendor -prune -o -name '*.php' -print0 \
             | xargs -0 -n1 php -l > /dev/null
 
       - name: Unit tests
         run: npm run test:unit
+
+  php:
+    name: PHPUnit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Point wp-env at the cached downloads
+        run: echo "CNL_WP_ENV_CACHE=$RUNNER_TEMP/wp-env-cache" >> "$GITHUB_ENV"
+
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # Some PHP reads the build's asset files.
+      - name: Build
+        run: npm run build
+
+      - name: Restore wp-env sources
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/wp-env-cache
+          key: wp-env-${{ hashFiles('scripts/wp-env.mjs') }}
+
+      - name: Start wp-env
+        run: |
+          for attempt in 1 2 3; do
+            npm run wp-env start && exit 0
+            echo "::warning::wp-env start failed (attempt $attempt), retrying"
+            sleep 10
+          done
+          exit 1
+
+      - name: Run PHPUnit
+        run: npm run test:php
 
   # Starts from every file and leaves out what can't change an e2e result, so
   # a new folder is tested until someone decides otherwise.
@@ -91,6 +136,8 @@ jobs:
               - '!docs/**'
               - '!demos/**'
               - '!tests/unit/**'
+              - '!tests/phpunit/**'
+              - '!phpunit.xml.dist'
               - '!**/test/**'
               - '!.github/!(workflows)/**'
               - '!.github/workflows/!(ci.yml)'
