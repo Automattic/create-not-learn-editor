@@ -306,7 +306,7 @@ export default function useContentRecords() {
 				rawTemplates: resolvedTemplates,
 			};
 		},
-		[ activeTab, listsTemplates, needsPosts, postQuery, type ]
+		[ listsTemplates, needsPosts, postQuery, type ]
 	);
 	const postsWithPermissions = usePostPermissions(
 		posts,
