@@ -22,19 +22,12 @@ import PagesList from './pages/pages-list';
 import useAddMenuItem, { AddOptions } from './pages/use-add-menu-item';
 import AddPageFlow from './add-page-flow';
 import Canvas from './canvas';
-import {
-	DEFAULT_CONTENT_LAYOUTS,
-	PostListDataViewsLayout,
-	getContentActions,
-	getContentFields,
-	getPostLayouts,
-	usePostAuthors,
-	usePostCategories,
-} from './content-fields';
+import { PostListDataViewsLayout } from './content-fields';
 import PostTimeline from './post-timeline-view';
 import { getPostViewEmpty, getPostViews } from './post-views';
 import { TIMELINE_LAYOUT } from './post-timeline';
-import useCoreTrashActions from './use-core-trash-actions';
+import useContentList from './use-content-list';
+import { EMPTY_TAB_ICONS, getTemplateIcon, TabLabel } from './tab-label';
 import PostKindPicker from '../../pickers/post-kinds';
 import { isAskingPostKind } from '../../post-kinds-base';
 import { getTemplateTitle, isTemplateTab } from './helpers';
@@ -48,13 +41,7 @@ import {
 	checkIcon,
 	coreDataStore,
 	createInterpolateElement,
-	draftsIcon,
-	lockIcon,
-	pendingIcon,
-	publishedIcon,
-	scheduledIcon,
 	searchIcon,
-	trashIcon,
 	DropdownMenu,
 	EmptyState,
 	Icon,
@@ -66,10 +53,8 @@ import {
 	ToggleGroupControlOption,
 	__,
 	layoutIcon,
-	LegacyIcon,
 	moreVerticalIcon,
 	pageIcon,
-	postFeaturedImageIcon,
 	postListIcon,
 	Page,
 	sprintf,
@@ -78,43 +63,6 @@ import {
 	useSelect,
 	useState,
 } from '../../wordpress-packages';
-
-// The icon an empty status tab shows, by its slug.
-const EMPTY_TAB_ICONS = {
-	drafts: draftsIcon,
-	future: scheduledIcon,
-	pending: pendingIcon,
-	private: lockIcon,
-	published: publishedIcon,
-	trash: trashIcon,
-};
-
-function getTemplateIcon( template ) {
-	if ( template?.slug === 'home' ) {
-		return postListIcon;
-	}
-
-	if ( template?.slug === 'single' ) {
-		return postFeaturedImageIcon;
-	}
-
-	return layoutIcon;
-}
-
-function TabLabel( { icon, label } ) {
-	return (
-		<span className="routes-post-list__tab-label">
-			{ icon && (
-				<LegacyIcon
-					className="routes-post-list__tab-icon"
-					icon={ icon.replace( /^dashicons-/, '' ) }
-					size={ 20 }
-				/>
-			) }
-			{ label }
-		</span>
-	);
-}
 
 function Stage() {
 	const navigate = useNavigate();
@@ -158,23 +106,19 @@ function Stage() {
 	const homepage = useHomepageState();
 	// Pages adds to the main menu too: anything but a page goes on Menus.
 	const menuItemAdder = useAddMenuItem( mainMenu.menuId );
-	const { frontPageId, postsPageId } = useSelect( ( select ) => {
-		const site = select( coreDataStore ).getEditedEntityRecord(
-			'root',
-			'site'
-		);
-
-		return {
-			frontPageId:
-				site?.show_on_front === 'page'
-					? Number( site?.page_on_front ) || 0
-					: 0,
-			postsPageId:
-				site?.show_on_front === 'page'
-					? Number( site?.page_for_posts ) || 0
-					: 0,
-		};
-	}, [] );
+	const {
+		contentActions,
+		contentFields,
+		contentLayouts,
+		frontPageId,
+		postsPageId,
+	} = useContentList( {
+		menuPages: mainMenu.menuPages,
+		navigate,
+		posts,
+		statusView,
+		type,
+	} );
 	const isPages = type?.name === 'page';
 	// Posts are listed, worded and written as the workspace says.
 	const workspace = useSelect( getActiveWorkspace, [] );
@@ -183,73 +127,10 @@ function Stage() {
 		[ workspace ]
 	);
 	const postsSettings = type?.name === 'post' ? workspace.posts : null;
-	// Lists by status move posts to and from the trash with core's own
-	// actions.
-	const trashActions = useCoreTrashActions( statusView ? type?.name : null );
 	// Pages lists its pages in menu groups; every other type in DataViews.
 	const dataViews = useDataViews( !! type && ! isPages );
 	const isPosts = type?.name === 'post';
-	const authors = usePostAuthors( isPages ? EMPTY_ARRAY : posts );
 	const isTimeline = isPosts && contentView.type === TIMELINE_LAYOUT;
-	const categories = usePostCategories( isPosts ? posts : EMPTY_ARRAY );
-	const contentFields = useMemo(
-		() =>
-			getContentFields(
-				{
-					frontPageId,
-					isListedByStatus: !! statusView,
-					isPages,
-					isPosts,
-					menuPages: mainMenu.menuPages,
-					postsPageId,
-				},
-				authors,
-				{ categories }
-			),
-		[
-			authors,
-			categories,
-			frontPageId,
-			isPages,
-			isPosts,
-			mainMenu.menuPages,
-			postsPageId,
-			statusView,
-		]
-	);
-	// Posts can also be shown as a timeline, which says who wrote each
-	// only when more than one person did.
-	const hasManyAuthors = authors.size > 1;
-	const contentLayouts = useMemo(
-		() =>
-			isPosts
-				? getPostLayouts( { hasManyAuthors } )
-				: DEFAULT_CONTENT_LAYOUTS,
-		[ hasManyAuthors, isPosts ]
-	);
-
-	const contentActions = useMemo( () => {
-		if ( ! type ) {
-			return [];
-		}
-
-		const actions = getContentActions( navigate, type );
-
-		if ( ! statusView ) {
-			return actions;
-		}
-
-		// A post in the trash can only be restored or deleted for good.
-		return [
-			...actions.map( ( action ) => ( {
-				...action,
-				isEligible: ( item ) =>
-					item.status !== 'trash' &&
-					( action.isEligible?.( item ) ?? true ),
-			} ) ),
-			...trashActions,
-		];
-	}, [ navigate, statusView, trashActions, type ] );
 	const previewTemplatesKey = useMemo(
 		() =>
 			previewTemplates

@@ -18,9 +18,10 @@ module.exports = [
 			// flagged hundreds of them in every pull request's annotations.
 			'jsdoc/reject-function-type': 'off',
 			'jsdoc/reject-any-type': 'off',
-			// A nudge to split files before they grow hard to follow.
+			// Split files before they grow hard to follow. An error, not a
+			// warning, so CI stops a pull request that goes over.
 			'max-lines': [
-				'warn',
+				'error',
 				{ max: 800, skipBlankLines: true, skipComments: true },
 			],
 		},

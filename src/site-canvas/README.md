@@ -85,7 +85,15 @@ Changes rewrite the blocks around an item with core's `replaceInnerBlocks`, whic
 
 | File | What it does |
 | --- | --- |
-| `section-modes-layer.jsx` | The layer: what is pointed at, the mode, and everything drawn over the canvas. |
+| `section-modes-layer.jsx` | The layer: what is pointed at, the mode, and everything drawn over the canvas. It holds the state; the files below do its parts. |
+| `use-grouped-sections.js` | The page's sections, with each run of plain blocks grouped into one section of text. |
+| `use-section-clicks.js` | Clicks, double clicks and Escape on the canvas: picking a section and going into it a level at a time. |
+| `use-mode-sync.js` | Keeps the mode in step with the editor: the part core opens, a part asked for from outside, Compose, undo and selection. |
+| `use-posts-trip-back.js` | Manage all posts, and picking the section again on the way back. |
+| `use-layer-effects.js` | The layer's effects on the editor and window: classes, the spotlight, Escape and outside clicks, measuring, scrolling and highlights. |
+| `section-actions.js` | What the bars and buttons do to the page: add, start blank, delete, move, row items and adding in place. |
+| `hover-chrome.jsx`, `picked-chrome.jsx`, `active-chrome.jsx`, `drag-chrome.jsx`, `inline-add.jsx` | What the layer draws for the section pointed at, picked, in a mode or dragged, and the picker for adding in place. |
+| `layer-constants.js`, `layer-helpers.js` | The layer's sizes and timings, and helpers that need nothing from it. |
 | `section-chrome.jsx` | The tab, the bar with Add, Edit design (or Edit content in Compose, and Manage posts) and the section's moves, or Edit header or Edit footer alone, and the small bar naming the mode, with Done editing. |
 | `design-bar.jsx` | Edit design's bar: the design choices, and each one's options. |
 | `posts-section.js` | A section's query loop: the posts it lists, how it lists them, and Manage posts' changes. |
