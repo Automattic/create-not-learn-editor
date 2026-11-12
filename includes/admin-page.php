@@ -116,6 +116,7 @@ function cnl_editor_render_full_page() {
 	$menu_items   = cnl_editor_get_registered_menu_items();
 	$routes       = cnl_editor_get_registered_routes();
 	$assets_ready = cnl_editor_enqueue_full_page_assets( $routes, $menu_items );
+	cnl_editor_enqueue_admin_menu();
 
 	?>
 	<!DOCTYPE html>
@@ -161,7 +162,8 @@ function cnl_editor_render_full_page() {
 	do_action( 'admin_head' );
 	?>
 	</head>
-	<body class="<?php echo esc_attr( 'create-not-learn-editor cnl-ui-theme-' . cnl_editor_get_ui_theme() . ( $has_admin_bar ? ' admin-bar ' . cnl_editor_get_admin_color_class() : '' ) ); ?>"<?php echo 'modern' === cnl_editor_get_ui_theme() ? ' data-wpds-corner-radius="moderate"' : ''; ?>>
+	<body class="<?php echo esc_attr( 'create-not-learn-editor cnl-ui-theme-' . cnl_editor_get_ui_theme() . ' ' . cnl_editor_get_admin_menu_body_class() . ( $has_admin_bar ? ' admin-bar ' . cnl_editor_get_admin_color_class() : '' ) ); ?>"<?php echo 'modern' === cnl_editor_get_ui_theme() ? ' data-wpds-corner-radius="moderate"' : ''; ?>>
+		<?php cnl_editor_print_admin_menu(); ?>
 		<div id="create-not-learn-editor-app" style="height: 100vh; box-sizing: border-box;">
 			<?php if ( ! $assets_ready ) : ?>
 				<div class="cnl-editor-loading">

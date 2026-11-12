@@ -39,8 +39,6 @@ function cnl_editor_enable_admin_bar() {
 		return false;
 	}
 
-	// The bar's menu toggle opens wp-admin's menu, which this page doesn't have.
-	remove_action( 'admin_bar_menu', 'wp_admin_bar_sidebar_toggle', 0 );
 	add_action( 'admin_bar_menu', 'cnl_editor_admin_bar_command_palette', 56 );
 	// Late, after every plugin has added to New, so its items are there to change.
 	add_action( 'admin_bar_menu', 'cnl_editor_admin_bar_new_content', PHP_INT_MAX );

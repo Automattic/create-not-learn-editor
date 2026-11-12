@@ -75,6 +75,7 @@ function cnl_editor_get_app_settings() {
 			cnl_editor_get_gutenberg_url( 'build/modules/lazy-editor/index.js' )
 		),
 		'siteName'           => get_bloginfo( 'name' ),
+		'adminMenuRoutes'    => (object) cnl_editor_get_admin_menu_routes(),
 		'userName'           => cnl_editor_get_greeting_name( $current_user ),
 		'uiTheme'            => cnl_editor_get_ui_theme(),
 		'themeName'          => $theme->get( 'Name' ),

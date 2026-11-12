@@ -37,43 +37,63 @@ function getRoute( page ) {
 	return new URL( page.url() ).searchParams.get( 'p' ) || '';
 }
 
-const ADVANCED_LINKS = [ 'Patterns', 'Site parts', 'Styles', 'Templates' ];
+/*
+ * Where the editor's screens are in wp-admin's menu, which the editor shows
+ * in place of its sidebar (`includes/admin-menu.php`): the menu, then its
+ * submenu link when the menu's own link goes elsewhere. Screens wp-admin's
+ * menu has no place for are opened by their route.
+ */
+const SIDEBAR_LINKS = {
+	Home: [ 'Dashboard' ],
+	Pages: [ 'Pages' ],
+	Posts: [ 'Posts' ],
+	Media: [ 'Media' ],
+	Fonts: [ 'Appearance', 'Fonts' ],
+};
+
+const SCREEN_ROUTES = {
+	Colors: '/design/colors',
+	Menus: '/navigation',
+	Patterns: '/patterns',
+	'Site Identity': '/design/identity',
+	'Site Overview': '/site-overview',
+	'Site parts': '/template-parts',
+	Styles: '/styles',
+	Templates: '/templates',
+};
 
 /**
- * Follow a link in the sidebar, opening the folded Advanced section first for
- * links in it.
+ * Open one of the editor's screens: from wp-admin's menu, hovering its menu
+ * to show the submenu link if need be, or by its route when the menu has no
+ * link to it.
  *
  * @param {import('@playwright/test').Page} page
- * @param {string}                          name The link's name.
+ * @param {string}                          name The screen's name.
  */
 async function openSidebarLink( page, name ) {
-	const advanced = page.getByRole( 'button', { name: 'Advanced' } );
-	const toggle = page.getByRole( 'button', {
-		name: /^(Expand|Collapse) sidebar$/,
-	} );
-
-	// Picking a screen folds the sidebar to a strip of icons, which has no
-	// section titles. App-init adds the toggle once the sidebar is ready.
-	await toggle.waitFor();
-	if ( ( await toggle.getAttribute( 'aria-expanded' ) ) === 'false' ) {
-		await toggle.click();
+	if ( SCREEN_ROUTES[ name ] ) {
+		await visitEditor( page, SCREEN_ROUTES[ name ] );
+		return;
 	}
 
-	const link = page.getByRole( 'link', { name, exact: true } );
+	const menu = page.locator( '#adminmenu' );
+	const [ top, sub ] = SIDEBAR_LINKS[ name ] || [ name ];
+	const topLink = menu
+		.locator( 'li.menu-top > a' )
+		.filter( { hasText: new RegExp( `^${ top }` ) } );
 
-	// Advanced folds again as the editor loads, which can land after it was
-	// seen open, so it's opened until its link shows.
-	if ( ADVANCED_LINKS.includes( name ) ) {
-		await expect( async () => {
-			if (
-				( await advanced.getAttribute( 'aria-expanded' ) ) === 'false'
-			) {
-				await advanced.click();
-			}
-			await expect( link ).toBeVisible( { timeout: 1000 } );
-		} ).toPass( { timeout: 15000 } );
+	if ( ! sub ) {
+		await topLink.click();
+		return;
 	}
 
+	// wp-admin parks a submenu off screen until its menu is current or
+	// hovered, where it still counts as visible.
+	const link = menu.getByRole( 'link', { name: sub, exact: true } );
+	await expect( async () => {
+		await topLink.hover();
+		await expect( link ).toBeInViewport( { timeout: 1000 } );
+	} ).toPass( { timeout: 15000 } );
 	await link.click();
 }
 

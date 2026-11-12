@@ -48,12 +48,13 @@ test.describe( 'Home view', () => {
 	test( 'keeps the sidebar links the same size when another screen loads', async ( {
 		page,
 	} ) => {
-		const names = [ 'Home', 'Site Overview', 'Pages', 'Colors' ];
+		const names = [ 'Dashboard', 'Posts', 'Pages', 'Comments' ];
 		const getHeights = () =>
 			Promise.all(
 				names.map( async ( name ) => {
 					const box = await page
-						.getByRole( 'link', { name, exact: true } )
+						.locator( '#adminmenu li.menu-top > a' )
+						.filter( { hasText: new RegExp( `^${ name }` ) } )
 						.boundingBox();
 					return box.height;
 				} )

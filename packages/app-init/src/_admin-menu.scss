@@ -1,0 +1,89 @@
+/*
+ * wp-admin's menu in place of the editor's sidebar (`includes/admin-menu.php`).
+ *
+ * Core's `admin-menu` stylesheet draws the menu. These are the few rules
+ * wp-admin's other stylesheets add that it relies on, and room for it
+ * beside the editor, which is fixed to the window rather than in the flow
+ * wp-admin's `#wpcontent` is.
+ */
+
+$admin-menu-width: 160px;
+$admin-menu-folded-width: 36px;
+
+.cnl-admin-menu {
+
+	#adminmenu,
+	#adminmenu ul {
+		list-style: none;
+	}
+
+	#adminmenuwrap {
+		top: var(--wp-admin--admin-bar--height, 0px);
+	}
+
+	// From wp-admin's `common.css`.
+	.screen-reader-shortcut {
+		position: absolute;
+		top: -1000em;
+		left: 6px;
+		z-index: 100000;
+
+		&:focus {
+			top: calc(var(--wp-admin--admin-bar--height, 0px) - 25px);
+			height: auto;
+			padding: 23px 23px 14px;
+			background: #f0f0f1;
+			color: #2271b1;
+			font-size: 14px;
+			box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
+		}
+	}
+
+	.screen-reader-text {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip-path: inset(50%);
+		border: 0;
+		overflow-wrap: normal !important;
+	}
+}
+
+// The editor's own sidebar gives way to it.
+body.cnl-has-admin-menu #create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"] {
+	display: none !important;
+}
+
+body.cnl-has-admin-menu #create-not-learn-editor-app {
+	margin-left: $admin-menu-width;
+}
+
+body.cnl-has-admin-menu.folded #create-not-learn-editor-app {
+	margin-left: $admin-menu-folded-width;
+}
+
+@media only screen and (max-width: 960px) {
+
+	body.cnl-has-admin-menu.auto-fold #create-not-learn-editor-app {
+		margin-left: $admin-menu-folded-width;
+	}
+}
+
+@media screen and (max-width: 782px) {
+
+	body.cnl-has-admin-menu.auto-fold #create-not-learn-editor-app {
+		margin-left: 0;
+	}
+
+	// Over the editor, which is fixed to the window, and under the admin bar.
+	.cnl-admin-menu.wp-responsive-open {
+
+		#adminmenuback,
+		#adminmenuwrap {
+			z-index: 99998;
+		}
+	}
+}

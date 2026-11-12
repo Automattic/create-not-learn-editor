@@ -46,6 +46,14 @@ The current routes are:
 - `/types/$type/edit/$id` for editing existing content.
 - `/types/$type/new` for creating new content.
 
+### The sidebar is wp-admin's menu
+
+In place of boot's sidebar, the page prints wp-admin's own menu, with core's `wp-admin/menu-header.php` and styled by core's `admin-menu` stylesheet, so it looks and behaves as it does on every other admin screen (`includes/admin-menu.php`). It lists what wp-admin lists for this person, plugins' items, counts and colour scheme included. Boot's sidebar is still built but hidden, and the editor sits beside the menu as wp-admin's content does.
+
+`packages/app-init/src/admin-menu.js` does what wp-admin's `common.js` would: it marks the screen on show current, which opens its submenu in the column, flies submenus out on hover, folds the menu with Collapse Menu and remembers it in the `mfold` user setting, and opens it on small screens from the admin bar's menu button or boot's.
+
+Links the editor has a screen for open it in place, through the router, and in a new tab still open the editor on that screen: Dashboard › Home is Home, All Pages and All Posts are the content lists, Add New opens a new one, Media is Media, Appearance › Editor is Site Overview, Appearance › Fonts is Fonts and Appearance › Create Not Learn is Home. The map from wp-admin URL to route is built in PHP and passed as `adminMenuRoutes`. The rest, like Comments, Plugins and Settings, open wp-admin's own screen. Screens wp-admin has no menu item for, like Colors, Site Identity, Patterns and Templates, are reached from Home and the screens that link to them, or by their route. So is the workspace switcher, which was in boot's sidebar, and is reached with `?workspace=`.
+
 Home and Content currently include visible placeholder canvases. They are deliberately simple surfaces so the boot frame, routing, menu, and content list behavior can be developed before replacing the placeholders with richer previews.
 
 ## Sections or blocks

@@ -38,6 +38,7 @@ import { mountWorkspaces } from '../../../src/workspaces';
 import { registerWebMcpTools } from '../../../src/webmcp';
 import { mountPreferences } from '../../../src/preferences';
 import { trackHomeTrip } from '../../../src/home-trip';
+import { mountAdminMenu } from './admin-menu';
 import { mountMenuSections } from './menu-sections';
 import { enhanceSidebar } from './sidebar';
 
@@ -77,6 +78,7 @@ export async function init() {
 
 	mountWorkspaces();
 	mountMenuSections();
+	mountAdminMenu();
 	mountPreferences();
 	mountAdminBar();
 	mountTopBar();
