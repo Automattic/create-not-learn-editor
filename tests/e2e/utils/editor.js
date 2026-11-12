@@ -48,14 +48,14 @@ const SIDEBAR_LINKS = {
 	Pages: [ 'Pages' ],
 	Posts: [ 'Posts' ],
 	Media: [ 'Media' ],
+	Colors: [ 'Appearance', 'Colors' ],
 	Fonts: [ 'Appearance', 'Fonts' ],
+	'Site Identity': [ 'Appearance', 'Site Identity' ],
 };
 
 const SCREEN_ROUTES = {
-	Colors: '/design/colors',
 	Menus: '/navigation',
 	Patterns: '/patterns',
-	'Site Identity': '/design/identity',
 	'Site Overview': '/site-overview',
 	'Site parts': '/template-parts',
 	Styles: '/styles',

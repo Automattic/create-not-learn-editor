@@ -17,6 +17,71 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Add the editor's design screens to wp-admin's Appearance menu.
+ */
+function cnl_editor_register_admin_menu_hooks() {
+	// After the editor's own Appearance link, and core's and plugins' items.
+	add_action( 'admin_menu', 'cnl_editor_add_design_menu_items', 1000 );
+}
+
+/**
+ * The design screens Appearance links to, which wp-admin has no item for.
+ *
+ * @return array[] Each screen's label and editor path.
+ */
+function cnl_editor_get_design_menu_items() {
+	return array(
+		array( __( 'Colors', 'create-not-learn-editor' ), '/design/colors' ),
+		array( __( 'Site Identity', 'create-not-learn-editor' ), '/design/identity' ),
+		array( __( 'Header & footer', 'create-not-learn-editor' ), '/design/header-footer' ),
+	);
+}
+
+/**
+ * Put the design screens in Appearance, after Editor, as links into this
+ * editor. They're real submenu items, so wp-admin shows them on every admin
+ * screen too, where they open the editor on that screen.
+ */
+function cnl_editor_add_design_menu_items() {
+	global $submenu;
+
+	if ( empty( $submenu['themes.php'] ) || ! current_user_can( 'edit_theme_options' ) ) {
+		return;
+	}
+
+	$items = array();
+	foreach ( cnl_editor_get_design_menu_items() as list( $label, $path ) ) {
+		$items[] = array(
+			$label,
+			'edit_theme_options',
+			'admin.php?page=' . CNL_EDITOR_SLUG . '&p=' . rawurlencode( $path ),
+			$label,
+		);
+	}
+
+	$entries = array_values( $submenu['themes.php'] );
+
+	// Fonts, core's or the Gutenberg plugin's, joins them, after Colors.
+	foreach ( $entries as $index => $entry ) {
+		if ( '/design/fonts' === cnl_editor_get_admin_menu_route( cnl_editor_get_admin_submenu_url( $entry[2] ?? '', 'themes.php' ) ) ) {
+			array_splice( $items, 1, 0, array_splice( $entries, $index, 1 ) );
+			break;
+		}
+	}
+
+	$after = count( $entries );
+	foreach ( $entries as $index => $entry ) {
+		if ( 0 === strpos( $entry[2] ?? '', 'site-editor.php' ) ) {
+			$after = $index + 1;
+			break;
+		}
+	}
+
+	array_splice( $entries, $after, 0, $items );
+	$submenu['themes.php'] = $entries; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+}
+
+/**
  * Load what wp-admin's menu needs: core's stylesheet for it, and `utils`,
  * which remembers whether it's collapsed as wp-admin does.
  */
@@ -147,9 +212,9 @@ function cnl_editor_get_admin_menu_route( $url ) {
 
 	$types = wp_list_pluck( cnl_editor_get_content_post_type_data(), 'name' );
 
-	// Appearance's link to this editor.
+	// Appearance's links into this editor: its own, and its design screens'.
 	if ( CNL_EDITOR_SLUG === ( $args['page'] ?? '' ) ) {
-		return '/';
+		return empty( $args['p'] ) ? '/' : (string) $args['p'];
 	}
 
 	// Fonts, as core and the Gutenberg plugin each register it.

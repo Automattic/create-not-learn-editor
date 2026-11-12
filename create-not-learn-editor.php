@@ -71,6 +71,7 @@ function cnl_editor_bootstrap() {
 	require_once CNL_EDITOR_PATH . 'includes/page-list.php';
 
 	cnl_editor_register_content_type_hooks();
+	cnl_editor_register_admin_menu_hooks();
 	cnl_editor_register_sections_hooks();
 	cnl_editor_register_shop_hooks();
 	cnl_editor_register_preview_frame_hooks();
