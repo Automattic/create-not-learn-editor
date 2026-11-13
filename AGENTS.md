@@ -9,7 +9,7 @@ The README is for people trying the editor and explains the ideas behind it. The
 - [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, wp-env and its shared downloads, scripts, verification and the repository layout.
 - [docs/architecture.md](docs/architecture.md) covers the editor shell and routes, what is edited as sections and what as blocks, the visual theme, explicit site changes, the Gutenberg version check and opening in a workspace.
 - [docs/webmcp.md](docs/webmcp.md) covers the editor's WebMCP tools, the official AI plugin's tools alongside them, and how an agent connects.
-- [docs/demo-site-and-playground.md](docs/demo-site-and-playground.md) covers the Mainstay theme, the demo seed, the shop and the Playground demos, and the rules for changing them. Read it before touching `themes/`, `scripts/demo-site/`, `demos/` or the Playground workflows.
+- [docs/demo-site-and-playground.md](docs/demo-site-and-playground.md) covers the Mainstay theme, the demo seed, the shop and the Playground demos, how to cut a release, and the rules for changing them. Read it before touching `themes/`, `scripts/demo-site/`, `demos/` or the Playground workflows.
 - [docs/editor-workarounds.md](docs/editor-workarounds.md) lists every reliance on private APIs or core internals. Add an entry there whenever you add one.
 - [docs/vendored-list-view.md](docs/vendored-list-view.md) covers the vendored ListView bridge.
 - Folders such as `src/editor-layer/`, `src/block-toolbar/` and `src/site-canvas/` have their own README. Read it when you work in that folder.

@@ -69,12 +69,17 @@ When a pull request opens, `.github/workflows/playground-links.yml` comments the
 
 ### Release demos
 
-The trunk demo changes with every push, which is no good for a user test. For a demo that stays put, tag a release and push the tag:
+The trunk demo changes with every push, which is no good for a user test. For a demo that stays put, cut a release.
 
-```sh
-git tag v0.2.0
-git push origin v0.2.0
-```
+1. Bump the version in `create-not-learn-editor.php`, `package.json` and the top two entries of `package-lock.json`, on the commit you want to release. That's usually trunk, through a pull request. To release older work, commit the bump on a detached checkout of that commit instead, so it lives only on the tag.
+2. Tag that commit and push the tag.
+
+   ```sh
+   git tag v0.2.0
+   git push origin v0.2.0
+   ```
+
+3. Once the "Plugin zip" workflow for the tag has finished, point the README's demo links at the new `playground-v0.2.0` tag in a pull request. The README's main links always follow the latest release, with trunk's under "Bleeding edge", so a release isn't done until they move.
 
 The workflow builds the tagged commit and publishes its files to a `playground-v0.2.0` tag, with a `blueprint.json`, a `blueprint-shop.json`, a `blueprint-ai.json`, a `blueprint-blank.json` and a `blueprint-ipsum.json` that install from that tag. Those blueprints also pin WordPress to the version in `scripts/wp-env.mjs`, where the trunk and branch demos take the latest, so the blank site runs that version's default theme. The Ipsum one stays on the WordPress beta, as Ipsum needs a newer WordPress than the pinned one. The workflow then creates a GitHub release for `v0.2.0`, or updates one you made already, with the Playground links at the top of the notes and the plugin zip attached. The links are
 
@@ -87,8 +92,6 @@ https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.co
 ```
 
 Every release keeps its own links, so testers can stay on one while trunk moves on. Pushing the same tag to a new commit rebuilds that release in place.
-
-The README's main demo links point at the latest release's `playground-v*` tag, with trunk's under "Bleeding edge". When you cut a release, move those links to the new tag once its workflow has published it.
 
 `scripts/playground-build.sh` puts the files for each kind of demo together.
 
