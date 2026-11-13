@@ -55,3 +55,9 @@ The label normally sits above its block. The topmost block has nothing above it,
 Template parts and synced patterns get the label in `--wp-block-synced-color` rather than the admin colour, since they are shared across the site rather than owned by the page. They are matched by `.wp-block-template-part` and `.is-reusable`, the same two selectors core uses to colour its own outline around them.
 
 Both of those rules repeat the base rule's `:not()` chain. Without it the base rule wins on specificity and the override silently does nothing.
+
+## Document Overview's List View, for a page built from sections
+
+Core's `ListViewSidebar` hard-codes its List View tab, with no slot or filter for another list. The site canvas shows a list of the page's sections there instead (`src/site-canvas/section-modes/canvas-overview.jsx`), portalled into the tab's `.editor-list-view-sidebar__list-view-panel-content` panel, which `src/site-canvas/section-modes/_canvas-overview.scss` uses to hide core's list view beside it. Core's list still mounts, and its focus on opening lands on nothing, so ours moves focus into itself as it opens.
+
+This depends on that class name, on the panel being unmounted while Outline is shown, and on core's `isListViewOpened` selector. Remove it once the editor lets the List View tab's content be replaced.

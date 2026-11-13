@@ -30,6 +30,7 @@ export function getSectionActions( {
 	activeRowId,
 	editorRef,
 	enterMode,
+	exitMode,
 	focusSoon,
 	getInsertIndex,
 	getMembers,
@@ -38,8 +39,11 @@ export function getSectionActions( {
 	inlineAdd,
 	isTextSection,
 	items,
+	layoutItemsById,
 	leaveCompose,
 	moveSectionTo,
+	partsById,
+	pickedSection,
 	registry,
 	release,
 	rootClientId,
@@ -50,6 +54,7 @@ export function getSectionActions( {
 	setFreshId,
 	setInlineAdd,
 	setMenuOpenFor,
+	setPickedSection,
 } ) {
 	// Add a block to the end of a section, and open it in Edit content with
 	// the caret in the new block, or the new picture selected. A run of text
@@ -203,6 +208,49 @@ export function getSectionActions( {
 		},
 	};
 
+	/*
+	 * Document Overview's list, whose rows pick on the canvas as a click
+	 * there does, and whose Add section adds at the end of the page, in
+	 * place, as the canvas's own Add does.
+	 */
+	const overviewProps = {
+		currentId: active?.id ?? pickedSection,
+		editorRef,
+		getTitle,
+		isTextSection,
+		layoutItemsById,
+		partsById,
+		sectionIds,
+		onAddSection: () => {
+			if ( active ) {
+				exitMode();
+			}
+
+			setPickedSection( null );
+
+			if ( sectionIds.length ) {
+				openInlineAdd( sectionIds.length );
+				return;
+			}
+
+			openSectionPicker( {
+				index: 0,
+				onStartBlank: () => leaveCompose( () => startBlank() ),
+				rootClientId: rootClientId || '',
+			} );
+		},
+		onPick: ( clientId ) => {
+			if ( active && active.id !== clientId ) {
+				exitMode();
+			}
+
+			setInlineAdd( null );
+			setActiveRowId( null );
+			setPickedSection( clientId );
+			scrollCanvasTo( editorRef, clientId );
+		},
+	};
+
 	return {
 		addItem,
 		startBlank,
@@ -213,5 +261,6 @@ export function getSectionActions( {
 		onLayoutReplace,
 		openInlineAdd,
 		inlineAddActions,
+		overviewProps,
 	};
 }

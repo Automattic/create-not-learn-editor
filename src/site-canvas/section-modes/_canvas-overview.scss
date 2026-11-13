@@ -1,0 +1,106 @@
+@use "../../colors" as *;
+
+/*
+ * Document Overview's List View for a page built from sections. See
+ * `canvas-overview.jsx`. Its rows are drawn as the list view's are on the
+ * Pages screen: the same height, icon and type, and the row picked tinted
+ * rather than filled.
+ */
+
+// The tab is core's, so its list view stays mounted beside ours, hidden.
+.editor-list-view-sidebar__list-view-panel-content:has(> .cnl-canvas-overview-host) > :not(.cnl-canvas-overview-host) {
+	display: none;
+}
+
+.cnl-canvas-overview {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xl);
+	padding: var(--wpds-dimension-padding-md) var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-2xl);
+}
+
+.cnl-canvas-overview__group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+}
+
+.cnl-canvas-overview__heading {
+	margin: 0;
+	padding-inline: var(--wpds-dimension-padding-sm);
+	color: var(--wpds-color-foreground-content-neutral);
+}
+
+.cnl-canvas-overview__tree {
+	width: 100%;
+	border-collapse: collapse;
+
+	td {
+		padding: 0;
+	}
+}
+
+.cnl-canvas-overview__select {
+	display: flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-xs);
+	width: 100%;
+	height: var(--wpds-dimension-size-md);
+	padding: 0 var(--wpds-dimension-padding-xs);
+	border: 0;
+	border-radius: var(--wpds-border-radius-sm);
+	background: none;
+	color: var(--wpds-color-foreground-interactive-neutral);
+	font: inherit;
+	text-align: start;
+	cursor: pointer;
+
+	&:hover {
+		color: var(--wpds-color-foreground-interactive-brand);
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+		outline-offset: calc(-1 * var(--wpds-border-width-focus));
+	}
+
+	.block-editor-block-icon {
+		flex: none;
+	}
+}
+
+.cnl-canvas-overview__title {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+// The header, footer and the layout's own blocks are in the colour the
+// canvas marks what more than this page shares.
+.cnl-canvas-overview__row.is-global .cnl-canvas-overview__select > .block-editor-block-icon {
+	color: $cnl-global;
+}
+
+.cnl-canvas-overview__lock {
+	display: flex;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.cnl-canvas-overview__row.is-selected .cnl-canvas-overview__select {
+	background: var(--wpds-color-background-interactive-brand-weak-active);
+	color: var(--wpds-color-foreground-interactive-neutral);
+
+	> .block-editor-block-icon {
+		color: var(--wpds-color-foreground-interactive-brand);
+	}
+}
+
+.cnl-canvas-overview__row.is-selected.is-global .cnl-canvas-overview__select > .block-editor-block-icon {
+	color: $cnl-global;
+}
+
+.cnl-canvas-overview__add.components-button {
+	align-self: flex-start;
+}
