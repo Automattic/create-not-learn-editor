@@ -110,6 +110,7 @@ import { useModeSync } from './use-mode-sync';
 import { usePostsTripBack } from './use-posts-trip-back';
 import { useLayerEffects } from './use-layer-effects';
 import { getSectionActions } from './section-actions';
+import { CanvasOverview } from './canvas-overview';
 import { InlineAdd } from './inline-add';
 import { HoverChrome } from './hover-chrome';
 import { PickedChrome } from './picked-chrome';
@@ -752,11 +753,13 @@ export function SectionModesLayer( {
 		onLayoutReplace,
 		openInlineAdd,
 		inlineAddActions,
+		overviewProps,
 	} = getSectionActions( {
 		active,
 		activeRowId,
 		editorRef,
 		enterMode,
+		exitMode,
 		focusSoon,
 		getInsertIndex,
 		getMembers,
@@ -765,8 +768,11 @@ export function SectionModesLayer( {
 		inlineAdd,
 		isTextSection,
 		items,
+		layoutItemsById,
 		leaveCompose,
 		moveSectionTo,
+		partsById,
+		pickedSection,
 		registry,
 		release,
 		rootClientId,
@@ -777,6 +783,7 @@ export function SectionModesLayer( {
 		setFreshId,
 		setInlineAdd,
 		setMenuOpenFor,
+		setPickedSection,
 	} );
 
 	if ( ! host ) {
@@ -1003,6 +1010,9 @@ export function SectionModesLayer( {
 	return (
 		<>
 			{ layer }
+			{ hasSections && ! focusId && (
+				<CanvasOverview { ...overviewProps } />
+			) }
 			{ /* Outside the layer, so its keys aren't the layer's. */ }
 			{ postsNotice && (
 				<PostsNotice

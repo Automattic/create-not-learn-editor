@@ -45,10 +45,13 @@ import {
 	SearchControl,
 	SelectControl,
 	ToggleControl,
-	/* eslint-disable @wordpress/no-unsafe-wp-apis -- The segmented control is still experimental in @wordpress/components and has no @wordpress/ui equivalent yet. */
+	/* eslint-disable @wordpress/no-unsafe-wp-apis -- The segmented control and TreeGrid are still experimental in @wordpress/components and have no @wordpress/ui equivalent yet. */
 	__experimentalToggleGroupControl as ToggleGroupControl,
 	__experimentalToggleGroupControlOption as ToggleGroupControlOption,
 	__experimentalToggleGroupControlOptionIcon as ToggleGroupControlOptionIcon,
+	__experimentalTreeGrid as TreeGrid,
+	__experimentalTreeGridCell as TreeGridCell,
+	__experimentalTreeGridRow as TreeGridRow,
 	/* eslint-enable @wordpress/no-unsafe-wp-apis */
 } from '@wordpress/components';
 import {
@@ -363,6 +366,9 @@ export {
 	ToggleGroupControlOption,
 	ToggleGroupControlOptionIcon,
 	Tooltip,
+	TreeGrid,
+	TreeGridCell,
+	TreeGridRow,
 	trash as trashIcon,
 	drafts as draftsIcon,
 	lock as lockIcon,

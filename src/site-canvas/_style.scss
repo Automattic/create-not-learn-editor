@@ -4,6 +4,7 @@
 @use "../editor-layer/edit-original";
 @use "./section-modes/style" as section-modes;
 @use "./browse-hints";
+@use "./section-modes/canvas-overview";
 
 .cnl-site-canvas {
 	height: 100%;
