@@ -19,7 +19,7 @@ It looks like WordPress and behaves like WordPress, because it's built from the 
 
 ### Other demos
 
-Each demo runs the v0.6.0 release in your browser, with nothing to install.
+Each demo runs the latest release in your browser, with nothing to install.
 
 - [Blank website](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-v0.6.0/blueprint-blank.json) - default theme, no content
 - [Out of the box with Ipsum](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-v0.6.0/blueprint-ipsum.json) - a fresh site on [Ipsum](https://github.com/WordPress/ipsum), the proposed new default theme, with only its demo posts added, in the Writing workspace. It runs the WordPress beta, which Ipsum needs
