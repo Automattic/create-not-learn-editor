@@ -20,11 +20,16 @@ Keep those files current when behaviour they describe changes. Keep the README t
 
 Every turn re-reads the whole conversation, so long sessions cost far more than short ones.
 
-- One task per session. When a PR merges, or the task changes, suggest that David starts a fresh session rather than carrying on in this one.
+- One task per session. When a PR merges, or the task changes, suggest starting a fresh session rather than carrying on in this one.
 - Search before reading. Read large files by line range around what search finds, rather than whole. Several files in `src/` are over 20KB.
 - Keep command output short. Pipe long output through `tail`, `head` or `grep`, and don't re-run a command just to see its output again.
 - Keep screenshots few and small. Clip them to the part that matters and save them under `.context/`.
 - Gutenberg's JavaScript source is in `node_modules/@wordpress/*/src`, and the Gutenberg plugin wp-env runs, PHP included, is in `~/.cache/create-not-learn-editor/wp-env/gutenberg-<version>/`. Look there rather than searching the web or the whole disk.
+
+## Exploring UI Ideas
+
+- When exploring a new UI idea, don't write or rewrite tests unless a test specifically helps you execute the idea (e.g. a quick PHPUnit check that unblocks you). Churning through exploration cycles with test upkeep wastes effort on something that may get thrown away.
+- Once the direction is locked in, prompt the user to add the tests it needs before calling the work done.
 
 ## Core Direction
 
@@ -59,7 +64,7 @@ Every turn re-reads the whole conversation, so long sessions cost far more than 
 
 - Always run wp-env through `npm run wp-env ...`, never the `wp-env` binary, and don't point `.wp-env.json` at download URLs. Versions live in `scripts/wp-env.mjs`. CONTRIBUTING.md explains the shared downloads.
 - Start it with `npm run wp-env start -- --auto-port`, which prints the port it picked, and preview changes there rather than reasoning about behaviour from code alone. The editor is at `http://localhost:<port>/wp-admin/admin.php?page=create-not-learn-editor`.
-- `npm run dev` is the watch build. Stop it before finishing unless David wants it left running.
+- `npm run dev` is the watch build. Stop it before finishing unless asked to leave it running.
 - `themes/mainstay/` and `scripts/demo-site/` are the development site's demo, not part of the plugin. Keep the seed additive and idempotent.
 - `demos/` holds the Playground blueprints. Never commit to the `playground-build` branch, or create, push to or move `refs/playground/*` refs or `playground-v*` tags, by hand.
 - Read [docs/demo-site-and-playground.md](docs/demo-site-and-playground.md) before changing any of these.
@@ -121,7 +126,7 @@ Don't import `@wordpress/block-library` either: any import puts the whole librar
 
 ## Git Rules
 
-- Do not commit or push unless David explicitly asks.
+- Do not commit or push unless explicitly asked.
 - Never push without a separate explicit confirmation.
-- Keep commits source-only unless David asks for generated artifacts.
+- Keep commits source-only unless asked to include generated artifacts.
 - No GitHub remote is expected by default.
