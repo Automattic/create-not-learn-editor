@@ -1,6 +1,7 @@
 // The rest of the black sidebar app-init adds to boot's (`sidebar.js`): the
-// heading slot, the top row with the greeting and menu button, the workspace
-// switcher, the strip of icons it folds to and the transition between the two.
+// heading slot, the foot with the workspace switcher and the button that
+// expands the sidebar, the strip of icons it folds to and the transition
+// between the two.
 
 @use "../../../src/fonts" as *;
 
@@ -9,7 +10,7 @@
  *
  * Inside a menu section, boot shows a title row with a Back button and the
  * section name. At the top level that row is empty, so it is taken out and
- * the menu starts right below the greeting's row, where it starts when the
+ * the menu starts a little below the admin bar, where it starts when the
  * sidebar is a strip of icons too.
  */
 $sidebar-heading-height: 56px;
@@ -25,8 +26,15 @@ $sidebar-heading-height: 56px;
 	}
 }
 
+// Room above the first item, Home, where there is no title row.
+$sidebar-menu-inset: var(--wpds-dimension-gap-lg);
+
+[class*="__sidebar"] [class*="__scrollable"] > [class*="__content"]:not(:has([class*="__title-icon"] .components-button)) {
+	padding-block-start: $sidebar-menu-inset;
+}
+
 /*
- * The black sidebar's headings, the greeting below and each section's title
+ * The black sidebar's headings, each section's title
  * (Content, Design, Advanced), in WordPress.org's EB Garamond, larger than
  * the interface font, whatever the visual theme: one deliberate exception to
  * stock WPDS. Every other heading follows the design system's defaults.
@@ -47,46 +55,22 @@ $sidebar-heading-height: 56px;
 }
 
 /*
- * Boot's Dashboard link. The admin bar above leads to the Dashboard, and
- * app-init puts the sidebar's menu button in its place.
+ * Boot's Dashboard link. The admin bar above leads to the Dashboard.
  */
 [class*="__sidebar"] [class*="__back-button"] {
 	display: none;
 }
 
 /*
- * The space below the sidebar's top row sets where the menu starts. It lines
- * the menu up with the tops of the white surfaces beside it.
- */
-$sidebar-heading-offset: 3px;
-
-/*
- * The sidebar's top row, added by app-init in place of boot's Dashboard link:
- * the greeting, level with the top bar beside it, and the menu button at the
- * far end.
- *
- * The top margin centres the 40px row on the 56px top bar. The bottom margin
- * makes up the rest of gap-lg plus the offset above.
- */
-.cnl-sidebar-header {
-	display: flex;
-	align-items: center;
-	min-height: 40px;
-	margin-block: var(--wpds-dimension-gap-sm) calc(var(--wpds-dimension-gap-lg) - var(--wpds-dimension-gap-sm) + #{$sidebar-heading-offset});
-	margin-inline: var(--wpds-dimension-gap-md);
-}
-
-/*
- * Menu button that expands the sidebar from its strip of icons and folds it
- * back. Shown only where the sidebar can be a strip; on narrow screens it is
- * a drawer instead. It sits at the sidebar's far end, so it travels with that
- * edge as the sidebar expands and folds, and is centred over the icons once
- * the sidebar is a strip.
+ * The button that expands the sidebar from its strip of icons and folds it
+ * back, at the end of the sidebar's foot, beside the workspace switcher.
+ * Shown only where the sidebar can be a strip; on narrow screens it is a
+ * drawer instead. Once the sidebar is a strip it sits above the switcher's
+ * icon.
  */
 .cnl-sidebar-toggle {
 	display: none;
 	flex-shrink: 0;
-	margin-inline-start: auto;
 }
 
 .components-button.cnl-sidebar-toggle__button {
@@ -114,6 +98,9 @@ $workspace-toggle-inset: var(--wpds-dimension-gap-xs);
  * is empty to keep the space above and below the toggle even.
  */
 .cnl-sidebar-workspace {
+	display: flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
 	margin-block-start: var(--wpds-dimension-gap-sm);
 	padding-block: var(--wpds-dimension-gap-md);
 	padding-inline: var(--wpds-dimension-padding-xl) var(--wpds-dimension-gap-md);
@@ -125,9 +112,15 @@ $workspace-toggle-inset: var(--wpds-dimension-gap-xs);
 }
 
 /*
- * Tertiary: knocked back like the menu button until hovered, with the
+ * Tertiary: knocked back like the sidebar toggle until hovered, with the
  * workspace name a step brighter than its icons.
  */
+// The switcher takes the row, leaving the sidebar toggle at its end.
+.cnl-sidebar-workspace > .components-dropdown {
+	flex: 1;
+	min-width: 0;
+}
+
 .components-button.cnl-sidebar-workspace__toggle {
 	display: flex;
 	width: 100%;
@@ -168,42 +161,10 @@ $workspace-toggle-inset: var(--wpds-dimension-gap-xs);
 }
 
 /*
- * Greeting at the start of the sidebar's top row, set as the sidebar's
- * headings are and lined up with the section titles below.
- */
-.cnl-sidebar-welcome {
-	flex: 1;
-	min-width: 0;
-	margin: 0;
-	padding-inline: calc(var(--wpds-dimension-padding-xl) - var(--wpds-dimension-gap-md)) var(--wpds-dimension-gap-sm);
-	overflow: hidden;
-	color: var(--wpds-color-foreground-content-neutral);
-	white-space: nowrap;
-	text-overflow: ellipsis;
-
-	@include cnl-sidebar-heading;
-
-	/*
-	 * Only greet at the top level. Inside a section (Content, Design,
-	 * Advanced) the title row shows a Back button and the section name.
-	 */
-	[class*="__sidebar"]:has([class*="__title-icon"] .components-button) & {
-		visibility: hidden;
-		opacity: 0;
-	}
-
-	@media not (prefers-reduced-motion) {
-		transition:
-			opacity var(--wpds-motion-duration-md) var(--wpds-motion-easing-subtle),
-			visibility var(--wpds-motion-duration-md);
-	}
-}
-
-/*
  * The sidebar as a strip of icons, which it is unless toggled open. The way
  * to other areas stays in reach without taking the room. Labels are hidden
  * visually but kept for screen readers, and app-init shows each one as a
- * tooltip. The menu button at its top expands it until another screen is
+ * tooltip. The button at its foot expands it until another screen is
  * picked. On narrow screens the sidebar is a drawer instead.
  */
 $sidebar-strip-width: 64px;
@@ -230,22 +191,15 @@ $sidebar-strip-width: 64px;
 		width: $sidebar-strip-width;
 
 		/*
-		 * No greeting, Back button or section title, so the icons start
-		 * right below the menu button.
+		 * No Back button or section title, so the icons start at the top.
 		 */
 		[class*="__title-icon"],
-		.cnl-sidebar-welcome,
 		.cnl-sidebar-workspace__toggle > :not(:first-child) {
 			display: none;
 		}
 
-		.cnl-sidebar-header {
-			justify-content: center;
-			margin-inline: 0;
-		}
-
-		.cnl-sidebar-toggle {
-			margin-inline: 0;
+		[class*="__scrollable"] > [class*="__content"] {
+			padding-block-start: $sidebar-menu-inset;
 		}
 
 		[class*="__item-wrapper"] > * > * > :not(:first-child) {
@@ -254,10 +208,14 @@ $sidebar-strip-width: 64px;
 		}
 
 		.cnl-sidebar-workspace {
-			display: flex;
+			flex-direction: column-reverse;
 			justify-content: center;
 			margin-inline: 0;
 			padding-inline: 0;
+		}
+
+		.cnl-sidebar-workspace > .components-dropdown {
+			flex: none;
 		}
 
 		.components-button.cnl-sidebar-workspace__toggle {

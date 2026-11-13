@@ -1,4 +1,5 @@
 export { DocumentTitle } from './document-title';
+export { getPreviewSwitcherProps, PageSwitcher } from './page-switcher';
 export { SiteCanvas } from './site-canvas';
 export { useCanvasDocument } from './use-canvas-document';
 export { useSiteCanvas } from './use-site-canvas';

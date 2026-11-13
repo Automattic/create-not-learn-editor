@@ -2,11 +2,15 @@
  * Save controls: how many changes are waiting, and a way to review them.
  *
  * Changes made across the editor are held back until the user saves them,
- * so this says how many are waiting, with Save to open the review, where
- * they are saved or discarded. Save is always there, and disabled while
- * there's nothing to save, so it's somewhere to look before there is. It replaces boot's save button
- * at the foot of the sidebar, which `style.scss` hides wherever the top bar
- * is shown.
+ * so Save opens the review, where they are saved or discarded. Save is always
+ * there, and disabled while there's nothing to save, so it's somewhere to
+ * look before there is. It sits in the canvas toolbar, and replaces boot's
+ * save button at the foot of the sidebar, which `style.scss` hides wherever
+ * there is a canvas toolbar.
+ *
+ * How many changes are waiting, or that they were all saved, is in Save's
+ * tooltip and read out as it changes, rather than written beside it: the
+ * toolbar is full, and its controls shouldn't move as changes come and go.
  */
 
 /**
@@ -15,9 +19,7 @@
 import { Button } from '@wordpress/components';
 import { useCallback, useEffect, useRef, useState } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { check } from '@wordpress/icons';
 import { displayShortcut, rawShortcut } from '@wordpress/keycodes';
-import { Icon } from '@wordpress/ui';
 
 /**
  * Internal dependencies
@@ -71,30 +73,16 @@ export function SaveControls() {
 		}
 	}, [ isSaving, hasChanges ] );
 
-	let status = null;
+	let status = '';
 
 	if ( hasChanges ) {
-		status = (
-			<span className="cnl-save-controls__changes">
-				<span className="cnl-save-controls__indicator" aria-hidden />
-				{ sprintf(
-					/* translators: %d: Number of changes waiting to be saved. */
-					_n(
-						'%d unsaved change',
-						'%d unsaved changes',
-						changeCount
-					),
-					changeCount
-				) }
-			</span>
+		status = sprintf(
+			/* translators: %d: Number of changes waiting to be saved. */
+			_n( '%d unsaved change', '%d unsaved changes', changeCount ),
+			changeCount
 		);
 	} else if ( hasSaved ) {
-		status = (
-			<span className="cnl-save-controls__saved">
-				<Icon icon={ check } size={ 20 } />
-				{ __( 'All changes saved' ) }
-			</span>
-		);
+		status = __( 'All changes saved' );
 	}
 
 	return (
@@ -112,6 +100,9 @@ export function SaveControls() {
 				onClick={ () => setIsReviewOpen( true ) }
 				disabled={ isSaving || ! hasChanges }
 				accessibleWhenDisabled
+				description={ status || undefined }
+				// Below, as the toolbar is at the top of the window.
+				tooltipPosition="bottom"
 				isBusy={ isSaving }
 				shortcut={ displayShortcut.primary( 's' ) }
 				aria-keyshortcuts={ rawShortcut.primary( 's' ) }

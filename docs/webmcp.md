@@ -33,7 +33,7 @@ The AI plugin's other features, and the AI the site uses itself, need an AI prov
 
 | Tool | What it does |
 | --- | --- |
-| `cnl-connect` | Gives the agent's name, for the top bar's list of its changes |
+| `cnl-connect` | Gives the agent's name, for the canvas toolbar's list of its changes |
 | `cnl-start-task` | Names what the agent is working on, so its changes are grouped under it |
 | `cnl-set-workspace` | Switches workspace, such as to Agent, where the canvas fills the screen so the person can watch, and keeps the page open |
 | `cnl-set-canvas` | Switches the canvas to Browse, Edit or Compose, and to desktop, tablet or mobile. Browse asks the person about unsaved changes first, as the canvas's own switch does |
@@ -59,7 +59,7 @@ The tools work alongside the official [AI plugin](https://wordpress.org/plugins/
 
 Each change is scrolled into view and flashed for three seconds, without being picked, so the person can watch without the editor's bars opening over the page. The flash is an orange outline and tint, the agent's own colour, with an "Updated by agent" badge in the block label's place (`src/webmcp/flash.js`, `includes/block-canvas-styles.php`). It looks like core's highlight, but is drawn by the editor, as core's `flashBlock` only highlights one block at a time. WebMCP doesn't tell the page which agent called a tool, so the badge can't name it.
 
-In the Agent workspace, while an agent is connected, the top bar says "Agent: connected" on the left, lined up with the canvas's Edit button, with a green dot that pulses while the agent works (`src/top-bar/agent-status.jsx`).
+In the Agent workspace, while an agent is connected, the canvas toolbar says "Agent: connected" before Save, with a green dot that pulses while the agent works (`src/top-bar/agent-status.jsx`).
 
 Opened, it lists what the agent has changed since the editor loaded, under its name, as one row for each request it worked on, newest first, so a long session stays short to read. The agent names each request with `cnl-start-task`, and its changes go under it until it names the next; changes it makes without naming one are grouped until it pauses for two minutes.
 

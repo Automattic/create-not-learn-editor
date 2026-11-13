@@ -75,7 +75,7 @@ const MAX_DESIGNS = 40;
 
 /**
  * Show the person a change on the canvas, and note it for them to look back
- * on from the top bar.
+ * on from the canvas toolbar.
  *
  * @param {string}  text     What changed, in the person's words.
  * @param {?string} clientId The block that shows it, if one does.

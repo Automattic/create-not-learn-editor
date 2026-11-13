@@ -10,30 +10,25 @@ import { withCanvasRecovery } from '../../canvas-recovery';
 import { startHomeTrip } from '../../home-trip';
 import { withUiTheme } from '../../theme';
 import { settings } from '../../settings';
-import { DocumentTitle, SiteCanvas, useSiteCanvas } from '../../site-canvas';
-import { getHomepageDocumentIconStatus } from './preview';
+import {
+	getPreviewSwitcherProps,
+	PageSwitcher,
+	SiteCanvas,
+	useSiteCanvas,
+} from '../../site-canvas';
 import Stage from './stage';
 import { getActiveWorkspace } from '../../workspaces/presets';
 import {
 	Button,
 	Dropdown,
-	Icon,
 	MenuGroup,
 	MenuItem,
 	__,
-	chevronDownIcon,
-	homeIcon,
-	postListIcon,
+	moreHorizontalIcon,
 	coreDataStore,
 	settingsIcon,
 	useSelect,
 } from '../../wordpress-packages';
-
-const DOCUMENT_ICON_BY_STATUS = {
-	'home-latest-posts': homeIcon,
-	'home-static': homeIcon,
-	'posts-page': postListIcon,
-};
 
 function PageOptionsDropdown( {
 	hasHomepageOptions,
@@ -69,7 +64,7 @@ function PageOptionsDropdown( {
 				<Button
 					aria-expanded={ isOpen }
 					className="cnl-editor-homepage-options__toggle"
-					icon={ chevronDownIcon }
+					icon={ moreHorizontalIcon }
 					label={ __( 'Page options' ) }
 					onClick={ onToggle }
 					showTooltip
@@ -101,42 +96,11 @@ function EmptyPreview() {
 
 function PreviewDocument( { canvas } ) {
 	const navigate = useNavigate();
-	const { isLoadingContext, previewContext } = canvas;
-	const previewLabel = previewContext?.previewLabel || __( 'Home' );
-	const previewStatusLabel = isLoadingContext
-		? __( 'Loading preview details' )
-		: previewContext?.previewStatusLabel || __( 'Preview' );
-	const previewTypeLabel = previewContext?.previewTypeLabel || '';
-	const previewMetaLabel = isLoadingContext
-		? previewStatusLabel
-		: [ previewTypeLabel, previewStatusLabel ]
-				.filter( Boolean )
-				.join( ' · ' );
-	const documentIcon =
-		DOCUMENT_ICON_BY_STATUS[
-			getHomepageDocumentIconStatus(
-				previewContext?.previewDocumentStatus
-			)
-		];
+	const { previewContext } = canvas;
 
 	return (
 		<div className="cnl-editor-homepage-document">
-			<div className="cnl-editor-homepage-document__text">
-				<div className="cnl-editor-homepage-document__heading">
-					{ documentIcon && (
-						<Icon
-							className="cnl-editor-homepage-document__icon"
-							icon={ documentIcon }
-						/>
-					) }
-					<DocumentTitle title={ previewLabel } />
-				</div>
-				{ previewMetaLabel && (
-					<p className="cnl-editor-homepage-document__meta">
-						{ previewMetaLabel }
-					</p>
-				) }
-			</div>
+			<PageSwitcher { ...getPreviewSwitcherProps( canvas ) } />
 			<PageOptionsDropdown
 				hasHomepageOptions={
 					previewContext?.previewStatus === 'homepage'

@@ -1,92 +1,27 @@
 /*
- * Top bar, added above boot's surfaces by `mountTopBar()`.
- *
- * Boot's layout matched by its CSS-module suffixes. Only the side-by-side
- * layout gets the bar: boot's full-screen editor has its own header, and on
- * narrow screens the stage fills the viewport and boot's sidebar save button
- * is kept instead.
+ * Save controls in the canvas toolbar, put there by `mountSaveControls()`,
+ * with which agent is connected before them when one is.
  */
 @use "../colors" as *;
 
-$top-bar-height: 56px;
-
-// Boot's sidebar width plus the gap boot leaves between it and the surfaces.
-$sidebar-width: 248px;
-$layout: '#create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"])';
-
-.cnl-top-bar-host {
+/*
+ * Boot's own save button, at the foot of the sidebar, is only needed on a
+ * screen without a canvas toolbar to hold the save controls, like Media.
+ */
+body.cnl-has-canvas-save #create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"]) [class*="__sidebar"] [class*="__scrollable"] > [class*="__footer"] {
 	display: none;
 }
 
-@media (min-width: 782px) {
-
-	#{$layout} {
-
-		[class*="__surfaces"] {
-			margin-block-start: $top-bar-height;
-		}
-
-		/*
-		 * Spans the whole screen, over the top of the sidebar, so it lets
-		 * clicks through to the sidebar and only its own controls take them.
-		 */
-		.cnl-top-bar-host {
-			display: block;
-			position: absolute;
-			inset-block-start: 0;
-			inset-inline: 0;
-			z-index: 1;
-			height: $top-bar-height;
-			padding-inline: var(--wpds-dimension-gap-sm);
-			pointer-events: none;
-		}
-
-		// Replaced by the save controls.
-		[class*="__sidebar"] [class*="__scrollable"] > [class*="__footer"] {
-			display: none;
-		}
-	}
+.cnl-canvas-save-host {
+	display: contents;
 }
 
-/*
- * Three columns with equal outer tracks, so Go to page stays centred on the
- * screen whatever the save controls are showing. The first track never
- * narrows past the sidebar, so on smaller screens Go to page gives way,
- * shrinking and then moving right, rather than running into the sidebar.
- */
-.cnl-top-bar {
-	display: grid;
-	grid-template-columns: minmax($sidebar-width, 1fr) minmax(160px, 360px) minmax(max-content, 1fr);
+.cnl-canvas-save {
+	display: flex;
 	align-items: center;
-	gap: var(--wpds-dimension-gap-lg);
-	height: 100%;
-	color: var(--wpds-color-foreground-content-neutral);
-	font-size: var(--wpds-typography-font-size-md);
-}
-
-.cnl-top-bar__center,
-.cnl-top-bar__end {
-	pointer-events: auto;
-}
-
-/*
- * Which agent is connected, lined up with the canvas's Edit button below it:
- * past boot's sidebar, as a strip or expanded, and the gap after it, then in
- * by the canvas toolbar's border and padding. Words only, so clicks still
- * pass to the sidebar.
- */
-$sidebar-strip-width: 64px;
-$surfaces-gap: 8px;
-$canvas-toolbar-inset: 11px;
-
-.cnl-top-bar__start {
-	grid-column: 1;
+	gap: var(--wpds-dimension-gap-md);
 	min-width: 0;
-	padding-inline-start: calc(#{$sidebar-strip-width + $surfaces-gap + $canvas-toolbar-inset} - var(--wpds-dimension-gap-sm));
-
-	body.cnl-sidebar-is-expanded & {
-		padding-inline-start: calc(#{$sidebar-width + $canvas-toolbar-inset} - var(--wpds-dimension-gap-sm));
-	}
+	font-size: var(--wpds-typography-font-size-md);
 }
 
 .cnl-agent-status {
@@ -95,10 +30,7 @@ $canvas-toolbar-inset: 11px;
 	pointer-events: auto;
 }
 
-/*
- * Quiet on the dark bar, as the Options menu's button is. The button starts
- * at the Edit button's edge; its own padding keeps its words clear of it.
- */
+// Quiet, as the toolbar's other buttons are.
 .components-button.cnl-agent-status__toggle {
 	gap: var(--wpds-dimension-gap-sm);
 	max-width: 100%;
@@ -177,77 +109,33 @@ $agent-green: var(--wpds-color-stroke-surface-success-strong);
 	border-top: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
 }
 
-.cnl-top-bar__center {
-	grid-column: 2;
-	min-width: 0;
-}
-
-.cnl-top-bar__end {
-	display: flex;
-	justify-content: flex-end;
-	grid-column: 3;
-}
-
-// The Options menu's button, light on the dark frame.
-.cnl-options-menu .components-button {
-	color: var(--wpds-color-foreground-interactive-neutral);
-
-	&:hover:not(:disabled) {
-		background: var(--wpds-color-background-interactive-neutral-weak-active);
-		color: var(--wpds-color-foreground-interactive-neutral-active);
-	}
-
-	&.is-pressed,
-	&.is-pressed:hover:not(:disabled) {
-		background: var(--wpds-color-background-interactive-neutral-strong);
-		color: var(--wpds-color-foreground-interactive-neutral-strong);
-	}
-}
-
-// Go to page fills the middle track. The page finder styles it; see
-// `src/page-finder/style.scss`.
-.cnl-go-to-page {
-	width: 100%;
-}
-
 .cnl-save-controls {
+	position: relative;
 	display: flex;
 	align-items: center;
-	gap: var(--wpds-dimension-gap-lg);
 }
 
+// Read out as it changes; Save's tooltip shows it.
 .cnl-save-controls__status {
-	display: contents;
-}
-
-.cnl-save-controls__changes,
-.cnl-save-controls__saved {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-sm);
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
 	white-space: nowrap;
-}
-
-// Amber, like core's alert yellow, so waiting changes read as a warning.
-.cnl-save-controls__indicator {
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: #f0b849;
-	box-shadow: 0 0 0 3px rgba(240, 184, 73, 0.25);
 }
 
 /*
  * Save with nothing to save. Core keeps a disabled primary button blue and
- * only dims its words, which reads as ready on the dark bar, so it takes the
- * Go to page field's faint fill instead.
+ * only dims its words, which reads as ready, so it takes a faint fill
+ * instead.
  */
 .components-button.is-primary.cnl-save-controls__button[aria-disabled="true"] {
 
 	&,
 	&:hover,
 	&:active {
-		background: rgba(255, 255, 255, 0.08);
+		background: rgba(0, 0, 0, 0.05);
 		color: var(--wpds-color-foreground-content-neutral-weak);
 		box-shadow: none;
 	}
@@ -258,7 +146,7 @@ $agent-green: var(--wpds-color-stroke-surface-success-strong);
 	animation: cnl-save-controls-pulse 0.7s ease-out 2;
 }
 
-// Lightened so the ring shows against the dark top bar.
+// Lightened, so the ring reads as a glow round the button.
 $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 
 @keyframes cnl-save-controls-pulse {
@@ -291,10 +179,6 @@ $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 	to {
 		box-shadow: 0 0 0 3px transparent;
 	}
-}
-
-.cnl-save-controls__saved {
-	color: var(--wpds-color-foreground-content-neutral-weak);
 }
 
 /*

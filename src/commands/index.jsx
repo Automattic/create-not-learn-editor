@@ -112,7 +112,7 @@ function getScreenCommands() {
 		},
 		{
 			name: 'create-not-learn-editor/screen-pages',
-			label: __( 'Pages & menu' ),
+			label: __( 'Pages' ),
 			icon: pagesIcon,
 			to: '/types/page/list/default',
 			keywords: [

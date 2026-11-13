@@ -22,21 +22,6 @@ class CNL_Editor_Settings_Test extends WP_UnitTestCase {
 		$this->assertSame( 'default', cnl_editor_get_ui_theme() );
 	}
 
-	public function test_greeting_name() {
-		$user = (object) array(
-			'first_name' => ' Ada ',
-			'nickname'   => 'ada',
-			'user_login' => 'ada',
-		);
-		$this->assertSame( 'Ada', cnl_editor_get_greeting_name( $user ) );
-
-		$user->first_name = '';
-		$this->assertSame( '', cnl_editor_get_greeting_name( $user ), 'An untouched nickname is the login.' );
-
-		$user->nickname = 'Countess';
-		$this->assertSame( 'Countess', cnl_editor_get_greeting_name( $user ) );
-	}
-
 	public function test_app_settings_reflect_the_site() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );

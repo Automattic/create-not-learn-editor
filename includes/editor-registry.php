@@ -313,7 +313,7 @@ function cnl_editor_get_menu_items() {
 			array(
 				'id'      => 'site-overview',
 				'icon'    => 'dashicons-networking',
-				'label'   => __( 'Site Overview', 'create-not-learn-editor' ),
+				'label'   => __( 'Site overview', 'create-not-learn-editor' ),
 				'to'      => '/site-overview',
 				'section' => 'site',
 			),
@@ -327,7 +327,7 @@ function cnl_editor_get_menu_items() {
 			array(
 				'id'      => 'identity',
 				'icon'    => 'dashicons-id',
-				'label'   => __( 'Site Identity', 'create-not-learn-editor' ),
+				'label'   => __( 'Name & logo', 'create-not-learn-editor' ),
 				'to'      => '/design/identity',
 				'section' => 'site',
 			),
@@ -338,7 +338,7 @@ function cnl_editor_get_menu_items() {
 				'to'      => '/media',
 				'section' => 'site',
 			),
-			// The Design screen itself is reached from Home's "Colors & fonts".
+			// The Design screen itself is reached from Home.
 			array(
 				'id'      => 'colors',
 				'icon'    => 'dashicons-art',

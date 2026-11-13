@@ -39,7 +39,7 @@ function cnl_editor_preload_data() {
 		 * `gutenberg_block_editor_preload_paths_7_1()` mirrors.
 		 */
 		'/?_fields=description,gmt_offset,home,image_max_bit_depth,image_sizes,image_size_threshold,image_strip_meta,name,site_icon,site_icon_url,site_logo,timezone_string,url,page_for_posts,page_on_front,show_on_front',
-		// The top bar's save controls read the site's settings on every screen.
+		// The save controls read the site's settings on every screen.
 		'/wp/v2/settings',
 		array( '/wp/v2/settings', 'OPTIONS' ),
 	);

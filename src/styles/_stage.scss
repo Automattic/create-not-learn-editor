@@ -115,8 +115,8 @@ body[data-cnl-workspace="agent"] #create-not-learn-editor-app [class*="__layout"
 
 /*
  * The canvas expanded by its Edit button: it fills the editor, so the
- * sidebar, the screen beside it and the top bar, with Quick add, Go to page
- * and Save, are out of the way until its back arrow. Only the admin bar
+ * sidebar and the screen beside it are out of the way until its back arrow,
+ * and Save comes with the canvas, in its toolbar. Only the admin bar
  * stays above it, and boot's thin dark frame around it. See
  * `src/site-canvas/expansion.js`. Only where boot
  * has a canvas on show, so a screen without one never goes blank. The stage
@@ -125,18 +125,6 @@ body[data-cnl-workspace="agent"] #create-not-learn-editor-app [class*="__layout"
 body.cnl-canvas-is-expanded #create-not-learn-editor-app [class*="__layout"][class*="has-canvas"] > [class*="__sidebar"],
 body.cnl-canvas-is-expanded #create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"])[class*="has-canvas"] [class*="__stage"] {
 	display: none;
-}
-
-body.cnl-canvas-is-expanded #create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"])[class*="has-canvas"] {
-
-	.cnl-top-bar-host {
-		display: none;
-	}
-
-	// The same thin frame above the canvas as boot leaves at its sides.
-	[class*="__surfaces"] {
-		margin-block-start: var(--wpds-dimension-gap-sm);
-	}
 }
 
 /*

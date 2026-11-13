@@ -20,7 +20,7 @@ export const TOOLS = [
 	{
 		name: 'cnl-connect',
 		description:
-			'Say which agent you are, so the editor\'s top bar can show the person "Connected to" your name while you work. Call this once, first, with your product\'s name. Changes nothing on the site.',
+			'Say which agent you are, so the editor\'s canvas toolbar can show the person "Connected to" your name while you work. Call this once, first, with your product\'s name. Changes nothing on the site.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -36,7 +36,7 @@ export const TOOLS = [
 	{
 		name: 'cnl-start-task',
 		description:
-			'Name what you\'re about to work on, in a few words the person would use, such as "Autumn homepage". The editor groups the changes you make after it under that name, in the top bar, so the person can see your work as a few pieces rather than every step. Call it each time you start on something new the person asked for. Changes nothing on the site.',
+			'Name what you\'re about to work on, in a few words the person would use, such as "Autumn homepage". The editor groups the changes you make after it under that name, in the canvas toolbar, so the person can see your work as a few pieces rather than every step. Call it each time you start on something new the person asked for. Changes nothing on the site.',
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -97,7 +97,7 @@ export const TOOLS = [
 	{
 		name: 'cnl-open-page',
 		description:
-			"Open a page in the editor's canvas, ready to change, as the person would from Go to page. Returns the page's outline, as cnl-get-page does.",
+			"Open a page in the editor's canvas, ready to change, as the person would by picking it from the page's name in the toolbar. Returns the page's outline, as cnl-get-page does.",
 		inputSchema: {
 			type: 'object',
 			properties: {

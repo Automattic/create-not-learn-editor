@@ -4,8 +4,8 @@
  * The canvas's Edit button expands it, and so does a section's More
  * control, as both are for getting on with changing the page. Whether it is
  * expanded is kept in the mode's store (`mode.js`), and published on the body
- * for the stylesheet, which hides the sidebar, the screen beside the canvas
- * and the top bar (`src/styles/_stage.scss`).
+ * for the stylesheet, which hides the sidebar and the screen beside the
+ * canvas (`src/styles/_stage.scss`).
  */
 
 /**

@@ -189,14 +189,17 @@ test.describe( 'Site canvas interactions', () => {
 
 		const toolbar = page.locator( '.cnl-editor-homepage-toolbar' );
 		const title = toolbar.locator( '.cnl-editor-homepage-document__title' );
-		const meta = toolbar.locator( '.cnl-editor-homepage-document__meta' );
+		// The status is an icon, named in the bar's own name.
+		const bar = toolbar.locator( '.cnl-page-switcher__toggle' );
 		const back = toolbar.getByRole( 'button', { name: 'Back in preview' } );
 		const frame = page.frameLocator( 'iframe[title="Site preview"]' );
 
 		await expect( title ).toHaveText( source.title, { timeout: 15000 } );
 		await setCanvasMode( page, 'Browse' );
 		await expect( title ).toHaveText( source.title );
-		await expect( meta ).toHaveText( 'Page · Published' );
+		await expect( bar ).toHaveAccessibleName(
+			`${ source.title }, Published. Go to another page`
+		);
 		await expect( back ).toBeDisabled();
 
 		await frame
@@ -220,7 +223,7 @@ test.describe( 'Site canvas interactions', () => {
 		).toBeVisible();
 	} );
 
-	test( 'Options opens the page in the full-screen editor', async ( {
+	test( 'the View menu opens the page in the full-screen editor', async ( {
 		page,
 	} ) => {
 		await visitEditor( page );
@@ -229,14 +232,15 @@ test.describe( 'Site canvas interactions', () => {
 			name: 'Open in advanced editor',
 		} );
 
-		// It's in the top bar's Options menu; the canvas has no menu of its own.
+		// It's in the View menu; the canvas has no overflow menu of its own.
 		await expect(
 			page
 				.locator( '.cnl-editor-homepage-toolbar' )
-				.getByRole( 'button', { name: 'More options' } )
+				.getByRole( 'button', { name: /^(More options|Options)$/ } )
 		).toHaveCount( 0 );
 		await page
-			.getByRole( 'button', { name: 'Options', exact: true } )
+			.locator( '.cnl-editor-homepage-toolbar' )
+			.getByRole( 'button', { name: 'View', exact: true } )
 			.click();
 		await expect( openFull ).toBeEnabled( { timeout: 15000 } );
 		await openFull.click();

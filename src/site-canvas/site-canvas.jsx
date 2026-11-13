@@ -32,12 +32,7 @@ import { BrowseHints } from './browse-hints';
 import { useComposeZoom } from './compose/use-compose-zoom';
 import { EDITOR_DEVICES } from './constants';
 import { useEditSectionControls } from './edit-section-controls';
-import {
-	MODE_BROWSE,
-	MODE_COMPOSE,
-	MODE_EDIT,
-	setCanvasEditRoute,
-} from './mode';
+import { MODE_BROWSE, MODE_COMPOSE, MODE_EDIT } from './mode';
 import { expandCanvas, useCanvasExpansion } from './expansion';
 import { SectionModesLayer } from './section-modes/section-modes-layer';
 import {
@@ -114,14 +109,6 @@ export function SiteCanvas( {
 	const isPreviewing = canvas.isPreviewing;
 	const isEditing = mode === MODE_EDIT;
 	const isExpanded = useCanvasExpansion();
-	const editRouteKey = JSON.stringify( canvas.editRoute ?? null );
-
-	// The top bar's Options menu opens this in the full-screen editor.
-	useEffect( () => {
-		setCanvasEditRoute( JSON.parse( editRouteKey ) );
-
-		return () => setCanvasEditRoute( null );
-	}, [ editRouteKey ] );
 	// Document Overview is for working with the whole editor, so it is only
 	// offered while the canvas fills it, and its list closes as it goes back.
 	useEffect( () => {
@@ -241,6 +228,7 @@ export function SiteCanvas( {
 						onChange={ canvas.setDevice }
 						onZoomIn={ zoomIn }
 						liveUrl={ canvas.liveUrl }
+						editRoute={ canvas.editRoute }
 					/>
 					{ canZoom && (
 						<ZoomOutToggle

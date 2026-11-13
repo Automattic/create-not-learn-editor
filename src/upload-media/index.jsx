@@ -16,7 +16,7 @@
  * snackbars report on them instead.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
- * because app init imports it through the top bar.
+ * because app init imports it through the save controls.
  */
 
 /**

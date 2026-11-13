@@ -6,13 +6,14 @@
  * Below the list, "Add a page" opens the Add page modal and "Manage pages"
  * the Pages screen's list.
  *
- * It is a combobox: the search field is the top bar's Go to page, and the
- * list opens out of it, in the same dark colours, rather than in a popover
- * with a field of its own. The field keeps focus while the arrow keys move
- * through the list, so typing and picking work together.
+ * It opens from the page's name in the canvas toolbar
+ * (`src/site-canvas/page-switcher.jsx`), in the name's place, as a browser's
+ * address bar turns into a search. It is a combobox: the list opens out of
+ * the field. The field keeps focus while the arrow keys move through the
+ * list, so typing and picking work together.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
- * as the top bar is mounted from app init.
+ * as the page finder once loaded with app init.
  */
 
 /**
@@ -505,15 +506,29 @@ function PageFinderPanel( {
  * Opens when the field is clicked, focused or typed in, and closes on Escape,
  * on picking something, or once focus leaves the field and the list.
  *
- * @param {Object} props
- * @param {string} props.className   Class for the wrapper.
- * @param {string} props.placeholder What the empty field says.
+ * Opened from the page's name in the canvas toolbar
+ * (`src/site-canvas/page-switcher.jsx`), it takes the name's place: it takes
+ * focus and opens as it shows, and hands back through `onDone` on Escape, on
+ * picking something or once focus leaves it, so the name shows again.
+ *
+ * @param {Object}    props
+ * @param {string}    props.className   Class for the wrapper.
+ * @param {string}    props.placeholder What the empty field says.
+ * @param {boolean}   props.startsOpen  Whether it takes focus, open, as it
+ *                                      shows.
+ * @param {?Function} props.onDone      Called when the finder is done with,
+ *                                      with whether Escape closed it.
  * @return {Element} The finder.
  */
-export function PageFinder( { className, placeholder } ) {
+export function PageFinder( {
+	className,
+	placeholder,
+	startsOpen = false,
+	onDone,
+} ) {
 	const id = useId();
 	const listId = `cnl-page-finder-list-${ id }`;
-	const [ isOpen, setIsOpen ] = useState( false );
+	const [ isOpen, setIsOpen ] = useState( startsOpen );
 	const [ filter, setFilter ] = useState( '' );
 	const [ activeDescendant, setActiveDescendant ] = useState( '' );
 	const inputRef = useRef();
@@ -529,12 +544,26 @@ export function PageFinder( { className, placeholder } ) {
 	};
 
 	// Done with: focus goes back to the page.
-	const finish = () => {
+	const finish = ( { isEscape = false } = {} ) => {
 		close();
 		inputRef.current?.blur();
+		onDone?.( { isEscape } );
 	};
 
+	useEffect( () => {
+		if ( startsOpen ) {
+			inputRef.current?.focus();
+		}
+	}, [ startsOpen ] );
+
 	const onKeyDown = ( event ) => {
+		if ( event.key === 'Escape' && onDone ) {
+			event.preventDefault();
+			event.stopPropagation();
+			finish( { isEscape: true } );
+			return;
+		}
+
 		if ( event.key === 'Escape' ) {
 			if ( isOpen ) {
 				event.preventDefault();
@@ -567,6 +596,7 @@ export function PageFinder( { className, placeholder } ) {
 			onBlur={ ( event ) => {
 				if ( ! event.currentTarget.contains( event.relatedTarget ) ) {
 					close();
+					onDone?.( { isEscape: false } );
 				}
 			} }
 		>

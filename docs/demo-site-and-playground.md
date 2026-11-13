@@ -19,7 +19,7 @@ npm run wp-env start
 
 To skip it, start with `WP_ENV_LIFECYCLE_SCRIPT_AFTER_START=true`.
 
-Mainstay is a block theme made for this editor: pages are stacks of full-width sections, each with Soft, Tint, Brand, Contrast and Highlight colour styles for Compose's Colour menu, plus header and footer layouts, page layouts, palettes, font pairings and full looks for Colors & fonts. It lives in this repo but is not part of the plugin zip.
+Mainstay is a block theme made for this editor: pages are stacks of full-width sections, each with Soft, Tint, Brand, Contrast and Highlight colour styles for Compose's Colour menu, plus header and footer layouts, page layouts, palettes, font pairings and full looks for Design. It lives in this repo but is not part of the plugin zip.
 
 ## Shop
 

@@ -1,8 +1,8 @@
 /*
- * Page finder: the top bar's Go to page field, and the list that opens out of
- * it. The list isn't in a popover but in the field's own wrapper, so it takes
- * the dark frame's colours, and the field and the list read as one box: the
- * list starts under the field and grows down from it.
+ * Page finder: a search field and the list that opens out of it. The list is
+ * in the field's own wrapper, and the field and the list read as one box. In
+ * the canvas toolbar (`.cnl-page-switcher__finder`, below) it takes the
+ * canvas's light colours.
  */
 
 $field-height: 32px;
@@ -301,5 +301,180 @@ $row-hover: rgba(255, 255, 255, 0.08);
 	&:focus-visible {
 		outline: var(--wpds-border-width-focus) solid var(--wp-admin-theme-color);
 		outline-offset: -2px;
+	}
+}
+
+/*
+ * In the canvas toolbar, where the page's name turns into the finder (see
+ * `src/site-canvas/page-switcher.jsx`): the same field and the list growing
+ * out of it, in the canvas's light colours.
+ */
+$light-fill: rgba(0, 0, 0, 0.05);
+$light-fill-strong: rgba(0, 0, 0, 0.08);
+
+.cnl-page-switcher__finder {
+	color-scheme: light;
+
+	.cnl-page-finder__input[type="search"] {
+		background: $light-fill;
+
+		&:hover,
+		.cnl-page-finder.is-open & {
+			background: $light-fill-strong;
+		}
+	}
+
+	.cnl-page-finder__panel {
+		min-width: 0;
+		max-height: min(480px, 60vh);
+		border-color: var(--wpds-color-stroke-surface-neutral-weak);
+		background: var(--wpds-color-background-surface-neutral-strong);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+	}
+
+	.cnl-page-finder__group,
+	.cnl-page-finder__footer {
+		border-color: var(--wpds-color-stroke-surface-neutral-weak);
+	}
+
+	.cnl-page-finder__heading {
+		background: var(--wpds-color-background-surface-neutral-strong);
+	}
+
+	.cnl-page-finder__option.is-active,
+	.cnl-page-finder__action:hover {
+		background: $light-fill;
+	}
+}
+
+/*
+ * The page's name in the canvas toolbar, in a bar shaped like the finder's
+ * field, a search icon at its end, so it reads as somewhere to go from. It
+ * keeps one width, so the finder takes its place without the toolbar moving.
+ */
+.cnl-page-switcher {
+	position: relative;
+	z-index: 2;
+	flex: 0 1 auto;
+	width: 340px;
+	min-width: 200px;
+}
+
+.cnl-page-switcher__heading {
+	position: relative;
+	margin: 0;
+	font: inherit;
+}
+
+.cnl-page-switcher__toggle {
+	display: grid;
+	// The search icon where the open field has it, and the page's status at
+	// the other end, so the name sits in the middle.
+	grid-template-columns: 20px minmax(0, 1fr) 20px;
+	gap: var(--wpds-dimension-gap-sm);
+	align-items: center;
+	box-sizing: border-box;
+	width: 100%;
+	height: $field-height;
+	margin: 0;
+	padding-inline: var(--wpds-dimension-padding-sm);
+	border: 0;
+	border-radius: var(--wpds-border-radius-md);
+	background: $light-fill;
+	text-align: center;
+	color: var(--wpds-color-foreground-content-neutral);
+	font: inherit;
+	font-size: var(--wpds-typography-font-size-md);
+	cursor: pointer;
+
+	&:hover {
+		background: $light-fill-strong;
+
+		.cnl-page-switcher__search {
+			color: var(--wpds-color-foreground-content-neutral);
+		}
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+		outline-offset: 1px;
+	}
+
+	@media not (prefers-reduced-motion) {
+		transition: background var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+	}
+}
+
+.cnl-page-switcher__search {
+	fill: currentcolor;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+/*
+ * Over the bar's last column, which is kept clear for it. Full strength
+ * while the page isn't simply live, so that stands out.
+ */
+.cnl-page-switcher__status {
+	position: absolute;
+	inset-block-start: 50%;
+	inset-inline-end: var(--wpds-dimension-padding-sm);
+	display: flex;
+	transform: translateY(-50%);
+	color: var(--wpds-color-foreground-content-neutral);
+	cursor: pointer;
+
+	svg {
+		fill: currentcolor;
+	}
+
+	&.is-publish {
+		color: var(--wpds-color-foreground-content-neutral-weak);
+	}
+}
+
+// The name, then what it is.
+.cnl-page-switcher__label {
+	display: flex;
+	gap: var(--wpds-dimension-gap-sm);
+	align-items: baseline;
+	justify-content: center;
+	grid-column: 2;
+	min-width: 0;
+	white-space: nowrap;
+}
+
+/*
+ * The spans also carry `.cnl-editor-homepage-document__title` and `__meta`,
+ * the names every canvas gives its document title, so these are nested to
+ * win over those wherever the stylesheets load.
+ */
+.cnl-page-switcher__label {
+
+	.cnl-page-switcher__title,
+	.cnl-page-switcher__meta {
+		min-width: 0;
+		max-width: none;
+		overflow: hidden;
+		font-size: inherit;
+		line-height: inherit;
+		text-overflow: ellipsis;
+	}
+
+	// A long name gives way, not what the page is, so a draft still says so.
+	// That takes half the bar at most, so the name always has room.
+	.cnl-page-switcher__title {
+		flex: 0 1 auto;
+		font-weight: var(--wpds-typography-font-weight-emphasis);
+	}
+
+	.cnl-page-switcher__meta {
+		flex: 0 0 auto;
+		max-width: 50%;
+		color: var(--wpds-color-foreground-content-neutral-weak);
+
+		&::before {
+			content: "·";
+			margin-inline-end: var(--wpds-dimension-gap-sm);
+		}
 	}
 }

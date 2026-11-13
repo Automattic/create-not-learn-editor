@@ -35,7 +35,7 @@ async function openMenu( page, menu ) {
 }
 
 /**
- * Check a change is waiting in the top bar to be saved.
+ * Check a change is waiting in the canvas toolbar to be saved.
  *
  * @param {import('@playwright/test').Page} page
  */

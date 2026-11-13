@@ -10,15 +10,11 @@
 import { getContentFields } from '../content-fields';
 import { DEFAULT_CONTENT_VIEW, getStatusLabel } from '../helpers';
 import { HOMEPAGE } from './homepage-state';
+import { POST_STATUS_ICONS } from '../../../post-status';
 import { useDataViews } from '../../../use-dataviews';
 import {
 	__,
-	draftsIcon,
 	Icon,
-	lockIcon,
-	pendingIcon,
-	publishedIcon,
-	scheduledIcon,
 	Spinner,
 	sprintf,
 	useMemo,
@@ -33,16 +29,6 @@ const DEFAULT_VIEW = {
 	fields: [ 'status' ],
 	sort: { direction: 'asc', field: 'title' },
 	type: 'list',
-};
-
-// The icons the Posts screen's status tabs use, by status.
-const STATUS_ICONS = {
-	'auto-draft': draftsIcon,
-	draft: draftsIcon,
-	future: scheduledIcon,
-	pending: pendingIcon,
-	private: lockIcon,
-	publish: publishedIcon,
 };
 
 const STATUSES = [ 'publish', 'draft', 'future', 'pending', 'private' ];
@@ -71,8 +57,8 @@ function PageStatus( { item, frontPageId, postsPageId } ) {
 
 	return (
 		<span className="cnl-pages-data-view__status">
-			{ STATUS_ICONS[ item.status ] && (
-				<Icon icon={ STATUS_ICONS[ item.status ] } size={ 16 } />
+			{ POST_STATUS_ICONS[ item.status ] && (
+				<Icon icon={ POST_STATUS_ICONS[ item.status ] } size={ 16 } />
 			) }
 			{ text }
 		</span>

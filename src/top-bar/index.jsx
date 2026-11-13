@@ -1,12 +1,17 @@
 /**
- * Top bar: the strip of boot's dark frame above the stage and canvas.
+ * Save controls in the canvas toolbar.
  *
- * It holds which agent is connected, if one is, on the left (see
- * `src/webmcp/connection.js`), Go to page, which opens the page finder (see
- * `src/page-finder`), in the middle, and the save controls and the Options
- * menu on the right. The full-screen editor has a header of its
- * own, so the bar is hidden there, and on narrow screens, where
- * the stage fills the viewport and boot's sidebar save button is kept.
+ * There used to be a top bar of its own above the stage and canvas, with Go
+ * to page, the save controls and an Options menu. Go to page is now the page's
+ * name in the canvas toolbar (`src/site-canvas/page-switcher.jsx`), and
+ * Preferences is in the workspace menu at the foot of the sidebar. What's left
+ * sits at the end of the canvas toolbar: which agent is connected, if one is
+ * (see `src/webmcp/connection.js`), and the save controls. The way to the
+ * full-screen editor is in the canvas's View menu.
+ *
+ * A screen with no canvas toolbar, like Media or Posts, keeps boot's own save
+ * button at the foot of the sidebar instead. `body.cnl-has-canvas-save` says
+ * which, for `style.scss`.
  */
 
 /**
@@ -18,60 +23,53 @@ import { createRoot } from '@wordpress/element';
  * Internal dependencies
  */
 import { AgentStatus } from './agent-status';
-import { GoToPage } from './go-to-page';
-import { OptionsMenu } from './options-menu';
 import { SaveControls } from './save-controls';
 
-function TopBar() {
+const HAS_CANVAS_SAVE_CLASS = 'cnl-has-canvas-save';
+
+const TOOLBAR_END_SELECTOR =
+	'#create-not-learn-editor-app .cnl-editor-homepage-toolbar__right';
+
+function CanvasSave() {
 	return (
-		<div className="cnl-top-bar">
-			<div className="cnl-top-bar__start">
-				<AgentStatus />
-			</div>
-			<div className="cnl-top-bar__center">
-				<GoToPage />
-			</div>
-			<div className="cnl-top-bar__end">
-				<SaveControls />
-				<OptionsMenu />
-			</div>
+		<div className="cnl-canvas-save">
+			<AgentStatus />
+			<SaveControls />
 		</div>
 	);
 }
 
 /**
- * Add the top bar to boot's layout.
+ * Add the save controls to the canvas toolbar on show.
  *
- * Boot has no slot above its surfaces, so the bar is appended to boot's
- * layout element, which covers the whole screen, and positioned in the margin
- * `style.scss` opens above the surfaces. Spanning the screen rather than the
- * surfaces is what lets Go to page sit in the middle of the screen. The
- * layout can remount, so the bar is put back whenever it goes missing.
+ * Boot has no slot in the canvas's toolbar, and the toolbar comes and goes
+ * with the screen, so the controls are rendered once and moved into whichever
+ * toolbar is on show, whenever the page changes.
  */
-export function mountTopBar() {
+export function mountSaveControls() {
 	const container = document.createElement( 'div' );
-	container.className = 'cnl-top-bar-host';
-	createRoot( container ).render( <TopBar /> );
+	container.className = 'cnl-canvas-save-host';
+	createRoot( container ).render( <CanvasSave /> );
 
 	let isScheduled = false;
 	const place = () => {
 		isScheduled = false;
 
-		/*
-		 * Still in place. This runs after any change to the page, and a
-		 * layout that remounts takes the bar out of the document with it, so
-		 * there is nothing to look for until then.
-		 */
-		if ( container.isConnected ) {
+		const toolbarEnd = document.querySelector( TOOLBAR_END_SELECTOR );
+
+		document.body.classList.toggle(
+			HAS_CANVAS_SAVE_CLASS,
+			Boolean( toolbarEnd )
+		);
+
+		if ( ! toolbarEnd ) {
+			container.remove();
 			return;
 		}
 
-		const layout = document.querySelector(
-			'#create-not-learn-editor-app [class*="__layout"]:has(> [class*="__surfaces"])'
-		);
-
-		if ( layout && container.parentElement !== layout ) {
-			layout.append( container );
+		// Last in the toolbar, as Save is in core's editor.
+		if ( toolbarEnd.lastElementChild !== container ) {
+			toolbarEnd.append( container );
 		}
 	};
 

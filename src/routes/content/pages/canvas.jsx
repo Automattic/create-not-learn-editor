@@ -23,7 +23,7 @@ import {
 	setCanvasMode,
 	useCanvasMode,
 } from '../../../site-canvas/mode';
-import { DocumentTitle, SiteCanvas, useSiteCanvas } from '../../../site-canvas';
+import { PageSwitcher, SiteCanvas, useSiteCanvas } from '../../../site-canvas';
 import { getErrorMessage } from '../../../records';
 import { getPageTitle, PAGE_TEMPLATES_QUERY, PAGES_QUERY } from './data';
 import { getHomepageSummary, parseTarget, useHomepageState } from './homepage';
@@ -33,13 +33,11 @@ import { getPagePreviewUrl } from './preview-url';
 import {
 	__,
 	Button,
-	chevronDownIcon,
+	moreHorizontalIcon,
 	coreDataStore,
 	Dropdown,
 	EmptyState,
 	externalIcon,
-	homeIcon,
-	Icon,
 	layoutIcon,
 	linkIcon,
 	MenuGroup,
@@ -74,44 +72,6 @@ function getListedPage( select, pageId ) {
 	);
 
 	return pages?.find( ( listed ) => listed.id === pageId ) || null;
-}
-
-function getStatusLabel( status ) {
-	switch ( status ) {
-		case 'publish':
-			return __( 'Published' );
-		case 'draft':
-		case 'auto-draft':
-			return __( 'Draft' );
-		case 'future':
-			return __( 'Scheduled' );
-		case 'pending':
-			return __( 'Pending review' );
-		case 'private':
-			return __( 'Private' );
-		default:
-			return '';
-	}
-}
-
-/**
- * The part of a page's address after the domain, as visitors would type it.
- *
- * @param {string} link Page URL.
- * @return {string} The path, or an empty string without a link.
- */
-function getPagePath( link ) {
-	if ( ! link ) {
-		return '';
-	}
-
-	try {
-		const url = new URL( link );
-
-		return decodeURI( url.pathname + url.search ) || '/';
-	} catch {
-		return link;
-	}
 }
 
 /**
@@ -308,7 +268,7 @@ function PageOptions( { isHomepage, link, pageId } ) {
 					<Button
 						aria-expanded={ isOpen }
 						className="cnl-editor-homepage-options__toggle"
-						icon={ chevronDownIcon }
+						icon={ moreHorizontalIcon }
 						label={ __( 'Page options' ) }
 						onClick={ onToggle }
 						showTooltip
@@ -379,38 +339,36 @@ function isPassedToPreview( change, select ) {
 }
 
 function PageDocument( { homepage, page } ) {
-	const isPublished = page?.status === 'publish';
-	let link = page?.link;
-	let path = isPublished ? getPagePath( link ) : '';
+	// Only a published page has an address visitors can reach.
+	let link = page?.status === 'publish' ? page?.link || '' : '';
 	let heading = getPageTitle( page );
-	let meta = [ __( 'Page' ), getStatusLabel( page?.status ) ]
-		.filter( Boolean )
-		.join( ' · ' );
+	let status = page?.status;
+	let meta = '';
 
 	if ( homepage ) {
 		link = settings.homeUrl;
-		path = getPagePath( link );
 		heading = __( 'Homepage' );
 		const { badge, summary } = getHomepageSummary( homepage );
 
+		// What it shows. It is live unless it shows a page that isn't.
+		status =
+			homepage.shows === 'posts' || homepage.shows === 'theme'
+				? 'publish'
+				: homepage.page?.status;
 		meta = summary || badge?.label || '';
 	}
 
 	return (
 		<div className="cnl-editor-homepage-document">
-			<div className="cnl-editor-homepage-document__text">
-				<div className="cnl-editor-homepage-document__heading">
-					<Icon
-						className="cnl-editor-homepage-document__icon"
-						icon={ homepage ? homeIcon : pageIcon }
-					/>
-					<DocumentTitle hint={ path } title={ heading } />
-				</div>
-				<p className="cnl-editor-homepage-document__meta">{ meta }</p>
-			</div>
+			<PageSwitcher
+				meta={ meta }
+				status={ status }
+				title={ heading }
+				url={ link }
+			/>
 			<PageOptions
 				isHomepage={ Boolean( homepage ) }
-				link={ path ? link : '' }
+				link={ link }
 				pageId={ page?.id }
 			/>
 		</div>

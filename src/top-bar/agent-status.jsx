@@ -1,6 +1,6 @@
 /**
- * The agent working in the editor through WebMCP, at the start of the top
- * bar, lined up with the canvas's Edit button. Shows only in the Agent
+ * The agent working in the editor through WebMCP, before the save controls
+ * in the canvas toolbar. Shows only in the Agent
  * workspace, once an agent is connected. See `src/webmcp/connection.js`.
  *
  * It says an agent is connected, and its dot pulses while the agent is at

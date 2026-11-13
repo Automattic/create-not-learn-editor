@@ -3,7 +3,7 @@
  * and redo while editing, stepping through pages visited in Browse, the
  * Browse switch, the View menu with the device and the live page in a new
  * tab, and Zoom out for Compose. The way out to the full-screen editor is in
- * the top bar's Options menu.
+ * the Options menu after Save.
  */
 
 /**
@@ -16,6 +16,7 @@ import { store as keyboardShortcutsStore } from '@wordpress/keyboard-shortcuts';
  * Internal dependencies
  */
 import { unlock } from '../lock-unlock';
+import { openRoute } from '../open-route';
 import {
 	__,
 	Button,
@@ -246,7 +247,8 @@ export function DocumentOverviewToggle() {
 /**
  * The device the page is shown on, in a menu as core's editor has it. The
  * button shows the device's icon. Below the devices, as core's preview menu
- * ends, the live page opens in a new tab.
+ * ends, the ways to open the page somewhere else: the live page in a new tab,
+ * and the full-screen editor, for anything the canvas doesn't suit.
  *
  * Compose lays the page out as on a desktop, so it shows Desktop picked, and
  * picking a device zooms back in, as core resets its zoom on a device change.
@@ -258,6 +260,9 @@ export function DocumentOverviewToggle() {
  * @param {?Function} props.onZoomIn    Zooms back in to Edit.
  * @param {string}    props.liveUrl     The live page's URL. Empty when there
  *                                      isn't one.
+ * @param {?Object}   props.editRoute   Where the full-screen editor opens
+ *                                      what the canvas shows, `{ to,
+ *                                      search }`, if anywhere.
  * @return {Element} The menu.
  */
 export function ViewMenu( {
@@ -266,6 +271,7 @@ export function ViewMenu( {
 	onChange,
 	onZoomIn,
 	liveUrl,
+	editRoute,
 } ) {
 	const shown = isComposing ? 'desktop' : device;
 
@@ -321,6 +327,17 @@ export function ViewMenu( {
 							{ __( 'Open in a new tab' ) }
 						</Menu.ItemLabel>
 					</Menu.Item>
+					{ editRoute && (
+						<Menu.Item
+							onClick={ () =>
+								openRoute( editRoute.to, editRoute.search )
+							}
+						>
+							<Menu.ItemLabel>
+								{ __( 'Open in advanced editor' ) }
+							</Menu.ItemLabel>
+						</Menu.Item>
+					) }
 				</Menu.Group>
 			</Menu.Popup>
 		</Menu.Root>
