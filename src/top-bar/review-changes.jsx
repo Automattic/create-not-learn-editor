@@ -55,8 +55,30 @@ const GROUPS = [
 	},
 ];
 
+// Rows a group shows before folding the rest behind "Show more", so a long
+// session's changes don't turn the dialog into a long scroll.
+const VISIBLE_CHANGES = 5;
+
 function ChangeGroup( { group, changes, onDiscard } ) {
 	const headingId = useId();
+	const listRef = useRef();
+	const [ isExpanded, setIsExpanded ] = useState( false );
+	const hiddenCount = isExpanded
+		? 0
+		: Math.max( 0, changes.length - VISIBLE_CHANGES );
+	const visibleChanges = hiddenCount
+		? changes.slice( 0, VISIBLE_CHANGES )
+		: changes;
+
+	// The button goes once pressed, so focus moves to the first row it showed.
+	const showAll = () => {
+		setIsExpanded( true );
+		window.requestAnimationFrame( () => {
+			listRef.current
+				?.querySelectorAll( '.cnl-review-changes__discard' )
+				[ VISIBLE_CHANGES ]?.focus();
+		} );
+	};
 	// Purple, from the heading to the Discard buttons, for what every page
 	// shares.
 	const Scope = group.isSiteWide ? GlobalScope : Fragment;
@@ -71,16 +93,19 @@ function ChangeGroup( { group, changes, onDiscard } ) {
 					<Icon
 						className="cnl-review-changes__group-icon"
 						icon={ group.icon }
-						size={ 20 }
+						size={ 24 }
 					/>
 					<div>
 						<Text
 							id={ headingId }
 							render={ <h3 /> }
-							variant="heading-sm"
+							variant="heading-md"
 							className="cnl-review-changes__group-title"
 						>
 							{ group.title }
+							<span className="cnl-review-changes__group-count">
+								{ changes.length }
+							</span>
 						</Text>
 						<Text
 							className="cnl-review-changes__group-description"
@@ -90,8 +115,8 @@ function ChangeGroup( { group, changes, onDiscard } ) {
 						</Text>
 					</div>
 				</div>
-				<ul className="cnl-review-changes__list">
-					{ changes.map( ( change ) => (
+				<ul className="cnl-review-changes__list" ref={ listRef }>
+					{ visibleChanges.map( ( change ) => (
 						<li
 							key={ change.id }
 							className="cnl-review-changes__item"
@@ -123,6 +148,23 @@ function ChangeGroup( { group, changes, onDiscard } ) {
 						</li>
 					) ) }
 				</ul>
+				{ hiddenCount > 0 && (
+					<Button
+						className="cnl-review-changes__show-more"
+						variant="link"
+						onClick={ showAll }
+					>
+						{ sprintf(
+							/* translators: %d: Number of hidden changes. */
+							_n(
+								'Show %d more change',
+								'Show %d more changes',
+								hiddenCount
+							),
+							hiddenCount
+						) }
+					</Button>
+				) }
 			</section>
 		</Scope>
 	);
