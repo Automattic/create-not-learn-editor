@@ -88,6 +88,8 @@ https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.co
 
 Every release keeps its own links, so testers can stay on one while trunk moves on. Pushing the same tag to a new commit rebuilds that release in place.
 
+The README's main demo links point at the latest release's `playground-v*` tag, with trunk's under "Bleeding edge". When you cut a release, bump the version in `create-not-learn-editor.php` and `package.json` and move the README links to the new tag in the same pull request, then push the tag once it merges.
+
 `scripts/playground-build.sh` puts the files for each kind of demo together.
 
 ## Rules for changing the demos
