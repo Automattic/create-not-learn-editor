@@ -310,6 +310,12 @@ $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 	display: flex;
 	flex-direction: column;
 	gap: var(--wpds-dimension-gap-md);
+	padding: var(--wpds-dimension-padding-lg);
+	border: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
+	border-radius: var(--wpds-border-radius-lg);
+	// Each group is its own tinted panel, so the two scopes read as separate
+	// areas before the changes inside them.
+	background: var(--wpds-color-background-surface-neutral-weak);
 }
 
 .cnl-review-changes__group-header {
@@ -336,6 +342,7 @@ $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 	margin: 0;
 	padding: 0;
 	list-style: none;
+	background: var(--wpds-color-background-surface-neutral-strong);
 	border: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
 	border-radius: var(--wpds-border-radius-lg);
 }
@@ -356,6 +363,8 @@ $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 // the purple of what every page shares; `GlobalScope` turns the brand tokens
 // purple. The rows stay white. See `src/global-scope`.
 .cnl-review-changes__group.is-site-wide {
+	border-color: var(--wpds-color-stroke-surface-brand);
+	background: var(--wpds-color-background-surface-brand);
 
 	.cnl-review-changes__group-icon,
 	.cnl-review-changes__group-title {
@@ -387,6 +396,29 @@ $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 	color: var(--wpds-color-foreground-content-neutral-weak);
 	white-space: nowrap;
 	text-overflow: ellipsis;
+}
+
+.cnl-review-changes__group-count {
+	margin-inline-start: var(--wpds-dimension-gap-sm);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-weight: var(--wpds-typography-font-weight-default);
+}
+
+.cnl-review-changes__show-more {
+	align-self: flex-start;
+}
+
+// Save and Discard all stay in view however long the list scrolls. The
+// negative inset and matching padding cover the modal content's own bottom
+// padding, so rows don't show beneath the footer.
+.cnl-review-changes .cnl-review-changes__footer {
+	position: sticky;
+	inset-block-end: -24px;
+	z-index: 1;
+	margin-block-end: -24px;
+	padding-block: var(--wpds-dimension-padding-md) 24px;
+	border-block-start: 1px solid var(--wpds-color-stroke-surface-neutral-weak);
+	background: var(--wpds-color-background-surface-neutral-strong);
 }
 
 .cnl-review-changes__footer {
