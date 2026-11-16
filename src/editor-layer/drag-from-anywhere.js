@@ -18,6 +18,7 @@ import { useCanvasDocument } from '../site-canvas/use-canvas-document';
 import {
 	blockEditorStore,
 	dispatch,
+	flushSync,
 	select,
 	useEffect,
 } from '../wordpress-packages';
@@ -268,10 +269,14 @@ export function useDragFromAnywhere( isActive ) {
 			setHovered( null );
 
 			// Core's drag needs the block selected and focused. Selecting with
-			// no initial position doesn't move the caret.
-			dispatch( blockEditorStore ).selectBlock(
-				node.dataset.block,
-				null
+			// no initial position doesn't move the caret. Render the selection
+			// now, so core's drag handlers are attached before a fast drag
+			// starts.
+			flushSync( () =>
+				dispatch( blockEditorStore ).selectBlock(
+					node.dataset.block,
+					null
+				)
 			);
 			node.focus( { preventScroll: true } );
 		}
