@@ -16,6 +16,7 @@ import { MODE_BROWSE, useCanvasMode } from '../site-canvas/mode';
 import { useRequestedBlockSelection } from './block-request';
 import { useIsEditCanvas } from './canvas-mode';
 import { useDistractionFreeEntry } from './distraction-free';
+import { useDragFromAnywhere } from './drag-from-anywhere';
 import {
 	closeSectionPicker,
 	useSectionPickerRequest,
@@ -124,6 +125,7 @@ export function EditorLayer() {
 		isEditCanvas ? FORCED_BLOCK_EDITOR_SETTINGS : null
 	);
 	useDistractionFreeEntry( isEditCanvas );
+	useDragFromAnywhere( isEditCanvas );
 	useRequestedBlockSelection( isEditCanvas );
 	useSectionWording( isSectioned );
 	useWritingWording( isWriting );

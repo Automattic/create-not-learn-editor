@@ -46,6 +46,26 @@ Remove it if the editor gains its own click-into-section behaviour for template 
 
 `src/editor-extensions/` imports each `@wordpress/*` package directly rather than through `src/wordpress-packages.js`, which is the convention everywhere else. The barrel reaches `@wordpress/lazy-editor`, and these modules are registered from app init, so going through it would make the editor a static dependency of page boot and stop it loading lazily.
 
+## Dragging a block from anywhere on it
+
+`src/editor-layer/drag-from-anywhere.js` lets a block that isn't being edited be dragged from anywhere on it, its text included. Core has no option for this, but it already drags the selected block by its body, in `useBlockProps`'s event handlers, so the layer arranges for core's handler to accept the press rather than running a drag of its own.
+
+Core's handler only drags when the block has focus, its element isn't editable, and the drag starts on the block's own draggable element. So, for the length of a press on a block that isn't being edited, the layer:
+
+- sets the block's fields, and the canvas body while it is the editing host, to `contenteditable="false"`;
+- gives the block `draggable="true"`, which rich text unsets on a block that is itself the field, such as a Paragraph, and a `tabindex` if it has none, so it can take focus;
+- selects it with `selectBlock( clientId, null )`, which doesn't move the caret, and focuses it.
+
+At `dragstart`, in the capture phase, so before core's handler on the block, it sets the fields out of editing again and refocuses the block, because selecting a text block makes the canvas body the editing host again. Everything is put back on `mouseup` or `dragend`. If the press didn't drag, the caret is put where it was with `caretPositionFromPoint`.
+
+Whether a block is being edited is read from the caret, not from focus, because while a text block is selected the canvas body holds focus as the editing host (core's `useEditableRoot`).
+
+So this depends on core's conditions for dragging the selected block, on `selectBlock` with a `null` initial position leaving the caret alone, on rich text's handling of `draggable` and `tabindex`, and on the canvas body becoming the editing host. If core changes any of these, presses on text go back to placing the caret, which is core's default, and nothing breaks.
+
+The hover outline is an `outline` on the block rather than a pseudo-element, since the block's `::before` and `::after` are taken by its name label and an agent's change (`includes/block-canvas-styles.php`).
+
+Remove this once core drags blocks from anywhere itself: [Gutenberg #86915](https://github.com/WordPress/gutenberg/issues/86915) proposes it, and [#86911](https://github.com/WordPress/gutenberg/pull/86911) adds it behind an experiment.
+
 ## Block name label on hover
 
 `includes/block-canvas-styles.php` styles the block wrapper's `data-title` attribute to show a block's name on hover. It depends on that attribute and on the `block-editor-block-list__block` class.
