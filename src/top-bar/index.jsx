@@ -9,9 +9,11 @@
  * (see `src/webmcp/connection.js`), and the save controls. The way to the
  * full-screen editor is in the canvas's View menu.
  *
- * A screen with no canvas toolbar, like Media or Posts, keeps boot's own save
- * button at the foot of the sidebar instead. `body.cnl-has-canvas-save` says
- * which, for `style.scss`.
+ * A screen with no canvas toolbar, like Media or Posts, has them at the end of
+ * its header instead, the same corner of the screen. Boot's own save button,
+ * at the foot of the sidebar, would be cut off there: picking a screen folds
+ * the sidebar to its strip of icons. `body.cnl-has-canvas-save` says the
+ * controls are placed, for `style.scss`, which hides boot's then.
  */
 
 /**
@@ -29,6 +31,15 @@ const HAS_CANVAS_SAVE_CLASS = 'cnl-has-canvas-save';
 
 const TOOLBAR_END_SELECTOR =
 	'#create-not-learn-editor-app .cnl-editor-homepage-toolbar__right';
+
+// Admin UI's page header, whose class names are hashed: its actions, like
+// Add post, when it has some, or else the row its title is in.
+const HEADER_SELECTOR =
+	'#create-not-learn-editor-app [class*="__page"] > [class*="__header"]';
+const HEADER_END_SELECTORS = [
+	`${ HEADER_SELECTOR } [class*="__header-actions"]`,
+	`${ HEADER_SELECTOR } [class*="__header-content"]`,
+];
 
 function CanvasSave() {
 	return (
@@ -56,20 +67,23 @@ export function mountSaveControls() {
 		isScheduled = false;
 
 		const toolbarEnd = document.querySelector( TOOLBAR_END_SELECTOR );
+		const end =
+			toolbarEnd ||
+			HEADER_END_SELECTORS.map( ( selector ) =>
+				document.querySelector( selector )
+			).find( Boolean );
 
-		document.body.classList.toggle(
-			HAS_CANVAS_SAVE_CLASS,
-			Boolean( toolbarEnd )
-		);
+		document.body.classList.toggle( HAS_CANVAS_SAVE_CLASS, Boolean( end ) );
+		container.classList.toggle( 'is-in-header', ! toolbarEnd && !! end );
 
-		if ( ! toolbarEnd ) {
+		if ( ! end ) {
 			container.remove();
 			return;
 		}
 
-		// Last in the toolbar, as Save is in core's editor.
-		if ( toolbarEnd.lastElementChild !== container ) {
-			toolbarEnd.append( container );
+		// Last, as Save is in core's editor.
+		if ( end.lastElementChild !== container ) {
+			end.append( container );
 		}
 	};
 
