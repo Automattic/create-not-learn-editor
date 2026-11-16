@@ -79,7 +79,6 @@ The trunk demo changes with every push, which is no good for a user test. For a 
    git push origin v0.2.0
    ```
 
-3. Once the "Plugin zip" workflow for the tag has finished, point the README's demo links at the new `playground-v0.2.0` tag in a pull request. The README's main links always follow the latest release, with trunk's under "Bleeding edge", so a release isn't done until they move.
 
 The workflow builds the tagged commit and publishes its files to a `playground-v0.2.0` tag, with a `blueprint.json`, a `blueprint-shop.json`, a `blueprint-ai.json`, a `blueprint-blank.json` and a `blueprint-ipsum.json` that install from that tag. Those blueprints also pin WordPress to the version in `scripts/wp-env.mjs`, where the trunk and branch demos take the latest, so the blank site runs that version's default theme. The Ipsum one stays on the WordPress beta, as Ipsum needs a newer WordPress than the pinned one. The workflow then creates a GitHub release for `v0.2.0`, or updates one you made already, with the Playground links at the top of the notes and the plugin zip attached. The links are
 
@@ -92,6 +91,16 @@ https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.co
 ```
 
 Every release keeps its own links, so testers can stay on one while trunk moves on. Pushing the same tag to a new commit rebuilds that release in place.
+
+### Latest release links
+
+For a link that always runs the newest release, use the `playground-latest` tag in place of `playground-v0.2.0`.
+
+```text
+https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/Automattic/create-not-learn-editor/refs/tags/playground-latest/blueprint.json
+```
+
+The workflow moves `playground-latest` to a release's build when that release is the highest stable `vX.Y.Z` tag. Rebuilding an older release, or tagging a pre-release such as `v0.7.0-beta.1`, leaves it where it is. The README's main demo links use it, so they follow each release without a pull request. raw.githubusercontent.com caches files for a few minutes, so the links can take that long to catch up.
 
 `scripts/playground-build.sh` puts the files for each kind of demo together.
 
@@ -112,7 +121,7 @@ Every release keeps its own links, so testers can stay on one while trunk moves 
 - Anything a demo needs at runtime must be in the plugin zip, the Mainstay theme, `scripts/demo-site/seed.php` or `demos/playground-canvas-fix.php`, as those are all the blueprint gets. The blank site gets only the plugin zip and the canvas fix, so the editor must work on a site it hasn't seeded. The shop demo also gets WooCommerce from wordpress.org and `scripts/demo-site/seed-shop.php`.
 - `demos/playground-canvas-fix.php` is a demo-only must-use plugin that stops the edit canvas staying blank in Playground. See its docblock. It never ships in the plugin.
 - `scripts/playground-build.sh` generates the branch and release blueprints from the ones in `demos/`. It rewrites each blueprint's description and its `/playground-build/` URLs, so keep every description starting "The latest Create Not Learn Editor from trunk" and every URL pointing at `/playground-build/`. It leaves a blueprint on the WordPress beta when it pins a release's WordPress, as the Ipsum one needs.
-- Never commit to the `playground-build` branch, or create, push to or move `refs/playground/*` refs or `playground-v*` tags, by hand. The workflows own them.
+- Never commit to the `playground-build` branch, or create, push to or move `refs/playground/*` refs, `playground-v*` tags or the `playground-latest` tag, by hand. The workflows own them.
 
 ## Plugin directory images
 
