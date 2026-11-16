@@ -307,7 +307,34 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 		};
 	};
 
-	const toggle = ( target ) => {
+	/**
+	 * Put a top-level item of a menu set by hand in another place.
+	 *
+	 * @param {Object[]} items Top-level blocks.
+	 * @param {number}   from  Its place now.
+	 * @param {number}   to    Its place once moved.
+	 * @return {Object[]} Blocks.
+	 */
+	const placeTopLevel = ( items, from, to ) => {
+		const next = items.slice();
+		const [ item ] = next.splice( from, 1 );
+
+		next.splice( Math.max( 0, Math.min( to, next.length ) ), 0, item );
+
+		return next;
+	};
+
+	/**
+	 * Switch a page in or out of the menu.
+	 *
+	 * @param {number|string} target          Page ID, or `HOMEPAGE`.
+	 * @param {Object}        [options]
+	 * @param {number}        [options.index] Where at the top of a menu set by
+	 *                                        hand it goes, rather than the end.
+	 *                                        A menu that lists pages keeps
+	 *                                        them in page order.
+	 */
+	const toggle = ( target, { index } = {} ) => {
 		if ( getSwitch( target ).disabled ) {
 			return;
 		}
@@ -350,8 +377,10 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 
 		// The homepage goes in as a Home link, first, whatever it shows.
 		if ( target === HOMEPAGE ) {
+			const next = addItemFirst( blocks, createHomeLink() );
+
 			apply(
-				addItemFirst( blocks, createHomeLink() ),
+				index === undefined ? next : placeTopLevel( next, 0, index ),
 				__( 'Your homepage is in your menu.' )
 			);
 
@@ -365,28 +394,40 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 		const parentPlace = parentId
 			? getItemPlace( blocks, ( block ) => isPageItem( block, parentId ) )
 			: null;
-		const under = parentPlace?.depth === 0 ? parentId : 0;
-		const next = addItem(
+		const under =
+			parentPlace?.depth === 0 && index === undefined ? parentId : 0;
+		let next = addItem(
 			blocks,
 			createPageLink( page ),
 			under ? ( block ) => isPageItem( block, under ) : null
 		);
 
-		apply(
-			next,
-			under
-				? sprintf(
-						/* translators: 1: page title, 2: parent page title. */
-						__( '“%1$s” added to the %2$s dropdown.' ),
-						title,
-						getPageTitle( pagesById.get( under ) )
-					)
-				: sprintf(
-						/* translators: %s: page title. */
-						__( '“%s” added to the end of your menu.' ),
-						title
-					)
+		if ( ! under && index !== undefined ) {
+			next = placeTopLevel( next, next.length - 1, index );
+		}
+
+		let message = sprintf(
+			/* translators: %s: page title. */
+			__( '“%s” added to the end of your menu.' ),
+			title
 		);
+
+		if ( under ) {
+			message = sprintf(
+				/* translators: 1: page title, 2: parent page title. */
+				__( '“%1$s” added to the %2$s dropdown.' ),
+				title,
+				getPageTitle( pagesById.get( under ) )
+			);
+		} else if ( index !== undefined ) {
+			message = sprintf(
+				/* translators: %s: page title. */
+				__( '“%s” added to your menu.' ),
+				title
+			);
+		}
+
+		apply( next, message );
 	};
 
 	/**
@@ -491,10 +532,35 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 		}
 	};
 
+	/**
+	 * Move a top-level item of a menu set by hand to another place.
+	 *
+	 * @param {number} from  Its place now.
+	 * @param {number} to    Its place once moved.
+	 * @param {string} label What the item says, to say what moved.
+	 */
+	const moveTopLevelItem = ( from, to, label ) => {
+		if ( listsPages || from === to ) {
+			return;
+		}
+
+		apply(
+			placeTopLevel( blocks, from, to ),
+			sprintf(
+				/* translators: %s: Menu item label. */
+				__( 'Moved “%s” in your menu.' ),
+				label
+			)
+		);
+	};
+
 	return {
+		blocks,
 		getMenuMoves,
 		getSwitch,
 		isAutomatic,
+		listsPages,
+		moveTopLevelItem,
 		isReady: Boolean( edited ),
 		removePage,
 		toggle,
