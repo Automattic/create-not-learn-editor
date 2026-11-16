@@ -24,7 +24,9 @@ name: Plugin zip
 # - A `v*` tag, such as `v0.2.0`, goes to a `playground-v0.2.0` tag, with
 #   blueprints that also pin WordPress to the version wp-env runs. The demo
 #   stays the same while trunk moves on, for user tests. The GitHub release
-#   for the tag links to it.
+#   for the tag links to it. The newest stable release also moves the
+#   `playground-latest` tag to the same build, for links that always run the
+#   latest release.
 #
 # `scripts/playground-build.sh` puts the files together.
 
@@ -160,6 +162,24 @@ jobs:
           git push --force -q \
             "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
             "HEAD:$PLAYGROUND_REF"
+
+          # `playground-latest` follows the newest stable release, so links
+          # to it never go stale. It moves only when this tag is the highest
+          # `vX.Y.Z` (no pre-release suffix), so rebuilding an old release or
+          # tagging a beta leaves it alone. Its blueprints are this release's,
+          # which install from `playground-<tag>`, a tag that stays put.
+          if [ "$PLAYGROUND_KIND" = release ] && [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            newest=$(git ls-remote --tags --refs "https://github.com/${GITHUB_REPOSITORY}.git" 'v*' \
+              | sed 's|.*refs/tags/||' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+            if [ "$newest" = "$GITHUB_REF_NAME" ]; then
+              git push --force -q \
+                "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+                "HEAD:refs/tags/playground-latest"
+              echo "Moved \`playground-latest\` to ${GITHUB_REF_NAME}." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "Left \`playground-latest\` on ${newest}, newer than ${GITHUB_REF_NAME}." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
 
           if [ "$PLAYGROUND_KIND" = trunk ]; then
             blueprints="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/trunk/demos"
