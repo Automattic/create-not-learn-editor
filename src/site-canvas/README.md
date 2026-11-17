@@ -88,6 +88,7 @@ Changes rewrite the blocks around an item with core's `replaceInnerBlocks`, whic
 | `section-modes-layer.jsx` | The layer: what is pointed at, the mode, and everything drawn over the canvas. It holds the state; the files below do its parts. |
 | `use-grouped-sections.js` | The page's sections, with each run of plain blocks grouped into one section of text. |
 | `use-section-clicks.js` | Clicks, double clicks and Escape on the canvas: picking a section and going into it a level at a time. |
+| `use-open-section.js` | The section open for editing in place, published as `getEditableSection()` for code outside the layer, such as dragging a block from anywhere on it. |
 | `use-mode-sync.js` | Keeps the mode in step with the editor: the part core opens, a part asked for from outside, Compose, undo and selection. |
 | `use-posts-trip-back.js` | Manage all posts, and picking the section again on the way back. |
 | `use-layer-effects.js` | The layer's effects on the editor and window: classes, the spotlight, Escape and outside clicks, measuring, scrolling and highlights. |

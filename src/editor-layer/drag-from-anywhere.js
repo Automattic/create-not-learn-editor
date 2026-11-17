@@ -14,6 +14,7 @@
 /**
  * Internal dependencies
  */
+import { getEditableSection } from '../site-canvas/mode';
 import { useCanvasDocument } from '../site-canvas/use-canvas-document';
 import {
 	blockEditorStore,
@@ -102,17 +103,49 @@ function getDraggableBlock( target ) {
 	if ( ! node || target.closest( INTERACTIVE ) ) {
 		return null;
 	}
-	const { canMoveBlock, hasSelectedInnerBlock, hasMultiSelection } =
-		select( blockEditorStore );
+	const {
+		canMoveBlock,
+		getBlockParents,
+		hasSelectedInnerBlock,
+		hasMultiSelection,
+	} = select( blockEditorStore );
 	const clientId = node.dataset.block;
 	if (
 		! canMoveBlock( clientId ) ||
 		hasSelectedInnerBlock( clientId, true ) ||
-		hasMultiSelection()
+		hasMultiSelection() ||
+		! isInEditableSection( clientId, getBlockParents( clientId ) )
 	) {
 		return null;
 	}
 	return node;
+}
+
+/**
+ * Whether a press on a block reaches it. On a page, the section layer keeps
+ * presses off every section but the one being edited, so only blocks in it
+ * can be dragged. A section that is a single block moves in Compose, not
+ * here. Elsewhere, as in the post editor, there is no layer and every block
+ * counts.
+ *
+ * @param {string}   clientId The block's client ID.
+ * @param {string[]} parents  Its parents' client IDs, outermost first.
+ * @return {boolean} Whether the block is in reach.
+ */
+function isInEditableSection( clientId, parents ) {
+	const editable = getEditableSection();
+	if ( ! editable ) {
+		return true;
+	}
+	const { ids, closedRows } = editable;
+	if ( ids.length === 1 && ids[ 0 ] === clientId ) {
+		return false;
+	}
+	const lineage = [ ...parents, clientId ];
+	return (
+		lineage.some( ( id ) => ids.includes( id ) ) &&
+		! parents.some( ( id ) => closedRows.includes( id ) )
+	);
 }
 
 /**
@@ -150,7 +183,8 @@ function placeCaretAtPoint( doc, x, y ) {
 }
 
 /**
- * @param {boolean} isActive Whether the full-screen edit canvas is open.
+ * @param {boolean} isActive Whether a canvas is open for editing blocks: the
+ *                           full-screen canvas, or a page in Edit.
  */
 export function useDragFromAnywhere( isActive ) {
 	const canvasDocument = useCanvasDocument( DOCUMENT_REF, isActive );

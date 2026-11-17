@@ -12,7 +12,7 @@ import { store as noticesStore } from '@wordpress/notices';
  */
 import { useDeferred } from '../app-init-deferred';
 import { hasSections } from '../sections';
-import { MODE_BROWSE, useCanvasMode } from '../site-canvas/mode';
+import { MODE_BROWSE, MODE_EDIT, useCanvasMode } from '../site-canvas/mode';
 import { useRequestedBlockSelection } from './block-request';
 import { useIsEditCanvas } from './canvas-mode';
 import { useDistractionFreeEntry } from './distraction-free';
@@ -125,7 +125,9 @@ export function EditorLayer() {
 		isEditCanvas ? FORCED_BLOCK_EDITOR_SETTINGS : null
 	);
 	useDistractionFreeEntry( isEditCanvas );
-	useDragFromAnywhere( isEditCanvas );
+	const canvasMode = useCanvasMode();
+	// A page is edited in place, without the full-screen canvas.
+	useDragFromAnywhere( isEditCanvas || canvasMode === MODE_EDIT );
 	useRequestedBlockSelection( isEditCanvas );
 	useSectionWording( isSectioned );
 	useWritingWording( isWriting );
@@ -133,7 +135,6 @@ export function EditorLayer() {
 	usePostKindFocus( isWriting );
 	const canStartFromPattern = useStartPatternsGate( isEditCanvas );
 
-	const canvasMode = useCanvasMode();
 	const canPickSections = isEditCanvas || canvasMode !== MODE_BROWSE;
 
 	// A picker asked for in one editor doesn't outlive it.

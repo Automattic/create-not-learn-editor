@@ -75,6 +75,7 @@ if ( ! select( STORE_NAME ) ) {
 					partRequest: null,
 					pickedSection: null,
 					postsTrip: null,
+					editableSection: null,
 				},
 				action
 			) {
@@ -95,6 +96,11 @@ if ( ! select( STORE_NAME ) ) {
 						return { ...state, partRequest: action.area };
 					case 'SET_POSTS_TRIP':
 						return { ...state, postsTrip: action.trip };
+					case 'SET_EDITABLE_SECTION':
+						return {
+							...state,
+							editableSection: action.editableSection,
+						};
 				}
 
 				return state;
@@ -132,6 +138,10 @@ if ( ! select( STORE_NAME ) ) {
 					trip,
 					type: 'SET_POSTS_TRIP',
 				} ),
+				setEditableSection: ( editableSection ) => ( {
+					editableSection,
+					type: 'SET_EDITABLE_SECTION',
+				} ),
 			},
 			selectors: {
 				getCanvasMode: ( state ) => state.mode,
@@ -142,6 +152,7 @@ if ( ! select( STORE_NAME ) ) {
 				getPickedSection: ( state ) => state.pickedSection,
 				getPartRequest: ( state ) => state.partRequest,
 				getPostsTrip: ( state ) => state.postsTrip,
+				getEditableSection: ( state ) => state.editableSection,
 			},
 		} )
 	);
@@ -327,4 +338,30 @@ export function usePostsTrip() {
 		( selectStore ) => selectStore( STORE_NAME ).getPostsTrip(),
 		[]
 	);
+}
+
+/**
+ * Note where the section layer lets presses through to the page, so code
+ * outside it can act only there. Null while the layer isn't on.
+ *
+ * @param {?Object}  editableSection
+ * @param {string[]} editableSection.ids        The blocks of the section
+ *                                              being edited in place: one,
+ *                                              but for a run of text. Empty
+ *                                              while none is.
+ * @param {string[]} editableSection.closedRows Rows of cards in it that a
+ *                                              press goes into rather than
+ *                                              through.
+ */
+export function setEditableSection( editableSection ) {
+	dispatch( STORE_NAME ).setEditableSection( editableSection );
+}
+
+/**
+ * @return {?Object} Where the section layer lets presses through to the page,
+ *                   as `setEditableSection` takes it, or null while the layer
+ *                   isn't on.
+ */
+export function getEditableSection() {
+	return select( STORE_NAME ).getEditableSection();
 }

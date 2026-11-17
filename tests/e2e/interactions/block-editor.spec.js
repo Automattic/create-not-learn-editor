@@ -1,12 +1,15 @@
 /**
  * The full-screen block editor: core's "Choose a pattern" modal, which the
  * editor layer allows only for a new page in the full-screen editor and closes
- * anywhere else, and dragging a block from anywhere on it.
+ * anywhere else, and dragging a block from anywhere on it, in a post or in the
+ * section of a page being edited with More control.
  */
 const {
 	expect,
 	expectBlockEditor,
+	getCanvasEditor,
 	getEditorCanvas,
+	pickSectionMode,
 	setCanvasMode,
 	test,
 	visitEditor,
@@ -353,5 +356,82 @@ test.describe( 'Drag from anywhere', () => {
 				[ '12 Mill Lane.' ],
 			],
 		] );
+	} );
+} );
+
+// Two sections with room round their blocks, as a theme's sections have.
+const PAGE_SECTIONS = [
+	[ 'Alpha one.', 'Alpha two.', 'Alpha three.' ],
+	[ 'Beta one.' ],
+]
+	.map(
+		( paragraphs ) =>
+			'<!-- wp:group {"style":{"spacing":{"padding":{"top":"80px","bottom":"80px"}}},"layout":{"type":"constrained"}} --><div class="wp-block-group" style="padding-top:80px;padding-bottom:80px">' +
+			paragraphs
+				.map(
+					( text ) =>
+						`<!-- wp:paragraph --><p>${ text }</p><!-- /wp:paragraph -->`
+				)
+				.join( '' ) +
+			'</div><!-- /wp:group -->'
+	)
+	.join( '' );
+
+test.describe( 'Drag from anywhere on a page', () => {
+	test( 'works only in the section opened with More control', async ( {
+		page,
+		rest,
+	} ) => {
+		const testPage = await rest.createPage( { content: PAGE_SECTIONS } );
+		await visitEditor(
+			page,
+			`/types/page/list/all?previewId=${ testPage.id }`
+		);
+		await setCanvasMode( page, 'Edit' );
+
+		const canvas = getCanvasEditor( page ).contentFrame();
+		const sections = canvas.locator(
+			'.is-root-container .wp-block-post-content > *'
+		);
+		const alphaOne = canvas.getByText( 'Alpha one.' );
+		const betaOne = canvas.getByText( 'Beta one.' );
+		await expect( alphaOne ).toBeVisible( { timeout: 15000 } );
+
+		// Before a section is opened, a press picks it.
+		await alphaOne.hover( { force: true } );
+		await expect( alphaOne ).not.toHaveClass( /cnl-drag-from-anywhere/ );
+
+		await pickSectionMode( page, sections.first(), 'Edit design' );
+		await page
+			.locator( '.cnl-section-modes__design' )
+			.getByRole( 'button', { name: 'More control', exact: true } )
+			.click();
+		await expect(
+			page.locator( '.cnl-section-modes__mode-bar' )
+		).toHaveAttribute( 'aria-label', 'Freeform' );
+
+		await alphaOne.hover( { force: true } );
+		await expect( alphaOne ).toHaveClass( /cnl-drag-from-anywhere/ );
+		await betaOne.hover( { force: true } );
+		await expect( betaOne ).not.toHaveClass( /cnl-drag-from-anywhere/ );
+
+		const from = await alphaOne.boundingBox();
+		const target = await canvas.getByText( 'Alpha two.' ).boundingBox();
+		await dragBetween(
+			page,
+			{ x: from.x + from.width / 2, y: from.y + from.height / 2 },
+			{ x: target.x + 40, y: target.y + target.height * 0.85 }
+		);
+
+		await expect
+			.poll( () =>
+				sections
+					.first()
+					.locator( 'p' )
+					.evaluateAll( ( paragraphs ) =>
+						paragraphs.map( ( p ) => p.textContent )
+					)
+			)
+			.toEqual( [ 'Alpha two.', 'Alpha one.', 'Alpha three.' ] );
 	} );
 } );

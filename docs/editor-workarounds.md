@@ -60,6 +60,8 @@ At `dragstart`, in the capture phase, so before core's handler on the block, it 
 
 Whether a block is being edited is read from the caret, not from focus, because while a text block is selected the canvas body holds focus as the editing host (core's `useEditableRoot`).
 
+On a page, the section layer keeps presses off every section but the one being edited, and in Edit content a section's blocks are locked in place, so only blocks in a section opened with More control can be dragged. The layer publishes that section, and the rows of cards in it a press goes into first, as `getEditableSection()` in `src/site-canvas/mode.js`; the drag reads it and leaves every other block alone. A section that is a single block isn't dragged here, as sections move in Compose. Dropping onto the first or last block of a section with no padding lands outside the section, which the page refuses; that is core's drop zone, and its own drag handle does the same.
+
 So this depends on core's conditions for dragging the selected block, on `selectBlock` with a `null` initial position leaving the caret alone, on rich text's handling of `draggable` and `tabindex`, and on the canvas body becoming the editing host. If core changes any of these, presses on text go back to placing the caret, which is core's default, and nothing breaks.
 
 The hover outline is an `outline` on the block rather than a pseudo-element, since the block's `::before` and `::after` are taken by its name label and an agent's change (`includes/block-canvas-styles.php`).
