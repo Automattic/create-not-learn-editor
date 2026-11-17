@@ -1,8 +1,8 @@
 /**
  * A section's own tools on core's toolbar, once the site canvas has picked
- * it and core has its block selected: "+", then its design choices, Layout,
+ * it and core has its block selected: Add, then its design choices, Layout,
  * Colour and Width, each only when it has something to choose, and Layers,
- * the blocks inside it.
+ * the blocks inside it. Each has its icon and its name.
  *
  * The canvas knows what a section can choose, and draws each choice's
  * options, so this only reads which choices there are and asks for one.
@@ -19,6 +19,7 @@ import {
 } from '@wordpress/block-editor';
 import { Dropdown, ToolbarButton } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import { color, layout, listView, stretchWide } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -26,7 +27,9 @@ import { __ } from '@wordpress/i18n';
 import { requestSectionDesign } from '../site-canvas/mode';
 import { AddBlockButton, useContainerTitle } from './layout-menu';
 
-// The canvas's names for the choices. See `design-bar.jsx`.
+// The canvas's names for the choices, and their icons. See `design-bar.jsx`.
+const VIEW_ICONS = { layout, color, width: stretchWide };
+
 function getViewLabels() {
 	return {
 		layout: __( 'Layout' ),
@@ -53,6 +56,7 @@ function LayersButton( { clientId } ) {
 					aria-expanded={ isOpen }
 					aria-haspopup="true"
 					className="cnl-section-tools__button"
+					icon={ listView }
 					isPressed={ isOpen }
 					onClick={ onToggle }
 				>
@@ -83,11 +87,16 @@ export function SectionControls( { clientId, name, views, isContainer } ) {
 	return (
 		<>
 			{ isContainer && (
-				<AddBlockButton clientId={ clientId } title={ title } />
+				<AddBlockButton
+					clientId={ clientId }
+					text={ __( 'Add' ) }
+					title={ title }
+				/>
 			) }
 			{ views.map( ( view ) => (
 				<ToolbarButton
 					className="cnl-section-tools__button"
+					icon={ VIEW_ICONS[ view ] }
 					key={ view }
 					onClick={ () => requestSectionDesign( { clientId, view } ) }
 				>

@@ -117,6 +117,7 @@ import { ActiveChrome } from './active-chrome';
 import { SectionTools } from './section-tools';
 import { useSectionToolbar } from './use-section-toolbar';
 import { useDesignMode } from './use-design-mode';
+import { useSectionToolbarPlace } from './use-section-toolbar-place';
 
 /**
  * @param {Object}   props
@@ -415,7 +416,7 @@ export function SectionModesLayer( {
 
 	const activePart = active ? partsById[ active.id ] : null;
 
-	const usesToolbar = useSectionToolbar( {
+	const { toolbarId, usesToolbar } = useSectionToolbar( {
 		active,
 		enterMode,
 		focusId,
@@ -570,6 +571,14 @@ export function SectionModesLayer( {
 		() => mergeRunRects( blockRects, groupedSections ),
 		[ blockRects, groupedSections ]
 	);
+
+	useSectionToolbarPlace( {
+		clientId: toolbarId,
+		editorRef,
+		frame,
+		layerRef,
+		rects,
+	} );
 
 	const { moveBlocksToPosition } = useDispatch( blockEditorStore );
 

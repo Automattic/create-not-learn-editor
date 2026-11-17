@@ -212,12 +212,13 @@ function ChoiceGroup( { label, options, value, onChange } ) {
 /**
  * The "+" on a container's toolbar, which adds a block as its last child.
  *
- * @param {Object} props
- * @param {string} props.clientId Block client ID.
- * @param {string} props.title    The container's name, like Group.
+ * @param {Object}  props
+ * @param {string}  props.clientId Block client ID.
+ * @param {string}  props.title    The container's name, like Group.
+ * @param {?string} props.text     Words for the button, beside its icon.
  * @return {Element} The button, and core's quick inserter.
  */
-export function AddBlockButton( { clientId, title } ) {
+export function AddBlockButton( { clientId, title, text = null } ) {
 	return (
 		<Inserter
 			rootClientId={ clientId }
@@ -236,7 +237,9 @@ export function AddBlockButton( { clientId, title } ) {
 					onClick={ onToggle }
 					aria-expanded={ isOpen }
 					disabled={ disabled }
-				/>
+				>
+					{ text }
+				</ToolbarButton>
 			) }
 		/>
 	);

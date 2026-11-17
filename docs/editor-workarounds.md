@@ -90,5 +90,6 @@ A section of the page is worked on with core's own block toolbar (`src/site-canv
 
 - Core treats a block carrying `metadata.patternName` as a content-only section. A section's blocks are meant to be changed directly, so the site canvas sets the editor setting `disableContentOnlyForUnsyncedPatterns` while it edits something built from sections (`src/site-canvas/site-canvas.jsx`), as the layout canvas already did. The setting isn't documented, and is read by core's private `isSectionBlock` selector.
 - Layers lists the section's blocks with `__experimentalListView` and its `rootClientId`.
+- Core puts a block's toolbar above it, and has no setting to put it anywhere else. A section's is laid over its top instead (`src/site-canvas/section-modes/use-section-toolbar-place.js`): every frame, the popover's content is moved, with `translate`, from wherever core has placed the popover to where it should be. It finds the popover by core's classes, `block-editor-block-list__block-popover`, `components-popover__content` and `block-editor-block-contextual-toolbar`, and relies on core not setting `translate` on the content itself.
 
-Remove the first once core has a public way to say patterns aren't locked, and move the second to the stable List View when there is one.
+Remove the first once core has a public way to say patterns aren't locked, move the second to the stable List View when there is one, and drop the third if core's toolbar can be told where to sit.

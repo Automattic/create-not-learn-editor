@@ -400,9 +400,11 @@ $divider: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neut
 		height: $button-size;
 	}
 
-	// A section's Layout, Colour, Width and Layers, labelled like the Layout
-	// menu's button, without its chevron: only Layers opens a list.
-	.cnl-section-tools__button.components-button {
+	// A section's Add, Layout, Colour, Width and Layers, each an icon and
+	// its name, without the Layout menu's chevron.
+	.cnl-section-tools__button.components-button,
+	.cnl-block-toolbar__keep.has-text.components-button {
+		gap: var(--wpds-dimension-gap-xs);
 		padding-inline: var(--wpds-dimension-padding-sm);
 		font-weight: 500;
 	}

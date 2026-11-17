@@ -87,5 +87,5 @@ export function useSectionToolbar( {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ designRequest ] );
 
-	return usesToolbar;
+	return { toolbarId, usesToolbar };
 }

@@ -63,10 +63,10 @@ A canvas can give core's editor settings of its own for what it edits as `editor
 
 ### The section's toolbar
 
-A section picked in Edit has core's block toolbar, filled as any block's is by `src/block-toolbar/`, with the section's own tools from `section-controls.jsx` there in place of a container's Layout menu:
+A section picked in Edit has core's block toolbar, filled as any block's is by `src/block-toolbar/`, with the section's own tools from `section-controls.jsx` there in place of a container's Layout menu. It is laid over the top of the section, where the section's bar used to be, rather than above it: stuck to the section's top, clear of "Add section" on its edge, or to the canvas's top while the section's is scrolled out of view, and under a section too short to hold it (`use-section-toolbar-place.js`). Its own tools each have an icon and a name:
 
 - **The section's name**, beside its icon, and its **moves**, as on any block.
-- **"+"**, core's quick inserter, which adds any block as the section's last.
+- **Add**, core's quick inserter, which adds any block as the section's last.
 - **Layout**, **Colour** and **Width**, each shown only when the section has something to choose. Each opens that choice's options in a bar over the section (`design-bar.jsx`), the toolbar giving way to it, with **Back** ("Back to the section" in its tooltip), Escape or a click anywhere else leading back to the toolbar. Colours, shown as Design's colour palettes are, the theme's own first as a swatch of the page's colours that reads "Default" while pointed at or focused, and widths sit in the bar's row. Layouts, each drawn with the section's own content, open in a tray under it, as a carousel showing up to four at once and moving along one at a time, so none is left on its own, opening with the one in use in view. Colours set on a block win over a picked one and are never taken away behind anyone's back, so a section with colours set on its own block is offered none (colours that only repeat the page's own count as Default), and a section with text colours set inside is offered only the colours that text can still be read on. The last colour, **Custom**, is a swatch like the others (a colour wheel, or the section's own colours once it has them) and picks nothing by itself: it opens a tray under the colours with the section's own **Background**, **Text** and **Button** colours, each opening core's colour palette. Headings and links take the text colour, and button words whichever of the section's colours reads on the button, or the palette's best when neither does. They are saved on the section's own block with core's colour settings, palette colours by preset. Whatever is picked goes in at once, and undo takes it back.
 - **Layers**: the blocks in the section, in core's List View, in a popover. Picking one goes into the section with that block selected.
 - **Options** and **Delete**, at the end, as on any block: the options menu has the section block's own settings, Duplicate among them.
@@ -110,6 +110,7 @@ Changes rewrite the blocks around an item with core's `replaceInnerBlocks`, so t
 | `layer-constants.js`, `layer-helpers.js` | The layer's sizes and timings, and helpers that need nothing from it. |
 | `section-chrome.jsx` | The tab, and the bar: Manage posts alone on a section in Edit, Add and its moves on a run of text, Edit design, Edit content and its moves in Compose, or Edit header or Edit footer alone, and the small bar naming the mode, with Done editing. |
 | `use-section-toolbar.js` | Keeps core's selection on the section picked, so it has core's toolbar, and opens the design choice its toolbar asks for. |
+| `use-section-toolbar-place.js` | Lays core's toolbar over the top of the section picked. |
 | `section-tools.jsx` | Tells the toolbar which design choices the section picked has. |
 | `use-design-mode.js` | Stepping through the design choices, and a header's or footer's way into Freeform. |
 | `design-bar.jsx` | The bar a design choice's options show in, and Edit design's list of the choices for a header, footer or a section in Compose. |
