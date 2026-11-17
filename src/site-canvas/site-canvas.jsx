@@ -32,15 +32,15 @@ import { BrowseHints } from './browse-hints';
 import { useComposeZoom } from './compose/use-compose-zoom';
 import { EDITOR_DEVICES } from './constants';
 import { useEditSectionControls } from './edit-section-controls';
-import { MODE_BROWSE, MODE_COMPOSE, MODE_EDIT } from './mode';
+import { MODE_COMPOSE, MODE_EDIT } from './mode';
 import { expandCanvas, useCanvasExpansion } from './expansion';
 import { SectionModesLayer } from './section-modes/section-modes-layer';
 import {
-	BrowseToggle,
 	closeDocumentOverview,
 	DocumentOverviewToggle,
 	EditHistory,
-	ExpandButton,
+	EditButton,
+	ExitButton,
 	PreviewHistory,
 	ViewMenu,
 	ZoomOutToggle,
@@ -109,8 +109,16 @@ export function SiteCanvas( {
 	const isPreviewing = canvas.isPreviewing;
 	const isEditing = mode === MODE_EDIT;
 	const isExpanded = useCanvasExpansion();
-	// Document Overview is for working with the whole editor, so it is only
-	// offered while the canvas fills it, and its list closes as it goes back.
+	// Editing fills the editor, and viewing puts the sidebar back, however
+	// the mode changed: Edit and Exit, a hint, or a screen opening a page.
+	// Not when the canvas only switched to show a change made beside it, as
+	// on Colors, which would hide what it was made with.
+	useEffect( () => {
+		expandCanvas( ! isPreviewing && ! canvas.isShowingChange() );
+		// Only a change of mode should move it.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ isPreviewing ] );
+	// Document Overview's list closes as the canvas goes back.
 	useEffect( () => {
 		if ( ! isExpanded ) {
 			closeDocumentOverview();
@@ -174,21 +182,8 @@ export function SiteCanvas( {
 		>
 			<header className="cnl-editor-canvas__toolbar cnl-editor-homepage-toolbar">
 				<div className="cnl-editor-homepage-toolbar__left">
-					<EditScope>
-						<ExpandButton
-							isBrowsing={ isPreviewing }
-							isExpanded={ isExpanded }
-							onToggle={ () => {
-								if ( ! isExpanded && isPreviewing ) {
-									canvas.requestMode( MODE_EDIT );
-								}
-
-								expandCanvas( ! isExpanded );
-							} }
-						/>
-					</EditScope>
 					{ ! isPreviewing && <EditHistory /> }
-					{ isExpanded && ! isPreviewing && editorEntity && (
+					{ ! isPreviewing && editorEntity && (
 						<DocumentOverviewToggle />
 					) }
 					{ isPreviewing && (
@@ -213,15 +208,6 @@ export function SiteCanvas( {
 					{ document }
 				</div>
 				<div className="cnl-editor-homepage-toolbar__right">
-					<BrowseToggle
-						canEdit={ canvas.canEdit }
-						isBrowsing={ isPreviewing }
-						onChange={ ( browse ) =>
-							canvas.requestMode(
-								browse ? MODE_BROWSE : MODE_EDIT
-							)
-						}
-					/>
 					<ViewMenu
 						device={ device }
 						isComposing={ isComposing }
@@ -238,6 +224,15 @@ export function SiteCanvas( {
 							}
 						/>
 					) }
+					{ /* Save goes after these, from `src/top-bar`. */ }
+					{ isPreviewing && canvas.canEdit && (
+						<EditScope>
+							<EditButton
+								onEdit={ () => canvas.requestMode( MODE_EDIT ) }
+							/>
+						</EditScope>
+					) }
+					{ ! isPreviewing && <ExitButton onExit={ canvas.exit } /> }
 				</div>
 			</header>
 			<div className="cnl-site-canvas__body" ref={ bodyRef }>

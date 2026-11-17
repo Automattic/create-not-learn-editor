@@ -55,23 +55,20 @@
 	}
 }
 
-/*
- * Browse, a switch beside the View menu, with room either side so it doesn't
- * run into the device icon.
- */
-.cnl-site-canvas__browse-toggle {
-	display: flex;
-	align-items: center;
-	padding-inline: var(--wpds-dimension-padding-md);
-	white-space: nowrap;
-
-	.components-toggle-control .components-base-control__field {
-		margin: 0;
-	}
+// Edit while viewing, and Exit beside Save while editing.
+.cnl-site-canvas__edit.components-button,
+.cnl-site-canvas__exit.components-button {
+	flex-shrink: 0;
 }
 
-.cnl-site-canvas__expand-toggle.components-button {
-	flex-shrink: 0;
+.cnl-site-canvas__exit.components-button {
+	margin-inline-end: var(--wpds-dimension-gap-sm);
+}
+
+// Save shows while viewing only when there's something to save, as there is
+// after changing the site's colours or name beside the page.
+.cnl-site-canvas.is-browse .cnl-save-controls:not(.has-changes) {
+	display: none;
 }
 
 /*

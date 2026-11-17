@@ -639,6 +639,8 @@ export function useSiteCanvas( {
 		previewContextError,
 		previewEntity,
 		requestMode,
+		// Exit: leave editing without saving, as Discard in the dialog does.
+		exit: discardAndShowPreview,
 		setDevice: setCanvasDevice,
 		showEditor,
 	};

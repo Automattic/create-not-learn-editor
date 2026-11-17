@@ -67,7 +67,7 @@ if ( ! select( STORE_NAME ) ) {
 		createReduxStore( STORE_NAME, {
 			reducer(
 				state = {
-					mode: MODE_EDIT,
+					mode: MODE_BROWSE,
 					modeRequest: null,
 					device: DEFAULT_DEVICE,
 					isExpanded: false,
