@@ -12,7 +12,8 @@
 import { SectionTab } from './section-chrome';
 import { local, placeTab } from './placement';
 
-// The picked section, while another is pointed at: outlined and named.
+// The picked section, while another is pointed at: outlined, and named
+// unless core's toolbar names it.
 export function PickedChrome( {
 	drag,
 	frame,
@@ -25,6 +26,7 @@ export function PickedChrome( {
 	pickedId,
 	rects,
 	shownHoverId,
+	usesToolbar,
 } ) {
 	const rect =
 		! drag &&
@@ -44,12 +46,19 @@ export function PickedChrome( {
 	return (
 		<Scope>
 			<div className="cnl-section-modes__outline" style={ box } />
-			<SectionTab
-				{ ...placeTab( box, hangsTabBelow( pickedId ), frame.height ) }
-				isPart={ isPart }
-				layout={ layoutItemsById[ pickedId ] ? layoutName : null }
-				title={ getTitle( pickedId ) }
-			/>
+			{ /* Core's toolbar names a section that has it. */ }
+			{ ! usesToolbar( pickedId ) && (
+				<SectionTab
+					{ ...placeTab(
+						box,
+						hangsTabBelow( pickedId ),
+						frame.height
+					) }
+					isPart={ isPart }
+					layout={ layoutItemsById[ pickedId ] ? layoutName : null }
+					title={ getTitle( pickedId ) }
+				/>
+			) }
 		</Scope>
 	);
 }

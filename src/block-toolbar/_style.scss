@@ -400,6 +400,13 @@ $divider: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neut
 		height: $button-size;
 	}
 
+	// A section's Layout, Colour, Width and Layers, labelled like the Layout
+	// menu's button, without its chevron: only Layers opens a list.
+	.cnl-section-tools__button.components-button {
+		padding-inline: var(--wpds-dimension-padding-sm);
+		font-weight: 500;
+	}
+
 	// The Layout menu's button, labelled, with a chevron like the name's.
 	.cnl-block-layout__toggle.components-button {
 		gap: var(--wpds-dimension-gap-xs);
@@ -570,6 +577,17 @@ html.cnl-has-block-toolbar.cnl-block-name-is-label .components-popover .block-ed
 
 .cnl-block-layout {
 	min-width: 220px;
+}
+
+// Layers: the blocks in a section, in a list no taller than half the window.
+.cnl-section-layers .components-popover__content {
+	min-width: 280px;
+}
+
+.cnl-section-layers__list {
+	max-height: 50vh;
+	padding: var(--wpds-dimension-padding-sm);
+	overflow: auto;
 }
 
 // Text color: a swatch of each colour in place of an icon, as Word draws

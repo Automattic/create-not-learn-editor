@@ -80,7 +80,7 @@ const BLANK_PAGE_PATTERN = { content: '' };
  * standard layout, which puts the title and featured image at the top, and
  * starts with one section of text, so it is written rather than designed.
  * Its blocks are free, as a blank section's are, so headings, lists and
- * pictures can go in it as it is written. See `use-section-lock.js`.
+ * pictures can go in it as it is written.
  */
 function getTextPageContent( paragraph ) {
 	return `<!-- wp:group ${ JSON.stringify( {

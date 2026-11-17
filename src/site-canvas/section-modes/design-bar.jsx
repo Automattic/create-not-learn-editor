@@ -1,8 +1,10 @@
 /**
- * Edit design, in the bar over the section: the bar's buttons give way to
- * the section's design choices, Layout, Colour, Width and More control, and
- * picking one drills into its options in the same bar, Back leading out
- * again. Colours and widths
+ * A section's design choices, Layout, Colour and Width, in a bar over it.
+ * In Edit, a section's toolbar opens one of them straight into its options,
+ * Back leading to the section again. Zoomed out in Compose, and on a header
+ * or footer, the bar lists the choices first, with More control on a header
+ * or footer, and picking one drills into its options in the same bar, Back
+ * leading out again. Colours and widths
  * sit in the bar's row; layouts, each drawn with the section's own content,
  * open in a tray under it. A header or footer offers its designs as its
  * layouts, and its colours. The last colour, Custom, opens a tray under
@@ -13,7 +15,7 @@
  * Picking an option changes the section underneath at once, and that is it:
  * there is nothing to confirm. Back, Escape or a click anywhere else steps
  * out, the change kept, and undo takes it back like any other edit. More
- * control hands the section to core's own block tools.
+ * control hands a header or footer to core's own block tools.
  */
 
 /**
@@ -620,8 +622,12 @@ function useWidthChoice( clientId ) {
  *                                     or null to step back out.
  * @param {?Function} props.onClose    Leaves Edit design. Left out for an
  *                                     open header or footer, left with `end`.
- * @param {Function}  props.onFreeform Hands the section to core's own block
- *                                     tools.
+ * @param {?Function} props.onFreeform Hands a header or footer to core's own
+ *                                     block tools. Left out for a section,
+ *                                     whose blocks are open as they are.
+ * @param {boolean}   props.isDirect   Whether the choice was opened straight
+ *                                     from the section's toolbar, so Back
+ *                                     leads there.
  * @param {?Element}  props.end        What goes at the end of the choices,
  *                                     like an open header's Done editing. A
  *                                     choice drilled into has Back only.
@@ -630,7 +636,7 @@ function useWidthChoice( clientId ) {
  * @return {Element} The bar.
  */
 const DesignBarView = forwardRef( function UnforwardedDesignBarView(
-	{ choices, end, onClose, onFreeform, onView, style, title, view },
+	{ choices, end, isDirect, onClose, onFreeform, onView, style, title, view },
 	ref
 ) {
 	const labels = getViewLabels();
@@ -659,7 +665,11 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 					<Button
 						className="cnl-section-modes__bar-button"
 						icon={ isRTL() ? chevronRightIcon : chevronLeftIcon }
-						label={ __( 'Back to Edit design' ) }
+						label={
+							isDirect
+								? __( 'Back to the section' )
+								: __( 'Back to Edit design' )
+						}
 						onClick={ () => onView( null ) }
 						showTooltip
 						size="compact"
@@ -693,17 +703,19 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 								{ labels[ name ] }
 							</Button>
 						) ) }
-						<Button
-							className="cnl-section-modes__bar-button"
-							description={ __(
-								'Move, resize and restyle the blocks in this section'
-							) }
-							icon={ moreControlIcon }
-							onClick={ onFreeform }
-							size="compact"
-						>
-							{ __( 'More control' ) }
-						</Button>
+						{ onFreeform && (
+							<Button
+								className="cnl-section-modes__bar-button"
+								description={ __(
+									'Move, resize and restyle its blocks'
+								) }
+								icon={ moreControlIcon }
+								onClick={ onFreeform }
+								size="compact"
+							>
+								{ __( 'More control' ) }
+							</Button>
+						) }
 					</>
 				) }
 				{ isColorView && choices.colors && (
@@ -748,6 +760,27 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 		</div>
 	);
 } );
+
+/**
+ * Which of a section's design choices it has something to choose for, for
+ * its toolbar's buttons.
+ *
+ * @param {?string} clientId The section.
+ * @return {string[]} `VIEW_LAYOUT`, `VIEW_COLOR` and `VIEW_WIDTH`, those of
+ *                    them it has.
+ */
+export function useSectionDesignViews( clientId ) {
+	const { colors, layouts } = useSectionVariations( clientId, {
+		allowCustom: true,
+	} );
+	const width = useWidthChoice( clientId );
+
+	return [
+		layouts && VIEW_LAYOUT,
+		colors && VIEW_COLOR,
+		width && VIEW_WIDTH,
+	].filter( Boolean );
+}
 
 /**
  * A section's design choices.
