@@ -77,7 +77,7 @@ if ( ! select( STORE_NAME ) ) {
 					postsTrip: null,
 					editableSection: null,
 					sectionTools: null,
-					designRequest: null,
+					sectionTool: null,
 				},
 				action
 			) {
@@ -105,8 +105,8 @@ if ( ! select( STORE_NAME ) ) {
 						};
 					case 'SET_SECTION_TOOLS':
 						return { ...state, sectionTools: action.tools };
-					case 'SET_DESIGN_REQUEST':
-						return { ...state, designRequest: action.request };
+					case 'SET_SECTION_TOOL':
+						return { ...state, sectionTool: action.tool };
 				}
 
 				return state;
@@ -152,9 +152,9 @@ if ( ! select( STORE_NAME ) ) {
 					tools,
 					type: 'SET_SECTION_TOOLS',
 				} ),
-				setDesignRequest: ( request ) => ( {
-					request,
-					type: 'SET_DESIGN_REQUEST',
+				setSectionTool: ( tool ) => ( {
+					tool,
+					type: 'SET_SECTION_TOOL',
 				} ),
 			},
 			selectors: {
@@ -168,7 +168,7 @@ if ( ! select( STORE_NAME ) ) {
 				getPostsTrip: ( state ) => state.postsTrip,
 				getEditableSection: ( state ) => state.editableSection,
 				getSectionTools: ( state ) => state.sectionTools,
-				getDesignRequest: ( state ) => state.designRequest,
+				getSectionTool: ( state ) => state.sectionTool,
 			},
 		} )
 	);
@@ -419,21 +419,38 @@ export function useSectionTools( clientId ) {
 }
 
 /**
- * Ask the canvas to open one of a section's design choices, as the block
- * toolbar's Layout, Colour and Width do, or stop asking.
+ * Open one of the section's tools under its toolbar, `layout`, `color`,
+ * `width` or `layers`, or close whichever is open. The toolbar's buttons
+ * say which, and the canvas draws it, anchored to the button.
  *
- * @param {?Object} request `{ clientId, view }`, or null.
+ * @param {?Object} tool `{ clientId, view }`, or null.
  */
-export function requestSectionDesign( request ) {
-	dispatch( STORE_NAME ).setDesignRequest( request );
+export function setSectionTool( tool ) {
+	dispatch( STORE_NAME ).setSectionTool( tool );
 }
 
 /**
- * @return {?Object} The design choice asked for, `{ clientId, view }`.
+ * Open a section's tool, or close it when it is the one open.
+ *
+ * @param {string} clientId The section.
+ * @param {string} view     The tool.
  */
-export function useDesignRequest() {
+export function toggleSectionTool( clientId, view ) {
+	const open = select( STORE_NAME ).getSectionTool();
+
+	setSectionTool(
+		open?.clientId === clientId && open.view === view
+			? null
+			: { clientId, view }
+	);
+}
+
+/**
+ * @return {?Object} The section's tool that is open, `{ clientId, view }`.
+ */
+export function useSectionTool() {
 	return useSelect(
-		( selectStore ) => selectStore( STORE_NAME ).getDesignRequest(),
+		( selectStore ) => selectStore( STORE_NAME ).getSectionTool(),
 		[]
 	);
 }

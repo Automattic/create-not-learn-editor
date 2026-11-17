@@ -1,10 +1,11 @@
 /**
- * A section's design choices, Layout, Colour and Width, in a bar over it.
- * In Edit, a section's toolbar opens one of them straight into its options,
- * Back leading to the section again. Zoomed out in Compose, and on a header
- * or footer, the bar lists the choices first, with More control on a header
- * or footer, and picking one drills into its options in the same bar, Back
- * leading out again. Colours and widths
+ * A section's design choices, Layout, Colour and Width. In Edit each opens
+ * by itself in a popover under the section's toolbar
+ * (`SectionDesignOptions`, in `section-tool-popover.jsx`). Zoomed out in
+ * Compose, and on a header or footer, they are in a bar over it: the bar
+ * lists the choices first, with More control on a header or footer, and
+ * picking one drills into its options in the same bar, Back leading out
+ * again. Colours and widths
  * sit in the bar's row; layouts, each drawn with the section's own content,
  * open in a tray under it. A header or footer offers its designs as its
  * layouts, and its colours. The last colour, Custom, opens a tray under
@@ -625,9 +626,6 @@ function useWidthChoice( clientId ) {
  * @param {?Function} props.onFreeform Hands a header or footer to core's own
  *                                     block tools. Left out for a section,
  *                                     whose blocks are open as they are.
- * @param {boolean}   props.isDirect   Whether the choice was opened straight
- *                                     from the section's toolbar, so Back
- *                                     leads there.
  * @param {?Element}  props.end        What goes at the end of the choices,
  *                                     like an open header's Done editing. A
  *                                     choice drilled into has Back only.
@@ -636,7 +634,7 @@ function useWidthChoice( clientId ) {
  * @return {Element} The bar.
  */
 const DesignBarView = forwardRef( function UnforwardedDesignBarView(
-	{ choices, end, isDirect, onClose, onFreeform, onView, style, title, view },
+	{ choices, end, onClose, onFreeform, onView, style, title, view },
 	ref
 ) {
 	const labels = getViewLabels();
@@ -665,11 +663,7 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 					<Button
 						className="cnl-section-modes__bar-button"
 						icon={ isRTL() ? chevronRightIcon : chevronLeftIcon }
-						label={
-							isDirect
-								? __( 'Back to the section' )
-								: __( 'Back to Edit design' )
-						}
+						label={ __( 'Back to Edit design' ) }
 						onClick={ () => onView( null ) }
 						showTooltip
 						size="compact"
@@ -783,19 +777,15 @@ export function useSectionDesignViews( clientId ) {
 }
 
 /**
- * A section's design choices.
+ * A section's design choices, each `{ current, options, onSelect }` or null
+ * when there is nothing to choose.
  *
- * @param {Object}   props
- * @param {string}   props.clientId  The section.
- * @param {Function} props.onReplace Called with the block that takes the
- *                                   section's place when its layout changes.
- * @param {Object}   ref             Ref to the bar.
- * @return {Element} The bar.
+ * @param {string}   clientId  The section.
+ * @param {Function} onReplace Called with the block that takes the section's
+ *                             place when its layout changes.
+ * @return {Object} `{ colors, layouts, width }`.
  */
-const SectionDesignBar = forwardRef( function UnforwardedSectionDesignBar(
-	{ clientId, onReplace, ...props },
-	ref
-) {
+function useSectionChoices( clientId, onReplace ) {
 	const { replaceBlock } = useDispatch( blockEditorStore );
 	const updateColors = useUpdateColors();
 	const updateCustomColors = useUpdateCustomColors();
@@ -805,32 +795,101 @@ const SectionDesignBar = forwardRef( function UnforwardedSectionDesignBar(
 	);
 	const width = useWidthChoice( clientId );
 
+	return {
+		colors: withCustom(
+			colors,
+			choices,
+			( name ) => updateColors( [ block ], name, colors.options ),
+			( values ) => updateCustomColors( [ block ], values, choices )
+		),
+		layouts: layouts && {
+			...layouts,
+			onSelect: ( option ) => {
+				const next = cloneBlock( option.block );
+
+				replaceBlock( clientId, next );
+				onReplace( next );
+			},
+		},
+		width,
+	};
+}
+
+/**
+ * A section's design choices, in the bar.
+ *
+ * @param {Object}   props
+ * @param {string}   props.clientId  The section.
+ * @param {Function} props.onReplace See `useSectionChoices`.
+ * @param {Object}   ref             Ref to the bar.
+ * @return {Element} The bar.
+ */
+const SectionDesignBar = forwardRef( function UnforwardedSectionDesignBar(
+	{ clientId, onReplace, ...props },
+	ref
+) {
 	return (
 		<DesignBarView
 			{ ...props }
-			choices={ {
-				colors: withCustom(
-					colors,
-					choices,
-					( name ) => updateColors( [ block ], name, colors.options ),
-					( values ) =>
-						updateCustomColors( [ block ], values, choices )
-				),
-				layouts: layouts && {
-					...layouts,
-					onSelect: ( option ) => {
-						const next = cloneBlock( option.block );
-
-						replaceBlock( clientId, next );
-						onReplace( next );
-					},
-				},
-				width,
-			} }
+			choices={ useSectionChoices( clientId, onReplace ) }
 			ref={ ref }
 		/>
 	);
 } );
+
+/**
+ * One of a section's design choices by itself, for the popover under its
+ * toolbar: its layouts, its colours, with the custom ones under them once
+ * Custom is picked, or its widths.
+ *
+ * @param {Object}   props
+ * @param {string}   props.clientId  The section.
+ * @param {string}   props.view      `VIEW_LAYOUT`, `VIEW_COLOR` or
+ *                                   `VIEW_WIDTH`.
+ * @param {Function} props.onReplace See `useSectionChoices`.
+ * @return {?Element} The options.
+ */
+export function SectionDesignOptions( { clientId, view, onReplace } ) {
+	const { colors, layouts, width } = useSectionChoices( clientId, onReplace );
+	const [ isCustomOpen, setIsCustomOpen ] = useState( false );
+
+	if ( view === VIEW_LAYOUT && layouts ) {
+		return <LayoutOptions { ...layouts } />;
+	}
+
+	if ( view === VIEW_COLOR && colors ) {
+		return (
+			<>
+				<ColorOptions
+					colors={ {
+						...colors,
+						// Picking a colour closes the custom ones.
+						onSelect: ( name ) => {
+							colors.onSelect( name );
+							setIsCustomOpen( false );
+						},
+					} }
+					isCustomOpen={ isCustomOpen }
+					onCustom={
+						colors.custom &&
+						( () => setIsCustomOpen( ( isOpen ) => ! isOpen ) )
+					}
+				/>
+				{ isCustomOpen && colors.custom && (
+					<div className="cnl-section-modes__design-tray">
+						<CustomColors colors={ colors.custom } />
+					</div>
+				) }
+			</>
+		);
+	}
+
+	if ( view === VIEW_WIDTH && width ) {
+		return <WidthOptions width={ width } />;
+	}
+
+	return null;
+}
 
 /**
  * A header's or footer's design choices: its designs, as its layouts, and

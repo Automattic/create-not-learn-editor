@@ -20,6 +20,8 @@ import { useSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 
 const LABEL_CLASS = 'cnl-block-name-is-label';
+const SECTION_CLASS = 'cnl-block-name-is-section';
+const SECTION_NAME = '--cnl-block-name';
 const TOGGLE =
 	'.block-editor-block-toolbar__block-controls .block-editor-block-switcher .components-dropdown-menu__toggle';
 const OPENING_KEYS = [ 'ArrowDown', 'ArrowUp' ];
@@ -70,17 +72,39 @@ function hasTransforms( select, clientId ) {
 }
 
 /**
- * Keep the selected block's name as a label when its menu would be empty.
+ * Keep the selected block's name as a label when its menu would be empty,
+ * or when it is a section of the page, which isn't turned into another
+ * block and is called Section rather than Group.
  *
- * @param {string} clientId Block client ID.
+ * @param {string}  clientId     Block client ID.
+ * @param {?string} sectionTitle The section's name, when it is a section.
  */
-export function useNameMenu( clientId ) {
+export function useNameMenu( clientId, sectionTitle = null ) {
 	const isDefaultEditingMode = useBlockEditingMode() === 'default';
 	const isLabel = useSelect(
 		( select ) =>
-			! isDefaultEditingMode || ! hasTransforms( select, clientId ),
-		[ clientId, isDefaultEditingMode ]
+			Boolean( sectionTitle ) ||
+			! isDefaultEditingMode ||
+			! hasTransforms( select, clientId ),
+		[ clientId, isDefaultEditingMode, sectionTitle ]
 	);
+
+	// The name comes from core's label for the button, which says Group for
+	// a section, so the stylesheet is given the words to show instead.
+	useEffect( () => {
+		if ( ! sectionTitle ) {
+			return;
+		}
+
+		const root = document.documentElement;
+		root.classList.add( SECTION_CLASS );
+		root.style.setProperty( SECTION_NAME, JSON.stringify( sectionTitle ) );
+
+		return () => {
+			root.classList.remove( SECTION_CLASS );
+			root.style.removeProperty( SECTION_NAME );
+		};
+	}, [ sectionTitle ] );
 
 	useEffect( () => {
 		if ( ! isLabel ) {

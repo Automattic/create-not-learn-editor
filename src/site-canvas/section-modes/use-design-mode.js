@@ -50,16 +50,9 @@ export function useDesignMode( {
 				registry.dispatch( blockEditorStore ).clearSelectedBlock();
 			}
 
-			// A choice opened from the section's toolbar has no list of
-			// choices to step back to: Back leads to the toolbar.
-			if ( ! view && activeRef.current?.direct ) {
-				exitMode();
-				return;
-			}
-
 			setActive( ( current ) => current && { ...current, view } );
 		},
-		[ activeRef, exitMode, partsById, registry, setActive ]
+		[ activeRef, partsById, registry, setActive ]
 	);
 
 	// Escape leaves the mode, or steps back from a design choice to the

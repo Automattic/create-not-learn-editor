@@ -207,6 +207,11 @@ $divider: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neut
 			height: auto;
 			background: none;
 			box-shadow: none;
+
+			// A section of the page, named by `name-menu.js`.
+			html.cnl-block-name-is-section & {
+				content: var(--cnl-block-name);
+			}
 		}
 
 		// Core draws its focus ring on `::before`, which the name has taken.
@@ -579,17 +584,6 @@ html.cnl-has-block-toolbar.cnl-block-name-is-label .components-popover .block-ed
 
 .cnl-block-layout {
 	min-width: 220px;
-}
-
-// Layers: the blocks in a section, in a list no taller than half the window.
-.cnl-section-layers .components-popover__content {
-	min-width: 280px;
-}
-
-.cnl-section-layers__list {
-	max-height: 50vh;
-	padding: var(--wpds-dimension-padding-sm);
-	overflow: auto;
 }
 
 // Text color: a swatch of each colour in place of an icon, as Word draws

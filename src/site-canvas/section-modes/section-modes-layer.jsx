@@ -114,7 +114,7 @@ import { HoverChrome } from './hover-chrome';
 import { PickedChrome } from './picked-chrome';
 import { DragChrome } from './drag-chrome';
 import { ActiveChrome } from './active-chrome';
-import { SectionTools } from './section-tools';
+import { SectionToolbarParts } from './section-tools';
 import { useSectionToolbar } from './use-section-toolbar';
 import { useDesignMode } from './use-design-mode';
 import { useSectionToolbarPlace } from './use-section-toolbar-place';
@@ -416,16 +416,14 @@ export function SectionModesLayer( {
 
 	const activePart = active ? partsById[ active.id ] : null;
 
-	const { toolbarId, usesToolbar } = useSectionToolbar( {
+	const { openTool, toolbarId, usesToolbar } = useSectionToolbar( {
 		active,
-		enterMode,
 		focusId,
 		isComposing,
 		isTextSection,
 		pickedSection,
 		registry,
 		sectionIds,
-		setActive,
 	} );
 
 	useModeSync( {
@@ -999,9 +997,12 @@ export function SectionModesLayer( {
 	return (
 		<>
 			{ layer }
-			{ usesToolbar( sharedSectionId ) && (
-				<SectionTools clientId={ sharedSectionId } />
-			) }
+			<SectionToolbarParts
+				items={ items }
+				openTool={ openTool }
+				sectionId={ usesToolbar( sharedSectionId ) && sharedSectionId }
+				setPickedSection={ setPickedSection }
+			/>
 			{ hasSections && ! focusId && (
 				<CanvasOverview { ...overviewProps } />
 			) }

@@ -1,28 +1,25 @@
 /**
  * A section in Edit is worked on with core's own block toolbar: while it is
- * picked, its block is selected in core, and the toolbar's Layout, Colour
- * and Width ask for that design choice, which opens in a bar over the
- * section. See `src/block-toolbar/section-controls.jsx`.
+ * picked, its block is selected in core, and what the toolbar's Layout,
+ * Colour, Width and Layers open is drawn under it. See
+ * `src/block-toolbar/section-controls.jsx` and `section-tool-popover.jsx`.
  */
 
 /**
  * Internal dependencies
  */
 import { blockEditorStore, useEffect } from '../../wordpress-packages';
-import { requestSectionDesign, useDesignRequest } from '../mode';
-import { MODE_DESIGN } from './section-chrome';
+import { setSectionTool, useSectionTool } from '../mode';
 
 // Takes the layer's state and actions it needs, by name.
 export function useSectionToolbar( {
 	active,
-	enterMode,
 	focusId,
 	isComposing,
 	isTextSection,
 	pickedSection,
 	registry,
 	sectionIds,
-	setActive,
 } ) {
 	/*
 	 * Not a run of text, which has no block of its own, nor zoomed out,
@@ -63,29 +60,16 @@ export function useSectionToolbar( {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ active, isComposing, registry, toolbarId ] );
 
-	// One of a section's design choices, asked for from its toolbar. Marked
-	// `direct`, so Back leads to the toolbar rather than a list of choices.
-	const designRequest = useDesignRequest();
+	// What its toolbar's buttons open under it closes once the section isn't
+	// the one with the toolbar, unless a new layout has just taken its place.
+	const tool = useSectionTool();
+	const openTool = tool?.clientId === toolbarId ? tool : null;
 
 	useEffect( () => {
-		if ( ! designRequest ) {
-			return;
+		if ( tool && tool.clientId !== toolbarId ) {
+			setSectionTool( null );
 		}
+	}, [ tool, toolbarId ] );
 
-		requestSectionDesign( null );
-
-		if ( sectionIds.includes( designRequest.clientId ) ) {
-			enterMode( designRequest.clientId, MODE_DESIGN );
-			setActive( {
-				direct: true,
-				id: designRequest.clientId,
-				mode: MODE_DESIGN,
-				view: designRequest.view,
-			} );
-		}
-		// The sections and `enterMode` are read as the request arrives.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ designRequest ] );
-
-	return { toolbarId, usesToolbar };
+	return { openTool, toolbarId, usesToolbar };
 }

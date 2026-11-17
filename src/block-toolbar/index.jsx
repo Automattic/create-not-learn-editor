@@ -100,19 +100,28 @@ function BlockToolbarFills( { clientId, name, attributes, setAttributes } ) {
 	const sectionViews = useSectionTools( clientId );
 
 	useFloatingFormatToolbar( clientId );
-	useNameMenu( clientId );
+	// A section is called that, unless it has been given a name.
+	const sectionTitle = sectionViews
+		? attributes?.metadata?.name || __( 'Section' )
+		: null;
+
+	useNameMenu( clientId, sectionTitle );
 	useParentSelectorFit( clientId );
 
 	return (
 		<>
-			<BlockControls group="parent">
-				<ParentSelector clientId={ clientId } />
-			</BlockControls>
+			{ /* A section is the outermost thing to pick, so has no parent
+			     to offer. */ }
+			{ ! sectionViews && (
+				<BlockControls group="parent">
+					<ParentSelector clientId={ clientId } />
+				</BlockControls>
+			) }
 			{ sectionViews && (
 				<BlockControls group="block">
 					<SectionControls
 						clientId={ clientId }
-						name={ name }
+						title={ sectionTitle }
 						views={ sectionViews }
 						isContainer={ isContainer }
 					/>
@@ -136,6 +145,7 @@ function BlockToolbarFills( { clientId, name, attributes, setAttributes } ) {
 						attributes={ attributes }
 						setAttributes={ setAttributes }
 						isContainer={ isContainer }
+						title={ sectionTitle }
 						readCoreItems={ read }
 						observeCoreItems={ observe }
 					/>

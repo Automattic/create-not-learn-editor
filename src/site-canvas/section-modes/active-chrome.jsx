@@ -122,7 +122,6 @@ export function ActiveChrome( {
 				clientId={ active.id }
 				end={ isPartOpen && <DoneButton onDone={ exitMode } /> }
 				onClose={ isPartOpen ? undefined : exitMode }
-				isDirect={ Boolean( active.direct ) }
 				// A section's blocks are open as they are. A header or
 				// footer is still unlocked on purpose.
 				onFreeform={
