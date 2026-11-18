@@ -8,7 +8,8 @@
  *
  * The page's status is an icon at the bar's end, core's icon for it, named
  * in its own tooltip and in the bar's name, so a long name keeps its room.
- * The bar's tooltip is the page's address.
+ * For a page, the icon is a button that opens the page's settings
+ * (`page-settings.jsx`). The bar's tooltip is the page's address.
  */
 
 /**
@@ -20,6 +21,7 @@ import { Icon } from '@wordpress/ui';
  * Internal dependencies
  */
 import { PageFinder } from '../page-finder';
+import { PageSettings } from './page-settings';
 import { getStatusLabel, POST_STATUS_ICONS } from '../post-status';
 import {
 	__,
@@ -55,9 +57,17 @@ function getReadableUrl( url ) {
  *                               homepage shows.
  * @param {?string} props.url    The page's address on the live site, for the
  *                               bar's tooltip, when it has one.
+ * @param {?number} props.pageId The page's ID, when it is a page, whose
+ *                               settings its status then opens.
  * @return {Element} The switcher.
  */
-export function PageSwitcher( { title, status = '', meta = '', url = '' } ) {
+export function PageSwitcher( {
+	title,
+	status = '',
+	meta = '',
+	url = '',
+	pageId = 0,
+} ) {
 	const [ isFinding, setIsFinding ] = useState( false );
 	const toggleRef = useRef();
 	const shouldRefocus = useRef( false );
@@ -131,11 +141,22 @@ export function PageSwitcher( { title, status = '', meta = '', url = '' } ) {
 					</Tooltip.Root>
 					{ /*
 					 * Over the bar's end rather than in it, so it has a
-					 * tooltip of its own. The bar's name already says the
-					 * status, so it is hidden from screen readers, and a
-					 * click on it opens the finder as the bar does.
+					 * tooltip of its own. A page's opens its settings.
 					 */ }
-					{ statusIcon && (
+					{ statusIcon && pageId > 0 && (
+						<PageSettings
+							pageId={ pageId }
+							status={ status }
+							statusIcon={ statusIcon }
+							statusLabel={ statusLabel }
+						/>
+					) }
+					{ /*
+					 * Anything else's only says the status. The bar's name
+					 * already does, so it is hidden from screen readers,
+					 * and a click on it opens the finder as the bar does.
+					 */ }
+					{ statusIcon && ! pageId && (
 						<Tooltip.Root>
 							<Tooltip.Trigger
 								aria-hidden
@@ -169,7 +190,7 @@ export function PageSwitcher( { title, status = '', meta = '', url = '' } ) {
  * @param {boolean} canvas.isLoadingContext Whether the context is loading.
  * @param {?Object} canvas.previewContext   The preview's context.
  * @param {string}  canvas.liveUrl          The live page's address, if any.
- * @return {Object} `{ title, status, meta, url }` for `PageSwitcher`.
+ * @return {Object} `{ title, status, meta, url, pageId }` for `PageSwitcher`.
  */
 export function getPreviewSwitcherProps( {
 	isLoadingContext,
@@ -190,7 +211,12 @@ export function getPreviewSwitcherProps( {
 			: previewContext?.previewStatus;
 
 	if ( POST_STATUS_ICONS[ status ] ) {
-		return { title, status, url };
+		const pageId =
+			previewContext?.editPostType === 'page'
+				? Number( previewContext.editPostId ) || 0
+				: 0;
+
+		return { title, status, url, pageId };
 	}
 
 	return {

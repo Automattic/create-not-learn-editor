@@ -438,6 +438,55 @@ $light-fill-strong: rgba(0, 0, 0, 0.08);
 	}
 }
 
+/*
+ * A page's status opens its settings (`src/site-canvas/page-settings.jsx`),
+ * so it is a button, a little bigger than its icon to be easy to hit.
+ */
+.cnl-page-switcher__status.is-settings {
+	inset-inline-end: calc(var(--wpds-dimension-padding-sm) - 4px);
+}
+
+.cnl-page-switcher__settings-toggle {
+	display: flex;
+	margin: 0;
+	padding: 4px;
+	border: 0;
+	border-radius: var(--wpds-border-radius-sm);
+	background: none;
+	color: inherit;
+	cursor: pointer;
+
+	&:hover,
+	&[aria-expanded="true"] {
+		background: $light-fill-strong;
+		color: var(--wpds-color-foreground-content-neutral);
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+	}
+}
+
+.cnl-page-settings__content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-md);
+	box-sizing: border-box;
+	width: 320px;
+	max-width: 100%;
+	padding: var(--wpds-dimension-padding-lg);
+}
+
+.cnl-page-settings__heading {
+	margin: 0;
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: 600;
+}
+
+.cnl-page-settings__all {
+	align-self: flex-start;
+}
+
 // The name, then what it is.
 .cnl-page-switcher__label {
 	display: flex;
