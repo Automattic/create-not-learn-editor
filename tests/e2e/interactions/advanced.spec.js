@@ -251,6 +251,8 @@ test.describe( 'Advanced interactions', () => {
 			.poll( () => getPatternsOpened( page ), { timeout: 15000 } )
 			.toEqual( [ true, true ] );
 
+		// Editing fills the editor, so Exit puts the sidebar back first.
+		await pickCanvasMode( page, 'Browse' );
 		await openSidebarLink( page, 'Pages' );
 
 		await expect

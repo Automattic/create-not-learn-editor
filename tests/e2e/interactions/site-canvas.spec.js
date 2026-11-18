@@ -1,20 +1,20 @@
 /**
- * The site canvas beside Home, Pages and Design: its Browse, Edit and Compose
- * modes, the preview's history, the full editor, devices and the More options
- * menu. Compose has its own file.
+ * The site canvas beside Home, Pages and Design: the page on view, Edit and
+ * Exit, Compose, the preview's history, the full editor, devices and the More
+ * options menu. Compose has its own file.
  */
 const {
 	expect,
 	expectBlockEditor,
 	expectCanvasMode,
 	getCanvasEditor,
-	getBrowseSwitch,
-	getZoomOutToggle,
+	getEditButton,
+	getExitButton,
 	getRoute,
+	getSaveControls,
+	getZoomOutToggle,
 	getSitePreview,
-	openSidebarLink,
 	openViewMenu,
-	pickCanvasMode,
 	clickIntoSection,
 	setCanvasMode,
 	test,
@@ -22,13 +22,12 @@ const {
 } = require( '../utils' );
 
 test.describe( 'Site canvas interactions', () => {
-	test( 'Browse shows the site as visitors see it, and Edit switches to the editor', async ( {
+	test( 'opens the site on view as visitors see it, and Edit switches to the editor', async ( {
 		page,
 	} ) => {
 		await visitEditor( page );
-		// The canvas opens in Edit.
-		await expectCanvasMode( page, 'Edit' );
-		await setCanvasMode( page, 'Browse' );
+		// The canvas opens with the page on view.
+		await expectCanvasMode( page, 'Browse' );
 
 		const preview = getSitePreview( page );
 		const frame = page.frameLocator( 'iframe[title="Site preview"]' );
@@ -56,7 +55,7 @@ test.describe( 'Site canvas interactions', () => {
 		).toBeVisible();
 	} );
 
-	test( 'Browse is a switch; Compose is offered while editing a page', async ( {
+	test( 'Edit fills the editor and gives way to Exit and Save, and Exit puts the sidebar back', async ( {
 		page,
 		rest,
 	} ) => {
@@ -71,42 +70,48 @@ test.describe( 'Site canvas interactions', () => {
 			page.locator( '.cnl-editor-homepage-document__title' )
 		).toHaveText( testPage.title, { timeout: 15000 } );
 
-		const browseSwitch = getBrowseSwitch( page );
+		const body = page.locator( 'body' );
 		const zoomOut = getZoomOutToggle( page );
 
-		await setCanvasMode( page, 'Browse' );
-		await expect( browseSwitch ).toBeChecked();
+		await expectCanvasMode( page, 'Browse' );
+		await expect( getEditButton( page ) ).toBeVisible();
+		await expect( getExitButton( page ) ).toHaveCount( 0 );
 		await expect( zoomOut ).toHaveCount( 0 );
+		// Nothing to save yet, so no Save while on view.
+		await expect( getSaveControls( page ) ).toBeHidden();
+		await expect( body ).not.toHaveClass( /cnl-canvas-is-expanded/ );
 
 		await setCanvasMode( page, 'Edit' );
+		await expect( getEditButton( page ) ).toHaveCount( 0 );
+		await expect( getExitButton( page ) ).toBeVisible();
+		await expect( getSaveControls( page ) ).toBeVisible();
+		await expect( body ).toHaveClass( /cnl-canvas-is-expanded/ );
 		await expect( zoomOut ).toBeVisible( { timeout: 15000 } );
 		await expect( zoomOut ).toHaveAttribute( 'aria-pressed', 'false' );
 
-		// Compose is editing from further away: Browse stays off.
+		// Compose is editing from further away: Exit stays.
 		await zoomOut.click();
 		await expectCanvasMode( page, 'Compose' );
-		await expect( browseSwitch ).not.toBeChecked();
+		await expect( getExitButton( page ) ).toBeVisible();
 
 		// Escape, with nothing picked, steps back in to Edit.
 		await page.keyboard.press( 'Escape' );
 		await expectCanvasMode( page, 'Edit' );
+
+		await setCanvasMode( page, 'Browse' );
+		await expect( getEditButton( page ) ).toBeVisible();
+		await expect( body ).not.toHaveClass( /cnl-canvas-is-expanded/ );
 	} );
 
-	test( 'the mode carries over to another screen, but not a reload', async ( {
-		page,
-	} ) => {
+	test( 'a reload opens the page on view again', async ( { page } ) => {
 		await visitEditor( page );
-		await setCanvasMode( page, 'Browse' );
-
-		await openSidebarLink( page, 'Pages' );
-		await expect.poll( () => getRoute( page ) ).toMatch( /^\/types\/page/ );
-		await expectCanvasMode( page, 'Browse' );
+		await setCanvasMode( page, 'Edit' );
 
 		await page.reload();
-		await expectCanvasMode( page, 'Edit' );
+		await expectCanvasMode( page, 'Browse' );
 	} );
 
-	test( 'leaving Edit with unsaved changes asks to save them', async ( {
+	test( 'Exit leaves without saving, discarding unsaved changes', async ( {
 		page,
 		rest,
 	} ) => {
@@ -129,14 +134,15 @@ test.describe( 'Site canvas interactions', () => {
 		await page.keyboard.press( 'End' );
 		await page.keyboard.type( ' changed' );
 
-		await pickCanvasMode( page, 'Browse' );
+		await expect(
+			getSaveControls( page ).getByRole( 'button', { name: /Save/ } )
+		).toBeEnabled();
 
-		const dialog = page.getByRole( 'dialog', {
-			name: 'Save your changes?',
-		} );
-
-		await expect( dialog ).toBeVisible();
-		await dialog.getByRole( 'button', { name: 'Discard' } ).click();
+		// No asking: Exit is the way out without saving.
+		await getExitButton( page ).click();
+		await expect(
+			page.getByRole( 'dialog', { name: 'Save your changes?' } )
+		).toHaveCount( 0 );
 		await expectCanvasMode( page, 'Browse' );
 		await expect(
 			page
