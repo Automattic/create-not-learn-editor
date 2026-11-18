@@ -1,7 +1,7 @@
 /**
  * Lays core's block toolbar over the top of the section picked, where the
  * section's own bar used to sit, rather than above it where core puts a
- * block's toolbar: stuck to the section's top, or the canvas's while that
+ * block's toolbar, as far in from the top as from the side: stuck to the section's top, or the canvas's while that
  * is scrolled out of view, and under a section too short to hold it.
  *
  * Core places the toolbar's popover itself, and has no setting for this, so
@@ -15,13 +15,11 @@
  */
 import { useEffect, useRef } from '../../wordpress-packages';
 import { INSET, local, stickyTop } from './placement';
-import { ADD_SECTION_HEIGHT, BAR_GAP, SHORT_BAR_GAP } from './layer-constants';
+import { SHORT_BAR_GAP } from './layer-constants';
 
 const POPOVER =
 	'.components-popover.block-editor-block-list__block-popover.is-positioned';
 const TOOLBAR = '.block-editor-block-contextual-toolbar';
-// Clear of "Add section" on the section's top edge.
-const TOP_INSET = ADD_SECTION_HEIGHT / 2 + BAR_GAP;
 
 /**
  * @param {Object}  props
@@ -70,9 +68,9 @@ export function useSectionToolbarPlace( {
 			// Where core has it, which moving its content doesn't change.
 			const core = popover.getBoundingClientRect();
 			const box = local( rect, canvas );
-			const fits = box.height >= core.height + TOP_INSET * 2;
+			const fits = box.height >= core.height + INSET * 2;
 			const top = fits
-				? stickyTop( box, core.height, TOP_INSET )
+				? stickyTop( box, core.height )
 				: box.top + box.height + SHORT_BAR_GAP;
 			const left = Math.max(
 				INSET,

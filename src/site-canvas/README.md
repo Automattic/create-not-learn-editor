@@ -63,7 +63,7 @@ A canvas can give core's editor settings of its own for what it edits as `editor
 
 ### The section's toolbar
 
-A section picked in Edit has core's block toolbar, filled as any block's is by `src/block-toolbar/`, with the section's own tools from `section-controls.jsx` there in place of a container's Layout menu. It is laid over the top of the section, where the section's bar used to be, rather than above it: stuck to the section's top, clear of "Add section" on its edge, or to the canvas's top while the section's is scrolled out of view, and under a section too short to hold it (`use-section-toolbar-place.js`). Its own tools each have an icon and a name:
+A section picked in Edit has core's block toolbar, filled as any block's is by `src/block-toolbar/`, with the section's own tools from `section-controls.jsx` there in place of a container's Layout menu. It is laid over the top of the section, where the section's bar used to be, rather than above it: stuck to the section's top, as far in from it as from the side, or to the canvas's top while the section's is scrolled out of view, and under a section too short to hold it (`use-section-toolbar-place.js`). Its own tools each have an icon and a name:
 
 - **Section**, beside its icon, or the name it has been given, rather than its block's, Group. A section isn't turned into another block, so pressing the name opens **Layers** in place of core's menu: only the blocks inside the section, in core's List View rooted at it, in a popover under the name. Picking one goes into the section with that block selected. A section that holds no blocks has a label for a name. It has no parent selector, being the outermost thing to pick.
 - Its **moves**, as on any block.
