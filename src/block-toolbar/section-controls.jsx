@@ -1,9 +1,9 @@
 /**
  * A section's own tools on core's toolbar, once the site canvas has picked
  * it and core has its block selected: Add, then its design choices, Layout,
- * Colour and Width, each only when it has something to choose, and Layers,
- * the blocks inside it. Each has its icon and its name, and all but Add
- * open under the toolbar.
+ * Colour and Width, each only when it has something to choose. Each has its
+ * icon and its name, and all but Add open under the toolbar. Layers, the
+ * blocks inside it, opens from the section's name (`name-menu.js`).
  *
  * The canvas knows what a section can choose, and draws what each button
  * opens, in a popover hung from the button
@@ -18,7 +18,7 @@
  */
 import { ToolbarButton } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { color, layout, listView, stretchWide } from '@wordpress/icons';
+import { color, layout, stretchWide } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -27,14 +27,13 @@ import { toggleSectionTool, useSectionTool } from '../site-canvas/mode';
 import { AddBlockButton } from './layout-menu';
 
 // The canvas's names for the choices, and their icons. See `design-bar.jsx`.
-const VIEW_ICONS = { layout, color, width: stretchWide, layers: listView };
+const VIEW_ICONS = { layout, color, width: stretchWide };
 
 function getViewLabels() {
 	return {
 		layout: __( 'Layout' ),
 		color: __( 'Colour' ),
 		width: __( 'Width' ),
-		layers: __( 'Layers' ),
 	};
 }
 
@@ -49,7 +48,6 @@ function getViewLabels() {
 export function SectionControls( { clientId, title, views, isContainer } ) {
 	const labels = getViewLabels();
 	const open = useSectionTool();
-	const tools = isContainer ? [ ...views, 'layers' ] : views;
 
 	return (
 		<>
@@ -60,7 +58,7 @@ export function SectionControls( { clientId, title, views, isContainer } ) {
 					title={ title }
 				/>
 			) }
-			{ tools.map( ( view ) => {
+			{ views.map( ( view ) => {
 				const isOpen =
 					open?.clientId === clientId && open.view === view;
 

@@ -1,8 +1,9 @@
 /**
  * What a section's toolbar opens under it: the options for its Layout,
- * Colour or Width, or Layers, the blocks inside it. The toolbar's buttons
- * (`src/block-toolbar/section-controls.jsx`) say which is open, through the
- * canvas's store, and this draws it in a popover hung from the button.
+ * Colour or Width, or Layers, the blocks inside it, which its name opens.
+ * The toolbar (`src/block-toolbar/section-controls.jsx` and `name-menu.js`)
+ * says which is open, through the canvas's store, and this draws it in a
+ * popover hung from the button, or the name.
  *
  * Layers is core's List View rooted at the section, so it lists only what
  * is in it. The public List View always lists the whole page, so this is
@@ -27,7 +28,11 @@ const { PrivateListView } = unlock( blockEditorPrivateApis );
 const LAYERS = 'layers';
 // Other popovers opened from this one, like a custom colour's palette, and
 // the toolbar's own buttons, which open, close and swap what is here.
-const STAYS_OPEN_FOR = '.components-popover, [data-cnl-section-tool]';
+const STAYS_OPEN_FOR =
+	'.components-popover, [data-cnl-section-tool], .block-editor-block-switcher';
+// The section's name on its toolbar, which Layers hangs from.
+const NAME =
+	'.block-editor-block-contextual-toolbar .block-editor-block-switcher .components-dropdown-menu__toggle';
 // How long a new layout has to take the old one's place and be selected.
 const REPLACE_GRACE = 500;
 
@@ -50,7 +55,9 @@ export function SectionToolPopover( { tool, onReplaced } ) {
 		() => ( {
 			getBoundingClientRect() {
 				const button = document.querySelector(
-					`[data-cnl-section-tool="${ view }"]`
+					view === LAYERS
+						? NAME
+						: `[data-cnl-section-tool="${ view }"]`
 				);
 
 				if ( button ) {

@@ -5,7 +5,8 @@
  * offers with the rest of the block's look, so the stylesheet hides them
  * here. In a locked section core's menu holds nothing but styles, and a
  * block may have nothing to turn into, so when nothing would be left the
- * name stays as a label: no chevron, and it doesn't open.
+ * name stays as a label: no chevron, and it doesn't open. A section's name
+ * opens Layers instead.
  */
 
 /**
@@ -19,12 +20,19 @@ import { store as blocksStore } from '@wordpress/blocks';
 import { useSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 
+/**
+ * Internal dependencies
+ */
+import { toggleSectionTool } from '../site-canvas/mode';
+
 const LABEL_CLASS = 'cnl-block-name-is-label';
 const SECTION_CLASS = 'cnl-block-name-is-section';
 const SECTION_NAME = '--cnl-block-name';
 const TOGGLE =
 	'.block-editor-block-toolbar__block-controls .block-editor-block-switcher .components-dropdown-menu__toggle';
 const OPENING_KEYS = [ 'ArrowDown', 'ArrowUp' ];
+// The section whose name opens Layers, the blocks inside it, if any.
+let layersSectionId = null;
 
 /**
  * Whether the block's name has anything to offer once its styles are gone:
@@ -72,22 +80,42 @@ function hasTransforms( select, clientId ) {
 }
 
 /**
- * Keep the selected block's name as a label when its menu would be empty,
- * or when it is a section of the page, which isn't turned into another
- * block and is called Section rather than Group.
+ * Keep the selected block's name as a label when its menu would be empty.
+ * A section of the page isn't turned into another block and is called
+ * Section rather than Group: its name opens Layers, the blocks inside it,
+ * which the site canvas draws under it, or is a label when it holds none.
  *
  * @param {string}  clientId     Block client ID.
  * @param {?string} sectionTitle The section's name, when it is a section.
+ * @param {boolean} hasLayers    Whether the section holds other blocks.
  */
-export function useNameMenu( clientId, sectionTitle = null ) {
+export function useNameMenu(
+	clientId,
+	sectionTitle = null,
+	hasLayers = false
+) {
 	const isDefaultEditingMode = useBlockEditingMode() === 'default';
+	const opensLayers = Boolean( sectionTitle ) && hasLayers;
 	const isLabel = useSelect(
 		( select ) =>
-			Boolean( sectionTitle ) ||
-			! isDefaultEditingMode ||
-			! hasTransforms( select, clientId ),
-		[ clientId, isDefaultEditingMode, sectionTitle ]
+			! opensLayers &&
+			( Boolean( sectionTitle ) ||
+				! isDefaultEditingMode ||
+				! hasTransforms( select, clientId ) ),
+		[ clientId, isDefaultEditingMode, opensLayers, sectionTitle ]
 	);
+
+	useEffect( () => {
+		if ( ! opensLayers ) {
+			return;
+		}
+
+		layersSectionId = clientId;
+
+		return () => {
+			layersSectionId = null;
+		};
+	}, [ clientId, opensLayers ] );
 
 	// The name comes from core's label for the button, which says Group for
 	// a section, so the stylesheet is given the words to show instead.
@@ -119,13 +147,16 @@ export function useNameMenu( clientId, sectionTitle = null ) {
 }
 
 /**
- * Stop a press on a name that is only a label from opening core's menu.
+ * Stop a press on a name that is only a label from opening core's menu,
+ * and have a press on a section's name open Layers in its place.
  *
  * @param {Event} event Click or key press anywhere in the document.
  */
 function onPress( event ) {
+	const isLabel = document.documentElement.classList.contains( LABEL_CLASS );
+
 	if (
-		! document.documentElement.classList.contains( LABEL_CLASS ) ||
+		( ! isLabel && ! layersSectionId ) ||
 		( event.type === 'keydown' && ! OPENING_KEYS.includes( event.key ) )
 	) {
 		return;
@@ -136,6 +167,10 @@ function onPress( event ) {
 	if ( toggle ) {
 		event.preventDefault();
 		event.stopPropagation();
+
+		if ( layersSectionId ) {
+			toggleSectionTool( layersSectionId, 'layers' );
+		}
 	}
 }
 

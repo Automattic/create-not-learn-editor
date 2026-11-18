@@ -105,7 +105,7 @@ function BlockToolbarFills( { clientId, name, attributes, setAttributes } ) {
 		? attributes?.metadata?.name || __( 'Section' )
 		: null;
 
-	useNameMenu( clientId, sectionTitle );
+	useNameMenu( clientId, sectionTitle, isContainer );
 	useParentSelectorFit( clientId );
 
 	return (
