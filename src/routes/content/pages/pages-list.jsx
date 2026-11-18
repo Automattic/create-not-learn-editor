@@ -30,6 +30,7 @@ import { countPageTree } from './page-tree';
 import { LIST_PATH, usePageTrash } from './page-tree-list';
 import PagesDataView from './pages-data-view';
 import PagesListView from './pages-list-view';
+import { DETAILS_VIEW } from './page-views';
 import { SYSTEM_PAGES_CONTENT } from './system-pages';
 import usePageOrder from './use-page-order';
 import {
@@ -150,6 +151,16 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 			search: { ...searchParams, postId: target, previewId: target },
 			to: LIST_PATH,
 		} );
+	const openDetails = ( target ) =>
+		navigate( {
+			search: {
+				...searchParams,
+				postId: target,
+				previewId: target,
+				view: DETAILS_VIEW,
+			},
+			to: LIST_PATH,
+		} );
 	const showPage = ( target ) =>
 		navigate( {
 			search: { ...searchParams, previewId: target },
@@ -237,6 +248,7 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 						onAddMenuItem={ menu ? onAddMenuItem : undefined }
 						onAddPage={ canCreate ? () => onAddPage() : undefined }
 						onDelete={ deletePage }
+						onOpenDetails={ openDetails }
 						onPreview={ ( target ) => showPage( target ) }
 						pageOrder={ pageOrder }
 						previewedId={ previewedId }
