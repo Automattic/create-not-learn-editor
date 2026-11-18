@@ -14,6 +14,7 @@ import { Icon } from '@wordpress/ui';
  * Internal dependencies
  */
 import { openRoute } from '../open-route';
+import { expandCanvas } from './expansion';
 import { PAGES_PATH } from '../page-finder/open-page';
 import { PageSummary } from '../routes/content/pages/page-details';
 import { DETAILS_VIEW } from '../routes/content/pages/page-views';
@@ -71,6 +72,9 @@ export function PageSettings( { pageId, status, statusLabel, statusIcon } ) {
 						className="cnl-page-settings__all"
 						onClick={ () => {
 							onClose();
+							// The details open in the sidebar, which an
+							// expanded canvas hides, so bring it back.
+							expandCanvas( false );
 							openRoute( PAGES_PATH, {
 								postId: pageId,
 								previewId: pageId,
