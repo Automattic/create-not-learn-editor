@@ -52,7 +52,7 @@ Home and Content currently include visible placeholder canvases. They are delibe
 
 Section editing is Add section, Edit design, the section bars and Compose. It is only for content built from sections. Everything else is edited block by block with core's own tools, and core's inserter between blocks.
 
-Each post answers once whether it is built from sections, and everything in the editor that offers section editing asks that answer rather than checking post types itself. That covers the site canvas and its section layer, Browse's hints, the full-screen editor's section wording and starter designs, and the section options menu.
+Each post answers once whether it is built from sections, and everything in the editor that offers section editing asks that answer rather than checking post types itself. That covers the site canvas and its section layer, the full-screen editor's section wording and starter designs, and the section options menu.
 
 ### Deciding
 

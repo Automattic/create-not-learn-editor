@@ -28,7 +28,6 @@ import {
 	useSelect,
 } from '../wordpress-packages';
 import { hasSections as hasSectionsFor } from '../sections';
-import { BrowseHints } from './browse-hints';
 import { useComposeZoom } from './compose/use-compose-zoom';
 import { EDITOR_DEVICES } from './constants';
 import { useEditSectionControls } from './edit-section-controls';
@@ -303,14 +302,6 @@ export function SiteCanvas( {
 						/>
 					) : (
 						emptyPreview
-					) }
-					{ /* Only in Browse: out of it the hints draw nothing, and
-					mounted they would follow every edit. */ }
-					{ isPreviewing && frame.frameProps.src && editorEntity && (
-						<BrowseHints
-							canvas={ canvas }
-							hasSections={ hasSections }
-						/>
 					) }
 				</div>
 			</div>
