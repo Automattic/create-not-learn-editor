@@ -360,6 +360,12 @@ $light-fill-strong: rgba(0, 0, 0, 0.08);
 	min-width: 200px;
 }
 
+// Searching, the finder's list runs down over the canvas, so it goes above
+// the site preview there (`.cnl-site-canvas__preview`) as well as the editor.
+.cnl-page-switcher.is-finding {
+	z-index: 51;
+}
+
 .cnl-page-switcher__heading {
 	position: relative;
 	margin: 0;
