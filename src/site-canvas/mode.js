@@ -71,6 +71,7 @@ if ( ! select( STORE_NAME ) ) {
 					modeRequest: null,
 					device: DEFAULT_DEVICE,
 					isExpanded: false,
+					isShowingChange: false,
 					openPart: null,
 					partRequest: null,
 					pickedSection: null,
@@ -88,6 +89,11 @@ if ( ! select( STORE_NAME ) ) {
 						return { ...state, device: action.device };
 					case 'SET_EXPANDED':
 						return { ...state, isExpanded: action.isExpanded };
+					case 'SET_SHOWING_CHANGE':
+						return {
+							...state,
+							isShowingChange: action.isShowingChange,
+						};
 					case 'SET_OPEN_PART':
 						return { ...state, openPart: action.openPart };
 					case 'SET_PICKED_SECTION':
@@ -122,6 +128,10 @@ if ( ! select( STORE_NAME ) ) {
 					isExpanded,
 					type: 'SET_EXPANDED',
 				} ),
+				setShowingChange: ( showingChange ) => ( {
+					isShowingChange: showingChange,
+					type: 'SET_SHOWING_CHANGE',
+				} ),
 				setOpenPart: ( openPart ) => ( {
 					openPart,
 					type: 'SET_OPEN_PART',
@@ -148,6 +158,7 @@ if ( ! select( STORE_NAME ) ) {
 				getModeRequest: ( state ) => state.modeRequest,
 				getCanvasDevice: ( state ) => state.device,
 				isExpanded: ( state ) => state.isExpanded,
+				isShowingChange: ( state ) => state.isShowingChange,
 				getOpenPart: ( state ) => state.openPart,
 				getPickedSection: ( state ) => state.pickedSection,
 				getPartRequest: ( state ) => state.partRequest,
@@ -173,6 +184,9 @@ export function getCanvasMode() {
  * @param {string} next `MODE_BROWSE`, `MODE_EDIT` or `MODE_COMPOSE`.
  */
 export function setCanvasMode( next ) {
+	// Asked for, so no longer only showing a change, even if the mode stays.
+	setShowingChange( false );
+
 	if ( next !== getCanvasMode() ) {
 		dispatch( STORE_NAME ).setCanvasMode( next );
 	}
@@ -186,6 +200,27 @@ export function useCanvasMode() {
 		( selectStore ) => selectStore( STORE_NAME ).getCanvasMode(),
 		[]
 	);
+}
+
+/**
+ * Whether the editor is on show only for a change the preview can't show,
+ * as on Colors, rather than because Edit was asked for. Kept here rather
+ * than in the canvas so a screen's own canvas, mounted on the way Back,
+ * leaves the editor beside the stage instead of filling the editor.
+ *
+ * @return {boolean} Whether it is.
+ */
+export function isShowingChange() {
+	return select( STORE_NAME ).isShowingChange();
+}
+
+/**
+ * @param {boolean} next Whether the editor is on show only for a change.
+ */
+export function setShowingChange( next ) {
+	if ( next !== isShowingChange() ) {
+		dispatch( STORE_NAME ).setShowingChange( next );
+	}
 }
 
 /**
