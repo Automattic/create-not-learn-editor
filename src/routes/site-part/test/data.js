@@ -9,6 +9,7 @@ import { describe, expect, test, vi } from 'vitest';
 import {
 	getCurrentPatternName,
 	getSitePartContents,
+	getSitePartMenus,
 	getSitePartPatterns,
 	pickSitePart,
 	putLayoutFirst,
@@ -188,5 +189,29 @@ describe( 'site part data', () => {
 		).toEqual( [ 'theme/header-logo', 'theme/header-default' ] );
 		expect( putLayoutFirst( layouts, null ) ).toBe( layouts );
 		expect( putLayoutFirst( layouts, 'theme/missing' ) ).toBe( layouts );
+	} );
+} );
+
+describe( 'getSitePartMenus', () => {
+	const BLOCKS = {
+		group: { name: 'core/group', attributes: {}, count: 2 },
+		links: { name: 'core/navigation', attributes: {}, count: 3 },
+		main: { name: 'core/navigation', attributes: { ref: 12 }, count: 0 },
+		fallback: { name: 'core/navigation', attributes: {}, count: 0 },
+	};
+	const store = {
+		getBlockAttributes: ( id ) => BLOCKS[ id ].attributes,
+		getBlockCount: ( id ) => BLOCKS[ id ].count,
+		getBlockName: ( id ) => BLOCKS[ id ].name,
+	};
+
+	test( 'offers one menu per Navigation block that shows a saved menu', () => {
+		expect(
+			getSitePartMenus( store, [ 'group', 'main', 'links', 'fallback' ] )
+		).toEqual( [
+			{ clientId: 'main', index: 0, ref: 12 },
+			// Its place counts the block with links of its own before it.
+			{ clientId: 'fallback', index: 2, ref: undefined },
+		] );
 	} );
 } );

@@ -37,7 +37,7 @@ function getRoute( page ) {
 	return new URL( page.url() ).searchParams.get( 'p' ) || '';
 }
 
-const ADVANCED_LINKS = [ 'Patterns', 'Site parts', 'Styles', 'Templates' ];
+const ADVANCED_LINKS = [ 'All site parts', 'Patterns', 'Styles', 'Templates' ];
 
 /**
  * Follow a link in the sidebar, opening the folded Advanced section first for

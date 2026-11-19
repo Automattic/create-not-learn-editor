@@ -1,6 +1,6 @@
 /**
- * Data for the Header and Footer screens: which site part the homepage uses,
- * what is in it, and the layouts the theme offers for it.
+ * Data for the Site parts screens: which header and footer the homepage
+ * uses, what is in them, and the layouts the theme offers for them.
  */
 
 /**
@@ -16,12 +16,12 @@ import {
 
 const EMPTY_ARRAY = [];
 
-// The screen that leads to the Header and Footer screens.
-export const SITE_PARTS_PATH = '/design/header-footer';
+// The screen that leads to each part's screen.
+export const SITE_PARTS_PATH = '/site-parts';
 
 export const SITE_PART_PATHS = {
-	footer: '/design/footer',
-	header: '/design/header',
+	footer: '/site-parts/footer',
+	header: '/site-parts/header',
 };
 
 /**
@@ -127,42 +127,55 @@ export function getSitePartContents( names ) {
 }
 
 /**
- * What a site part in the editor holds, and the menu its first Navigation
- * block shows. A Navigation block with links of its own, rather than a saved
- * menu, shows no menu: its links are changed where they are, on the canvas.
+ * The menus a site part shows, one for each of its Navigation blocks that
+ * shows a saved menu. A Navigation block with links of its own shows no
+ * menu: its links are changed where they are, on the canvas.
+ *
+ * @param {Object} store       `blockEditorStore` selectors.
+ * @param {string} descendants Client IDs of every block in the part.
+ * @return {Object[]} `{ clientId, index, ref }` items. `index` is the
+ *                    block's place among the part's Navigation blocks, and
+ *                    `ref` is undefined when it shows the site's first menu.
+ */
+export function getSitePartMenus( store, descendants ) {
+	return descendants
+		.filter( ( id ) => store.getBlockName( id ) === 'core/navigation' )
+		.map( ( id, index ) => ( {
+			clientId: id,
+			index,
+			ref: store.getBlockAttributes( id )?.ref,
+		} ) )
+		.filter(
+			( menu ) => !! menu.ref || ! store.getBlockCount( menu.clientId )
+		);
+}
+
+/**
+ * What a site part in the editor holds, and the menus it shows.
  *
  * @param {?string} clientId The part's client ID in the editor.
  * @return {Object} `{ hasLogo, hasNavigation, hasSiteTitle, hasSocialLinks,
- *                  navigationRef, showsMenu }`.
+ *                  menus }`. See `getSitePartMenus` for `menus`.
  */
 export function useSitePartContents( clientId ) {
-	const { names, navigationRef, showsMenu } = useSelect(
+	const { menus, names } = useSelect(
 		( select ) => {
 			if ( ! clientId ) {
-				return { names: '', showsMenu: false };
+				return { menus: '', names: '' };
 			}
 
 			const store = select( blockEditorStore );
 			const descendants = store.getClientIdsOfDescendants( clientId );
-			const navigationId = descendants.find(
-				( id ) => store.getBlockName( id ) === 'core/navigation'
-			);
-			const ref = navigationId
-				? store.getBlockAttributes( navigationId )?.ref
-				: undefined;
 
+			// Joined, so the selector returns values that only change when
+			// the part's blocks do.
 			return {
-				// Joined, so the selector returns a value that only changes
-				// when the part's blocks do.
+				menus: JSON.stringify( getSitePartMenus( store, descendants ) ),
 				names: [
 					...new Set(
 						descendants.map( ( id ) => store.getBlockName( id ) )
 					),
 				].join( ',' ),
-				navigationRef: ref,
-				showsMenu:
-					!! navigationId &&
-					( !! ref || ! store.getBlockCount( navigationId ) ),
 			};
 		},
 		[ clientId ]
@@ -171,10 +184,9 @@ export function useSitePartContents( clientId ) {
 	return useMemo(
 		() => ( {
 			...getSitePartContents( names ? names.split( ',' ) : [] ),
-			navigationRef,
-			showsMenu,
+			menus: menus ? JSON.parse( menus ) : EMPTY_ARRAY,
 		} ),
-		[ names, navigationRef, showsMenu ]
+		[ menus, names ]
 	);
 }
 

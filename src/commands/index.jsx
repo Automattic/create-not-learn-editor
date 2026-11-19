@@ -54,7 +54,6 @@ import { openPage } from '../page-finder/open-page';
 import { openPreferences } from '../preferences';
 import { HOMEPAGE } from '../routes/content/pages/homepage-state';
 import { getPostTypes, settings } from '../settings';
-import sitePartsIcon from '../site-parts-icon';
 
 // Commands registered by others that lead into wp-admin or don't belong here.
 const HIDDEN_COMMANDS = [
@@ -148,9 +147,9 @@ function getScreenCommands() {
 		},
 		{
 			name: 'create-not-learn-editor/screen-site-parts',
-			label: __( 'Header & footer' ),
-			icon: sitePartsIcon,
-			to: '/design/header-footer',
+			label: __( 'Site parts' ),
+			icon: headerIcon,
+			to: '/site-parts',
 			keywords: [ __( 'top' ), __( 'bottom' ) ],
 		},
 		{
@@ -171,14 +170,14 @@ function getScreenCommands() {
 			name: 'create-not-learn-editor/screen-header',
 			label: __( 'Header' ),
 			icon: headerIcon,
-			to: '/design/header',
+			to: '/site-parts/header',
 			keywords: [ __( 'top' ), __( 'banner' ) ],
 		},
 		{
 			name: 'create-not-learn-editor/screen-footer',
 			label: __( 'Footer' ),
 			icon: footerIcon,
-			to: '/design/footer',
+			to: '/site-parts/footer',
 			keywords: [ __( 'bottom' ) ],
 		},
 		{
@@ -205,7 +204,7 @@ function getScreenCommands() {
 		},
 		{
 			name: 'create-not-learn-editor/screen-site-part-list',
-			label: __( 'Site parts' ),
+			label: __( 'All site parts' ),
 			icon: symbolFilledIcon,
 			to: '/template-parts',
 			keywords: [ __( 'template parts' ), __( 'headers' ) ],

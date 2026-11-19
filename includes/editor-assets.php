@@ -509,8 +509,8 @@ function cnl_editor_get_module_map() {
 			'path' => 'routes/footer/route.min',
 		),
 		array(
-			'id'   => 'create-not-learn-editor/routes/header-footer/route',
-			'path' => 'routes/header-footer/route.min',
+			'id'   => 'create-not-learn-editor/routes/site-parts/route',
+			'path' => 'routes/site-parts/route.min',
 		),
 		array(
 			'id'   => 'create-not-learn-editor/routes/site-part/content',
