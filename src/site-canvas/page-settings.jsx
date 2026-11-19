@@ -23,7 +23,13 @@ import { PageDetails } from '../routes/content/pages/page-details';
 import { useHomepageState } from '../routes/content/pages/homepage';
 import { usePageLayoutName } from '../routes/content/pages/page-layout-picker';
 import { LAYOUT_VIEW } from '../routes/content/pages/page-views';
-import { __, Dropdown, sprintf, Tooltip } from '../wordpress-packages';
+import {
+	__,
+	Dropdown,
+	sprintf,
+	Tooltip,
+	useState,
+} from '../wordpress-packages';
 
 /**
  * Every detail about the page, with its layout leading on to the layouts.
@@ -83,12 +89,38 @@ function PageSettingsContent( { pageId, onClose } ) {
  * @return {Element} The status, as a button that opens the page's settings.
  */
 export function PageSettings( { pageId, status, statusLabel, statusIcon } ) {
+	const [ isOpen, setIsOpen ] = useState( false );
+
 	return (
 		<Dropdown
 			className={ `cnl-page-switcher__status is-${ status } is-settings` }
 			contentClassName="cnl-page-settings"
-			popoverProps={ { placement: 'bottom-end', offset: 12 } }
-			renderToggle={ ( { isOpen, onToggle } ) => (
+			onToggle={ setIsOpen }
+			open={ isOpen }
+			popoverProps={ {
+				placement: 'bottom-end',
+				offset: 12,
+				/*
+				 * A row's own popover, like Menus' switches, isn't inside
+				 * this one, nor marked as a dialog, so the dropdown's own
+				 * check would close the settings, and the row with them,
+				 * as soon as focus moved into it.
+				 */
+				onFocusOutside: ( event ) => {
+					const focused = ( event?.target?.ownerDocument || document )
+						.activeElement;
+
+					if (
+						! focused ||
+						! focused.closest?.(
+							'.components-popover, [role="dialog"], .cnl-page-switcher__status.is-settings'
+						)
+					) {
+						setIsOpen( false );
+					}
+				},
+			} }
+			renderToggle={ ( { onToggle } ) => (
 				<Tooltip.Root disabled={ isOpen }>
 					<Tooltip.Trigger
 						aria-expanded={ isOpen }
