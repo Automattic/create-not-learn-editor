@@ -7,9 +7,10 @@
  * globe, as the editor marks anything shared (see `src/global-scope`). Pages
  * changed from a screen beside the canvas, their title or place say, follow.
  *
- * The dialog is a list and Publish. Discarding them all sits behind the menu
- * beside Publish, and is asked about first, in the same dialog, because it
- * can't be undone.
+ * The dialog is a list and Publish. Each change can be discarded on its own,
+ * leaving the rest to publish, as in core's review. Discarding them all sits
+ * behind the menu beside Publish, and is asked about first, in the same
+ * dialog, because it can't be undone.
  */
 
 /**
@@ -21,6 +22,7 @@ import {
 	Fragment,
 	useEffect,
 	useId,
+	useLayoutEffect,
 	useRef,
 	useState,
 } from '@wordpress/element';
@@ -62,7 +64,7 @@ const GROUPS = [
 // session's changes don't turn the dialog into a long scroll.
 const VISIBLE_CHANGES = 5;
 
-function ChangeGroup( { group, changes } ) {
+function ChangeGroup( { group, changes, onDiscard } ) {
 	const headingId = useId();
 	const listRef = useRef();
 	const [ isExpanded, setIsExpanded ] = useState( false );
@@ -72,7 +74,16 @@ function ChangeGroup( { group, changes } ) {
 	const visibleChanges = hiddenCount
 		? changes.slice( 0, VISIBLE_CHANGES )
 		: changes;
-	// Purple, from the heading to the list's border, for what every page
+	// The button goes once pressed, so focus moves to the first row it showed.
+	const showAll = () => {
+		setIsExpanded( true );
+		window.requestAnimationFrame( () => {
+			listRef.current
+				?.querySelectorAll( '.cnl-review-changes__discard' )
+				[ VISIBLE_CHANGES ]?.focus();
+		} );
+	};
+	// Purple, from the heading to the Discard buttons, for what every page
 	// shares.
 	const Scope = group.isSiteWide ? GlobalScope : Fragment;
 
@@ -122,6 +133,19 @@ function ChangeGroup( { group, changes } ) {
 									{ change.detail }
 								</Text>
 							</div>
+							<Button
+								className="cnl-review-changes__discard"
+								variant="tertiary"
+								size="compact"
+								onClick={ () => onDiscard( change ) }
+								aria-label={ sprintf(
+									/* translators: %s: What was changed, like "Site name". */
+									__( 'Discard change to %s' ),
+									change.label
+								) }
+							>
+								{ __( 'Discard' ) }
+							</Button>
 						</li>
 					) ) }
 				</ul>
@@ -129,7 +153,7 @@ function ChangeGroup( { group, changes } ) {
 					<Button
 						className="cnl-review-changes__show-more"
 						variant="link"
-						onClick={ () => setIsExpanded( true ) }
+						onClick={ showAll }
 					>
 						{ sprintf(
 							/* translators: %d: Number of hidden changes. */
@@ -147,24 +171,54 @@ function ChangeGroup( { group, changes } ) {
 	);
 }
 
-// The groups, site-wide first, leaving out one with nothing in it.
-function ChangeGroups( { changes } ) {
+/*
+ * The groups, site-wide first, leaving out one with nothing in it.
+ *
+ * A discarded change's row goes, and its button with it, so focus moves to
+ * the Discard button now in the same place, or the last one if it was last,
+ * even when that is in the other group.
+ */
+function ChangeGroups( { changes, onDiscard } ) {
+	const ref = useRef();
+	const discardedIndex = useRef( null );
+
+	const grouped = GROUPS.map( ( group ) => ( {
+		group,
+		changes: changes.filter(
+			( change ) => !! change.isSiteWide === group.isSiteWide
+		),
+	} ) ).filter( ( { changes: groupChanges } ) => groupChanges.length );
+	const ordered = grouped.flatMap(
+		( { changes: groupChanges } ) => groupChanges
+	);
+
+	useLayoutEffect( () => {
+		if ( discardedIndex.current === null ) {
+			return;
+		}
+
+		const buttons =
+			ref.current?.querySelectorAll( '.cnl-review-changes__discard' ) ??
+			[];
+		buttons[
+			Math.min( discardedIndex.current, buttons.length - 1 )
+		]?.focus();
+		discardedIndex.current = null;
+	}, [ changes.length ] );
+
 	return (
-		<div className="cnl-review-changes__groups">
-			{ GROUPS.map( ( group ) => ( {
-				group,
-				changes: changes.filter(
-					( change ) => !! change.isSiteWide === group.isSiteWide
-				),
-			} ) )
-				.filter( ( { changes: groupChanges } ) => groupChanges.length )
-				.map( ( { group, changes: groupChanges } ) => (
-					<ChangeGroup
-						key={ group.id }
-						group={ group }
-						changes={ groupChanges }
-					/>
-				) ) }
+		<div className="cnl-review-changes__groups" ref={ ref }>
+			{ grouped.map( ( { group, changes: groupChanges } ) => (
+				<ChangeGroup
+					key={ group.id }
+					group={ group }
+					changes={ groupChanges }
+					onDiscard={ ( change ) => {
+						discardedIndex.current = ordered.indexOf( change );
+						onDiscard( change );
+					} }
+				/>
+			) ) }
 		</div>
 	);
 }
@@ -175,7 +229,8 @@ function ChangeGroups( { changes } ) {
  * @return {Element} The dialog.
  */
 export function PublishSiteDialog( { onClose } ) {
-	const { siteChanges, isSaving, publishSite, discardSite } = useChanges();
+	const { siteChanges, isSaving, publishSite, discard, discardSite } =
+		useChanges();
 	const [ isConfirmingDiscard, setIsConfirmingDiscard ] = useState( false );
 	const { createSuccessNotice } = useDispatch( noticesStore );
 	const count = siteChanges.length;
@@ -257,7 +312,7 @@ export function PublishSiteDialog( { onClose } ) {
 			className="cnl-review-changes"
 		>
 			<Stack direction="column" gap="xl">
-				<ChangeGroups changes={ siteChanges } />
+				<ChangeGroups changes={ siteChanges } onDiscard={ discard } />
 				<div className="cnl-review-changes__footer">
 					<div className="cnl-review-changes__footer-end">
 						<Button

@@ -54,10 +54,12 @@
 	}
 }
 
-// Edit while viewing, and Exit beside Save while editing.
+// Edit while viewing, and Exit beside Save while editing. Set apart from
+// the flush View and Zoom cluster before them, as the action they are.
 .cnl-site-canvas__edit.components-button,
 .cnl-site-canvas__exit.components-button {
 	flex-shrink: 0;
+	margin-inline-start: var(--wpds-dimension-gap-md);
 }
 
 .cnl-site-canvas__exit.components-button {
