@@ -281,6 +281,10 @@ export function useSiteCanvas( {
 	// Whether the editor is on show only for a change the preview can't show.
 	const isShowingChangeRef = useRef( false );
 	const { changes, isSaving, save, discardAll } = useChanges();
+	// Exit only discards what changed while editing (`src/edit-session.js`).
+	const { discardAll: discardEditSession } = useChanges( {
+		inEditSession: true,
+	} );
 	/*
 	 * Counted in a selector so that it follows a record's own edits: a page
 	 * already changed is the same one change whatever else is edited on it.
@@ -594,10 +598,10 @@ export function useSiteCanvas( {
 		showPreviewWhenLoaded( getEditorDestination() );
 	};
 
-	const discardAndShowPreview = () => {
+	const discardAndShowPreview = ( discard = discardAll ) => {
 		const destination = getEditorDestination();
 
-		discardAll();
+		discard();
 		setIsDialogOpen( false );
 		cancelWait();
 
@@ -620,7 +624,7 @@ export function useSiteCanvas( {
 			isOpen: isDialogOpen,
 			isSaving,
 			onCancel: () => setIsDialogOpen( false ),
-			onDiscard: discardAndShowPreview,
+			onDiscard: () => discardAndShowPreview(),
 			onSave: saveAndShowPreview,
 		},
 		editorEntity,
@@ -639,8 +643,9 @@ export function useSiteCanvas( {
 		previewContextError,
 		previewEntity,
 		requestMode,
-		// Exit: leave editing without saving, as Discard in the dialog does.
-		exit: discardAndShowPreview,
+		// Exit: leave editing without saving what changed while editing, as
+		// Discard in the dialog does for every change.
+		exit: () => discardAndShowPreview( discardEditSession ),
 		setDevice: setCanvasDevice,
 		showEditor,
 	};

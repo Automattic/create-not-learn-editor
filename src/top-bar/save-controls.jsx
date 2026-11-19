@@ -30,7 +30,8 @@ import { useChanges } from './use-changes';
 export function SaveControls() {
 	const [ isReviewOpen, setIsReviewOpen ] = useState( false );
 	const [ hasSaved, setHasSaved ] = useState( false );
-	const { changes, isSaving } = useChanges();
+	// Beside the page being edited, so only what changed while editing it.
+	const { changes, isSaving } = useChanges( { inEditSession: true } );
 	const changeCount = changes.length;
 	const hasChanges = changeCount > 0;
 	const closeReview = useCallback( () => setIsReviewOpen( false ), [] );
@@ -113,7 +114,9 @@ export function SaveControls() {
 			>
 				{ isSaving ? __( 'Saving…' ) : __( 'Save' ) }
 			</Button>
-			{ isReviewOpen && <ReviewChanges onClose={ closeReview } /> }
+			{ isReviewOpen && (
+				<ReviewChanges onClose={ closeReview } inEditSession />
+			) }
 		</div>
 	);
 }

@@ -64,9 +64,9 @@
 	margin-inline-end: var(--wpds-dimension-gap-sm);
 }
 
-// Save shows while viewing only when there's something to save, as there is
-// after changing the site's colours or name beside the page.
-.cnl-site-canvas.is-browse .cnl-save-controls:not(.has-changes) {
+// Save is the page's, so it shows only while editing it. Changes made
+// elsewhere wait in the sidebar's unsaved changes (`src/edit-session.js`).
+body:not(.cnl-canvas-is-expanded) .cnl-site-canvas .cnl-save-controls {
 	display: none;
 }
 
