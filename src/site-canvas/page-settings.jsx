@@ -1,13 +1,16 @@
 /**
  * A page's settings, a click away from the canvas: the page's status, at the
  * end of the canvas toolbar's address bar, opens them in a popover, where
- * core's editor has them in its sidebar's Page tab. The summary is the Pages
- * screen's own, so a change is an unsaved edit to the page, as there.
+ * core's editor has them in its sidebar's Page tab. They are every detail the
+ * Pages screen has for the page, so a change is an unsaved edit to the page,
+ * as there. Only its layout leads on, to the layouts in the sidebar.
  */
 
 /**
  * WordPress dependencies
  */
+import { store as coreDataStore } from '@wordpress/core-data';
+import { useSelect } from '@wordpress/data';
 import { Icon } from '@wordpress/ui';
 
 /**
@@ -16,9 +19,60 @@ import { Icon } from '@wordpress/ui';
 import { openRoute } from '../open-route';
 import { expandCanvas } from './expansion';
 import { PAGES_PATH } from '../page-finder/open-page';
-import { PageSummary } from '../routes/content/pages/page-details';
-import { DETAILS_VIEW } from '../routes/content/pages/page-views';
-import { __, Button, Dropdown, sprintf, Tooltip } from '../wordpress-packages';
+import { PageDetails } from '../routes/content/pages/page-details';
+import { useHomepageState } from '../routes/content/pages/homepage';
+import { usePageLayoutName } from '../routes/content/pages/page-layout-picker';
+import { LAYOUT_VIEW } from '../routes/content/pages/page-views';
+import { __, Dropdown, sprintf, Tooltip } from '../wordpress-packages';
+
+/**
+ * Every detail about the page, with its layout leading on to the layouts.
+ *
+ * @param {Object}   props
+ * @param {number}   props.pageId  The page's ID.
+ * @param {Function} props.onClose Closes the popover.
+ * @return {Element} The details.
+ */
+function PageSettingsContent( { pageId, onClose } ) {
+	const homepage = useHomepageState();
+	const page = useSelect(
+		( select ) =>
+			select( coreDataStore ).getEditedEntityRecord(
+				'postType',
+				'page',
+				pageId
+			),
+		[ pageId ]
+	);
+	const layoutName = usePageLayoutName( {
+		isFrontPage: pageId === homepage.pageId,
+		slug: page?.slug,
+		template: page?.template,
+	} );
+
+	return (
+		<div className="cnl-page-settings__content">
+			<h2 className="cnl-page-settings__heading">
+				{ __( 'Page settings' ) }
+			</h2>
+			<PageDetails
+				layoutName={ layoutName }
+				onOpenLayouts={ () => {
+					onClose();
+					// The layouts open in the sidebar, which an expanded
+					// canvas hides, so bring it back.
+					expandCanvas( false );
+					openRoute( PAGES_PATH, {
+						postId: pageId,
+						previewId: pageId,
+						view: LAYOUT_VIEW,
+					} );
+				} }
+				pageId={ pageId }
+			/>
+		</div>
+	);
+}
 
 /**
  * @param {Object} props
@@ -62,30 +116,7 @@ export function PageSettings( { pageId, status, statusLabel, statusIcon } ) {
 				</Tooltip.Root>
 			) }
 			renderContent={ ( { onClose } ) => (
-				<div className="cnl-page-settings__content">
-					<h2 className="cnl-page-settings__heading">
-						{ __( 'Page settings' ) }
-					</h2>
-					<PageSummary pageId={ pageId } />
-					<Button
-						__next40pxDefaultSize
-						className="cnl-page-settings__all"
-						onClick={ () => {
-							onClose();
-							// The details open in the sidebar, which an
-							// expanded canvas hides, so bring it back.
-							expandCanvas( false );
-							openRoute( PAGES_PATH, {
-								postId: pageId,
-								previewId: pageId,
-								view: DETAILS_VIEW,
-							} );
-						} }
-						variant="tertiary"
-					>
-						{ __( 'See all details' ) }
-					</Button>
-				</div>
+				<PageSettingsContent onClose={ onClose } pageId={ pageId } />
 			) }
 		/>
 	);
