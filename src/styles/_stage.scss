@@ -153,4 +153,44 @@ html:root.cnl-canvas-is-transitioning {
 	&::view-transition-new(boot-safari--canvas) {
 		object-position: left top;
 	}
+
+	/*
+	 * The buttons at the end of the canvas's toolbar move on their own. In
+	 * the canvas's picture, held at its start, they would slide sideways and
+	 * be cut off as it grows or shrinks from that side. The View menu
+	 * glides to its new place, and Edit fades into Exit and the page's own
+	 * buttons where they sit, each picture at its natural size.
+	 */
+	.cnl-editor-homepage-toolbar__right {
+
+		> .cnl-site-canvas__view-menu-toggle {
+			view-transition-name: cnl-canvas-view;
+		}
+
+		> .cnl-site-canvas__zoom-out-toggle {
+			view-transition-name: cnl-canvas-zoom;
+		}
+
+		> .cnl-site-canvas__edit,
+		> * > .cnl-site-canvas__edit {
+			view-transition-name: cnl-canvas-edit;
+		}
+
+		> .cnl-site-canvas__exit {
+			view-transition-name: cnl-canvas-exit;
+		}
+
+		> .cnl-document-actions {
+			view-transition-name: cnl-canvas-document-actions;
+		}
+	}
+
+	// Above the canvas's own picture, which boot raises.
+	&::view-transition-group(cnl-canvas-view),
+	&::view-transition-group(cnl-canvas-zoom),
+	&::view-transition-group(cnl-canvas-edit),
+	&::view-transition-group(cnl-canvas-exit),
+	&::view-transition-group(cnl-canvas-document-actions) {
+		z-index: 2;
+	}
 }

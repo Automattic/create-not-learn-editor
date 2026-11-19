@@ -29,12 +29,89 @@ import {
 	useDispatch,
 	useEffect,
 	useRef,
+	useSelect,
 	useState,
 	__,
 } from '../../wordpress-packages';
+import { getRenamedNotice, renameMenu } from '../navigation/menu-helpers';
+import { DeleteNavigationMenuModal } from '../navigation/menu-row';
+import { setSelfSaving } from '../../site-canvas/mode';
 import { useMenuItemsEditor } from './menu-items-editor';
 import NavigationEditCanvas from './navigation-edit-canvas';
 import { ADD_MENU_ITEMS_SEARCH, NAVIGATION_POST_TYPE } from './shared';
+import { useNavigationLocations } from './use-navigation-locations';
+
+// Long enough that a run of edits saves once.
+const SAVE_DELAY_MS = 600;
+
+/**
+ * Save a draft menu as it is changed. Core never shows a draft, nor picks
+ * it for a Navigation block with no menu of its own, so nobody can see it
+ * and its edits have nothing to wait for. A published menu may be shown
+ * anywhere, in a header, a page or a widget, so every change to it waits
+ * for Publish site. See `src/top-bar/README.md`.
+ *
+ * @param {number} navigationId The menu.
+ * @return {boolean} Whether the menu is live, published.
+ */
+function useSaveWhileDraft( navigationId ) {
+	const { hasEdits, status } = useSelect(
+		( select ) => {
+			const store = select( coreDataStore );
+
+			return {
+				// Leaving out a draft Publish site is publishing, marked to
+				// publish with the site's changes, which saves it there.
+				hasEdits:
+					store.hasEditsForEntityRecord(
+						'postType',
+						NAVIGATION_POST_TYPE,
+						navigationId
+					) &&
+					store.getEntityRecordEdits(
+						'postType',
+						NAVIGATION_POST_TYPE,
+						navigationId
+					)?.status === undefined,
+				// As saved, not as edited.
+				status: store.getEntityRecord(
+					'postType',
+					NAVIGATION_POST_TYPE,
+					navigationId
+				)?.status,
+			};
+		},
+		[ navigationId ]
+	);
+	const { saveEditedEntityRecord } = useDispatch( coreDataStore );
+	const isDraft = status === 'draft';
+	const recordId = `postType|${ NAVIGATION_POST_TYPE }|${ navigationId }`;
+
+	useEffect( () => {
+		setSelfSaving( recordId, isDraft );
+	}, [ recordId, isDraft ] );
+	useEffect( () => () => setSelfSaving( recordId, false ), [ recordId ] );
+
+	useEffect( () => {
+		if ( ! isDraft || ! hasEdits ) {
+			return undefined;
+		}
+
+		const timer = window.setTimeout(
+			() =>
+				saveEditedEntityRecord(
+					'postType',
+					NAVIGATION_POST_TYPE,
+					navigationId
+				),
+			SAVE_DELAY_MS
+		);
+
+		return () => window.clearTimeout( timer );
+	}, [ hasEdits, isDraft, navigationId, saveEditedEntityRecord ] );
+
+	return status === 'publish';
+}
 
 function NavigationEditStage() {
 	const navigate = useNavigate();
@@ -44,8 +121,10 @@ function NavigationEditStage() {
 	const [ isRenaming, setIsRenaming ] = useState( false );
 	const [ isDeleting, setIsDeleting ] = useState( false );
 	const [ renameTitle, setRenameTitle ] = useState( '' );
-	const { deleteEntityRecord, editEntityRecord } =
+	const { deleteEntityRecord, editEntityRecord, saveEntityRecord } =
 		useDispatch( coreDataStore );
+	const isLive = useSaveWhileDraft( navigationId );
+	const { locations } = useNavigationLocations( navigationId );
 	const { invalidateNavigationMenus } = useDispatch( cnlEditorStore );
 	const { createErrorNotice, createSuccessNotice } =
 		useDispatch( noticesStore );
@@ -78,14 +157,6 @@ function NavigationEditStage() {
 		} );
 	}, [ canAddMenuItems, navigate, navigationId, openAddMenuItems, search ] );
 
-	const editNavigationMenu = ( edits ) =>
-		editEntityRecord(
-			'postType',
-			NAVIGATION_POST_TYPE,
-			navigationId,
-			edits
-		);
-
 	const openRenameModal = () => {
 		setRenameTitle( menuTitle );
 		setIsRenaming( true );
@@ -107,12 +178,17 @@ function NavigationEditStage() {
 		setIsSaving( true );
 
 		try {
-			editNavigationMenu( { title: trimmedTitle } );
+			await renameMenu( {
+				editEntityRecord,
+				id: navigationId,
+				isLive,
+				saveEntityRecord,
+				title: trimmedTitle,
+			} );
+			invalidateNavigationMenus();
 			setIsRenaming( false );
 			createSuccessNotice(
-				__(
-					'Navigation menu renamed. Review and save changes when you are ready.'
-				),
+				getRenamedNotice( { status: isLive ? 'publish' : 'draft' } ),
 				{ type: 'snackbar' }
 			);
 		} catch ( error ) {
@@ -276,45 +352,20 @@ function NavigationEditStage() {
 									onClick={ renameNavigationMenu }
 									variant="primary"
 								>
-									{ __( 'Save' ) }
+									{ __( 'Rename' ) }
 								</Button>
 							</div>
 						</Modal>
 					) }
 					{ isDeleting && (
-						<Modal
-							className="routes-navigation-edit__item-modal"
-							onRequestClose={ closeDeleteModal }
-							title={ __( 'Delete navigation menu' ) }
-						>
-							<p>
-								{ sprintf(
-									/* translators: %s: navigation menu title. */
-									__(
-										'Are you sure you want to delete "%s"? This cannot be undone.'
-									),
-									menuTitle
-								) }
-							</p>
-							<div className="routes-navigation-edit__modal-actions">
-								<Button
-									disabled={ isSaving }
-									onClick={ closeDeleteModal }
-									variant="tertiary"
-								>
-									{ __( 'Cancel' ) }
-								</Button>
-								<Button
-									disabled={ isSaving }
-									isBusy={ isSaving }
-									isDestructive
-									onClick={ deleteNavigationMenu }
-									variant="primary"
-								>
-									{ __( 'Delete' ) }
-								</Button>
-							</div>
-						</Modal>
+						<DeleteNavigationMenuModal
+							isSaving={ isSaving }
+							isLive={ isLive }
+							locations={ locations }
+							menuTitle={ menuTitle }
+							onClose={ closeDeleteModal }
+							onDelete={ deleteNavigationMenu }
+						/>
 					) }
 				</div>
 			) }

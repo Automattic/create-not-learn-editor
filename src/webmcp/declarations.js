@@ -69,7 +69,7 @@ export const TOOLS = [
 	{
 		name: 'cnl-set-canvas',
 		description:
-			"Change how the editor's canvas shows the page open in it, as the canvas's own toolbar does: its mode, its device, or both. Browse shows the saved site as visitors see it, with links that can be followed; it only shows what is saved, so with unsaved changes the editor asks the person to save or discard them first, and the canvas moves to Browse only once they have. Edit is where the page is changed. Compose zooms out, to see the page's sections as a whole, and always shows it on a desktop. The tools that change the page move the canvas to Edit themselves. Returns the mode and device the canvas is on.",
+			"Change how the editor's canvas shows the page open in it, as the canvas's own toolbar does: its mode, its device, or both. Browse shows the saved site as visitors see it, with links that can be followed; it only shows what is published, so with unsaved edits to the open page the editor asks the person to save or discard them first, and while site changes are waiting the canvas stays in the editor to show them. Edit is where the page is changed. Compose zooms out, to see the page's sections as a whole, and always shows it on a desktop. The tools that change the page move the canvas to Edit themselves. Returns the mode and device the canvas is on.",
 		inputSchema: {
 			type: 'object',
 			properties: {
@@ -144,7 +144,7 @@ export const TOOLS = [
 	{
 		name: 'cnl-get-changes',
 		description:
-			"List the changes waiting to be saved, as the editor's Review changes lists them. Each says whether it shows on every page of the site or only on one. Changes nothing.",
+			"List the changes waiting to be saved, as the editor's Publish site lists them. Each says whether it shows on every page of the site or only on one. Changes nothing.",
 		inputSchema: { type: 'object', properties: {} },
 		annotations: READ_ONLY,
 	},

@@ -91,8 +91,9 @@ export function EditButton( { onEdit } ) {
 }
 
 /**
- * Exit, beside Save while editing. It leaves without saving: unsaved changes
- * are discarded, the page is on view again and the sidebar comes back.
+ * Exit, before the page or post's own buttons while editing. It stops
+ * editing, asking first about unsaved edits to the page or post, and the
+ * sidebar comes back. The site's changes keep waiting for Publish site.
  *
  * @param {Object}   props
  * @param {Function} props.onExit Stops editing.
@@ -103,7 +104,7 @@ export function ExitButton( { onExit } ) {
 		<Button
 			__next40pxDefaultSize
 			className="cnl-site-canvas__exit"
-			description={ __( 'Stop editing without saving' ) }
+			description={ __( 'Stop editing' ) }
 			onClick={ onExit }
 			variant="secondary"
 		>

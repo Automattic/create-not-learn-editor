@@ -46,17 +46,24 @@ function withTransition( update ) {
 
 /**
  * Expand the canvas, or put it back beside the sidebar and the screen,
- * animated. Does nothing if it is already that way.
+ * animated. Does nothing more if it is already that way.
  *
- * @param {boolean} next Whether to expand it.
+ * @param {boolean}     next   Whether to expand it.
+ * @param {?() => void} change Anything else that changes with it, such as
+ *                             the canvas's mode, so the transition's before
+ *                             and after pictures each show one state of the
+ *                             canvas, toolbar included, rather than the
+ *                             toolbar changing first and the canvas after.
  */
-export function expandCanvas( next ) {
+export function expandCanvas( next, change = null ) {
 	if ( next === document.body.classList.contains( EXPANDED_CLASS ) ) {
+		change?.();
 		setCanvasExpanded( next );
 		return;
 	}
 
 	withTransition( () => {
+		change?.();
 		setCanvasExpanded( next );
 		// Applied at once, so the transition's after picture has it.
 		document.body.classList.toggle( EXPANDED_CLASS, next );

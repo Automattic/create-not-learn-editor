@@ -27,7 +27,11 @@ import {
 } from './menu-helpers';
 
 function useNavigationLocations( menus ) {
-	const fallbackMenuId = menus[ 0 ]?.id;
+	// A Navigation block with no menu of its own shows the newest published
+	// menu, as core picks it. A draft is never shown.
+	const fallbackMenuId = menus.find(
+		( menu ) => menu.status === 'publish'
+	)?.id;
 	const mergeEdits = useMemo( () => createEditedTemplatePartsCache(), [] );
 	const { error, isResolving, templateParts } = useSelect(
 		( select ) => {
@@ -72,7 +76,7 @@ function useNavigationLocations( menus ) {
 export function useNavigationMenus() {
 	const searchParams = useSearch( { strict: false } );
 	const { invalidateNavigationMenus } = useDispatch( cnlEditorStore );
-	const { error, isLoading, menus } = useSelect( ( select ) => {
+	const { error, isLoading, savedMenus } = useSelect( ( select ) => {
 		const store = select( cnlEditorStore );
 
 		return {
@@ -80,9 +84,43 @@ export function useNavigationMenus() {
 			isLoading:
 				store.isFetchingNavigationMenus() ||
 				! store.hasFinishedResolution( 'getNavigationMenus', [] ),
-			menus: store.getNavigationMenus() || [],
+			savedMenus: store.getNavigationMenus() || EMPTY_ARRAY,
 		};
 	}, [] );
+	/*
+	 * A live menu's new name waits for Publish site, so the list shows it as
+	 * renamed already. Read as one string, so the list only changes when a
+	 * name does.
+	 */
+	const titleEdits = useSelect(
+		( select ) =>
+			savedMenus
+				.map(
+					( menu ) =>
+						select( coreDataStore ).getEntityRecordEdits(
+							'postType',
+							'wp_navigation',
+							menu.id
+						)?.title ?? ''
+				)
+				.join( '\u0000' ),
+		[ savedMenus ]
+	);
+	const menus = useMemo( () => {
+		const titles = titleEdits.split( '\u0000' );
+
+		return savedMenus.map( ( menu, index ) =>
+			titles[ index ]
+				? {
+						...menu,
+						title: {
+							raw: titles[ index ],
+							rendered: titles[ index ],
+						},
+					}
+				: menu
+		);
+	}, [ savedMenus, titleEdits ] );
 	const {
 		isResolvingLocations,
 		locationsError,

@@ -31,7 +31,9 @@ import { hasSections as hasSectionsFor } from '../sections';
 import { useComposeZoom } from './compose/use-compose-zoom';
 import { EDITOR_DEVICES } from './constants';
 import { useEditSectionControls } from './edit-section-controls';
-import { MODE_COMPOSE, MODE_EDIT } from './mode';
+import { DocumentActions, DocumentPublishPanel } from './document-actions';
+import { ExitDialog } from './exit-dialog';
+import { MODE_COMPOSE, MODE_EDIT, setOpenDocument } from './mode';
 import { expandCanvas, useCanvasExpansion } from './expansion';
 import { SectionModesLayer } from './section-modes/section-modes-layer';
 import {
@@ -44,7 +46,6 @@ import {
 	ViewMenu,
 	ZoomOutToggle,
 } from './toolbar';
-import { UnsavedChangesDialog } from './unsaved-changes-dialog';
 import { useOwnEditorSettings } from './use-own-editor-settings';
 import { useSectionLock } from './use-section-lock';
 import { useZoomGestures, ZoomControls } from './zoom-controls';
@@ -117,6 +118,22 @@ export function SiteCanvas( {
 		// Only a change of mode should move it.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ isPreviewing ] );
+	/*
+	 * A page or post, not a layout or a header, open in the expanded canvas
+	 * saves and publishes here, with core's buttons. Everything else waits
+	 * for Publish site. See `src/top-bar/README.md`.
+	 */
+	const openDocument =
+		isExpanded &&
+		! isPreviewing &&
+		editorEntity &&
+		! editorEntity.postType.startsWith( 'wp_' )
+			? editorEntity
+			: null;
+	useEffect( () => {
+		setOpenDocument( openDocument );
+	}, [ openDocument ] );
+	useEffect( () => () => setOpenDocument( null ), [] );
 	// Document Overview's list closes as the canvas goes back.
 	useEffect( () => {
 		if ( ! isExpanded ) {
@@ -215,7 +232,7 @@ export function SiteCanvas( {
 						liveUrl={ canvas.liveUrl }
 						editRoute={ canvas.editRoute }
 					/>
-					{ canZoom && (
+					{ canZoom && ! canvas.isAwaitingPreview && (
 						<ZoomOutToggle
 							isComposing={ isComposing }
 							onToggle={ () =>
@@ -223,15 +240,21 @@ export function SiteCanvas( {
 							}
 						/>
 					) }
-					{ /* Save goes after these, from `src/top-bar`. */ }
-					{ isPreviewing && canvas.canEdit && (
+					{ /*
+					 * Edit while the page is on view, or while the editor
+					 * only shows a change made beside it. Exit once it
+					 * fills the editor, then the open page or post's own
+					 * buttons.
+					 */ }
+					{ ( isPreviewing || ! isExpanded ) && canvas.canEdit && (
 						<EditScope>
-							<EditButton
-								onEdit={ () => canvas.requestMode( MODE_EDIT ) }
-							/>
+							<EditButton onEdit={ canvas.edit } />
 						</EditScope>
 					) }
-					{ ! isPreviewing && <ExitButton onExit={ canvas.exit } /> }
+					{ ! isPreviewing && isExpanded && (
+						<ExitButton onExit={ canvas.exit } />
+					) }
+					{ openDocument && <DocumentActions /> }
 				</div>
 			</header>
 			<div className="cnl-site-canvas__body" ref={ bodyRef }>
@@ -265,6 +288,7 @@ export function SiteCanvas( {
 						onExitCompose={ () => canvas.requestMode( MODE_EDIT ) }
 					/>
 				) }
+				{ openDocument && <DocumentPublishPanel /> }
 				{ canZoom && (
 					<ZoomControls
 						isComposing={ isComposing }
@@ -305,9 +329,7 @@ export function SiteCanvas( {
 					) }
 				</div>
 			</div>
-			{ canvas.dialog.isOpen && (
-				<UnsavedChangesDialog { ...canvas.dialog } />
-			) }
+			{ canvas.dialog.isOpen && <ExitDialog { ...canvas.dialog } /> }
 		</section>
 	);
 }

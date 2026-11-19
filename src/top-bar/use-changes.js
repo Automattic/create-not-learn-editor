@@ -9,6 +9,7 @@
 /**
  * WordPress dependencies
  */
+import { parse } from '@wordpress/block-serialization-default-parser';
 import { store as coreStore } from '@wordpress/core-data';
 import { useDispatch, useRegistry, useSelect } from '@wordpress/data';
 import { useEntitiesSavedStatesIsDirty } from '@wordpress/editor';
@@ -18,6 +19,7 @@ import { __, sprintf } from '@wordpress/i18n';
  * Internal dependencies
  */
 import { unlock } from '../lock-unlock';
+import { useOpenDocument, useSelfSaving } from '../site-canvas/mode';
 
 /*
  * Named as the editor names them, so a change reads as the place it was made.
@@ -153,6 +155,23 @@ function getRecordId( { kind, name, key } ) {
 }
 
 /**
+ * Whether a change is to the page or post open in the canvas, which saves
+ * and publishes there, rather than with the site's changes.
+ *
+ * @param {Object}  change       A change or edited record.
+ * @param {?Object} openDocument `{ postType, postId }`, or null.
+ * @return {boolean} Whether it is the open document's.
+ */
+export function isDocumentChange( change, openDocument ) {
+	return (
+		Boolean( openDocument ) &&
+		change.kind === 'postType' &&
+		change.name === openDocument.postType &&
+		String( change.key ) === String( openDocument.postId )
+	);
+}
+
+/**
  * The changes waiting to be saved, in the user's terms.
  *
  * @param {Object[]} dirtyEntityRecords      Edited records, with each edited site
@@ -225,6 +244,91 @@ export function getDirtyRecords( select ) {
 	];
 }
 
+const NAVIGATION_TYPE = 'wp_navigation';
+
+/**
+ * The menus a record's edited blocks show, by ID.
+ *
+ * @param {Object} record An edited template, template part or post.
+ * @return {number[]} The menus its Navigation blocks point to.
+ */
+function getNavigationRefs( record ) {
+	const refs = [];
+	const walk = ( blocks ) =>
+		( blocks || [] ).forEach( ( block ) => {
+			if ( block.name === 'core/navigation' && block.attributes?.ref ) {
+				refs.push( Number( block.attributes.ref ) );
+			}
+			walk( block.innerBlocks );
+		} );
+
+	// What core saves: the content, unless it is to be made from the blocks.
+	if ( typeof record?.content === 'function' ) {
+		walk( record.blocks );
+	} else if ( typeof record?.content === 'string' ) {
+		// Parsed blocks name their attributes `attrs`.
+		walk(
+			parse( record.content ).map( function toBlock( block ) {
+				return {
+					name: block.blockName,
+					attributes: block.attrs,
+					innerBlocks: block.innerBlocks.map( toBlock ),
+				};
+			} )
+		);
+	}
+
+	return refs;
+}
+
+/**
+ * Menus still drafts that the site's changes put on the site, a new menu
+ * put in the header say, made ready to publish with them. Core only shows
+ * published menus, so a draft is never live until then.
+ *
+ * @param {Object}   registry Data registry.
+ * @param {Object[]} records  The records being published.
+ * @return {Object[]} The menus, as records for core's save.
+ */
+function publishDraftMenus( registry, records ) {
+	const store = registry.select( coreStore );
+	const ids = new Set(
+		records
+			.filter( ( { kind } ) => kind === 'postType' )
+			.flatMap( ( { name, key } ) =>
+				getNavigationRefs(
+					store.getEditedEntityRecord( 'postType', name, key )
+				)
+			)
+	);
+	const isPublishing = ( id ) =>
+		records.some(
+			( { name, key } ) =>
+				name === NAVIGATION_TYPE && Number( key ) === id
+		);
+
+	return [ ...ids ]
+		.filter(
+			( id ) =>
+				! isPublishing( id ) &&
+				store.getEntityRecord( 'postType', NAVIGATION_TYPE, id )
+					?.status === 'draft'
+		)
+		.map( ( id ) => {
+			registry
+				.dispatch( coreStore )
+				.editEntityRecord(
+					'postType',
+					NAVIGATION_TYPE,
+					id,
+					{ status: 'publish' },
+					{ undoIgnore: true }
+				);
+
+			return { kind: 'postType', name: NAVIGATION_TYPE, key: id };
+		} );
+}
+
 // Long enough for the editor to load a discarded layout's parts and menus.
 const DISCARD_SETTLE_MS = 1500;
 
@@ -289,12 +393,27 @@ function putBackWhileSettling( registry, kept ) {
 }
 
 /**
+ * Every unsaved change, and the same changes split by where they are
+ * published: the page or post open in the canvas, if one is, publishes
+ * there, and everything else, the site's changes, with Publish site.
+ *
  * @return {Object} `changes`, each with an `id`, a `label`, a `detail` and
- *                  `isSiteWide`, whether they are saving, and `save`,
- *                  `discard` and `discardAll` actions.
+ *                  `isSiteWide`, `siteChanges`, `documentChange` (or null),
+ *                  whether they are saving, and `save`, `publishSite`,
+ *                  `discard`, `discardAll` and `discardSite` actions.
  */
 export function useChanges() {
-	const { dirtyEntityRecords } = useEntitiesSavedStatesIsDirty();
+	const { dirtyEntityRecords: allDirtyRecords } =
+		useEntitiesSavedStatesIsDirty();
+	const openDocument = useOpenDocument();
+	// A record that saves itself, like a menu shown nowhere, is never a
+	// change waiting for anything.
+	const selfSaving = useSelfSaving();
+	const dirtyEntityRecords = selfSaving.length
+		? allDirtyRecords.filter(
+				( record ) => ! selfSaving.includes( getRecordId( record ) )
+			)
+		: allDirtyRecords;
 	const {
 		editedSite,
 		savedSite,
@@ -374,9 +493,45 @@ export function useChanges() {
 
 	const discardAll = () => discardRecords( changes );
 
+	const siteChanges = changes.filter(
+		( change ) => ! isDocumentChange( change, openDocument )
+	);
+	const documentChange =
+		changes.find( ( change ) =>
+			isDocumentChange( change, openDocument )
+		) || null;
+
+	const discardSite = () => discardRecords( siteChanges );
+
 	// Core's own save, as its review uses: it saves site settings together
 	// and publishes menus, and reports success or failure in a snackbar.
 	const save = () => saveDirtyEntities( { dirtyEntityRecords } );
 
-	return { changes, isSaving, save, discard, discardAll };
+	// The same save, leaving out the open page or post, which publishes from
+	// the canvas, and taking in the draft menus it puts on the site.
+	const publishSite = () => {
+		const records = dirtyEntityRecords.filter(
+			( record ) => ! isDocumentChange( record, openDocument )
+		);
+
+		return saveDirtyEntities( {
+			dirtyEntityRecords: [
+				...records,
+				...publishDraftMenus( registry, records ),
+			],
+			successNoticeContent: __( 'Site published.' ),
+		} );
+	};
+
+	return {
+		changes,
+		documentChange,
+		isSaving,
+		save,
+		siteChanges,
+		publishSite,
+		discard,
+		discardAll,
+		discardSite,
+	};
 }

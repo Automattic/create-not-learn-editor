@@ -61,7 +61,10 @@ export function AddNavigationModal( { onClose } ) {
 					...( autoSyncWithPages
 						? { content: PAGE_LIST_BLOCK_CONTENT }
 						: {} ),
-					status: 'publish',
+					// A draft until the site's changes put it somewhere and
+					// are published: core never shows a draft menu, nor picks
+					// it for a Navigation block with no menu of its own.
+					status: 'draft',
 					title: trimmedTitle,
 				},
 				{ throwOnError: true }

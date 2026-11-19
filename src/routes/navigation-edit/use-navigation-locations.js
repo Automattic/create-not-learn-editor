@@ -66,7 +66,10 @@ export function useNavigationLocations( navigationId ) {
 		},
 		[ mergeEdits, navigationId ]
 	);
-	const fallbackMenuId = menus[ 0 ]?.id;
+	// The newest published menu, as core picks it. A draft is never shown.
+	const fallbackMenuId = menus.find(
+		( item ) => item.status === 'publish'
+	)?.id;
 	const locationsMap = useMemo(
 		() => buildNavigationLocationsMap( templateParts, fallbackMenuId ),
 		[ fallbackMenuId, templateParts ]

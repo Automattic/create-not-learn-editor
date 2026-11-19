@@ -219,12 +219,8 @@ export function useMenuItemsEditor( navigationId ) {
 					: createNavigationLinkBlockFromPage( page ),
 			],
 			mode === 'submenu-page'
-				? __(
-						'Submenu added to menu. Review and save changes when you are ready.'
-					)
-				: __(
-						'Page added to menu. Review and save changes when you are ready.'
-					)
+				? __( 'Submenu added to menu.' )
+				: __( 'Page added to menu.' )
 		);
 
 	const addCustomLinkToMenu = ( { isSubmenu, label, url } ) =>
@@ -243,12 +239,8 @@ export function useMenuItemsEditor( navigationId ) {
 						} ),
 			],
 			isSubmenu
-				? __(
-						'Submenu added to menu. Review and save changes when you are ready.'
-					)
-				: __(
-						'Link added to menu. Review and save changes when you are ready.'
-					)
+				? __( 'Submenu added to menu.' )
+				: __( 'Link added to menu.' )
 		);
 
 	const addLabelOnlySubmenuToMenu = ( label ) =>
@@ -259,18 +251,11 @@ export function useMenuItemsEditor( navigationId ) {
 					url: '#',
 				} ),
 			],
-			__(
-				'Submenu added to menu. Review and save changes when you are ready.'
-			)
+			__( 'Submenu added to menu.' )
 		);
 
 	const addMenuItemsToMenu = ( blocks ) =>
-		addNavigationBlocks(
-			blocks,
-			__(
-				'Menu items added. Review and save changes when you are ready.'
-			)
-		);
+		addNavigationBlocks( blocks, __( 'Menu items added.' ) );
 
 	// Turn the auto menu into links to the pages it lists now, as a change to
 	// review and save with the rest.

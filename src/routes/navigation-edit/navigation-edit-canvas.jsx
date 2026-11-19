@@ -491,7 +491,7 @@ export default function NavigationEditCanvas() {
 			setLocationModalMode( null );
 			createSuccessNotice(
 				__(
-					'Menu locations updated. Review and save changes when you are ready.'
+					'Menu locations updated. They go live when you publish the site.'
 				),
 				{ type: 'snackbar' }
 			);

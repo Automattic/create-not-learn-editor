@@ -35,7 +35,9 @@ import {
 	getMenuRowDescription,
 	getMenuTitle,
 	getNavigationMenuId,
+	getRenamedNotice,
 	navigateToNavigationEditRoute,
+	renameMenu,
 } from './menu-helpers';
 import useMainMenu from '../content/use-main-menu';
 import { useNavigationMenus } from './use-navigation-menus';
@@ -58,7 +60,7 @@ const LOCATION_ICONS = {
 function Stage() {
 	const navigate = useNavigate();
 	const searchParams = useSearch( { strict: false } );
-	const { deleteEntityRecord, saveEntityRecord } =
+	const { deleteEntityRecord, editEntityRecord, saveEntityRecord } =
 		useDispatch( coreDataStore );
 	const { invalidateNavigationMenus } = useDispatch( cnlEditorStore );
 	const { createErrorNotice, createSuccessNotice } =
@@ -119,18 +121,16 @@ function Stage() {
 		setIsRowActionSaving( true );
 
 		try {
-			await saveEntityRecord(
-				'postType',
-				NAVIGATION_POST_TYPE,
-				{
-					id: menuId,
-					title,
-				},
-				{ throwOnError: true }
-			);
+			await renameMenu( {
+				editEntityRecord,
+				id: menuId,
+				isLive: menuToRename.status === 'publish',
+				saveEntityRecord,
+				title,
+			} );
 			refreshNavigationMenus();
 			setMenuToRename( null );
-			createSuccessNotice( __( 'Navigation menu renamed.' ), {
+			createSuccessNotice( getRenamedNotice( menuToRename ), {
 				type: 'snackbar',
 			} );
 		} catch ( renameError ) {
@@ -157,7 +157,8 @@ function Stage() {
 				NAVIGATION_POST_TYPE,
 				{
 					content: getMenuContent( menu ),
-					status: 'publish',
+					// A draft, as a new menu is: see `add-navigation-modal`.
+					status: 'draft',
 					title: sprintf(
 						/* translators: %s: navigation menu title. */
 						__( '%s (Copy)' ),
@@ -364,7 +365,11 @@ function Stage() {
 		menuToDelete && (
 			<DeleteNavigationMenuModal
 				isSaving={ isRowActionSaving }
+				isLive={ menuToDelete.status !== 'draft' }
 				key="delete-navigation-menu-modal"
+				locations={
+					locationsMap[ getNavigationMenuId( menuToDelete ) ] || []
+				}
 				menuTitle={ getMenuTitle( menuToDelete ) }
 				onClose={ closeDeleteModal }
 				onDelete={ deleteNavigationMenu }

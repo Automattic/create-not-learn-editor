@@ -17,19 +17,17 @@ import { useNavigate } from '@wordpress/route';
 import { startHomeTrip } from '../../home-trip';
 import { settings } from '../../settings';
 import { getSiteAddress } from './site-address';
-import { ReviewChanges } from '../../top-bar/review-changes';
+import { PublishSiteDialog } from '../../top-bar/publish-site-dialog';
 import { useChanges } from '../../top-bar/use-changes';
 import {
 	Badge,
 	Icon,
 	Link,
 	Tooltip,
-	_n,
 	__,
 	coreDataStore,
 	decodeEntities,
 	pencilIcon,
-	sprintf,
 	useSelect,
 	useState,
 } from '../../wordpress-packages';
@@ -128,15 +126,16 @@ export function SiteAddress( { fallbackLabel } ) {
 }
 
 /**
- * How many changes aren't saved yet, as a badge beside the site's name that
- * opens the same review Save does. Nothing shows once everything is saved.
+ * Whether the site has changes waiting to go live, as a badge beside the
+ * site's name that opens the same dialog Publish site does. Nothing shows
+ * once everything is published.
  *
  * @return {?Element} The status.
  */
 export function SiteStatus() {
-	const { changes, isSaving } = useChanges();
+	const { siteChanges, isSaving } = useChanges();
 	const [ isReviewOpen, setIsReviewOpen ] = useState( false );
-	const count = changes.length;
+	const count = siteChanges.length;
 
 	let badge = null;
 
@@ -157,19 +156,11 @@ export function SiteStatus() {
 							render={ <button type="button" /> }
 							onClick={ () => setIsReviewOpen( true ) }
 						>
-							{ sprintf(
-								/* translators: %d: Number of changes waiting to be saved. */
-								_n(
-									'%d unsaved change',
-									'%d unsaved changes',
-									count
-								),
-								count
-							) }
+							{ __( 'Changes waiting' ) }
 						</Badge>
 					}
 				/>
-				<Tooltip.Popup>{ __( 'Review changes' ) }</Tooltip.Popup>
+				<Tooltip.Popup>{ __( 'Publish site' ) }</Tooltip.Popup>
 			</Tooltip.Root>
 		);
 	}
@@ -179,7 +170,7 @@ export function SiteStatus() {
 		<>
 			{ badge }
 			{ isReviewOpen && (
-				<ReviewChanges onClose={ () => setIsReviewOpen( false ) } />
+				<PublishSiteDialog onClose={ () => setIsReviewOpen( false ) } />
 			) }
 		</>
 	);

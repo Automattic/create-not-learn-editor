@@ -1,27 +1,179 @@
 /*
- * Save controls in the canvas toolbar, put there by `mountSaveControls()`,
- * with which agent is connected before them when one is.
+ * Top bar, added to boot's layout by `mountTopBar()`, above the sidebar and
+ * the surfaces, on every screen, the expanded canvas and small screens
+ * included. Boot's layout is matched by its CSS-module suffixes. Its own
+ * Save, at the foot of the sidebar, gives way to Publish site here.
  */
 @use "../colors" as *;
 
+// Room for the 40px buttons in it and little more, so the bar stays slim.
+$top-bar-height: 48px;
+$layout: '#create-not-learn-editor-app [class*="__layout"]:has(> .cnl-top-bar-host)';
+
+#{$layout} {
+	box-sizing: border-box;
+	padding-block-start: $top-bar-height;
+
+	[class*="__sidebar"] [class*="__scrollable"] > [class*="__footer"] {
+		display: none;
+	}
+}
+
 /*
- * Boot's own save button, at the foot of the sidebar, is only needed on a
- * screen without a canvas toolbar to hold the save controls, like Media.
+ * Small screens: boot fixes the stage, the canvas and the sidebar's drawer
+ * just under the admin bar, so they move down by the bar too.
  */
-body.cnl-has-canvas-save #create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"]) [class*="__sidebar"] [class*="__scrollable"] > [class*="__footer"] {
-	display: none;
+@media (max-width: 782px) {
+
+	#{$layout} {
+
+		[class*="__stage"],
+		[class*="__inspector"],
+		[class*="__canvas"]:not([class*="__has-mobile-drawer"]) {
+			top: calc(var(--wp-admin--admin-bar--height, 0px) + #{$top-bar-height});
+			height: calc(100vh - var(--wp-admin--admin-bar--height, 0px) - #{$top-bar-height});
+		}
+
+		[class*="__mobile-sidebar-drawer"] {
+			top: calc(var(--wp-admin--admin-bar--height, 0px) + #{$top-bar-height});
+		}
+	}
 }
 
-.cnl-canvas-save-host {
-	display: contents;
+/*
+ * Core's full-screen editor, opened with "Open in advanced editor", has a
+ * header of its own, with its own Save, so the bar steps aside.
+ */
+#{$layout}[class*="__has-full-canvas"] {
+	padding-block-start: 0;
+
+	> .cnl-top-bar-host {
+		display: none;
+	}
 }
 
-.cnl-canvas-save {
+.cnl-top-bar-host {
+	position: absolute;
+	inset-block-start: 0;
+	inset-inline: 0;
+	z-index: 2;
+	height: $top-bar-height;
+	padding-inline: var(--wpds-dimension-gap-md);
+}
+
+/*
+ * Three columns with equal outer tracks, so Go to page stays centred on the
+ * screen whatever the ends show. On a small screen Go to page goes, and the
+ * ends share the bar.
+ */
+.cnl-top-bar {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(160px, 360px) minmax(max-content, 1fr);
+	align-items: center;
+	gap: var(--wpds-dimension-gap-lg);
+	height: 100%;
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: var(--wpds-typography-font-size-md);
+}
+
+@media (max-width: 781px) {
+
+	.cnl-top-bar {
+		grid-template-columns: minmax(0, 1fr) max-content;
+	}
+
+	.cnl-top-bar__center {
+		display: none;
+	}
+}
+
+.cnl-top-bar__start {
+	min-width: 0;
+}
+
+.cnl-top-bar__center {
+	min-width: 0;
+}
+
+.cnl-top-bar__end {
 	display: flex;
 	align-items: center;
+	justify-content: flex-end;
 	gap: var(--wpds-dimension-gap-md);
-	min-width: 0;
-	font-size: var(--wpds-typography-font-size-md);
+}
+
+// The site's logo and name, quiet on the dark frame until hovered.
+.cnl-top-bar__site {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+	max-width: 100%;
+	height: var(--wpds-dimension-size-md);
+	padding-inline: var(--wpds-dimension-padding-xs) var(--wpds-dimension-padding-sm);
+	border: 0;
+	border-radius: var(--wpds-border-radius-sm);
+	background: none;
+	color: var(--wpds-color-foreground-interactive-neutral);
+	font: inherit;
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+	cursor: pointer;
+
+	&:hover {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+		color: var(--wpds-color-foreground-interactive-neutral-active);
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wp-admin-theme-color);
+		outline-offset: 0;
+	}
+}
+
+.cnl-top-bar__site-logo {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: var(--wpds-border-radius-sm);
+	background: var(--wpds-color-background-surface-neutral-strong);
+	color: var(--wpds-color-foreground-content-neutral);
+	font-size: 13px;
+	font-weight: 600;
+	object-fit: cover;
+}
+
+.cnl-top-bar__site-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+// Go to page fills the middle track. The page finder styles it; see
+// `src/page-finder/style.scss`.
+.cnl-go-to-page {
+	width: 100%;
+}
+
+.cnl-publish-status {
+	display: flex;
+	align-items: center;
+}
+
+// "N site changes waiting": a quiet note while a page or post is open, not
+// something to press.
+.cnl-publish-status__waiting,
+.cnl-publish-status__up-to-date {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-xs);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	white-space: nowrap;
+
+	svg {
+		fill: currentcolor;
+	}
 }
 
 .cnl-agent-status {
@@ -109,80 +261,8 @@ $agent-green: var(--wpds-color-stroke-surface-success-strong);
 	border-top: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
 }
 
-.cnl-save-controls {
-	position: relative;
-	display: flex;
-	align-items: center;
-}
-
-// Read out as it changes; Save's tooltip shows it.
-.cnl-save-controls__status {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-	clip-path: inset(50%);
-	white-space: nowrap;
-}
-
 /*
- * Save with nothing to save. Core keeps a disabled primary button blue and
- * only dims its words, which reads as ready, so it takes a faint fill
- * instead.
- */
-.components-button.is-primary.cnl-save-controls__button[aria-disabled="true"] {
-
-	&,
-	&:hover,
-	&:active {
-		background: rgba(0, 0, 0, 0.05);
-		color: var(--wpds-color-foreground-content-neutral-weak);
-		box-shadow: none;
-	}
-}
-
-// Pulses when a new change is added; see `save-controls.jsx`.
-.cnl-save-controls__button.is-pulsing {
-	animation: cnl-save-controls-pulse 0.7s ease-out 2;
-}
-
-// Lightened, so the ring reads as a glow round the button.
-$save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
-
-@keyframes cnl-save-controls-pulse {
-
-	from {
-		box-shadow: 0 0 0 0 $save-pulse-color;
-		transform: scale(1.08);
-	}
-
-	to {
-		box-shadow: 0 0 0 10px transparent;
-		transform: scale(1);
-	}
-}
-
-// No movement, so the ring shows once and fades instead.
-@media (prefers-reduced-motion: reduce) {
-
-	.cnl-save-controls__button.is-pulsing {
-		animation: cnl-save-controls-glow 1.4s ease-out;
-	}
-}
-
-@keyframes cnl-save-controls-glow {
-
-	from {
-		box-shadow: 0 0 0 3px $save-pulse-color;
-	}
-
-	to {
-		box-shadow: 0 0 0 3px transparent;
-	}
-}
-
-/*
- * Review changes dialog.
+ * Publish site dialog, `publish-site-dialog.jsx`.
  */
 .cnl-review-changes__groups {
 	display: flex;
@@ -282,12 +362,6 @@ $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 	text-overflow: ellipsis;
 }
 
-.cnl-review-changes__group-count {
-	margin-inline-start: var(--wpds-dimension-gap-sm);
-	color: var(--wpds-color-foreground-content-neutral-weak);
-	font-weight: var(--wpds-typography-font-weight-default);
-}
-
 .cnl-review-changes__show-more {
 	align-self: flex-start;
 }
@@ -316,4 +390,20 @@ $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 	display: flex;
 	gap: var(--wpds-dimension-gap-sm);
 	margin-inline-start: auto;
+}
+
+// Publish, with the rest of the ways to publish behind the arrow beside it.
+.cnl-review-changes__split {
+	display: flex;
+	gap: 1px;
+
+	> .components-button:first-child {
+		border-start-end-radius: 0;
+		border-end-end-radius: 0;
+	}
+
+	.components-dropdown-menu__toggle {
+		border-start-start-radius: 0;
+		border-end-start-radius: 0;
+	}
 }
