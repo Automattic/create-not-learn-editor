@@ -82,12 +82,7 @@ import { EmptyPage } from './empty-page';
 import { useLayoutName } from './layout-items';
 import { RemoveControl } from './remove-control';
 import { getParentView } from './design-bar';
-import {
-	LayoutScope,
-	MODE_CONTENT,
-	MODE_FREEFORM,
-	MODE_DESIGN,
-} from './section-chrome';
+import { LayoutScope, MODE_CONTENT, MODE_FREEFORM } from './section-chrome';
 import { PostsNotice } from './posts-notice';
 import { usePostsSection } from './posts-section';
 import { getTargetOf, useCanvasHover } from './use-canvas-events';
@@ -106,6 +101,7 @@ import {
 import { getLayerTitle, mergeRunRects, useContentHost } from './layer-helpers';
 import { useGroupedSections } from './use-grouped-sections';
 import { useSectionClicks } from './use-section-clicks';
+import { useOpenSection } from './use-open-section';
 import { useModeSync } from './use-mode-sync';
 import { usePostsTripBack } from './use-posts-trip-back';
 import { useLayerEffects } from './use-layer-effects';
@@ -657,7 +653,7 @@ export function SectionModesLayer( {
 		[ lockedKey ]
 	);
 
-	const openId = active && active.mode !== MODE_DESIGN ? active.id : null;
+	const openId = useOpenSection( active, getMembers, rows, openRowId );
 	// Joined, so the selector returns a value that only changes when they do.
 	const fadedIds = useSelect(
 		( select ) =>
