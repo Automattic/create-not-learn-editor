@@ -27,6 +27,7 @@ import {
 import { openRoute } from '../../../src/open-route';
 import { OPEN_SIDEBAR_HOME_EVENT } from '../../../src/open-sidebar-home';
 import { openPreferences } from '../../../src/preferences';
+import { UnsavedChanges } from '../../../src/top-bar/unsaved-changes';
 
 /*
  * What can be pointed at in the sidebar while it is a strip of icons, the
@@ -447,8 +448,24 @@ function createSidebarFoot() {
 }
 
 /**
+ * The site's unsaved changes, above the foot, while there are any.
+ *
+ * @return {Element} Its row.
+ */
+function createSidebarChanges() {
+	const container = document.createElement( 'div' );
+	container.className = 'cnl-sidebar-changes';
+	createRoot( container ).render( el( UnsavedChanges ) );
+
+	return container;
+}
+
+/**
  * Add the plugin's own pieces to boot's sidebar.
  *
+ * - The site's unsaved changes, above the foot, while there are any
+ *   (`src/top-bar/unsaved-changes.jsx`). They're here, not on a screen, as
+ *   they're the whole site's.
  * - A foot below the menu, outside boot's navigation screens so it stays
  *   put when drilling in and out, with the workspace switcher and a button
  *   to expand the sidebar from its strip of icons and fold it back. The
@@ -469,6 +486,7 @@ function createSidebarFoot() {
  */
 export function enhanceSidebar() {
 	const workspaceSwitcher = createSidebarFoot();
+	const unsavedChanges = createSidebarChanges();
 
 	mountStripTooltip();
 	returnHomeWithSidebar();
@@ -502,8 +520,12 @@ export function enhanceSidebar() {
 			':scope > [class*="__content"]'
 		);
 
-		if ( menu && menu.nextElementSibling !== workspaceSwitcher ) {
-			menu.after( workspaceSwitcher );
+		if ( menu && menu.nextElementSibling !== unsavedChanges ) {
+			menu.after( unsavedChanges );
+		}
+
+		if ( menu && unsavedChanges.nextElementSibling !== workspaceSwitcher ) {
+			unsavedChanges.after( workspaceSwitcher );
 		}
 	};
 
