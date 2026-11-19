@@ -5,7 +5,6 @@ const {
 	getPageItem,
 	getStage,
 	openPageLayouts,
-	setCanvasMode,
 	test,
 	visitEditor,
 } = require( '../utils' );
@@ -40,8 +39,8 @@ test.describe( 'Pages view', () => {
 			} )
 		).toBeAttached();
 
-		// The site is open in Edit before any page is picked.
-		await expectCanvasMode( page, 'Edit' );
+		// The site is on view before any page is picked.
+		await expectCanvasMode( page, 'Browse' );
 	} );
 
 	test( 'shows a page’s summary, with its layout and details a step in', async ( {
@@ -85,9 +84,7 @@ test.describe( 'Pages view', () => {
 			summary.getByRole( 'button', { name: 'Edit Menus' } )
 		).toBeVisible();
 
-		// Its sections aren't listed, even while composing.
-		await setCanvasMode( page, 'Compose' );
-		await expect( summary ).toBeVisible();
+		// Its sections aren't listed. Composing fills the editor, over this.
 		await expect(
 			stage.getByRole( 'heading', { name: 'On this page' } )
 		).toHaveCount( 0 );

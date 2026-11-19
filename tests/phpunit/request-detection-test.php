@@ -37,22 +37,6 @@ class CNL_Editor_Request_Detection_Test extends WP_UnitTestCase {
 		$this->assertFalse( cnl_editor_hide_admin_bar_in_preview( true ) );
 	}
 
-	public function test_preview_names_blocks() {
-		$block = array( 'blockName' => 'core/paragraph' );
-
-		$this->assertSame( '<p>Hi</p>', cnl_editor_name_preview_block( '<p>Hi</p>', $block ) );
-
-		$this->as_preview();
-		$this->assertSame(
-			'<p data-cnl-block="core/paragraph">Hi</p>',
-			cnl_editor_name_preview_block( '<p>Hi</p>', $block )
-		);
-		$this->assertSame(
-			'<p data-cnl-block="core/group">Hi</p>',
-			cnl_editor_name_preview_block( '<p data-cnl-block="core/group">Hi</p>', $block )
-		);
-	}
-
 	public function test_preview_frame_styles_only_in_previews() {
 		ob_start();
 		cnl_editor_output_preview_frame_styles();

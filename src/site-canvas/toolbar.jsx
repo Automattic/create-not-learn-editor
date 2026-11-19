@@ -1,15 +1,14 @@
 /**
- * The site canvas toolbar's controls: Edit, which expands the canvas, undo
- * and redo while editing, stepping through pages visited in Browse, the
- * Browse switch, the View menu with the device and the live page in a new
- * tab, and Zoom out for Compose. The way out to the full-screen editor is in
+ * The site canvas toolbar's controls: Edit while the page is on view, and
+ * Exit beside Save while editing, undo and redo while editing, stepping
+ * through pages visited while viewing, the View menu with the device and the
+ * live page in a new tab, and Zoom out for Compose. The way out to the full-screen editor is in
  * the Options menu after Save.
  */
 
 /**
  * WordPress dependencies
  */
-import { Tooltip as ComponentsTooltip } from '@wordpress/components';
 import { store as keyboardShortcutsStore } from '@wordpress/keyboard-shortcuts';
 
 /**
@@ -25,7 +24,6 @@ import {
 	coreDataStore,
 	desktopIcon,
 	dispatch,
-	fullscreenExitIcon,
 	displayShortcut,
 	isRTL,
 	listViewIcon,
@@ -36,7 +34,6 @@ import {
 	select as selectFromStore,
 	squareIcon,
 	tabletIcon,
-	ToggleControl,
 	undoIcon,
 	useDispatch,
 	useSelect,
@@ -71,51 +68,21 @@ function getDeviceOptions() {
 }
 
 /**
- * Edit, which expands the canvas to fill the editor, and then a back arrow,
- * which puts it back beside the sidebar and the screen, as the back arrow of
- * boot's full-screen editor leaves that. In Browse it is Collapse instead, with
- * the arrows of leaving full screen, as a back arrow beside Browse's own back
- * and forward would read as one more step through the site's pages. Editing
- * is already on wherever Browse isn't, so all Edit adds is the room; from
- * Browse it edits too.
+ * Edit, at the end of the toolbar while the page is only on view. It opens
+ * the page to change, filling the editor, where Save and Exit take its place.
  *
  * @param {Object}   props
- * @param {boolean}  props.isBrowsing Whether Browse is on.
- * @param {boolean}  props.isExpanded Whether the canvas fills the editor.
- * @param {Function} props.onToggle   Expands the canvas or puts it back.
+ * @param {Function} props.onEdit Starts editing.
  * @return {Element} The button.
  */
-export function ExpandButton( { isBrowsing, isExpanded, onToggle } ) {
-	if ( isExpanded ) {
-		let backIcon = isRTL() ? chevronRightIcon : chevronLeftIcon;
-		if ( isBrowsing ) {
-			backIcon = fullscreenExitIcon;
-		}
-
-		return (
-			<Button
-				__next40pxDefaultSize
-				className="cnl-site-canvas__expand-toggle is-back"
-				icon={ backIcon }
-				label={ isBrowsing ? __( 'Collapse' ) : __( 'Back' ) }
-				onClick={ onToggle }
-				showTooltip
-			/>
-		);
-	}
-
+export function EditButton( { onEdit } ) {
 	return (
 		<Button
 			__next40pxDefaultSize
-			className="cnl-site-canvas__expand-toggle"
-			// Named by the word on it, so it can be asked for by that word,
-			// as voice control does. What it does is its description, and
-			// its tooltip.
-			description={ __( 'Change this page with more room' ) }
+			className="cnl-site-canvas__edit"
+			description={ __( 'Change this page' ) }
 			icon={ pencilIcon }
-			label={ __( 'Edit' ) }
-			onClick={ onToggle }
-			showTooltip
+			onClick={ onEdit }
 			variant="primary"
 		>
 			{ __( 'Edit' ) }
@@ -124,35 +91,24 @@ export function ExpandButton( { isBrowsing, isExpanded, onToggle } ) {
 }
 
 /**
- * Browse, a switch beside the device: on, the canvas shows the saved site
- * as visitors see it, with links to follow; off, the page is open to change.
- * Compose is editing too, so Browse is off while it is on. Controlled, so a
- * switch the canvas holds back, to ask about unsaved changes first, leaves
- * it where it was.
+ * Exit, beside Save while editing. It leaves without saving: unsaved changes
+ * are discarded, the page is on view again and the sidebar comes back.
  *
  * @param {Object}   props
- * @param {boolean}  props.canEdit    Whether what is on show can be edited.
- *                                    Browse can't be turned off without.
- * @param {boolean}  props.isBrowsing Whether Browse is on.
- * @param {Function} props.onChange   Called with whether to browse.
- * @return {Element} The switch.
+ * @param {Function} props.onExit Stops editing.
+ * @return {Element} The button.
  */
-export function BrowseToggle( { canEdit, isBrowsing, onChange } ) {
+export function ExitButton( { onExit } ) {
 	return (
-		<ComponentsTooltip
-			placement="bottom"
-			text={ __( 'View your site as visitors see it' ) }
+		<Button
+			__next40pxDefaultSize
+			className="cnl-site-canvas__exit"
+			description={ __( 'Stop editing without saving' ) }
+			onClick={ onExit }
+			variant="secondary"
 		>
-			<div className="cnl-site-canvas__browse-toggle">
-				<ToggleControl
-					__nextHasNoMarginBottom
-					checked={ isBrowsing }
-					disabled={ isBrowsing && ! canEdit }
-					label={ __( 'Browse' ) }
-					onChange={ onChange }
-				/>
-			</div>
-		</ComponentsTooltip>
+			{ __( 'Exit' ) }
+		</Button>
 	);
 }
 

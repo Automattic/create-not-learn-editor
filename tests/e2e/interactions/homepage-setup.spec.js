@@ -345,8 +345,7 @@ test.describe( 'Homepage setup', () => {
 		const preview = getSitePreview( page ).contentFrame();
 
 		await visitWorkspace( page, 'writing' );
-		// The preview is Browse's: the canvas opens in Edit.
-		await page.getByRole( 'checkbox', { name: 'Browse' } ).check();
+		// The canvas opens with the page on view, in the preview.
 		await expect( preview.getByText( oldHome.body ) ).toBeVisible( {
 			timeout: 15000,
 		} );

@@ -141,15 +141,25 @@ function getSitePreview( page ) {
 const CANVAS_MODES = [ 'Browse', 'Edit', 'Compose' ];
 
 /**
- * The site canvas's Browse switch: on shows the saved site, off edits it.
+ * The site canvas's Edit button, at the end of its toolbar while the page is
+ * on view. It opens the page to change, filling the editor.
  *
  * @param {import('@playwright/test').Page} page
- * @return {import('@playwright/test').Locator} The switch.
+ * @return {import('@playwright/test').Locator} The button.
  */
-function getBrowseSwitch( page ) {
-	return page
-		.locator( '.cnl-site-canvas__browse-toggle' )
-		.getByRole( 'checkbox', { name: 'Browse' } );
+function getEditButton( page ) {
+	return page.locator( '.cnl-site-canvas__edit' );
+}
+
+/**
+ * The site canvas's Exit button, beside Save while editing. It leaves
+ * without saving, discarding unsaved changes.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @return {import('@playwright/test').Locator} The button.
+ */
+function getExitButton( page ) {
+	return page.locator( '.cnl-site-canvas__exit' );
 }
 
 /**
@@ -201,33 +211,27 @@ function getZoomOutToggle( page ) {
 }
 
 /**
- * The mode the site canvas is in, from its controls: Browse or Edit from the
- * Browse switch, and Compose when Zoom out is pressed.
+ * The mode the site canvas is in: Browse while the page is on view, Edit,
+ * or Compose, Edit zoomed out.
  *
  * @param {import('@playwright/test').Page} page
  * @return {Promise<?string>} `Browse`, `Edit` or `Compose`.
  */
 async function getCanvasMode( page ) {
-	if ( await getBrowseSwitch( page ).isChecked() ) {
-		return 'Browse';
-	}
+	const className =
+		( await page
+			.locator( '.cnl-site-canvas' )
+			.first()
+			.getAttribute( 'class' ) ) || '';
+	const mode = className.match( /\bis-(browse|edit|compose)\b/ )?.[ 1 ];
 
-	const zoomOut = getZoomOutToggle( page );
-
-	// Canvases without sections have no Zoom out, so no Compose.
-	if ( ( await zoomOut.count() ) === 0 ) {
-		return 'Edit';
-	}
-
-	return ( await zoomOut.getAttribute( 'aria-pressed' ) ) === 'true'
-		? 'Compose'
-		: 'Edit';
+	return mode ? mode[ 0 ].toUpperCase() + mode.slice( 1 ) : null;
 }
 
 /**
  * Switch the canvas's mode with its controls, without waiting for the canvas
- * to follow. Use `setCanvasMode` unless something, such as the unsaved
- * changes dialog, is expected to hold the switch back.
+ * to follow: Edit from Browse, Exit back to it, which discards unsaved
+ * changes, and Zoom out for Compose. Use `setCanvasMode` to wait.
  *
  * @param {import('@playwright/test').Page} page
  * @param {'Browse'|'Edit'|'Compose'}       mode The mode to pick.
@@ -243,24 +247,19 @@ async function pickCanvasMode( page, mode ) {
 		return;
 	}
 
-	// Leaving Compose for Edit is Zoom out, pressed again.
-	if ( mode === 'Edit' && current === 'Compose' ) {
-		await getZoomOutToggle( page ).click();
+	if ( mode === 'Browse' ) {
+		await getExitButton( page ).click();
 		return;
 	}
 
-	const browseSwitch = getBrowseSwitch( page );
-
-	// Leaving Browse waits for there to be something to edit.
-	await expect( browseSwitch ).toBeEnabled( { timeout: 15000 } );
-
-	// Clicked rather than checked, as the canvas may hold the switch back,
-	// to ask about unsaved changes first.
-	if ( ( mode === 'Browse' ) !== ( current === 'Browse' ) ) {
-		await browseSwitch.click();
+	if ( current === 'Browse' ) {
+		// Edit waits for there to be something to edit.
+		await expect( getEditButton( page ) ).toBeVisible( { timeout: 15000 } );
+		await getEditButton( page ).click();
 	}
 
-	if ( mode === 'Compose' ) {
+	// Compose is Zoom out, and leaving it for Edit is Zoom out again.
+	if ( ( mode === 'Compose' ) !== ( current === 'Compose' ) ) {
 		await expect( getZoomOutToggle( page ) ).toBeVisible( {
 			timeout: 15000,
 		} );
@@ -596,7 +595,8 @@ module.exports = {
 	getEditorCanvas,
 	getFrameTexts,
 	getCanvasMode,
-	getBrowseSwitch,
+	getEditButton,
+	getExitButton,
 	getPageItem,
 	getZoomOutToggle,
 	getRoute,

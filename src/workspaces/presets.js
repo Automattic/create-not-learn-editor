@@ -75,7 +75,7 @@ const DEFAULTS = {
 		copy: {},
 		adminLinks: [],
 		hint: __(
-			'Tip: change the page right where it is, or press Edit for more room. Zoom out to add and arrange its sections, and turn on Browse to follow links around your site.'
+			'Tip: follow links to look around your site, and press Edit to change the page you’re on. Zoom out while editing to add and arrange its sections.'
 		),
 		preview: 'home',
 		viewLabel: __( 'View site' ),

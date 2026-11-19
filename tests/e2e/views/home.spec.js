@@ -2,7 +2,6 @@ const {
 	expect,
 	expectCanvasMode,
 	getSitePreview,
-	setCanvasMode,
 	getStage,
 	openSidebarLink,
 	test,
@@ -78,9 +77,8 @@ test.describe( 'Home view', () => {
 		const toolbar = page.locator( '.cnl-editor-homepage-toolbar' );
 		const document = toolbar.locator( '.cnl-editor-homepage-document' );
 
-		// The canvas opens in Edit; Browse is a switch away.
-		await expectCanvasMode( page, 'Edit' );
-		await setCanvasMode( page, 'Browse' );
+		// The canvas opens with the page on view.
+		await expectCanvasMode( page, 'Browse' );
 		await expect( getSitePreview( page ) ).toBeVisible( {
 			timeout: 15000,
 		} );

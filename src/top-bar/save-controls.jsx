@@ -86,7 +86,11 @@ export function SaveControls() {
 	}
 
 	return (
-		<div className="cnl-save-controls">
+		<div
+			className={ `cnl-save-controls${
+				hasChanges ? ' has-changes' : ''
+			}` }
+		>
 			<div className="cnl-save-controls__status" role="status">
 				{ status }
 			</div>
