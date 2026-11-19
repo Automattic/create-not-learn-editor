@@ -112,11 +112,9 @@ test.describe( 'Pages view', () => {
 			.click();
 		await stage.getByRole( 'button', { name: /^See all details/ } ).click();
 		await expect(
-			stage.getByRole( 'heading', { level: 1, name: 'See all details' } )
+			stage.getByRole( 'heading', { level: 1, name: 'Details' } )
 		).toBeVisible();
-		const details = stage.getByRole( 'region', {
-			name: 'See all details',
-		} );
+		const details = stage.getByRole( 'region', { name: 'Details' } );
 		await expect(
 			details.getByRole( 'button', { name: 'Edit Author' } )
 		).toBeVisible( { timeout: 15000 } );
