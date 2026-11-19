@@ -6,6 +6,15 @@ The strip of boot's dark frame above the sidebar, the screen and the canvas, on 
 - **Middle:** Go to page, the page finder (`src/page-finder`). It goes on small screens.
 - **End:** which agent is connected, if one is (`agent-status.jsx`), and the publish status (`publish-status.jsx`).
 
+## Why two publish buttons?
+
+Two different kinds of things get published, on different timescales and for different people.
+
+- **Site-wide changes** (name, logo, colours, header, menus) affect every page at once. People want to try them, preview them together, put them live in one go and roll them back if needed. That's **Publish site** in the top bar, on every screen, including ones with no canvas, so held changes are never stranded.
+- **A page or post** is one document with its own life: draft, schedule, publish, then later edits, a flow writers already know from WordPress's post editor. That's **Save draft**, **Publish** and **Save** in the canvas, next to the document they belong to.
+
+One button would force a bad choice. Either saving a page would also push half-finished site changes live, or a page couldn't be published without publishing the whole site too. Keeping them apart, with only one shown at a time, lets each control mean exactly one thing.
+
 ## Two scopes, one button at a time
 
 `use-changes.js` splits what is unsaved in two:
