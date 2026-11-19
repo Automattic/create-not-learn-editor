@@ -9,9 +9,10 @@
  * (see `src/webmcp/connection.js`), and the save controls. The way to the
  * full-screen editor is in the canvas's View menu.
  *
- * A screen with no canvas toolbar, like Media or Posts, keeps boot's own save
- * button at the foot of the sidebar instead. `body.cnl-has-canvas-save` says
- * which, for `style.scss`.
+ * The save controls there are the page's, while it's being edited: Save
+ * and its review only reach what changed while editing (`src/edit-session.js`).
+ * Everything else waits in the site's unsaved changes, in the sidebar above
+ * its foot (`unsaved-changes.jsx`), on every screen.
  */
 
 /**

@@ -227,11 +227,15 @@ function ChangeGroups( { changes, onDiscard } ) {
 
 /**
  * @param {Object}   props
- * @param {Function} props.onClose Close the dialog.
+ * @param {Function} props.onClose       Close the dialog.
+ * @param {boolean}  props.inEditSession Only what changed while editing
+ *                                       the page, for its Save.
  * @return {Element} The dialog.
  */
-export function ReviewChanges( { onClose } ) {
-	const { changes, isSaving, save, discard, discardAll } = useChanges();
+export function ReviewChanges( { onClose, inEditSession = false } ) {
+	const { changes, isSaving, save, discard, discardAll } = useChanges( {
+		inEditSession,
+	} );
 	const [ isConfirmingDiscard, setIsConfirmingDiscard ] = useState( false );
 	const { createSuccessNotice } = useDispatch( noticesStore );
 	const count = changes.length;

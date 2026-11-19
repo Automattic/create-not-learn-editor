@@ -12,6 +12,7 @@
  * Internal dependencies
  */
 import { useEffect } from '../wordpress-packages';
+import { endEditSession, startEditSession } from '../edit-session';
 import { setCanvasExpanded, useIsCanvasExpanded } from './mode';
 
 const EXPANDED_CLASS = 'cnl-canvas-is-expanded';
@@ -56,6 +57,14 @@ export function expandCanvas( next ) {
 		return;
 	}
 
+	// Filling the editor is editing the page: a session of its own, whose
+	// Save and Exit only reach what changes in it.
+	if ( next ) {
+		startEditSession();
+	} else {
+		endEditSession();
+	}
+
 	withTransition( () => {
 		setCanvasExpanded( next );
 		// Applied at once, so the transition's after picture has it.
@@ -80,6 +89,7 @@ export function useCanvasExpansion() {
 		() => () => {
 			document.body.classList.remove( EXPANDED_CLASS );
 			setCanvasExpanded( false );
+			endEditSession();
 		},
 		[]
 	);
