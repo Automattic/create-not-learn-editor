@@ -105,7 +105,7 @@ function getAllPlaces() {
 			description: __( 'Edit the areas templates share.' ),
 			icon: symbolFilledIcon,
 			id: 'templateParts',
-			title: __( 'Site parts' ),
+			title: __( 'All site parts' ),
 		},
 		{
 			description: __( 'Synced and unsynced patterns.' ),

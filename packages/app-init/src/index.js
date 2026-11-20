@@ -5,6 +5,7 @@ import { store as bootStore } from '@wordpress/boot';
 import { dispatch } from '@wordpress/data';
 import {
 	color,
+	header,
 	home,
 	layout,
 	navigation,
@@ -66,6 +67,8 @@ export async function init() {
 		patterns: symbol,
 		'content-post': postList,
 		'site-overview': sites,
+		// As Gutenberg's own Site parts item.
+		'site-parts': header,
 		styles,
 		templateParts: symbolFilled,
 		templates: layout,

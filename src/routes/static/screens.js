@@ -63,7 +63,7 @@ const screens = {
 		icon: 'dashicons-schedule',
 		section: __( 'Advanced' ),
 		status: __( 'Template parts' ),
-		title: __( 'Site parts' ),
+		title: __( 'All site parts' ),
 	},
 };
 

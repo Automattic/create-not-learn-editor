@@ -1,6 +1,7 @@
 /**
- * The Header and Footer screens, reached from the "Home" screen through
- * a screen that offers the two, "Header & footer".
+ * The Site parts screens: a short list of the parts every page shares, the
+ * header and the footer, each leading to its own screen. Reached from the
+ * sidebar and from "Home".
  *
  * Like a page on the Pages screen: the stage holds what can be changed about
  * the part as a whole, and the canvas shows the homepage with the part in the
@@ -29,6 +30,7 @@ import {
 	useCanvasDocument,
 	useSiteCanvas,
 } from '../../site-canvas';
+import { expandCanvas } from '../../site-canvas/expansion';
 import { withCanvasRecovery } from '../../canvas-recovery';
 import { GlobalScope } from '../../global-scope';
 import { withUiTheme } from '../../theme';
@@ -41,6 +43,8 @@ import { SitePartLayouts } from '../../pickers/site-part-layouts';
 import {
 	SITE_PART_PATHS,
 	SITE_PARTS_PATH,
+	getSiteParts,
+	getSitePartMenus,
 	useSitePart,
 	useSitePartContents,
 	useSitePartLayouts,
@@ -52,12 +56,17 @@ import {
 } from './social-links';
 import { SocialLinks } from './social-links-editor';
 import { useSitePartSpotlight } from './spotlight';
-import sitePartsIcon from '../../site-parts-icon';
 import {
+	blockEditorStore,
 	Breadcrumbs,
+	Button,
 	Icon,
+	Modal,
+	noticesStore,
 	Page,
+	RadioControl,
 	Spinner,
+	Stack,
 	Text,
 	__,
 	_n,
@@ -69,6 +78,9 @@ import {
 	shareIcon,
 	siteLogoIcon,
 	sprintf,
+	useDispatch,
+	useEffect,
+	useMemo,
 	useRef,
 	useSelect,
 	useState,
@@ -112,6 +124,8 @@ const VIEWS = {
 
 const SITE_PARTS = {
 	footer: {
+		allDescription: __( 'Every footer your site has.' ),
+		allTitle: __( 'See all footers' ),
 		choice: __( 'Choose how the bottom of every page looks.' ),
 		description: __(
 			'Shown at the bottom of every page. Pick Edit design or Edit content on it, on the right, to change it.'
@@ -125,6 +139,8 @@ const SITE_PARTS = {
 		title: __( 'Footer' ),
 	},
 	header: {
+		allDescription: __( 'Every header your site has.' ),
+		allTitle: __( 'See all headers' ),
 		choice: __( 'Choose how the top of every page looks.' ),
 		description: __(
 			'Shown at the top of every page. Pick Edit design or Edit content on it, on the right, to change it.'
@@ -139,16 +155,8 @@ const SITE_PARTS = {
 	},
 };
 
-// The screen offering the two, and the first crumb back on each.
-const SITE_PARTS_TITLE = __( 'Header & footer' );
-
-/*
- * The header and footer are listed only on the "Home" screen, so their
- * screens sit under it.
- */
-function getSiteCrumb() {
-	return { label: __( 'Home' ), to: '/' };
-}
+// The screen listing the parts, and the first crumb back on each.
+const SITE_PARTS_TITLE = __( 'Site parts' );
 
 function getSitePartsCrumb() {
 	return { label: SITE_PARTS_TITLE, to: SITE_PARTS_PATH };
@@ -171,31 +179,44 @@ function Loading() {
 }
 
 /**
- * The menu the part shows: the one its Navigation block names, or, as the
- * block does without one, the site's first.
+ * The menus the part shows: for each of its Navigation blocks, the one it
+ * names, or, as the block does without one, the site's first.
  *
- * @param {?number} navigationRef The menu the Navigation block shows.
- * @return {Object} `{ menuId, title }`. `menuId` is undefined when the site
- *                  has no menus.
+ * @param {Object[]} menus The part's menus, from `useSitePartContents`.
+ * @return {Object[]} `{ clientId, index, menuId, title }` for each. `menuId`
+ *                    is undefined when the site has no menus.
  */
-function usePartMenu( navigationRef ) {
-	return useSelect(
+function usePartMenus( menus ) {
+	// Joined, so the selector returns a value that only changes with them.
+	const json = useSelect(
 		( select ) => {
-			const id =
-				navigationRef ||
+			const firstId =
 				select( cnlEditorStore ).getNavigationMenus()?.[ 0 ]?.id;
-			const menu = id
-				? select( coreDataStore ).getEditedEntityRecord(
-						'postType',
-						'wp_navigation',
-						id
-					)
-				: null;
 
-			return { menuId: id, title: getTitleText( menu?.title ) };
+			const items = menus.map( ( { clientId, index, ref } ) => {
+				const id = ref || firstId;
+				const menu = id
+					? select( coreDataStore ).getEditedEntityRecord(
+							'postType',
+							'wp_navigation',
+							id
+						)
+					: null;
+
+				return {
+					clientId,
+					index,
+					menuId: id,
+					title: getTitleText( menu?.title ),
+				};
+			} );
+
+			return JSON.stringify( items );
 		},
-		[ navigationRef ]
+		[ menus ]
 	);
+
+	return useMemo( () => JSON.parse( json ), [ json ] );
 }
 
 function getLayoutsDescription( { currentName, layouts } ) {
@@ -253,7 +274,9 @@ function SitePartLinks( { area, clientId, id } ) {
 	const contents = useSitePartContents( clientId );
 	const layouts = useSitePartLayouts( area, id );
 	const identity = useSiteIdentity();
-	const menu = usePartMenu( contents.navigationRef );
+	const menus = usePartMenus( contents.menus ).filter(
+		( menu ) => menu.menuId
+	);
 	const social = useSocialLinks( area );
 
 	if ( identity.isLoading ) {
@@ -285,15 +308,23 @@ function SitePartLinks( { area, clientId, id } ) {
 		} );
 	}
 
-	if ( contents.showsMenu && menu.menuId ) {
+	// A row for each menu, as a footer often has several.
+	menus.forEach( ( menu, position ) => {
 		links.push( {
 			description: menu.title || __( 'Your menu' ),
 			icon: compassIcon,
-			search: { view: MENU_VIEW },
-			title: __( 'Edit menu' ),
+			search: { view: MENU_VIEW, menu: menu.index },
+			title:
+				menus.length > 1
+					? sprintf(
+							/* translators: %d: The menu's place in the part, from 1. */
+							__( 'Edit menu %d' ),
+							position + 1
+						)
+					: __( 'Edit menu' ),
 			to: SITE_PART_PATHS[ area ],
 		} );
-	}
+	} );
 
 	if ( contents.hasSocialLinks && social.links ) {
 		links.push( {
@@ -308,35 +339,338 @@ function SitePartLinks( { area, clientId, id } ) {
 		} );
 	}
 
-	if ( ! links.length ) {
-		return <Note>{ part.noOptions }</Note>;
+	return (
+		<>
+			{ links.length ? (
+				<ScreenLinks label={ part.linksLabel } links={ links } />
+			) : (
+				<Note>{ part.noOptions }</Note>
+			) }
+			<ScreenLinks
+				label={ part.allTitle }
+				links={ [
+					{
+						description: part.allDescription,
+						icon: part.icon,
+						search: { area },
+						title: part.allTitle,
+						to: '/template-parts',
+					},
+				] }
+			/>
+		</>
+	);
+}
+
+// What a menu holds, from its saved blocks: its links, and whether it lists
+// the site's pages by itself.
+function getLinkCount( menu ) {
+	const content = String(
+		( typeof menu?.content === 'string'
+			? menu.content
+			: menu?.content?.raw ) || ''
+	);
+	const count = (
+		content.match(
+			/<!-- wp:(navigation-link|navigation-submenu|home-link)\b/g
+		) || []
+	).length;
+	const hasPages = content.includes( '<!-- wp:page-list' );
+
+	if ( hasPages && ! count ) {
+		return __( 'Lists your pages' );
 	}
 
-	return <ScreenLinks label={ part.linksLabel } links={ links } />;
+	const links = sprintf(
+		/* translators: %d: Number of links in a menu. */
+		_n( '%d link', '%d links', count ),
+		count
+	);
+
+	return hasPages
+		? sprintf(
+				/* translators: %s: Number of links, like "2 links". */
+				__( '%s and your pages' ),
+				links
+			)
+		: links;
 }
 
 /**
- * The menu the part shows, its items edited in place. Changes wait for the
- * save, like any other.
+ * The other parts on the homepage that show the same menu, so the screen can
+ * say a change to its links shows there too.
+ *
+ * @param {string}  clientId The Navigation block on screen.
+ * @param {?number} menuId   The menu it shows.
+ * @return {string[]} Areas, `header` or `footer`, once each.
+ */
+function useMenuSharedWith( clientId, menuId ) {
+	const areas = useSelect(
+		( select ) => {
+			const theme = select( coreDataStore ).getCurrentTheme()?.stylesheet;
+
+			if ( ! theme || ! menuId ) {
+				return '';
+			}
+
+			const store = select( blockEditorStore );
+			const firstId =
+				select( cnlEditorStore ).getNavigationMenus()?.[ 0 ]?.id;
+
+			return getSiteParts( store, theme )
+				.filter( ( part ) =>
+					getSitePartMenus(
+						store,
+						store.getClientIdsOfDescendants( part.clientId )
+					).some(
+						( menu ) =>
+							menu.clientId !== clientId &&
+							( menu.ref || firstId ) === menuId
+					)
+				)
+				.map( ( part ) => part.area )
+				.filter( ( area, index, all ) => all.indexOf( area ) === index )
+				.join( ',' );
+		},
+		[ clientId, menuId ]
+	);
+
+	return useMemo( () => ( areas ? areas.split( ',' ) : [] ), [ areas ] );
+}
+
+function getSharedWithText( areas, area ) {
+	if ( ! areas.length ) {
+		return null;
+	}
+
+	const others = areas.filter( ( other ) => other !== area );
+
+	if ( ! others.length ) {
+		return sprintf(
+			/* translators: %s: A part of the site, like "footer". */
+			__( 'Also shown elsewhere in your %s' ),
+			SITE_PARTS[ area ].title.toLowerCase()
+		);
+	}
+
+	return sprintf(
+		/* translators: %s: A part of the site, like "header". */
+		__( 'Also shown in your %s' ),
+		SITE_PARTS[ others[ 0 ] ].title.toLowerCase()
+	);
+}
+
+/**
+ * Asks which menu to show instead. Switching is deliberate: a different menu
+ * has to be picked and confirmed, and the one shown now stays as it is.
+ *
+ * @param {Object}     props
+ * @param {string}     props.area     `header` or `footer`.
+ * @param {string}     props.clientId The Navigation block's client ID.
+ * @param {?number}    props.menuId   The menu it shows now.
+ * @param {Object[]}   props.menus    Every menu the site has.
+ * @param {() => void} props.onClose  Closes the dialog.
+ * @return {Element} The dialog.
+ */
+function SwitchMenuDialog( { area, clientId, menuId, menus, onClose } ) {
+	const [ selected, setSelected ] = useState( String( menuId ) );
+	const { updateBlockAttributes } = useDispatch( blockEditorStore );
+	const { createSuccessNotice } = useDispatch( noticesStore );
+	const partName = SITE_PARTS[ area ].title.toLowerCase();
+	const current = menus.find( ( menu ) => menu.id === menuId );
+
+	const onConfirm = () => {
+		const next = menus.find( ( menu ) => String( menu.id ) === selected );
+
+		updateBlockAttributes( clientId, { ref: next.id } );
+		createSuccessNotice(
+			sprintf(
+				/* translators: 1: Menu title. 2: A part of the site, like "footer". */
+				__( 'Your %2$s now shows %1$s. Save to keep it.' ),
+				getTitleText( next.title ) || __( 'the menu' ),
+				partName
+			),
+			{ type: 'snackbar' }
+		);
+		onClose();
+	};
+
+	return (
+		<Modal
+			className="cnl-site-part__switch-menu"
+			onRequestClose={ onClose }
+			size="medium"
+			title={ sprintf(
+				/* translators: %s: A part of the site, like "footer". */
+				__( 'Switch the menu in your %s' ),
+				partName
+			) }
+		>
+			<Stack direction="column" gap="lg">
+				<Text
+					className="routes-styles__muted"
+					render={ <p /> }
+					variant="body-md"
+				>
+					{ sprintf(
+						/* translators: %s: Menu title. */
+						__(
+							'Pick another menu to show here. %s stays as it is, and nothing changes on your site until you save.'
+						),
+						getTitleText( current?.title ) || __( 'Your menu' )
+					) }
+				</Text>
+				<RadioControl
+					hideLabelFromVision
+					label={ __( 'Menus' ) }
+					onChange={ setSelected }
+					options={ menus.map( ( menu ) => ( {
+						description:
+							menu.id === menuId
+								? sprintf(
+										/* translators: %s: Number of links, like "2 links". */
+										__( '%s · Shown here now' ),
+										getLinkCount( menu )
+									)
+								: getLinkCount( menu ),
+						label: getTitleText( menu.title ) || __( '(no title)' ),
+						value: String( menu.id ),
+					} ) ) }
+					selected={ selected }
+				/>
+				<div className="cnl-site-part__switch-menu-actions">
+					<Button
+						__next40pxDefaultSize
+						onClick={ onClose }
+						variant="tertiary"
+					>
+						{ __( 'Cancel' ) }
+					</Button>
+					<Button
+						__next40pxDefaultSize
+						accessibleWhenDisabled
+						disabled={ selected === String( menuId ) }
+						onClick={ onConfirm }
+						variant="primary"
+					>
+						{ __( 'Show this menu' ) }
+					</Button>
+				</div>
+			</Stack>
+		</Modal>
+	);
+}
+
+/**
+ * The menu a Navigation block shows, named first so it is clear which one
+ * the links below belong to, with a quiet way to show another.
+ *
+ * @param {Object}  props
+ * @param {string}  props.area     `header` or `footer`.
+ * @param {string}  props.clientId The Navigation block's client ID.
+ * @param {?number} props.menuId   The menu it shows.
+ * @param {string}  props.title    That menu's title.
+ * @return {Element} The menu in use.
+ */
+function MenuInUse( { area, clientId, menuId, title } ) {
+	const [ isSwitching, setIsSwitching ] = useState( false );
+	const { menu, menus } = useSelect(
+		( select ) => ( {
+			menu: select( coreDataStore ).getEditedEntityRecord(
+				'postType',
+				'wp_navigation',
+				menuId
+			),
+			menus: select( cnlEditorStore ).getNavigationMenus() || [],
+		} ),
+		[ menuId ]
+	);
+	const sharedWith = getSharedWithText(
+		useMenuSharedWith( clientId, menuId ),
+		area
+	);
+
+	return (
+		<div className="cnl-site-part__menu-in-use">
+			<div className="cnl-site-part__menu-in-use-text">
+				<Text className="routes-styles__muted" variant="body-sm">
+					{ sprintf(
+						/* translators: %s: A part of the site, like "footer". */
+						__( 'Menu in your %s' ),
+						SITE_PARTS[ area ].title.toLowerCase()
+					) }
+				</Text>
+				<Text render={ <p /> } variant="heading-md">
+					{ title || __( 'Your menu' ) }
+				</Text>
+				<Text className="routes-styles__muted" variant="body-sm">
+					{ [ getLinkCount( menu ), sharedWith ]
+						.filter( Boolean )
+						.join( ' · ' ) }
+				</Text>
+			</div>
+			{ menus.length > 1 && (
+				<Button
+					className="cnl-site-part__menu-switch"
+					onClick={ () => setIsSwitching( true ) }
+					size="compact"
+					variant="link"
+				>
+					{ __( 'Switch menu' ) }
+				</Button>
+			) }
+			{ isSwitching && (
+				<SwitchMenuDialog
+					area={ area }
+					clientId={ clientId }
+					menuId={ menuId }
+					menus={ menus }
+					onClose={ () => setIsSwitching( false ) }
+				/>
+			) }
+		</div>
+	);
+}
+
+/**
+ * One of the menus the part shows, its items edited in place. Changes wait
+ * for the save, like any other.
  *
  * @param {Object} props
+ * @param {string} props.area     `header` or `footer`.
  * @param {string} props.clientId The part's client ID in the editor.
+ * @param {number} props.index    The menu's place among the part's
+ *                                Navigation blocks.
  * @return {Element} The menu's items.
  */
-function PartMenu( { clientId } ) {
-	const { navigationRef } = useSitePartContents( clientId );
-	const { menuId } = usePartMenu( navigationRef );
-	const { editor, isMenuReady } = useMenuItemsEditor( menuId );
+function PartMenu( { area, clientId, index } ) {
+	const contents = useSitePartContents( clientId );
+	const menu = usePartMenus( contents.menus ).find(
+		( item ) => item.index === index
+	);
+	const { editor, isMenuReady } = useMenuItemsEditor( menu?.menuId );
 
-	if ( ! menuId ) {
+	if ( ! menu?.menuId ) {
 		return <Note>{ __( 'Your site doesn’t have a menu yet.' ) }</Note>;
 	}
 
-	if ( ! isMenuReady ) {
-		return <Loading />;
-	}
+	return (
+		<Stack direction="column" gap="lg">
+			<MenuInUse area={ area } { ...menu } />
+			{ isMenuReady ? (
+				<div className="cnl-site-part__menu">{ editor }</div>
+			) : (
+				<Loading />
+			) }
+		</Stack>
+	);
+}
 
-	return <div className="cnl-site-part__menu">{ editor }</div>;
+// The menu a view is about, from its search params.
+function getMenuIndex( menu ) {
+	const index = Number( menu );
+
+	return Number.isInteger( index ) && index >= 0 ? index : 0;
 }
 
 /**
@@ -371,7 +705,7 @@ function Layouts( { area, id } ) {
 	);
 }
 
-function SitePartView( { area, clientId, id, view } ) {
+function SitePartView( { area, clientId, id, menu, view } ) {
 	if ( view === LAYOUTS_VIEW ) {
 		return <Layouts area={ area } id={ id } />;
 	}
@@ -381,7 +715,13 @@ function SitePartView( { area, clientId, id, view } ) {
 	}
 
 	if ( view === MENU_VIEW ) {
-		return <PartMenu clientId={ clientId } />;
+		return (
+			<PartMenu
+				area={ area }
+				clientId={ clientId }
+				index={ getMenuIndex( menu ) }
+			/>
+		);
 	}
 
 	if ( view === SOCIAL_VIEW ) {
@@ -395,7 +735,7 @@ function createStage( area ) {
 	const part = SITE_PARTS[ area ];
 
 	return function SitePartStage() {
-		const { view: viewName } = useSearch( { strict: false } );
+		const { menu, view: viewName } = useSearch( { strict: false } );
 		const { clientId, id, isEditorReady } = useSitePart( area );
 		const view = Object.hasOwn( VIEWS, viewName )
 			? VIEWS[ viewName ]
@@ -408,7 +748,6 @@ function createStage( area ) {
 						items={
 							view
 								? [
-										getSiteCrumb(),
 										getSitePartsCrumb(),
 										{
 											label: part.title,
@@ -416,11 +755,7 @@ function createStage( area ) {
 										},
 										{ label: view.title() },
 									]
-								: [
-										getSiteCrumb(),
-										getSitePartsCrumb(),
-										{ label: part.title },
-									]
+								: [ getSitePartsCrumb(), { label: part.title } ]
 						}
 					/>
 				}
@@ -437,6 +772,7 @@ function createStage( area ) {
 							area={ area }
 							clientId={ clientId }
 							id={ id }
+							menu={ menu }
 							view={ view && viewName }
 						/>
 					) }
@@ -447,8 +783,8 @@ function createStage( area ) {
 }
 
 /*
- * The screen "Home" opens for the header and footer: a row for each,
- * leading on to its own screen.
+ * The parts every page shares, a row for each leading on to its own screen.
+ * Only the main ones: each part's screen leads on to the rest in its area.
  */
 function SitePartsStage() {
 	const links = [ 'header', 'footer' ].map( ( area ) => ( {
@@ -460,17 +796,13 @@ function SitePartsStage() {
 
 	return (
 		<Page
-			breadcrumbs={
-				<Breadcrumbs
-					items={ [ getSiteCrumb(), { label: SITE_PARTS_TITLE } ] }
-				/>
-			}
 			className="cnl-editor-stage cnl-editor-content-page"
 			hasPadding={ false }
 			headingLevel={ 2 }
 			subTitle={ __(
-				'Every page shares the same header and footer. Pick one to change it.'
+				'The parts every page shares. Pick one to change it everywhere.'
 			) }
+			title={ SITE_PARTS_TITLE }
 		>
 			<div className="cnl-editor-stage routes-styles cnl-site-part">
 				<ScreenLinks label={ SITE_PARTS_TITLE } links={ links } />
@@ -550,16 +882,22 @@ function createCanvas( area ) {
 function SitePartsCanvas() {
 	const canvas = useSiteCanvas( { url: settings.homeUrl } );
 
+	/*
+	 * The screen is for picking a part, so its list always shows, even when
+	 * the canvas was left filling the editor in Edit. Runs after the
+	 * canvas's own effect, which expands it in Edit.
+	 */
+	useEffect( () => {
+		expandCanvas( false );
+	}, [] );
+
 	return (
 		<SiteCanvas
 			canCompose={ false }
 			canvas={ canvas }
 			className="cnl-site-part-canvas"
 			document={
-				<PartDocument
-					icon={ sitePartsIcon }
-					title={ SITE_PARTS_TITLE }
-				/>
+				<PartDocument icon={ headerIcon } title={ SITE_PARTS_TITLE } />
 			}
 		/>
 	);
@@ -600,7 +938,7 @@ export const footerCanvas = withCanvasRecovery(
 );
 
 /**
- * The Header, Footer, and Header & footer screens share one module, so each
+ * The Site parts screen and each part's screen share one module, so each
  * screen's stage and canvas is picked by its path.
  *
  * @param {Object} screens Components keyed by screen path.

@@ -94,6 +94,12 @@ The answer is on each post's REST record as `cnl_has_sections`. In JavaScript, a
 
 Template parts get the same treatment wherever they appear, on content with sections or without. Each is purple, locked until "Edit header", "Edit footer" or "Edit" and the part's name opens it in the spotlight with the Edit design bar. The editor finds them by block type, not by name, so a sidebar or a second header is treated like the header. See `src/site-canvas/README.md`.
 
+### Site parts
+
+The Site parts screen (`/site-parts`, in the sidebar's Site section and on Home) lists only the parts the homepage uses, so there is nothing to choose between. It shows the first header and the last footer. Each part's screen offers what is worth changing in it (layout, name and logo, a row for each menu, social links) and ends with a "See all" link to every part in its area, on the All site parts list (`/template-parts?area=…`).
+
+A menu row switches menus only through a deliberate Change step, since a menu can be used in more than one place. Gutenberg's version also offers the navigation overlay; that is left out until we've worked out how it should show. It follows the same idea as Gutenberg's [Site parts experiment](https://github.com/WordPress/gutenberg/pull/87071). The code is in `src/routes/site-part/`.
+
 ## Visual theme
 
 The editor uses the WordPress Design System as it ships. Its own surfaces take their colours, corners, spacing and shadows from WPDS tokens and core's elevation scale, so they sit alongside core's components rather than near them. The black sidebar's section titles, like Content and Design, are the one exception: they are set in EB Garamond, the heading face on [WordPress.org](https://wordpress.org/). The font lives in `assets/fonts/eb-garamond/` under the SIL Open Font License and loads from the plugin, not a third-party CDN.
