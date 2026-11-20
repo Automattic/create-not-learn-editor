@@ -41,6 +41,8 @@ import { Badge, Stack, Text } from '@wordpress/ui';
 import { getTimeAgo } from './agent-status';
 import {
 	getSiteHistory,
+	countReplaced,
+	planRestore,
 	onSiteHistoryChanged,
 	restoreEntry,
 	RESTORE_FAILED_MESSAGE,
@@ -131,27 +133,6 @@ function describeEntry( entry ) {
 		),
 		entry.changes.length
 	);
-}
-
-/**
- * How many of an entry's changes would land on something with unpublished
- * changes of its own, which Restore would replace.
- *
- * @param {Object}   entry       An entry of the log.
- * @param {Object[]} siteChanges The site's changes waiting, from `useChanges`.
- * @return {number} How many.
- */
-function countReplaced( entry, siteChanges ) {
-	return entry.changes.filter( ( change ) =>
-		siteChanges.some(
-			( waiting ) =>
-				waiting.kind === change.kind &&
-				waiting.name === change.name &&
-				( change.values
-					? Object.keys( change.values ).includes( waiting.property )
-					: String( waiting.key ) === String( change.key ) )
-		)
-	).length;
 }
 
 /**
@@ -733,14 +714,25 @@ function HistoryPanel( { entries, isShown, onClose, toggleRef } ) {
 	const onRestore = async ( entry ) => {
 		setRestoringId( entry.id );
 
-		const { restored, failed } = await restoreEntry( entry, registry );
+		const { restored, failed } = await restoreEntry(
+			entries,
+			entries.indexOf( entry ),
+			registry
+		);
 		const { createSuccessNotice, createErrorNotice } =
 			registry.dispatch( noticesStore );
 
 		setRestoringId( null );
 
 		if ( ! restored ) {
-			createErrorNotice( RESTORE_FAILED_MESSAGE, { type: 'snackbar' } );
+			createErrorNotice(
+				failed
+					? RESTORE_FAILED_MESSAGE
+					: __(
+							'Nothing to put back. The editor already shows this version.'
+						),
+				{ type: 'snackbar' }
+			);
 			return;
 		}
 
@@ -862,7 +854,10 @@ function HistoryPanel( { entries, isShown, onClose, toggleRef } ) {
 												}
 												isDisabled={ !! restoringId }
 												replacedCount={ countReplaced(
-													entry,
+													planRestore(
+														entries,
+														entryIndex
+													),
 													siteChanges
 												) }
 												onRestore={ onRestore }

@@ -540,6 +540,8 @@ export function useChanges() {
 			}
 		);
 		const siteAtPublish = store.getEditedEntityRecord( 'root', 'site' );
+		// As it was saved before, for Restore to go back past this publish.
+		const siteBefore = store.getEntityRecord( 'root', 'site' );
 		// From what to what, while the saved records are still the old ones.
 		const withDetails = described.map( ( change ) => ( {
 			...change,
@@ -560,7 +562,8 @@ export function useChanges() {
 		recordSitePublish(
 			buildHistoryChanges(
 				withDetails.filter( ( { id } ) => ! stillWaiting.has( id ) ),
-				siteAtPublish
+				siteAtPublish,
+				siteBefore
 			)
 		);
 	};

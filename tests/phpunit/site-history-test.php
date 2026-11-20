@@ -270,4 +270,91 @@ class CNL_Editor_Site_History_Test extends WP_UnitTestCase {
 		$this->assertCount( CNL_EDITOR_SITE_HISTORY_DETAIL_LIMIT, $entry['changes'][0]['details'] );
 		$this->assertSame( 7, $entry['changes'][0]['more'] );
 	}
+
+	public function test_a_change_keeps_the_revision_its_own_save_made_and_the_one_before() {
+		wp_set_current_user( self::$admin_id );
+		$menu_id = $this->make_menu( 'Second' );
+		$ours    = (int) current( wp_get_post_revisions( $menu_id, array( 'fields' => 'ids' ) ) );
+		$before  = cnl_editor_get_previous_revision( $menu_id, $ours );
+
+		// Someone else saves the same menu before the entry is logged.
+		wp_set_current_user( self::$editor_id );
+		wp_update_post(
+			array(
+				'ID'           => $menu_id,
+				'post_content' => 'Theirs',
+			)
+		);
+
+		$entry = cnl_editor_record_site_history(
+			array(
+				array(
+					'kind' => 'postType',
+					'name' => 'wp_navigation',
+					'key'  => $menu_id,
+				),
+			),
+			self::$admin_id
+		);
+
+		$this->assertNotSame( 0, $before );
+		$this->assertSame( $ours, $entry['changes'][0]['revision'] );
+		$this->assertSame( $before, $entry['changes'][0]['previous_revision'] );
+		$this->assertSame( 'First', get_post( $before )->post_content );
+	}
+
+	public function test_a_save_that_made_no_revision_is_the_same_before_and_after() {
+		$menu_id = $this->make_menu( 'Second' );
+
+		$entry = cnl_editor_record_site_history(
+			array(
+				array(
+					'kind' => 'postType',
+					'name' => 'wp_navigation',
+					'key'  => $menu_id,
+				),
+			),
+			self::$admin_id
+		);
+
+		$this->assertSame( $entry['changes'][0]['revision'], $entry['changes'][0]['previous_revision'] );
+	}
+
+	public function test_a_revision_is_claimed_by_one_entry_only() {
+		wp_set_current_user( self::$admin_id );
+		$menu_id = $this->make_menu( 'Second' );
+		$change  = array(
+			'kind' => 'postType',
+			'name' => 'wp_navigation',
+			'key'  => $menu_id,
+		);
+
+		$first  = cnl_editor_record_site_history( array( $change ) );
+		$second = cnl_editor_record_site_history( array( $change ) );
+
+		$this->assertNotSame( $first['changes'][0]['revision'], $first['changes'][0]['previous_revision'] );
+		$this->assertSame( $second['changes'][0]['revision'], $second['changes'][0]['previous_revision'] );
+	}
+
+	public function test_site_settings_keep_what_they_were_before_and_only_known_settings() {
+		$entry = cnl_editor_record_site_history(
+			array(
+				array(
+					'kind'     => 'root',
+					'name'     => 'site',
+					'values'   => array(
+						'title'       => 'New',
+						'not_a_thing' => 'x',
+					),
+					'previous' => array(
+						'title'       => 'Old',
+						'description' => 'Not changed here',
+					),
+				),
+			)
+		);
+
+		$this->assertSame( array( 'title' => 'New' ), $entry['changes'][0]['values'] );
+		$this->assertSame( array( 'title' => 'Old' ), $entry['changes'][0]['previous'] );
+	}
 }

@@ -6,8 +6,14 @@
  * save made, or, for site settings that have none, holds the values saved.
  * Pages and posts keep core's own revisions and aren't in it.
  *
- * Restore doesn't save anything. It loads an entry's versions back in as
- * unsaved edits, so they wait for Publish site like any other change.
+ * Restore doesn't save anything. It loads the site as it was just after an
+ * entry back in as unsaved edits, so they wait for Publish site like any
+ * other change. A revision holds a record as a save left it, so an entry's
+ * own revisions are what the site already shows unless a later publish
+ * changed the same thing again. Going back to an entry is therefore undoing
+ * every publish after it: each record those changed goes back to how it was
+ * before the oldest of them, its `previous_revision`, or for site settings
+ * its `previous` values.
  */
 
 /**
@@ -60,10 +66,12 @@ export function onSiteHistoryChanged( callback ) {
  *                           record that was saved, with `summary`,
  *                           `details` and `more` from `describeChangeDetails`.
  * @param {Object}   site    The site's settings as they were saved.
- * @return {Object[]} `{ kind, name, key, label }`, or with `values` for the
- *                    site's settings, one change for each.
+ * @param {Object}   before  The site's settings as they were before.
+ * @return {Object[]} `{ kind, name, key, label }`, or with `values` and
+ *                    `previous` for the site's settings, one change for
+ *                    each.
  */
-export function buildHistoryChanges( records, site ) {
+export function buildHistoryChanges( records, site, before ) {
 	const changes = [];
 	const hasHomepage = records.some(
 		( { kind, name, property } ) =>
@@ -101,6 +109,12 @@ export function buildHistoryChanges( records, site ) {
 					properties.map( ( setting ) => [
 						setting,
 						site?.[ setting ] ?? null,
+					] )
+				),
+				previous: Object.fromEntries(
+					properties.map( ( setting ) => [
+						setting,
+						before?.[ setting ] ?? null,
 					] )
 				),
 				...description,
@@ -167,15 +181,145 @@ function getEdits( change, revision ) {
 	return edits;
 }
 
-async function restoreChange( change, registry ) {
+function getRecordId( { kind, name, key } ) {
+	return [ kind, name, key ?? '' ].join( '|' );
+}
+
+/**
+ * What going back to an entry puts back: every record a later publish
+ * changed, as it was before the oldest of those publishes.
+ *
+ * @param {Object[]} entries The log, newest first.
+ * @param {number}   index   The entry to go back to.
+ * @return {Object[]} `{ kind, name, key, label, revision }` for a record,
+ *                    where `revision` is null when there is none to go
+ *                    back to, as for a record the publish made, or
+ *                    `{ kind: 'root', name: 'site', label, values,
+ *                    missing }` for the site's settings, `missing` naming
+ *                    any with no value to go back to.
+ */
+export function planRestore( entries, index ) {
+	const records = new Map();
+	const settings = new Map();
+
+	// Newest first, so the oldest later publish is the one that stays.
+	entries.slice( 0, Math.max( 0, index ) ).forEach( ( entry ) =>
+		( entry.changes || [] ).forEach( ( change ) => {
+			if ( change.values ) {
+				Object.keys( change.values ).forEach( ( setting ) =>
+					settings.set( setting, {
+						label: change.label,
+						hasValue:
+							!! change.previous &&
+							Object.hasOwn( change.previous, setting ),
+						value: change.previous?.[ setting ],
+					} )
+				);
+				return;
+			}
+
+			records.set( getRecordId( change ), {
+				kind: change.kind,
+				name: change.name,
+				key: change.key,
+				label: change.label,
+				revision: change.previous_revision ?? null,
+			} );
+		} )
+	);
+
+	const plan = [ ...records.values() ];
+
+	if ( settings.size ) {
+		const known = [ ...settings ].filter(
+			( [ , { hasValue } ] ) => hasValue
+		);
+		const labels = [
+			...new Set(
+				[ ...settings.values() ].map( ( { label } ) => label )
+			),
+		].filter( Boolean );
+
+		plan.push( {
+			kind: 'root',
+			name: 'site',
+			label: labels.join( ', ' ),
+			values: Object.fromEntries(
+				known.map( ( [ setting, { value } ] ) => [ setting, value ] )
+			),
+			missing: [ ...settings.keys() ].filter(
+				( setting ) => ! settings.get( setting ).hasValue
+			),
+		} );
+	}
+
+	return plan;
+}
+
+/**
+ * How many of the records Restore would put back have unpublished changes
+ * of their own, which it would replace.
+ *
+ * @param {Object[]} plan        From `planRestore`.
+ * @param {Object[]} siteChanges The site's changes waiting, from `useChanges`.
+ * @return {number} How many.
+ */
+export function countReplaced( plan, siteChanges ) {
+	return plan.filter( ( change ) =>
+		siteChanges.some(
+			( waiting ) =>
+				waiting.kind === change.kind &&
+				waiting.name === change.name &&
+				( change.values
+					? Object.keys( change.values ).includes( waiting.property )
+					: String( waiting.key ) === String( change.key ) )
+		)
+	).length;
+}
+
+/**
+ * Whether the store now holds edits for a record, or for any of the site's
+ * settings named, so a restore that matched what is saved isn't counted.
+ *
+ * @param {Object} target   From `planRestore`.
+ * @param {Object} registry Data registry.
+ * @return {boolean} Whether it does.
+ */
+function hasRestoredEdits( target, registry ) {
+	const store = registry.select( coreStore );
+
+	if ( target.values ) {
+		const edits = store.getEntityRecordEdits( 'root', 'site' ) || {};
+
+		return Object.keys( target.values ).some( ( setting ) =>
+			Object.hasOwn( edits, setting )
+		);
+	}
+
+	return store.hasEditsForEntityRecord(
+		target.kind,
+		target.name,
+		target.key
+	);
+}
+
+async function restoreTarget( target, registry ) {
 	const { editEntityRecord } = registry.dispatch( coreStore );
 
-	if ( change.values ) {
-		editEntityRecord( 'root', 'site', undefined, change.values );
+	if ( target.values ) {
+		if ( target.missing.length ) {
+			throw new Error( 'No earlier value to restore.' );
+		}
+
+		// Loaded first, so the values count as edits to it.
+		await registry
+			.resolveSelect( coreStore )
+			.getEntityRecord( 'root', 'site' );
+		editEntityRecord( 'root', 'site', undefined, target.values );
 		return;
 	}
 
-	const { kind, name, key, revision } = change;
+	const { kind, name, key, revision } = target;
 	const baseURL = registry
 		.select( coreStore )
 		.getEntityConfig( kind, name )?.baseURL;
@@ -199,29 +343,39 @@ async function restoreChange( change, registry ) {
 		path: `${ baseURL }/${ id }/revisions/${ revision }?context=edit`,
 	} );
 
-	editEntityRecord( kind, name, key, getEdits( change, revisionRecord ) );
+	editEntityRecord( kind, name, key, getEdits( target, revisionRecord ) );
 }
 
 /**
- * Load an entry's versions back in as unsaved edits.
+ * Load the site as it was just after an entry back in as unsaved edits.
  *
- * @param {Object} entry    An entry of the log.
- * @param {Object} registry Data registry.
- * @return {Promise<{restored: number, failed: number}>} How many changes came
- *                                                       back, and how many
- *                                                       couldn't, a revision
- *                                                       core has since
- *                                                       pruned say.
+ * @param {Object[]} entries  The log, newest first.
+ * @param {number}   index    The entry to go back to.
+ * @param {Object}   registry Data registry.
+ * @return {Promise<{restored: number, failed: number}>} How many records
+ *                                                       changed back, and
+ *                                                       how many couldn't,
+ *                                                       a revision core has
+ *                                                       since pruned say.
+ *                                                       Ones already as
+ *                                                       they were count as
+ *                                                       neither.
  */
-export async function restoreEntry( entry, registry ) {
+export async function restoreEntry( entries, index, registry ) {
+	const plan = planRestore( entries, index );
 	const results = await Promise.allSettled(
-		entry.changes.map( ( change ) => restoreChange( change, registry ) )
+		plan.map( ( target ) => restoreTarget( target, registry ) )
 	);
-	const restored = results.filter(
-		( { status } ) => status === 'fulfilled'
+	const restored = plan.filter(
+		( target, i ) =>
+			results[ i ].status === 'fulfilled' &&
+			hasRestoredEdits( target, registry )
+	).length;
+	const failed = results.filter(
+		( { status } ) => status === 'rejected'
 	).length;
 
-	return { restored, failed: results.length - restored };
+	return { restored, failed };
 }
 
 export const RESTORE_FAILED_MESSAGE = __(
