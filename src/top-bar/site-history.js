@@ -181,6 +181,10 @@ function getEdits( change, revision ) {
 	return edits;
 }
 
+// Templates and parts start as a file of the theme's, and only become a
+// record, with revisions, the first time they're changed.
+const TEMPLATE_TYPES = [ 'wp_template', 'wp_template_part' ];
+
 function getRecordId( { kind, name, key } ) {
 	return [ kind, name, key ?? '' ].join( '|' );
 }
@@ -324,7 +328,9 @@ async function restoreTarget( target, registry ) {
 		.select( coreStore )
 		.getEntityConfig( kind, name )?.baseURL;
 
-	if ( ! revision || ! baseURL ) {
+	const isTemplate = kind === 'postType' && TEMPLATE_TYPES.includes( name );
+
+	if ( ! baseURL || ( ! revision && ! isTemplate ) ) {
 		throw new Error( 'No revision to restore.' );
 	}
 
@@ -339,11 +345,18 @@ async function restoreTarget( target, registry ) {
 
 	// A template's ID is `theme//slug`, and its route wants the slash.
 	const id = String( key ).split( '/' ).map( encodeURIComponent ).join( '/' );
-	const revisionRecord = await apiFetch( {
-		path: `${ baseURL }/${ id }/revisions/${ revision }?context=edit`,
-	} );
 
-	editEntityRecord( kind, name, key, getEdits( target, revisionRecord ) );
+	// A template a later publish first changed had no earlier version but
+	// the theme's file, so that is what goes back, as core's own reset does
+	// but as an edit. One the theme has no file for 404s, and fails.
+	const path = revision
+		? `${ baseURL }/${ id }/revisions/${ revision }?context=edit`
+		: `${ baseURL }/${ id }?context=edit&source=${ encodeURIComponent(
+				saved.origin || 'theme'
+			) }`;
+	const earlier = await apiFetch( { path } );
+
+	editEntityRecord( kind, name, key, getEdits( target, earlier ) );
 }
 
 /**

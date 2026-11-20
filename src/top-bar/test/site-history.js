@@ -10,7 +10,12 @@ vi.mock( '../../settings', () => ( { namespace: 'cnl/v1' } ) );
 /**
  * Internal dependencies
  */
-import { buildHistoryChanges, planRestore } from '../site-history';
+import apiFetch from '@wordpress/api-fetch';
+import {
+	buildHistoryChanges,
+	planRestore,
+	restoreEntry,
+} from '../site-history';
 
 const styles = ( revision, previous ) => ( {
 	kind: 'root',
@@ -120,5 +125,96 @@ describe( 'buildHistoryChanges', () => {
 
 		expect( change.values ).toEqual( { title: 'New' } );
 		expect( change.previous ).toEqual( { title: 'Old' } );
+	} );
+} );
+
+describe( 'restoreEntry', () => {
+	const header = {
+		kind: 'postType',
+		name: 'wp_template_part',
+		key: 'theme//header',
+		label: 'Header',
+		revision: 3,
+	};
+
+	function makeRegistry() {
+		const edits = {};
+		const registry = {
+			edits,
+			select: () => ( {
+				getEntityConfig: () => ( { baseURL: '/wp/v2/template-parts' } ),
+				hasEditsForEntityRecord: ( kind, name, key ) => !! edits[ key ],
+				getEntityRecordEdits: () => ( {} ),
+			} ),
+			resolveSelect: () => ( {
+				getEntityRecord: async () => ( { origin: 'theme' } ),
+			} ),
+			dispatch: () => ( {
+				editEntityRecord: ( kind, name, key, values ) => {
+					edits[ key ] = values;
+				},
+			} ),
+		};
+
+		return registry;
+	}
+
+	test( 'a template a later publish first changed goes back to the theme file', async () => {
+		apiFetch.mockResolvedValueOnce( {
+			content: { raw: '<!-- theme header -->' },
+		} );
+		const registry = makeRegistry();
+		const entries = [
+			{ id: 'b', changes: [ header ] },
+			{ id: 'a', changes: [] },
+		];
+
+		const result = await restoreEntry( entries, 1, registry );
+
+		expect( apiFetch ).toHaveBeenLastCalledWith( {
+			path: '/wp/v2/template-parts/theme//header?context=edit&source=theme',
+		} );
+		expect( registry.edits[ 'theme//header' ] ).toEqual( {
+			content: '<!-- theme header -->',
+		} );
+		expect( result ).toEqual( { restored: 1, failed: 0 } );
+	} );
+
+	test( 'a template with an earlier version goes back to that revision', async () => {
+		apiFetch.mockResolvedValueOnce( { content: { raw: 'before' } } );
+		const registry = makeRegistry();
+		const entries = [
+			{ id: 'b', changes: [ { ...header, previous_revision: 2 } ] },
+			{ id: 'a', changes: [] },
+		];
+
+		await restoreEntry( entries, 1, registry );
+
+		expect( apiFetch ).toHaveBeenLastCalledWith( {
+			path: '/wp/v2/template-parts/theme//header/revisions/2?context=edit',
+		} );
+	} );
+
+	test( 'a menu a later publish made has nothing to go back to', async () => {
+		const registry = makeRegistry();
+		const entries = [
+			{
+				id: 'b',
+				changes: [
+					{
+						kind: 'postType',
+						name: 'wp_navigation',
+						key: 9,
+						revision: 4,
+					},
+				],
+			},
+			{ id: 'a', changes: [] },
+		];
+
+		expect( await restoreEntry( entries, 1, registry ) ).toEqual( {
+			restored: 0,
+			failed: 1,
+		} );
 	} );
 } );

@@ -357,4 +357,31 @@ class CNL_Editor_Site_History_Test extends WP_UnitTestCase {
 		$this->assertSame( array( 'title' => 'New' ), $entry['changes'][0]['values'] );
 		$this->assertSame( array( 'title' => 'Old' ), $entry['changes'][0]['previous'] );
 	}
+
+	public function test_an_autosave_is_not_claimed_as_the_revision_a_save_made() {
+		wp_set_current_user( self::$admin_id );
+		$menu_id = $this->make_menu( 'Second' );
+		$saved   = (int) current( wp_get_post_revisions( $menu_id, array( 'fields' => 'ids' ) ) );
+
+		wp_create_post_autosave(
+			array(
+				'post_ID'      => $menu_id,
+				'post_content' => 'Autosaved',
+				'post_title'   => 'Menu',
+				'post_type'    => 'wp_navigation',
+			)
+		);
+
+		$entry = cnl_editor_record_site_history(
+			array(
+				array(
+					'kind' => 'postType',
+					'name' => 'wp_navigation',
+					'key'  => $menu_id,
+				),
+			)
+		);
+
+		$this->assertSame( $saved, $entry['changes'][0]['revision'] );
+	}
 }

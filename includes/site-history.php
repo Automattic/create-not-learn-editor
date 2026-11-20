@@ -64,6 +64,11 @@ function cnl_editor_keep_site_history_original( $post_id ) {
  * @param int $post_id     The record it is a revision of.
  */
 function cnl_editor_note_site_history_revision( $revision_id, $post_id = 0 ) {
+	// An autosave isn't a save anyone published.
+	if ( wp_is_post_autosave( $revision_id ) ) {
+		return;
+	}
+
 	$post_id = $post_id ? (int) $post_id : (int) wp_get_post_parent_id( $revision_id );
 	$user_id = get_current_user_id();
 
