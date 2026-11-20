@@ -50,6 +50,9 @@ export function Publish() {
 				accessibleWhenDisabled
 				isBusy={ isSaving }
 				description={ status }
+				// Named for the sidebar's tooltip while it's a strip of
+				// icons, where the count is all that shows beside it.
+				aria-label={ __( 'Publish' ) }
 			>
 				<span className="cnl-publish__label">
 					{ isSaving ? __( 'Publishing…' ) : __( 'Publish' ) }
