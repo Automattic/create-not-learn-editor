@@ -33,7 +33,7 @@ import { Publish } from '../../../src/top-bar/publish';
  * What can be pointed at in the sidebar while it is a strip of icons, the
  * sidebar not being expanded. Matches the rule in `_sidebar.scss`.
  */
-const STRIP_ITEM_SELECTOR = `body:not(.cnl-sidebar-is-expanded) #create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"] :is([class*="__item-wrapper"] > *, .cnl-menu-section-stand-in__button, .cnl-sidebar-workspace__toggle)`;
+const STRIP_ITEM_SELECTOR = `body:not(.cnl-sidebar-is-expanded) #create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"] :is([class*="__item-wrapper"] > *, .cnl-menu-section-stand-in__button, .cnl-sidebar-workspace__toggle, .cnl-publish)`;
 
 const EXPANDED_CLASS = 'cnl-sidebar-is-expanded';
 

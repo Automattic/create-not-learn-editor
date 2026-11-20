@@ -390,9 +390,31 @@ body:not(.cnl-sidebar-is-expanded) #create-not-learn-editor-app [class*="__layou
 		padding-inline: 0;
 	}
 
+	// An icon like the rest of the strip, not a button: no fill, and the
+	// toggle's colours. The count, while there's one, says it's waiting.
 	.components-button.cnl-publish {
 		width: 40px;
 		padding: 0;
+		background: transparent;
+		box-shadow: none;
+		color: var(--wpds-color-foreground-content-neutral-weak);
+
+		&:hover:not(:disabled, [aria-disabled="true"]),
+		&:focus-visible {
+			background: transparent;
+			color: var(--wpds-color-foreground-content-neutral);
+		}
+
+		&:focus-visible {
+			box-shadow: 0 0 0 var(--wp-admin-border-width-focus) var(--wp-admin-theme-color);
+		}
+
+		&:disabled,
+		&[aria-disabled="true"] {
+			background: transparent;
+			color: var(--wpds-color-foreground-content-neutral-weak);
+			opacity: 0.5;
+		}
 	}
 
 	.cnl-publish__label {
@@ -400,17 +422,19 @@ body:not(.cnl-sidebar-is-expanded) #create-not-learn-editor-app [class*="__layou
 		@include cnl-visually-hidden;
 	}
 
+	// Beside the icon's top corner, clear of the icon itself.
 	.cnl-publish__count {
 		position: absolute;
-		inset-block-start: -4px;
-		inset-inline-end: -4px;
-		min-width: 16px;
-		height: 16px;
-		padding-inline: 4px;
-		border: 2px solid var(--wpds-color-background-surface-neutral);
-		box-sizing: content-box;
+		inset-block-start: 3px;
+		inset-inline-end: 1px;
+		min-width: 14px;
+		height: 14px;
+		padding-inline: 3px;
+		box-sizing: border-box;
+		border-radius: 7px;
 		background: var(--wp-admin-theme-color);
 		color: #fff;
-		font-size: 10px;
+		font-size: 9px;
+		font-weight: 600;
 	}
 }
