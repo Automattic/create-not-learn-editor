@@ -11,7 +11,6 @@ const {
 	getEditButton,
 	getExitButton,
 	getRoute,
-	getSaveControls,
 	getZoomOutToggle,
 	getSitePreview,
 	openViewMenu,
@@ -77,14 +76,17 @@ test.describe( 'Site canvas interactions', () => {
 		await expect( getEditButton( page ) ).toBeVisible();
 		await expect( getExitButton( page ) ).toHaveCount( 0 );
 		await expect( zoomOut ).toHaveCount( 0 );
-		// Nothing to save yet, so no Save while on view.
-		await expect( getSaveControls( page ) ).toBeHidden();
+		// On view, the page's own buttons aren't shown.
+		await expect( page.locator( '.cnl-document-actions' ) ).toHaveCount(
+			0
+		);
 		await expect( body ).not.toHaveClass( /cnl-canvas-is-expanded/ );
 
 		await setCanvasMode( page, 'Edit' );
 		await expect( getEditButton( page ) ).toHaveCount( 0 );
 		await expect( getExitButton( page ) ).toBeVisible();
-		await expect( getSaveControls( page ) ).toBeVisible();
+		// The page saves and publishes with its own buttons, beside Exit.
+		await expect( page.locator( '.cnl-document-actions' ) ).toBeVisible();
 		await expect( body ).toHaveClass( /cnl-canvas-is-expanded/ );
 		await expect( zoomOut ).toBeVisible( { timeout: 15000 } );
 		await expect( zoomOut ).toHaveAttribute( 'aria-pressed', 'false' );
@@ -111,7 +113,7 @@ test.describe( 'Site canvas interactions', () => {
 		await expectCanvasMode( page, 'Browse' );
 	} );
 
-	test( 'Exit leaves without saving, discarding unsaved changes', async ( {
+	test( 'Exit asks first, and Exit without saving discards unsaved changes', async ( {
 		page,
 		rest,
 	} ) => {
@@ -134,15 +136,15 @@ test.describe( 'Site canvas interactions', () => {
 		await page.keyboard.press( 'End' );
 		await page.keyboard.type( ' changed' );
 
-		await expect(
-			getSaveControls( page ).getByRole( 'button', { name: /Save/ } )
-		).toBeEnabled();
-
-		// No asking: Exit is the way out without saving.
+		// Exit asks first, and Exit without saving drops the page's edits.
 		await getExitButton( page ).click();
-		await expect(
-			page.getByRole( 'dialog', { name: 'Save your changes?' } )
-		).toHaveCount( 0 );
+
+		const dialog = page.getByRole( 'dialog', { name: /^Exit/ } );
+
+		await dialog
+			.getByRole( 'button', { name: 'Exit without saving' } )
+			.click();
+		await expect( dialog ).toHaveCount( 0 );
 		await expectCanvasMode( page, 'Browse' );
 		await expect(
 			page

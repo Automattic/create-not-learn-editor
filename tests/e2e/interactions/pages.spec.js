@@ -1,13 +1,14 @@
 const {
+	expectSiteChangesWaiting,
+	expectUpToDate,
 	expect,
 	expectBlockEditor,
 	getEditorCanvas,
 	getPageItem,
 	getRoute,
-	getSaveControls,
 	getStage,
 	openPageLayouts,
-	openReviewChanges,
+	openPublishSite,
 	test,
 	visitEditor,
 } = require( '../utils' );
@@ -47,9 +48,10 @@ test.describe( 'Pages interactions', () => {
 		const bar = page.getByRole( 'button', {
 			name: `${ from.title }, Published. Go to another page`,
 		} );
-		const search = page.getByRole( 'combobox', {
-			name: 'Find or go to any page',
-		} );
+		// The canvas toolbar's, not the top bar's Go to page.
+		const search = page
+			.locator( '.cnl-site-canvas' )
+			.getByRole( 'combobox', { name: 'Find or go to any page' } );
 
 		// Escape puts the name back, with focus on it.
 		await bar.click( { timeout: 15000 } );
@@ -119,9 +121,7 @@ test.describe( 'Pages interactions', () => {
 		await menuSwitch.click();
 
 		await expect( menuSwitch ).not.toBeChecked();
-		await expect( getSaveControls( page ) ).toContainText(
-			'1 unsaved change'
-		);
+		await expectSiteChangesWaiting( page );
 
 		// Switched back on, the menu is as it was.
 		await menuSwitch.click();
@@ -285,14 +285,12 @@ test.describe( 'Pages interactions', () => {
 		await dialog.getByLabel( 'Page title' ).fill( newTitle );
 		await dialog.getByRole( 'button', { name: 'Rename' } ).click();
 
-		// The new name waits in the canvas toolbar to be saved.
+		// The new name waits to be saved.
 		await expect( dialog ).toHaveCount( 0 );
 		await expect(
 			page.locator( '.cnl-editor-homepage-document__title' )
 		).toHaveText( newTitle );
-		await expect( getSaveControls( page ) ).toContainText(
-			'1 unsaved change'
-		);
+		await expectSiteChangesWaiting( page );
 	} );
 
 	test( 'drags a page under another page, and back out, waiting to be saved', async ( {
@@ -374,19 +372,17 @@ test.describe( 'Pages interactions', () => {
 			'2'
 		);
 
-		// The move waits for Save, like any other change.
-		await expect( getSaveControls( page ) ).toContainText(
-			'1 unsaved change'
-		);
+		// The move waits for Publish site, like any other change.
+		await expectSiteChangesWaiting( page );
 		expect( await getParent() ).toBe( 0 );
 
-		const review = await openReviewChanges( page );
+		const review = await openPublishSite( page );
 
-		await review.getByRole( 'button', { name: 'Save 1 change' } ).click();
-		await expect( getSaveControls( page ) ).toContainText(
-			'All changes saved',
-			{ timeout: 15000 }
-		);
+		await expect( review.getByRole( 'listitem' ) ).toHaveCount( 1 );
+		await review
+			.getByRole( 'button', { name: 'Publish', exact: true } )
+			.click();
+		await expectUpToDate( page );
 		expect( await getParent() ).toBe( parent.id );
 
 		// High on the parent's row and to the far left brings it back out,
@@ -399,9 +395,7 @@ test.describe( 'Pages interactions', () => {
 			'aria-level',
 			'1'
 		);
-		await expect( getSaveControls( page ) ).toContainText(
-			'unsaved change'
-		);
+		await expectSiteChangesWaiting( page );
 		expect( await getParent() ).toBe( parent.id );
 	} );
 

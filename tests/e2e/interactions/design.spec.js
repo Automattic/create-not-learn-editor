@@ -1,8 +1,9 @@
 const {
 	expect,
-	getSaveControls,
+	expectSiteChangesWaiting,
+	expectUpToDate,
 	getStage,
-	openReviewChanges,
+	openPublishSite,
 	test,
 	visitEditor,
 } = require( '../utils' );
@@ -38,7 +39,7 @@ async function pickSecondChoice( page, selector ) {
 
 	await choices.nth( 1 ).click();
 	await expect( choices.nth( 1 ) ).toHaveAttribute( 'aria-pressed', 'true' );
-	await expect( getSaveControls( page ) ).toContainText( '1 unsaved change' );
+	await expectSiteChangesWaiting( page );
 }
 
 /**
@@ -108,17 +109,15 @@ test.describe( 'Design interactions', () => {
 			'aria-pressed',
 			'true'
 		);
-		await expect( getSaveControls( page ) ).toContainText(
-			'1 unsaved change'
-		);
+		await expectSiteChangesWaiting( page );
 
-		const review = await openReviewChanges( page );
+		const review = await openPublishSite( page );
 		await review
 			.getByRole( 'button', { name: 'Discard change to Site look' } )
 			.click();
 
 		await expect( themeDefault ).toHaveAttribute( 'aria-pressed', 'true' );
-		await expect( getSaveControls( page ) ).not.toContainText( 'unsaved' );
+		await expectUpToDate( page );
 	} );
 
 	test( 'picking a color palette waits to be saved, and Back leaves the editor beside Design', async ( {
@@ -152,6 +151,7 @@ test.describe( 'Design interactions', () => {
 			.getByRole( 'button', { name: /Go to another page$/ } )
 			.click();
 		await page
+			.locator( '.cnl-site-canvas' )
 			.getByRole( 'combobox', { name: 'Find or go to any page' } )
 			.fill( target.title );
 		await page.getByRole( 'option', { name: target.title } ).click();
@@ -193,16 +193,13 @@ test.describe( 'Design interactions', () => {
 				.first()
 		).toBeVisible( { timeout: 15000 } );
 
-		await expect( getSaveControls( page ) ).toContainText(
-			'2 unsaved changes'
-		);
-		const review = await openReviewChanges( page );
-		await review.getByRole( 'button', { name: 'Save 2 changes' } ).click();
+		const review = await openPublishSite( page );
+		await expect( review.getByRole( 'listitem' ) ).toHaveCount( 2 );
+		await review
+			.getByRole( 'button', { name: 'Publish', exact: true } )
+			.click();
 
-		await expect( getSaveControls( page ) ).toContainText(
-			'All changes saved',
-			{ timeout: 15000 }
-		);
+		await expectUpToDate( page );
 		expect(
 			await rest.fetch( '/wp/v2/settings', {
 				params: { _fields: 'title,description' },
@@ -216,7 +213,6 @@ test.describe( 'Design interactions', () => {
 		await visitEditor( page, '/design/identity' );
 
 		const stage = getStage( page );
-		const saveControls = getSaveControls( page );
 		const siteName = stage.getByLabel( 'Site name' );
 		const tagline = stage.getByLabel( 'Tagline' );
 
@@ -227,10 +223,10 @@ test.describe( 'Design interactions', () => {
 
 		await siteName.fill( `Discarded name ${ Date.now() }` );
 		await tagline.fill( `Discarded tagline ${ Date.now() }` );
-		await expect( saveControls ).toContainText( '2 unsaved changes' );
 
-		// One change, from the review.
-		const review = await openReviewChanges( page );
+		// One change, from Publish site.
+		const review = await openPublishSite( page );
+		await expect( review.getByRole( 'listitem' ) ).toHaveCount( 2 );
 		await review
 			.getByRole( 'button', { name: 'Discard change to Site name' } )
 			.click();
@@ -241,19 +237,29 @@ test.describe( 'Design interactions', () => {
 		const confirm = page.getByRole( 'dialog', {
 			name: 'Discard changes?',
 		} );
-		await review.getByRole( 'button', { name: 'Discard all' } ).click();
+		await review
+			.getByRole( 'button', { name: 'More publish options' } )
+			.click();
+		await page
+			.getByRole( 'menuitem', { name: 'Discard changes…' } )
+			.click();
 		await confirm.getByRole( 'button', { name: 'Keep changes' } ).click();
 		await expect( review.getByRole( 'listitem' ) ).toHaveCount( 1 );
 		await page.keyboard.press( 'Escape' );
 		await expect( review ).toHaveCount( 0 );
 
 		// The rest, all at once.
-		await openReviewChanges( page );
-		await review.getByRole( 'button', { name: 'Discard all' } ).click();
+		await openPublishSite( page );
+		await review
+			.getByRole( 'button', { name: 'More publish options' } )
+			.click();
+		await page
+			.getByRole( 'menuitem', { name: 'Discard changes…' } )
+			.click();
 		await confirm
 			.getByRole( 'button', { name: 'Discard changes' } )
 			.click();
 		await expect( tagline ).toHaveValue( savedTagline );
-		await expect( saveControls ).not.toContainText( 'unsaved' );
+		await expectUpToDate( page );
 	} );
 } );

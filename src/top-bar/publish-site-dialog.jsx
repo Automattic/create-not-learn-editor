@@ -336,7 +336,13 @@ export function PublishSiteDialog( { onClose } ) {
 							<DropdownMenu
 								icon={ chevronDownIcon }
 								label={ __( 'More publish options' ) }
-								popoverProps={ { placement: 'bottom-end' } }
+								// In the dialog, not core's popover container: a
+								// dialog hides that from screen readers when it
+								// opens after the menu was first used.
+								popoverProps={ {
+									placement: 'bottom-end',
+									inline: true,
+								} }
 								toggleProps={ {
 									__next40pxDefaultSize: true,
 									variant: 'primary',

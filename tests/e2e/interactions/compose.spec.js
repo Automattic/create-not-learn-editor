@@ -264,6 +264,9 @@ test.describe( 'Compose', () => {
 			.click();
 		await pickSectionTemplate( page, 'Image left, text right' );
 
+		// Off the page, so a part under the pointer, like the footer,
+		// doesn't take the bar's place.
+		await page.mouse.move( 0, 0 );
 		await page
 			.locator( '.cnl-section-modes__bar' )
 			.getByRole( 'button', { name: 'Edit design' } )

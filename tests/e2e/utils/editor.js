@@ -495,27 +495,56 @@ async function expectSnackbar( page, message ) {
 }
 
 /**
- * The unsaved-changes summary and Save button in the canvas toolbar.
+ * The publish status at the end of the top bar: Publish site while site
+ * changes wait, "N site changes waiting" while a page or post is open, or
+ * "Up to date". See `src/top-bar/README.md`.
  *
  * @param {import('@playwright/test').Page} page
- * @return {import('@playwright/test').Locator} The controls.
+ * @return {import('@playwright/test').Locator} The status.
  */
-function getSaveControls( page ) {
-	return page.locator( '.cnl-save-controls' );
+function getPublishStatus( page ) {
+	return page.locator( '.cnl-publish-status' );
 }
 
 /**
- * Open the Review changes dialog from the canvas toolbar.
+ * Check site changes are waiting for Publish site.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function expectSiteChangesWaiting( page ) {
+	await expect( getPublishStatus( page ) ).toContainText(
+		/Publish site|site changes? waiting/,
+		{ timeout: 15000 }
+	);
+}
+
+/**
+ * Check nothing is waiting for Publish site.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function expectUpToDate( page ) {
+	await expect( getPublishStatus( page ) ).toContainText( 'Up to date', {
+		timeout: 15000,
+	} );
+}
+
+/**
+ * Open the Publish site dialog from the top bar.
  *
  * @param {import('@playwright/test').Page} page
  * @return {Promise<import('@playwright/test').Locator>} The dialog.
  */
-async function openReviewChanges( page ) {
-	await getSaveControls( page )
-		.getByRole( 'button', { name: 'Save', exact: true } )
+async function openPublishSite( page ) {
+	await getPublishStatus( page )
+		.getByRole( 'button', { name: 'Publish site' } )
 		.click();
 
-	return page.getByRole( 'dialog', { name: 'Review changes' } );
+	const dialog = page.getByRole( 'dialog', { name: 'Publish site' } );
+
+	await expect( dialog ).toBeVisible();
+
+	return dialog;
 }
 
 /**
@@ -600,12 +629,14 @@ module.exports = {
 	getPageItem,
 	getZoomOutToggle,
 	getRoute,
-	getSaveControls,
+	getPublishStatus,
+	expectSiteChangesWaiting,
+	expectUpToDate,
 	getSitePreview,
 	getStage,
 	openAddPage,
 	openPageLayouts,
-	openReviewChanges,
+	openPublishSite,
 	openSidebarLink,
 	closeViewMenu,
 	openViewMenu,
