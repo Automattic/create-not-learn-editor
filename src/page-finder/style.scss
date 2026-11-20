@@ -5,6 +5,8 @@
  * canvas's light colours.
  */
 
+@use "../colors" as *;
+
 $field-height: 32px;
 $panel-gap: 4px;
 
@@ -435,6 +437,31 @@ $light-fill-strong: rgba(0, 0, 0, 0.08);
 
 	&.is-publish {
 		color: var(--wpds-color-foreground-content-neutral-weak);
+	}
+
+	// What every page shares, in its purple. See `src/global-scope`.
+	&.is-shared {
+		color: $cnl-global;
+	}
+}
+
+// A layout or template part's name and what it is, in the purple of what
+// every page shares. See `src/global-scope`.
+.cnl-page-switcher.is-shared .cnl-page-switcher__label > * {
+	color: $cnl-global;
+}
+
+// Names what is open without going anywhere, so it doesn't act like a field.
+.cnl-page-switcher.is-static {
+
+	.cnl-page-switcher__toggle,
+	.cnl-page-switcher__toggle:hover {
+		background: $light-fill;
+		cursor: default;
+	}
+
+	.cnl-page-switcher__status {
+		cursor: default;
 	}
 }
 

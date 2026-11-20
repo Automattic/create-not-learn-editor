@@ -25,7 +25,7 @@ import { cnlEditorStore, getTitleText } from '../../records';
 import ScreenLinks from '../../screen-links';
 import { settings } from '../../settings';
 import {
-	DocumentTitle,
+	PageSwitcher,
 	SiteCanvas,
 	useCanvasDocument,
 	useSiteCanvas,
@@ -60,7 +60,6 @@ import {
 	blockEditorStore,
 	Breadcrumbs,
 	Button,
-	Icon,
 	Modal,
 	noticesStore,
 	Page,
@@ -811,21 +810,23 @@ function SitePartsStage() {
 	);
 }
 
-function PartDocument( { icon, title } ) {
+// The bar pages have, marked as shared, as the part is on every page. It
+// doesn't go to other pages, as the screen is about the part.
+function PartDocument( { title } ) {
 	return (
-		<div className="cnl-editor-homepage-document is-global">
-			<div className="cnl-editor-homepage-document__text">
-				<div className="cnl-editor-homepage-document__heading">
-					<Icon
-						className="cnl-editor-homepage-document__icon"
-						icon={ icon }
-					/>
-					<DocumentTitle title={ title } />
-				</div>
-				<p className="cnl-editor-homepage-document__meta">
-					{ __( 'Same on every page' ) }
-				</p>
-			</div>
+		<div className="cnl-editor-homepage-document">
+			<PageSwitcher
+				canSwitch={ false }
+				meta={ __( 'Every page' ) }
+				shared={ sprintf(
+					/* translators: %s: Header or Footer. */
+					__(
+						'The %s is the same on every page. Changes show on all of them.'
+					),
+					title
+				) }
+				title={ title }
+			/>
 		</div>
 	);
 }
@@ -861,12 +862,7 @@ function createCanvas( area ) {
 				canCompose={ false }
 				canvas={ { ...canvas, editRoute } }
 				className={ `cnl-site-part-canvas is-${ area }` }
-				document={
-					<PartDocument
-						icon={ SITE_PARTS[ area ].icon }
-						title={ SITE_PARTS[ area ].title }
-					/>
-				}
+				document={ <PartDocument title={ SITE_PARTS[ area ].title } /> }
 				editorRef={ editorRef }
 				// The part is all Edit offers, the rest of the page dimmed.
 				focusId={ clientId }
@@ -896,9 +892,7 @@ function SitePartsCanvas() {
 			canCompose={ false }
 			canvas={ canvas }
 			className="cnl-site-part-canvas"
-			document={
-				<PartDocument icon={ headerIcon } title={ SITE_PARTS_TITLE } />
-			}
+			document={ <PartDocument title={ SITE_PARTS_TITLE } /> }
 		/>
 	);
 }
