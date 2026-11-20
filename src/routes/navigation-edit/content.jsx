@@ -6,6 +6,7 @@ import { useNavigate, useParams, useSearch } from '@wordpress/route';
 /**
  * Internal dependencies
  */
+import { savesMenus } from '../../save-scopes';
 import { withCanvasRecovery } from '../../canvas-recovery';
 import { withUiTheme } from '../../theme';
 import { cnlEditorStore, getErrorMessage } from '../../records';
@@ -223,6 +224,7 @@ function NavigationEditStage() {
 
 	return (
 		<Page
+			saves={ savesMenus }
 			actions={ menuOptions }
 			ariaLabel={ menuTitle }
 			// A menu sits under the Menus screen, wherever it was opened

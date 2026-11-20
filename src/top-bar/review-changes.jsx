@@ -230,11 +230,14 @@ function ChangeGroups( { changes, onDiscard } ) {
  * @param {Function} props.onClose       Close the dialog.
  * @param {boolean}  props.inEditSession Only what changed while editing
  *                                       the page, for its Save.
+ * @param {Function} props.only          Only changes to records it's true
+ *                                       for, for a screen's Save.
  * @return {Element} The dialog.
  */
-export function ReviewChanges( { onClose, inEditSession = false } ) {
+export function ReviewChanges( { onClose, inEditSession = false, only } ) {
 	const { changes, isSaving, save, discard, discardAll } = useChanges( {
 		inEditSession,
+		only,
 	} );
 	const [ isConfirmingDiscard, setIsConfirmingDiscard ] = useState( false );
 	const { createSuccessNotice } = useDispatch( noticesStore );

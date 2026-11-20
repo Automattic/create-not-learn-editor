@@ -1,12 +1,12 @@
 /**
  * Save controls: how many changes are waiting, and a way to review them.
  *
- * Changes made across the editor are held back until the user saves them,
- * so Save opens the review, where they are saved or discarded. Save is always
- * there, and disabled while there's nothing to save, so it's somewhere to
- * look before there is. It sits in the canvas toolbar, and replaces boot's
- * save button at the foot of the sidebar, which `style.scss` hides wherever
- * there is a canvas toolbar.
+ * Changes are held back until the user saves them, so Save opens the review,
+ * where they are saved or discarded. In the canvas toolbar, while editing a
+ * page, Save is the page's: always there, and disabled while there's nothing
+ * to save. At the top right of a screen beside the canvas, it's the screen's,
+ * for what it edits, and only there while some of that is unsaved
+ * (`ScreenSave`).
  *
  * How many changes are waiting, or that they were all saved, is in Save's
  * tooltip and read out as it changes, rather than written beside it: the
@@ -27,11 +27,20 @@ import { displayShortcut, rawShortcut } from '@wordpress/keycodes';
 import { ReviewChanges } from './review-changes';
 import { useChanges } from './use-changes';
 
-export function SaveControls() {
+/**
+ * @param {Object}   props
+ * @param {Function} props.only Only changes to records it's true for: what
+ *                              a screen edits, for the Save in its header
+ *                              (`src/save-scopes.js`). Without it, the page
+ *                              being edited: only what changed while editing
+ *                              it.
+ * @return {Element} The controls.
+ */
+export function SaveControls( { only } ) {
 	const [ isReviewOpen, setIsReviewOpen ] = useState( false );
 	const [ hasSaved, setHasSaved ] = useState( false );
-	// Beside the page being edited, so only what changed while editing it.
-	const { changes, isSaving } = useChanges( { inEditSession: true } );
+	const scope = only ? { only } : { inEditSession: true };
+	const { changes, isSaving } = useChanges( scope );
 	const changeCount = changes.length;
 	const hasChanges = changeCount > 0;
 	const closeReview = useCallback( () => setIsReviewOpen( false ), [] );
@@ -106,7 +115,7 @@ export function SaveControls() {
 				disabled={ isSaving || ! hasChanges }
 				accessibleWhenDisabled
 				description={ status || undefined }
-				// Below, as the toolbar is at the top of the window.
+				// Below, as the toolbar and headers are at the top.
 				tooltipPosition="bottom"
 				isBusy={ isSaving }
 				shortcut={ displayShortcut.primary( 's' ) }
@@ -115,7 +124,7 @@ export function SaveControls() {
 				{ isSaving ? __( 'Saving…' ) : __( 'Save' ) }
 			</Button>
 			{ isReviewOpen && (
-				<ReviewChanges onClose={ closeReview } inEditSession />
+				<ReviewChanges onClose={ closeReview } { ...scope } />
 			) }
 		</div>
 	);
