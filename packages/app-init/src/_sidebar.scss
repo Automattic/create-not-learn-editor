@@ -353,63 +353,64 @@ html:root.cnl-sidebar-is-transitioning {
 }
 
 /*
- * The site's unsaved changes, above the foot
- * (`src/top-bar/unsaved-changes.jsx`): empty, and so taking no room, while
- * there are none.
+ * Publish, at the very bottom of the sidebar (`src/top-bar/publish.jsx`),
+ * for every unsaved change on the site. Folded to a strip, it's its icon,
+ * with how many changes are waiting.
  */
-.cnl-sidebar-changes:empty {
-	display: none;
-}
+.cnl-sidebar-publish {
+	padding:
+		var(--wpds-dimension-gap-sm) var(--wpds-dimension-gap-md)
+		var(--wpds-dimension-gap-md) var(--wpds-dimension-padding-xl);
 
-.cnl-sidebar-changes {
-	padding-block-start: var(--wpds-dimension-gap-sm);
-	padding-inline: var(--wpds-dimension-padding-xl) var(--wpds-dimension-gap-md);
-
-	.components-button.cnl-unsaved-changes {
+	.components-button.cnl-publish {
 		position: relative;
+		justify-content: center;
 		width: 100%;
-		gap: var(--wpds-dimension-gap-sm);
-		color: var(--wpds-color-foreground-content-neutral);
 	}
 
-	// Its count shows on the icon only while the sidebar is a strip.
-	.cnl-unsaved-changes__count {
-		display: none;
+	.cnl-publish__count {
+		display: grid;
+		place-items: center;
+		min-width: 18px;
+		height: 18px;
+		padding-inline: 5px;
+		box-sizing: border-box;
+		border-radius: 9px;
+		background: rgba(255, 255, 255, 0.25);
+		font-size: 11px;
+		line-height: 1;
 	}
 }
 
 body:not(.cnl-sidebar-is-expanded) #create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"] {
 
-	.cnl-sidebar-changes {
+	.cnl-sidebar-publish {
 		display: flex;
 		justify-content: center;
 		padding-inline: 0;
 	}
 
-	.components-button.cnl-unsaved-changes {
-		justify-content: center;
+	.components-button.cnl-publish {
 		width: 40px;
+		padding: 0;
 	}
 
-	.cnl-unsaved-changes__label {
+	.cnl-publish__label {
 
 		@include cnl-visually-hidden;
 	}
 
-	.cnl-unsaved-changes__count {
+	.cnl-publish__count {
 		position: absolute;
-		inset-block-start: 2px;
-		inset-inline-end: 2px;
-		display: grid;
-		place-items: center;
+		inset-block-start: -4px;
+		inset-inline-end: -4px;
 		min-width: 16px;
 		height: 16px;
 		padding-inline: 4px;
-		box-sizing: border-box;
-		border-radius: 8px;
+		border: 2px solid var(--wpds-color-background-surface-neutral);
+		box-sizing: content-box;
 		background: var(--wp-admin-theme-color);
 		color: #fff;
 		font-size: 10px;
-		line-height: 1;
 	}
 }

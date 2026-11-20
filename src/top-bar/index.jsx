@@ -11,8 +11,9 @@
  *
  * The save controls there are the page's, while it's being edited: Save
  * and its review only reach what changed while editing (`src/edit-session.js`).
- * Everything else waits in the site's unsaved changes, in the sidebar above
- * its foot (`unsaved-changes.jsx`), on every screen.
+ * Everything else is saved from the Save of the screen it was made on, or
+ * waits for Publish, at the bottom of the sidebar (`publish.jsx`), which
+ * publishes every change.
  */
 
 /**

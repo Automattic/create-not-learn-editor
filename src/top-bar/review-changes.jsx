@@ -232,9 +232,16 @@ function ChangeGroups( { changes, onDiscard } ) {
  *                                       the page, for its Save.
  * @param {Function} props.only          Only changes to records it's true
  *                                       for, for a screen's Save.
+ * @param {boolean}  props.isPublishing  Worded for the sidebar's Publish,
+ *                                       which publishes every change.
  * @return {Element} The dialog.
  */
-export function ReviewChanges( { onClose, inEditSession = false, only } ) {
+export function ReviewChanges( {
+	onClose,
+	inEditSession = false,
+	only,
+	isPublishing = false,
+} ) {
 	const { changes, isSaving, save, discard, discardAll } = useChanges( {
 		inEditSession,
 		only,
@@ -319,16 +326,22 @@ export function ReviewChanges( { onClose, inEditSession = false, only } ) {
 	return (
 		<Modal
 			key="review"
-			title={ __( 'Review changes' ) }
+			title={
+				isPublishing ? __( 'Publish changes' ) : __( 'Review changes' )
+			}
 			onRequestClose={ onClose }
 			size="medium"
 			className="cnl-review-changes"
 		>
 			<Stack direction="column" gap="xl">
 				<Text className="cnl-review-changes__intro">
-					{ __(
-						'Visitors see these once you save them. Discard any you don’t want to keep.'
-					) }
+					{ isPublishing
+						? __(
+								'Visitors see these once you publish them. Discard any you don’t want to keep.'
+							)
+						: __(
+								'Visitors see these once you save them. Discard any you don’t want to keep.'
+							) }
 				</Text>
 				<ChangeGroups changes={ changes } onDiscard={ discard } />
 				<div className="cnl-review-changes__footer">
@@ -358,15 +371,25 @@ export function ReviewChanges( { onClose, inEditSession = false, only } ) {
 							disabled={ isSaving }
 							accessibleWhenDisabled
 						>
-							{ sprintf(
-								/* translators: %d: Number of changes to save. */
-								_n(
-									'Save %d change',
-									'Save %d changes',
-									count
-								),
-								count
-							) }
+							{ isPublishing
+								? sprintf(
+										/* translators: %d: Number of changes to publish. */
+										_n(
+											'Publish %d change',
+											'Publish %d changes',
+											count
+										),
+										count
+									)
+								: sprintf(
+										/* translators: %d: Number of changes to save. */
+										_n(
+											'Save %d change',
+											'Save %d changes',
+											count
+										),
+										count
+									) }
 						</Button>
 					</div>
 				</div>

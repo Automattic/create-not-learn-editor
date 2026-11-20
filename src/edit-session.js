@@ -6,7 +6,7 @@
  * which starts a session, noting what was unsaved already, like a colour
  * changed on Colors. Its Save and Exit then save or discard only what
  * changed since (`useChanges( { inEditSession: true } )`), and everything
- * else waits in the sidebar's unsaved changes, for the whole site.
+ * else waits for the sidebar's Publish, for the whole site.
  *
  * A record already unsaved when the session started stays out of it, even
  * if the session changes it further.
