@@ -27,13 +27,12 @@ import {
 import { openRoute } from '../../../src/open-route';
 import { OPEN_SIDEBAR_HOME_EVENT } from '../../../src/open-sidebar-home';
 import { openPreferences } from '../../../src/preferences';
-import { Publish } from '../../../src/top-bar/publish';
 
 /*
  * What can be pointed at in the sidebar while it is a strip of icons, the
  * sidebar not being expanded. Matches the rule in `_sidebar.scss`.
  */
-const STRIP_ITEM_SELECTOR = `body:not(.cnl-sidebar-is-expanded) #create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"] :is([class*="__item-wrapper"] > *, .cnl-menu-section-stand-in__button, .cnl-sidebar-workspace__toggle, .cnl-publish)`;
+const STRIP_ITEM_SELECTOR = `body:not(.cnl-sidebar-is-expanded) #create-not-learn-editor-app [class*="__layout"] > [class*="__sidebar"] :is([class*="__item-wrapper"] > *, .cnl-menu-section-stand-in__button, .cnl-sidebar-workspace__toggle)`;
 
 const EXPANDED_CLASS = 'cnl-sidebar-is-expanded';
 
@@ -448,23 +447,8 @@ function createSidebarFoot() {
 }
 
 /**
- * Publish, at the very bottom of the sidebar.
- *
- * @return {Element} Its row.
- */
-function createSidebarPublish() {
-	const container = document.createElement( 'div' );
-	container.className = 'cnl-sidebar-publish';
-	createRoot( container ).render( el( Publish ) );
-
-	return container;
-}
-
-/**
  * Add the plugin's own pieces to boot's sidebar.
  *
- * - Publish, at the very bottom (`src/top-bar/publish.jsx`), for every
- *   unsaved change. It's here, not on a screen, as it's the whole site's.
  * - A foot below the menu, outside boot's navigation screens so it stays
  *   put when drilling in and out, with the workspace switcher and a button
  *   to expand the sidebar from its strip of icons and fold it back. The
@@ -485,7 +469,6 @@ function createSidebarPublish() {
  */
 export function enhanceSidebar() {
 	const workspaceSwitcher = createSidebarFoot();
-	const publish = createSidebarPublish();
 
 	mountStripTooltip();
 	returnHomeWithSidebar();
@@ -521,10 +504,6 @@ export function enhanceSidebar() {
 
 		if ( menu && menu.nextElementSibling !== workspaceSwitcher ) {
 			menu.after( workspaceSwitcher );
-		}
-
-		if ( menu && workspaceSwitcher.nextElementSibling !== publish ) {
-			workspaceSwitcher.after( publish );
 		}
 	};
 

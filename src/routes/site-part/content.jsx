@@ -21,7 +21,6 @@ import { useSearch } from '@wordpress/route';
 /**
  * Internal dependencies
  */
-import { savesSiteParts } from '../../save-scopes';
 import { cnlEditorStore, getTitleText } from '../../records';
 import ScreenLinks from '../../screen-links';
 import { settings } from '../../settings';
@@ -743,7 +742,6 @@ function createStage( area ) {
 
 		return (
 			<Page
-				saves={ savesSiteParts }
 				breadcrumbs={
 					<Breadcrumbs
 						items={
@@ -797,7 +795,6 @@ function SitePartsStage() {
 
 	return (
 		<Page
-			saves={ savesSiteParts }
 			className="cnl-editor-stage cnl-editor-content-page"
 			hasPadding={ false }
 			headingLevel={ 2 }

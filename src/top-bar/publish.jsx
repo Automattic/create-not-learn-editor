@@ -13,15 +13,14 @@ import { ReviewChanges } from './review-changes';
 import { useChanges } from './use-changes';
 
 /**
- * Publish, at the bottom of the sidebar: every unsaved change on the site,
- * from any screen, like a colour picked on Colors or a menu changed on
- * Menus. Always there, so it's somewhere to look, and greyed out while
+ * Publish, at the foot of every screen beside the canvas (`Page`, in
+ * `src/stage-page.jsx`): every unsaved change on the site, from any screen,
+ * like a colour picked on Colors or a menu changed on Menus. Always there, so it's somewhere to look, and greyed out while
  * there's nothing to publish. It opens the review, where the changes are
  * published together or discarded one by one.
  *
- * A screen's own Save, at the top right of its header, publishes only what
- * it edits (`src/save-scopes.js`), and a page being edited has its own Save,
- * for what changed while editing it (`src/edit-session.js`).
+ * A page being edited has its own Save, for what changed while editing it
+ * (`src/edit-session.js`).
  *
  * @return {Element} Publish.
  */
@@ -50,9 +49,6 @@ export function Publish() {
 				accessibleWhenDisabled
 				isBusy={ isSaving }
 				description={ status }
-				// Named for the sidebar's tooltip while it's a strip of
-				// icons, where the count is all that shows beside it.
-				aria-label={ __( 'Publish' ) }
 			>
 				<span className="cnl-publish__label">
 					{ isSaving ? __( 'Publishing…' ) : __( 'Publish' ) }

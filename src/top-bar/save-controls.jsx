@@ -4,9 +4,7 @@
  * Changes are held back until the user saves them, so Save opens the review,
  * where they are saved or discarded. In the canvas toolbar, while editing a
  * page, Save is the page's: always there, and disabled while there's nothing
- * to save. At the top right of a screen beside the canvas, it's the screen's,
- * for what it edits, and only there while some of that is unsaved
- * (`ScreenSave`).
+ * to save. Every other change waits for Publish (`publish.jsx`).
  *
  * How many changes are waiting, or that they were all saved, is in Save's
  * tooltip and read out as it changes, rather than written beside it: the
@@ -27,20 +25,11 @@ import { displayShortcut, rawShortcut } from '@wordpress/keycodes';
 import { ReviewChanges } from './review-changes';
 import { useChanges } from './use-changes';
 
-/**
- * @param {Object}   props
- * @param {Function} props.only Only changes to records it's true for: what
- *                              a screen edits, for the Save in its header
- *                              (`src/save-scopes.js`). Without it, the page
- *                              being edited: only what changed while editing
- *                              it.
- * @return {Element} The controls.
- */
-export function SaveControls( { only } ) {
+export function SaveControls() {
 	const [ isReviewOpen, setIsReviewOpen ] = useState( false );
 	const [ hasSaved, setHasSaved ] = useState( false );
-	const scope = only ? { only } : { inEditSession: true };
-	const { changes, isSaving } = useChanges( scope );
+	// Beside the page being edited, so only what changed while editing it.
+	const { changes, isSaving } = useChanges( { inEditSession: true } );
 	const changeCount = changes.length;
 	const hasChanges = changeCount > 0;
 	const closeReview = useCallback( () => setIsReviewOpen( false ), [] );
@@ -115,7 +104,7 @@ export function SaveControls( { only } ) {
 				disabled={ isSaving || ! hasChanges }
 				accessibleWhenDisabled
 				description={ status || undefined }
-				// Below, as the toolbar and headers are at the top.
+				// Below, as the toolbar is at the top of the window.
 				tooltipPosition="bottom"
 				isBusy={ isSaving }
 				shortcut={ displayShortcut.primary( 's' ) }
@@ -124,7 +113,7 @@ export function SaveControls( { only } ) {
 				{ isSaving ? __( 'Saving…' ) : __( 'Save' ) }
 			</Button>
 			{ isReviewOpen && (
-				<ReviewChanges onClose={ closeReview } { ...scope } />
+				<ReviewChanges onClose={ closeReview } inEditSession />
 			) }
 		</div>
 	);

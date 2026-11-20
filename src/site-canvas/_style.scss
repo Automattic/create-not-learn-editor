@@ -65,7 +65,8 @@
 }
 
 // Save is the page's, so it shows only while editing it. Changes made
-// elsewhere wait for the sidebar's Publish (`src/edit-session.js`).
+// elsewhere wait for Publish, at the foot of each screen
+// (`src/edit-session.js`).
 body:not(.cnl-canvas-is-expanded) .cnl-site-canvas .cnl-save-controls {
 	display: none;
 }
