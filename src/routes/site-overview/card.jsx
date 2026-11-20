@@ -86,11 +86,14 @@ function Thumbnail( { node, rootRef } ) {
 }
 
 function SiteOverviewCard( {
+	dropPosition,
 	group,
 	isActive,
+	isDragged,
 	isRelated,
 	isSelected,
 	node,
+	onDragStart,
 	onFocusCard,
 	onHover,
 	onOpen,
@@ -106,6 +109,9 @@ function SiteOverviewCard( {
 		isSelected && 'is-selected',
 		isActive && 'is-active',
 		isRelated && 'is-related',
+		node.kind === 'page' && 'is-draggable',
+		isDragged && 'is-dragged',
+		dropPosition && `is-drop-${ dropPosition }`,
 	]
 		.filter( Boolean )
 		.join( ' ' );
@@ -117,6 +123,7 @@ function SiteOverviewCard( {
 			onDoubleClick={ () => onOpen( node ) }
 			onMouseEnter={ () => onHover( node.id ) }
 			onMouseLeave={ () => onHover( '' ) }
+			onPointerDown={ ( event ) => onDragStart( event, node ) }
 			style={ {
 				height: node.height,
 				left: node.x,

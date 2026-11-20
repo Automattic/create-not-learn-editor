@@ -34,6 +34,7 @@ import {
 	MemoizedStackSheets,
 } from './lanes';
 import { ZoomControls } from './zoom-controls';
+import usePageMoves from './use-page-moves';
 import { SelectedPage } from './selected-page';
 import {
 	Notice,
@@ -96,6 +97,14 @@ export default function Canvas() {
 	const didFitRef = useRef( false );
 	const boundsRef = useRef( null );
 	const hasSize = size.width > 0 && size.height > 0;
+	// The click that ends dragging a page shouldn't select one.
+	const onDragEnd = useCallback( () => {
+		suppressClickRef.current = true;
+		setTimeout( () => {
+			suppressClickRef.current = false;
+		} );
+	}, [] );
+	const pageMoves = usePageMoves( { onDragEnd, siteOverview } );
 
 	viewRef.current = view;
 	sizeRef.current = size;
@@ -131,8 +140,11 @@ export default function Canvas() {
 	}, [ invalidateSiteOverview ] );
 
 	const layout = useMemo(
-		() => ( siteOverview ? layoutSiteOverview( siteOverview ) : null ),
-		[ siteOverview ]
+		() =>
+			pageMoves.overview
+				? layoutSiteOverview( pageMoves.overview )
+				: null,
+		[ pageMoves.overview ]
 	);
 	boundsRef.current = layout?.bounds || null;
 	const scaleLimits =
@@ -527,9 +539,13 @@ export default function Canvas() {
 				<div
 					aria-describedby="cnl-site-overview-help"
 					aria-label={ __( 'Site overview canvas' ) }
-					className={ `cnl-site-overview__viewport${
-						isPanning ? ' is-panning' : ''
-					}` }
+					className={ [
+						'cnl-site-overview__viewport',
+						isPanning && 'is-panning',
+						pageMoves.drag && 'is-dragging-page',
+					]
+						.filter( Boolean )
+						.join( ' ' ) }
 					onClick={ onBackgroundClick }
 					onClickCapture={ onClickCapture }
 					onKeyDown={ onKeyDown }
@@ -575,12 +591,21 @@ export default function Canvas() {
 								) ) }
 							{ layout.nodes.map( ( node ) => (
 								<MemoizedSiteOverviewCard
+									dropPosition={
+										pageMoves.drag?.drop?.nodeId === node.id
+											? pageMoves.drag.drop.position
+											: undefined
+									}
 									group={ groupsByName.get( node.group ) }
 									isActive={ node.id === hoveredId }
+									isDragged={
+										pageMoves.drag?.nodeId === node.id
+									}
 									isRelated={ relatedIds.has( node.id ) }
 									isSelected={ node.id === selectedId }
 									key={ node.id }
 									node={ node }
+									onDragStart={ pageMoves.onCardPointerDown }
 									onFocusCard={ onFocusCard }
 									onHover={ setHoveredId }
 									onOpen={ onOpen }
@@ -630,10 +655,29 @@ export default function Canvas() {
 						id="cnl-site-overview-help"
 					>
 						{ __(
-							'Drag or scroll to move around. Pinch, or hold Ctrl or ⌘ and scroll, to zoom. Click a page for details, or double-click it to edit it.'
+							'Drag the background or scroll to move around. Pinch, or hold Ctrl or ⌘ and scroll, to zoom. Click a page for details, or double-click it to edit it. Drag a page onto another to put it under it, or onto its edge to put it beside it.'
 						) }
 					</p>
 				</div>
+				{ pageMoves.drag && (
+					<div
+						aria-hidden
+						className="cnl-site-overview__drag-label"
+						style={ {
+							left: pageMoves.drag.x,
+							top: pageMoves.drag.y,
+						} }
+					>
+						<span className="cnl-site-overview__drag-title">
+							{ pageMoves.drag.title }
+						</span>
+						{ pageMoves.drag.label && (
+							<span className="cnl-site-overview__drag-action">
+								{ pageMoves.drag.label }
+							</span>
+						) }
+					</div>
+				) }
 				{ selectedNode && hasSize && (
 					<SelectedPage
 						group={ groupsByName.get( selectedNode.group ) }
