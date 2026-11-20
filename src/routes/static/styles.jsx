@@ -6,6 +6,7 @@ import { useLinkProps } from '@wordpress/route';
 /**
  * Internal dependencies
  */
+import { savesStyles } from '../../save-scopes';
 import { DesignPage } from './design-page';
 import SitePreviewCanvas from './site-preview';
 import ScreenLinks from '../../screen-links';
@@ -165,6 +166,7 @@ function StylesScreen( {
 		<DesignPage
 			description={ description }
 			isTopLevel={ isTopLevel }
+			saves={ savesStyles }
 			title={ title }
 		>
 			{ isLoading && (
