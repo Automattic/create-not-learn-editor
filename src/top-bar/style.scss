@@ -6,8 +6,7 @@
 
 /*
  * Boot's own save button, at the foot of the sidebar, gives way to the
- * site's unsaved changes above the foot (`unsaved-changes.jsx`), and to the
- * Save of a page being edited.
+ * sidebar's Publish (`publish.jsx`), and to the Save of a page being edited.
  */
 #create-not-learn-editor-app [class*="__layout"]:not([class*="__has-full-canvas"]) [class*="__sidebar"] [class*="__scrollable"] > [class*="__footer"] {
 	display: none;
