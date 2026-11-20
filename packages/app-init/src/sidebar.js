@@ -27,7 +27,7 @@ import {
 import { openRoute } from '../../../src/open-route';
 import { OPEN_SIDEBAR_HOME_EVENT } from '../../../src/open-sidebar-home';
 import { openPreferences } from '../../../src/preferences';
-import { UnsavedChanges } from '../../../src/top-bar/unsaved-changes';
+import { Publish } from '../../../src/top-bar/publish';
 
 /*
  * What can be pointed at in the sidebar while it is a strip of icons, the
@@ -448,14 +448,14 @@ function createSidebarFoot() {
 }
 
 /**
- * The site's unsaved changes, above the foot, while there are any.
+ * Publish, at the very bottom of the sidebar.
  *
  * @return {Element} Its row.
  */
-function createSidebarChanges() {
+function createSidebarPublish() {
 	const container = document.createElement( 'div' );
-	container.className = 'cnl-sidebar-changes';
-	createRoot( container ).render( el( UnsavedChanges ) );
+	container.className = 'cnl-sidebar-publish';
+	createRoot( container ).render( el( Publish ) );
 
 	return container;
 }
@@ -463,9 +463,8 @@ function createSidebarChanges() {
 /**
  * Add the plugin's own pieces to boot's sidebar.
  *
- * - The site's unsaved changes, above the foot, while there are any
- *   (`src/top-bar/unsaved-changes.jsx`). They're here, not on a screen, as
- *   they're the whole site's.
+ * - Publish, at the very bottom (`src/top-bar/publish.jsx`), for every
+ *   unsaved change. It's here, not on a screen, as it's the whole site's.
  * - A foot below the menu, outside boot's navigation screens so it stays
  *   put when drilling in and out, with the workspace switcher and a button
  *   to expand the sidebar from its strip of icons and fold it back. The
@@ -486,7 +485,7 @@ function createSidebarChanges() {
  */
 export function enhanceSidebar() {
 	const workspaceSwitcher = createSidebarFoot();
-	const unsavedChanges = createSidebarChanges();
+	const publish = createSidebarPublish();
 
 	mountStripTooltip();
 	returnHomeWithSidebar();
@@ -520,12 +519,12 @@ export function enhanceSidebar() {
 			':scope > [class*="__content"]'
 		);
 
-		if ( menu && menu.nextElementSibling !== unsavedChanges ) {
-			menu.after( unsavedChanges );
+		if ( menu && menu.nextElementSibling !== workspaceSwitcher ) {
+			menu.after( workspaceSwitcher );
 		}
 
-		if ( menu && unsavedChanges.nextElementSibling !== workspaceSwitcher ) {
-			unsavedChanges.after( workspaceSwitcher );
+		if ( menu && workspaceSwitcher.nextElementSibling !== publish ) {
+			workspaceSwitcher.after( publish );
 		}
 	};
 

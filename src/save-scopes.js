@@ -2,8 +2,8 @@
  * What each screen beside the canvas edits, for the Save at the top right of
  * its header (`Page`'s `saves`, in `src/stage-page.jsx`). The Save only shows
  * while there's an unsaved change it's true for, and only saves those.
- * Everything else waits in the site's unsaved changes, in the sidebar
- * (`src/top-bar/unsaved-changes.jsx`).
+ * Everything else waits for Publish, at the bottom of the sidebar
+ * (`src/top-bar/publish.jsx`).
  *
  * Each is called with an unsaved record, as `useChanges` lists them: its
  * `kind`, `name` and `key`, and for one of the site's settings, `property`.
