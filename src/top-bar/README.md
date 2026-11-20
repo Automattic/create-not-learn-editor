@@ -51,6 +51,28 @@ For menus, the editor can't know every place one is shown: a Navigation block ca
 - **Putting a draft in a page or post** is a change to that page or post, which publishes from the canvas. Publishing, scheduling or saving it while live publishes the drafts its content shows with it (`publishDocumentMenus()` in `src/site-canvas/document-actions.jsx`), for the same reason.
 - **Deleting** a menu in a place the editor knows of, the header say, isn't possible until another takes its place. Any other menu can be deleted after a warning, which for a published menu says it goes from wherever the site shows it, at once.
 
+## Site history
+
+A clock in the top bar, before Publish site, opens a panel down the right (`site-history-panel.jsx`). It lists what **Publish site** published, newest first, grouped by day, at three levels of detail:
+
+1. **The entry:** "Published N changes", the time, who published it and the names of the changes.
+2. **Its changes:** clicking the entry opens it in place. Each change has one line on what it changed: from → to when it is one thing, the names of the first few settings, or for blocks "2 edits, 1 block added".
+3. **Every detail:** a change with more than one detail opens a screen of its own, listing each one from → to, with colours as swatches. Back, or Escape, returns to the list where it was.
+
+The details are worked out just before the save, while the editor still holds both the saved record and the edited one (`site-history-diff.js`). They are kept in the log with the entry, so an entry still reads the same after the theme or palette has changed. Style values name the preset they point at, "Contrast" rather than `var:preset|color|contrast`, and blocks are matched before and after as a text diff matches lines.
+
+- **Latest** marks the newest entry instead of Restore: it is what the site shows, so restoring it would change nothing.
+- **Restore** on any other entry asks first, in a dialog: the editor's preview goes back to that version, and the site itself doesn't change until it is published with Publish site. It also says when restoring would replace changes not yet published.
+- The clock is disabled until something has been published.
+- The panel slides in over the canvas and closes on Escape, Close, or a click anywhere else, since it covers the canvas's toolbar.
+
+Only what Publish site publishes is in it: templates, template parts, site styles, menus and site settings. Pages and posts keep core's own revisions.
+
+- **Built on core revisions.** Core already keeps a revision of each template, part, styles record and menu it saves. What it doesn't say is which were saved together, and site settings have no revisions. So `includes/site-history.php` keeps a small log, the option `create-not-learn-editor_site_history`, newest 50, not autoloaded. Each entry has the time, the user and its changes. A change holds the revision the save made or, for site settings, the values saved, and its summary and details, the first 60 of them, with only plain colours and web addresses kept. It is read and added to through `/site-history` (`edit_theme_options`); anything that isn't one of those kinds is dropped.
+- **Logged after the save.** `publishSite()` in `use-changes.js` posts what was saved once core's save finishes, leaving out whatever is still unsaved after it. A failure to log doesn't fail the publish.
+- **Restore goes back to how the site was just after that publish.** A revision holds a record as a save left it, so an entry's own revisions are already live unless a later publish changed the same thing. Restore therefore undoes every later publish: each record they changed goes back to how it was before the oldest of them (`previous_revision`, logged with each change), and each site setting to its `previous` value. The PHP side notes the revision each person's save made, so a save by someone else before the entry is logged isn't claimed, and keeps a record's original as a revision before its first update, so there is something to go back to.
+- **Restore is an edit, not a save.** `site-history.js` fetches each revision and loads it into the record as an unsaved edit, so it waits for Publish site like any other change. A revision core has since pruned is skipped, and the snackbar says so; so is a menu a later publish created, which has no earlier version. A template or part a later publish first changed goes back to the theme's file, as core's reset does but as an edit. When everything already matches, the snackbar says there was nothing to put back. There is no preview of an old version.
+
 ## Nothing kept between visits yet
 
-The site's changes live in the editor's memory, as core's edits do, so the editor warns before the page is left while anything is unsaved. Keeping them as a site draft between visits, site history and scheduling are the next steps.
+The site's changes live in the editor's memory, as core's edits do, so the editor warns before the page is left while anything is unsaved. Keeping them as a site draft between visits and scheduling are the next steps.

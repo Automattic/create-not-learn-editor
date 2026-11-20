@@ -20,6 +20,8 @@ import { __, sprintf } from '@wordpress/i18n';
  */
 import { unlock } from '../lock-unlock';
 import { useOpenDocument, useSelfSaving } from '../site-canvas/mode';
+import { buildHistoryChanges, recordSitePublish } from './site-history';
+import { describeChangeDetails } from './site-history-diff';
 
 /*
  * Named as the editor names them, so a change reads as the place it was made.
@@ -508,19 +510,62 @@ export function useChanges() {
 	const save = () => saveDirtyEntities( { dirtyEntityRecords } );
 
 	// The same save, leaving out the open page or post, which publishes from
-	// the canvas, and taking in the draft menus it puts on the site.
-	const publishSite = () => {
+	// the canvas, and taking in the draft menus it puts on the site. What it
+	// saved is added to the site history, as one entry.
+	const publishSite = async () => {
 		const records = dirtyEntityRecords.filter(
 			( record ) => ! isDocumentChange( record, openDocument )
 		);
+		const toSave = [
+			...records,
+			...publishDraftMenus( registry, records ),
+		];
+		const store = registry.select( coreStore );
+		const described = describeChanges(
+			// The draft menus it adds have no title yet in the list.
+			toSave.map( ( record ) => ( {
+				...record,
+				title:
+					record.title ||
+					store.getEditedEntityRecord(
+						record.kind,
+						record.name,
+						record.key
+					)?.title?.raw,
+			} ) ),
+			{
+				getEntityConfig,
+				getPageTitle,
+				site: store.getEditedEntityRecord( 'root', 'site' ),
+			}
+		);
+		const siteAtPublish = store.getEditedEntityRecord( 'root', 'site' );
+		// As it was saved before, for Restore to go back past this publish.
+		const siteBefore = store.getEntityRecord( 'root', 'site' );
+		// From what to what, while the saved records are still the old ones.
+		const withDetails = described.map( ( change ) => ( {
+			...change,
+			...describeChangeDetails( change, registry ),
+		} ) );
 
-		return saveDirtyEntities( {
-			dirtyEntityRecords: [
-				...records,
-				...publishDraftMenus( registry, records ),
-			],
+		await saveDirtyEntities( {
+			dirtyEntityRecords: toSave,
 			successNoticeContent: __( 'Site published.' ),
 		} );
+
+		// Core reports a failed save itself; what is still unsaved wasn't
+		// published, so it isn't in the entry.
+		const stillWaiting = new Set(
+			getDirtyRecords( registry.select ).map( getChangeId )
+		);
+
+		recordSitePublish(
+			buildHistoryChanges(
+				withDetails.filter( ( { id } ) => ! stillWaiting.has( id ) ),
+				siteAtPublish,
+				siteBefore
+			)
+		);
 	};
 
 	return {

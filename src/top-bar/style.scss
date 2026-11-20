@@ -5,6 +5,7 @@
  * Save, at the foot of the sidebar, gives way to Publish site here.
  */
 @use "../colors" as *;
+@use "../elevation" as *;
 
 // Room for the 40px buttons in it and little more, so the bar stays slim.
 $top-bar-height: 48px;
@@ -406,4 +407,576 @@ $agent-green: var(--wpds-color-stroke-surface-success-strong);
 		border-start-start-radius: 0;
 		border-end-start-radius: 0;
 	}
+}
+
+// Site history: the clock quiet on the dark frame, and the panel, a card
+// beside the canvas the way the stage and the canvas are, sliding in from the
+// right.
+$history-ease: cubic-bezier(0.2, 0, 0, 1);
+
+.components-button.cnl-site-history__toggle {
+	color: var(--wpds-color-foreground-interactive-neutral);
+
+	&:hover:not([aria-disabled="true"]),
+	&[aria-expanded="true"] {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+		color: var(--wpds-color-foreground-interactive-neutral-active);
+	}
+
+	// Nothing published yet: there is no history to open.
+	&[aria-disabled="true"] {
+		opacity: 0.4;
+	}
+}
+
+.cnl-site-history {
+	--cnl-history-gap: var(--wpds-dimension-gap-lg);
+
+	position: fixed;
+	inset-block: calc(var(--wp-admin--admin-bar--height, 0px) + #{$top-bar-height} + 8px) 8px;
+	inset-inline-end: 8px;
+	z-index: 100000;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	width: min(360px, calc(100vw - 16px));
+	overflow: hidden;
+	border-radius: var(--wpds-border-radius-lg);
+	background: var(--wpds-color-background-surface-neutral);
+	color: var(--wpds-color-foreground-content-neutral);
+	box-shadow: $cnl-popover-shadow;
+	opacity: 0;
+	transform: translateX(24px);
+	transition:
+		opacity 160ms ease-in,
+		transform 240ms cubic-bezier(0.4, 0, 1, 1);
+
+	&.is-shown {
+		opacity: 1;
+		transform: none;
+		transition:
+			opacity 200ms ease-out,
+			transform 320ms $history-ease;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		transform: none;
+
+		&.is-shown {
+			transition: opacity 120ms ease-out;
+		}
+	}
+}
+
+.cnl-site-history:focus,
+.cnl-site-history__screen:focus {
+	outline: none;
+}
+
+.cnl-site-history__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--wpds-dimension-gap-md);
+	padding: var(--wpds-dimension-padding-lg) var(--wpds-dimension-padding-md) var(--wpds-dimension-padding-md) var(--wpds-dimension-padding-xl);
+	border-block-end: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+
+	h2 {
+		margin: 0;
+	}
+}
+
+.cnl-site-history__intro {
+	display: block;
+	margin-block-start: var(--wpds-dimension-gap-xs);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.cnl-site-history__body {
+	flex: 1;
+	padding: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-xl) var(--wpds-dimension-padding-xl);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.cnl-site-history__day + .cnl-site-history__day {
+	margin-block-start: var(--wpds-dimension-gap-md);
+}
+
+// The day, held at the top while its entries scroll under it.
+.cnl-site-history__day-label {
+	position: sticky;
+	inset-block-start: calc(-1 * var(--wpds-dimension-padding-sm));
+	z-index: 1;
+	margin: 0;
+	padding-block: var(--wpds-dimension-padding-sm);
+	background: var(--wpds-color-background-surface-neutral);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+}
+
+// A rail of dots down the left of each day, the newest filled.
+.cnl-site-history__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+$history-dot: 9px;
+$history-dot-top: 18px;
+
+.cnl-site-history__entry {
+	position: relative;
+	padding-block: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-md);
+	padding-inline-start: var(--wpds-dimension-padding-xl);
+	opacity: 0;
+	transform: translateY(6px);
+
+	// The rail, from this dot to the next.
+	&::before {
+		content: "";
+		position: absolute;
+		inset-block: calc(#{$history-dot-top} + #{$history-dot} / 2) calc(-1 * (#{$history-dot-top} + #{$history-dot} / 2));
+		inset-inline-start: calc(#{$history-dot} / 2 - 0.5px);
+		width: 1px;
+		background: var(--wpds-color-stroke-surface-neutral);
+	}
+
+	&:last-child::before {
+		display: none;
+	}
+}
+
+.is-shown .cnl-site-history__entry {
+	opacity: 1;
+	transform: none;
+	transition:
+		opacity 240ms ease-out calc(120ms + var(--cnl-entry-index, 0) * 40ms),
+		transform 320ms $history-ease calc(120ms + var(--cnl-entry-index, 0) * 40ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.cnl-site-history__entry {
+		transform: none;
+	}
+
+	.is-shown .cnl-site-history__entry {
+		transition: none;
+	}
+}
+
+.cnl-site-history__dot {
+	position: absolute;
+	inset-block-start: $history-dot-top;
+	inset-inline-start: 0;
+	box-sizing: border-box;
+	width: $history-dot;
+	height: $history-dot;
+	border: 1.5px solid var(--wpds-color-stroke-surface-neutral-strong);
+	border-radius: 50%;
+	background: var(--wpds-color-background-surface-neutral);
+}
+
+.cnl-site-history__entry.is-latest .cnl-site-history__dot {
+	border-color: var(--wp-admin-theme-color);
+	background: var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--wp-admin-theme-color) 30%, transparent);
+}
+
+.cnl-site-history__entry-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+	padding-block-start: var(--wpds-dimension-padding-xs);
+}
+
+// Who published it, and Restore, or the newest's badge, at the end.
+.cnl-site-history__entry-foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--wpds-dimension-gap-md);
+	min-height: var(--wpds-dimension-size-sm);
+}
+
+// Flush with the rail's text, not inset by its own padding.
+// Light on the dark panel, outlined as the frame's other quiet buttons are,
+// rather than the admin blue, which reads poorly on dark grey.
+.components-button.cnl-site-history__restore {
+	box-shadow: inset 0 0 0 var(--wpds-border-width-xs) var(--wpds-color-stroke-interactive-neutral);
+	color: var(--wpds-color-foreground-interactive-neutral);
+
+	&:hover:not([aria-disabled="true"]) {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+		box-shadow: inset 0 0 0 var(--wpds-border-width-xs) var(--wpds-color-stroke-interactive-neutral-active);
+		color: var(--wpds-color-foreground-interactive-neutral-active);
+	}
+
+	&:focus-visible {
+		box-shadow: inset 0 0 0 var(--wpds-border-width-focus) var(--wp-admin-theme-color);
+	}
+
+	&[aria-disabled="true"] {
+		color: var(--wpds-color-foreground-interactive-neutral-disabled);
+	}
+}
+
+// Restore asks first. The version restored, as a card, then what happens.
+.cnl-site-history-restore__version {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: var(--wpds-dimension-padding-md) var(--wpds-dimension-padding-lg);
+	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+	border-radius: var(--wpds-border-radius-md);
+	background: var(--wpds-color-background-surface-neutral-weak);
+}
+
+.cnl-site-history-restore__version-title {
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+}
+
+.cnl-site-history-restore__version-meta {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.cnl-site-history-restore__warning {
+	color: var(--wpds-color-foreground-content-caution);
+}
+
+.cnl-site-history-restore__actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+/*
+ * Levels of detail. An entry opens in place to list its changes; a change
+ * opens a screen of its own, sliding over the list, with every detail.
+ */
+.cnl-site-history__screen {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.cnl-site-history.is-moving-forward .cnl-site-history__screen.is-details {
+	animation: cnl-history-from-end 280ms $history-ease both;
+}
+
+.cnl-site-history.is-moving-back .cnl-site-history__screen.is-list {
+	animation: cnl-history-from-start 280ms $history-ease both;
+}
+
+@keyframes cnl-history-from-end {
+
+	from {
+		opacity: 0;
+		transform: translateX(24px);
+	}
+}
+
+@keyframes cnl-history-from-start {
+
+	from {
+		opacity: 0;
+		transform: translateX(-24px);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.cnl-site-history.is-moving-forward .cnl-site-history__screen.is-details,
+	.cnl-site-history.is-moving-back .cnl-site-history__screen.is-list {
+		animation-name: cnl-history-fade;
+	}
+
+	@keyframes cnl-history-fade {
+
+		from {
+			opacity: 0;
+		}
+	}
+}
+
+// The entry's summary is the button that opens it: a quiet hover, no chrome.
+.cnl-site-history__entry-toggle {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	width: calc(100% + 2 * var(--wpds-dimension-padding-sm));
+	margin: 0 calc(-1 * var(--wpds-dimension-padding-sm));
+	padding: var(--wpds-dimension-padding-xs) var(--wpds-dimension-padding-sm);
+	border: 0;
+	border-radius: var(--wpds-border-radius-md);
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: start;
+	cursor: pointer;
+
+	&:hover {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wp-admin-theme-color);
+		outline-offset: 0;
+	}
+}
+
+// What it was, with the time at the end of the same line.
+.cnl-site-history__entry-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--wpds-dimension-gap-md);
+}
+
+.cnl-site-history__entry-title {
+	display: inline-flex;
+	align-items: center;
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+}
+
+.cnl-site-history__entry-chevron {
+	flex: none;
+	fill: var(--wpds-color-foreground-content-neutral-weak);
+	transition: transform 200ms $history-ease;
+
+	.is-open > .cnl-site-history__entry-text & {
+		transform: rotate(180deg);
+	}
+}
+
+.cnl-site-history__entry-time {
+	flex: none;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+	font-variant-numeric: tabular-nums;
+}
+
+.cnl-site-history__entry-labels {
+	display: -webkit-box;
+	overflow: hidden;
+	font-size: var(--wpds-typography-font-size-sm);
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+
+// The second level opens by its height, so nothing below jumps.
+.cnl-site-history__changes-wrap {
+	display: grid;
+	grid-template-rows: 0fr;
+	visibility: hidden;
+	transition:
+		grid-template-rows 260ms $history-ease,
+		visibility 0s 260ms;
+
+	&.is-open {
+		grid-template-rows: 1fr;
+		visibility: visible;
+		transition: grid-template-rows 260ms $history-ease;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+
+		&.is-open {
+			transition: none;
+		}
+	}
+}
+
+.cnl-site-history__changes {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	list-style: none;
+
+	.is-open > & {
+		padding-block-start: var(--wpds-dimension-padding-xs);
+	}
+}
+
+.cnl-site-history__change {
+	display: flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+	box-sizing: border-box;
+	width: 100%;
+	padding: var(--wpds-dimension-padding-sm);
+	border: 0;
+	border-radius: var(--wpds-border-radius-md);
+	background: var(--wpds-color-background-surface-neutral-weak);
+	color: inherit;
+	font: inherit;
+	text-align: start;
+}
+
+button.cnl-site-history__change {
+	cursor: pointer;
+
+	&:hover {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+	}
+
+	&:hover .cnl-site-history__change-chevron {
+		transform: translateX(2px);
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wp-admin-theme-color);
+		outline-offset: 0;
+	}
+}
+
+.cnl-site-history__change-text {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.cnl-site-history__change-label {
+	font-size: var(--wpds-typography-font-size-sm);
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+}
+
+.cnl-site-history__change-summary {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+}
+
+.cnl-site-history__change-chevron {
+	flex: none;
+	fill: var(--wpds-color-foreground-content-neutral-weak);
+	transition: transform 160ms $history-ease;
+}
+
+// A value, with its colour or image before it.
+.cnl-site-history__value {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+}
+
+.cnl-site-history__value-text {
+	overflow-wrap: anywhere;
+}
+
+.cnl-site-history__swatch {
+	flex: none;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	box-shadow: inset 0 0 0 1px rgba(127, 127, 127, 0.4);
+}
+
+.cnl-site-history__thumb {
+	flex: none;
+	width: 20px;
+	height: 20px;
+	border-radius: var(--wpds-border-radius-sm);
+	object-fit: cover;
+}
+
+.cnl-site-history__from-to {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	font-size: var(--wpds-typography-font-size-sm);
+}
+
+// The old value is quieter than the new.
+.cnl-site-history__from {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.cnl-site-history__arrow {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.cnl-site-history__mark {
+	flex: none;
+	font-weight: var(--wpds-typography-font-weight-emphasis);
+
+	&.is-added {
+		color: var(--wpds-color-foreground-content-success);
+	}
+
+	&.is-removed {
+		color: var(--wpds-color-foreground-content-error);
+	}
+}
+
+.cnl-site-history__from-to.is-removed .cnl-site-history__value-text {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	text-decoration: line-through;
+}
+
+// The third level.
+.cnl-site-history__details-heading {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--wpds-dimension-gap-xs);
+	min-width: 0;
+
+	h2 {
+		margin: 0;
+	}
+}
+
+.components-button.cnl-site-history__back {
+	margin-block-end: var(--wpds-dimension-gap-xs);
+	margin-inline-start: calc(-1 * var(--wpds-dimension-padding-sm));
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.cnl-site-history__details {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.cnl-site-history__detail {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+	padding-block: var(--wpds-dimension-padding-md);
+	border-block-end: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+
+	&:last-child {
+		border-block-end: 0;
+	}
+
+	.cnl-site-history__from-to {
+		font-size: var(--wpds-typography-font-size-md);
+	}
+}
+
+.cnl-site-history__detail-label {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	font-size: var(--wpds-typography-font-size-sm);
+}
+
+.cnl-site-history__more {
+	display: block;
+	padding-block-start: var(--wpds-dimension-padding-sm);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.cnl-site-history__entry-meta {
+	color: var(--wpds-color-foreground-content-neutral-weak);
 }

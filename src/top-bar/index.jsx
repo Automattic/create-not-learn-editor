@@ -5,7 +5,7 @@
  * The site's logo and name are at the start, and open Name & logo. Go to
  * page, which opens the page finder (see `src/page-finder`), is in the
  * middle. At the end are which agent is connected, if one is (see
- * `src/webmcp/connection.js`), and Publish site, for the changes that are
+ * `src/webmcp/connection.js`), the site history, and Publish site, for the changes that are
  * the site's rather than one page's. See `README.md` for how changes are
  * split between Publish site and the canvas's own Save and Publish.
  */
@@ -22,6 +22,7 @@ import { __ } from '@wordpress/i18n';
 import { PageFinder } from '../page-finder';
 import { AgentStatus } from './agent-status';
 import { PublishStatus } from './publish-status';
+import { SiteHistory } from './site-history-panel';
 import { SiteButton } from './site-button';
 
 function TopBar() {
@@ -38,6 +39,7 @@ function TopBar() {
 			</div>
 			<div className="cnl-top-bar__end">
 				<AgentStatus />
+				<SiteHistory />
 				<PublishStatus />
 			</div>
 		</div>
