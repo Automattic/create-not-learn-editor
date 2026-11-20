@@ -338,7 +338,7 @@ export function useUseAsHomepage( state ) {
 					{ sprintf(
 						/* translators: %s: page title. */
 						__(
-							'“%s” isn’t published yet. To be your homepage, visitors need to see it, so it will be published when you save your changes.'
+							'“%s” isn’t published yet. To be your homepage, visitors need to see it, so it will be published when you publish the site.'
 						),
 						getPageTitle( pending )
 					) }

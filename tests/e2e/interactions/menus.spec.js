@@ -1,10 +1,10 @@
 const {
 	expect,
 	expectBlockEditor,
+	expectSiteChangesWaiting,
 	expectSnackbar,
 	getFrameTexts,
 	getRoute,
-	getSaveControls,
 	getStage,
 	test,
 	visitEditor,
@@ -35,17 +35,13 @@ async function openMenu( page, menu ) {
 }
 
 /**
- * Check a change is waiting in the canvas toolbar to be saved.
+ * Check a change is waiting for Publish site. The test menus are published,
+ * so every change to one waits.
  *
  * @param {import('@playwright/test').Page} page
  */
 async function expectUnsavedChanges( page ) {
-	await expect(
-		getSaveControls( page ).getByRole( 'button', {
-			name: 'Save',
-			exact: true,
-		} )
-	).toBeVisible();
+	await expectSiteChangesWaiting( page );
 }
 
 test.describe( 'Menus interactions', () => {
@@ -221,10 +217,7 @@ test.describe( 'Menus interactions', () => {
 		await dialog.getByLabel( 'Link text' ).fill( label );
 		await dialog.getByRole( 'button', { name: 'Add to menu' } ).click();
 
-		await expectSnackbar(
-			page,
-			'Menu items added. Review and save changes when you are ready.'
-		);
+		await expectSnackbar( page, 'Menu items added.' );
 		await expect( tree.getByText( label ) ).toBeVisible();
 	} );
 
@@ -242,11 +235,11 @@ test.describe( 'Menus interactions', () => {
 			name: 'Rename navigation menu',
 		} );
 		await dialog.getByLabel( 'Name' ).fill( newTitle );
-		await dialog.getByRole( 'button', { name: 'Save' } ).click();
+		await dialog.getByRole( 'button', { name: 'Rename' } ).click();
 
 		await expectSnackbar(
 			page,
-			'Navigation menu renamed. Review and save changes when you are ready.'
+			'Menu renamed. It changes on your site when you publish it.'
 		);
 		await expectUnsavedChanges( page );
 		await expect(
@@ -416,7 +409,7 @@ test.describe( 'Menus interactions', () => {
 
 		await expectSnackbar(
 			page,
-			'Menu locations updated. Review and save changes when you are ready.'
+			'Menu locations updated. They go live when you publish the site.'
 		);
 		await expectUnsavedChanges( page );
 		await expect( meta ).toHaveText( 'Shown in 1 location' );

@@ -170,12 +170,62 @@ export function RenameNavigationMenuModal( {
 	);
 }
 
+/**
+ * Delete a menu, asked first. A menu shown somewhere can't be, until another
+ * takes its place, so visitors never see an empty space where it was.
+ *
+ * A published menu may be shown somewhere the editor doesn't look, a page or
+ * a widget say, so deleting one says so.
+ *
+ * @param {Object}   props
+ * @param {boolean}  props.isLive    Whether it is published.
+ * @param {boolean}  props.isSaving  Whether it is being deleted.
+ * @param {Object[]} props.locations Where it is shown, with unsaved changes.
+ * @param {string}   props.menuTitle Its name.
+ * @param {Function} props.onClose   Close the dialog.
+ * @param {Function} props.onDelete  Delete it.
+ * @return {Element} The dialog.
+ */
 export function DeleteNavigationMenuModal( {
+	isLive = true,
 	isSaving,
+	locations = [],
 	menuTitle,
 	onClose,
 	onDelete,
 } ) {
+	if ( locations.length ) {
+		const where = locations[ 0 ].label;
+
+		return (
+			<Modal
+				className="routes-navigation-edit__item-modal"
+				onRequestClose={ onClose }
+				title={ sprintf(
+					/* translators: 1: navigation menu title, 2: where it is shown, like "Header". */
+					__( '%1$s is in your %2$s' ),
+					menuTitle,
+					where.toLowerCase()
+				) }
+			>
+				<p>
+					{ sprintf(
+						/* translators: %s: where the menu is shown, like "Header". */
+						__(
+							'Choose another menu for your %s first, so visitors never see an empty space.'
+						),
+						where.toLowerCase()
+					) }
+				</p>
+				<div className="routes-navigation-edit__modal-actions">
+					<Button onClick={ onClose } variant="primary">
+						{ __( 'OK' ) }
+					</Button>
+				</div>
+			</Modal>
+		);
+	}
+
 	return (
 		<Modal
 			className="routes-navigation-edit__item-modal"
@@ -183,13 +233,21 @@ export function DeleteNavigationMenuModal( {
 			title={ __( 'Delete navigation menu' ) }
 		>
 			<p>
-				{ sprintf(
-					/* translators: %s: navigation menu title. */
-					__(
-						'Are you sure you want to delete "%s"? This cannot be undone.'
-					),
-					menuTitle
-				) }
+				{ isLive
+					? sprintf(
+							/* translators: %s: navigation menu title. */
+							__(
+								'If your site shows “%s” anywhere, it goes from there straight away. This can’t be undone.'
+							),
+							menuTitle
+						)
+					: sprintf(
+							/* translators: %s: navigation menu title. */
+							__(
+								'“%s” isn’t shown anywhere, so visitors won’t notice. It’s deleted straight away, and this can’t be undone.'
+							),
+							menuTitle
+						) }
 			</p>
 			<div className="routes-navigation-edit__modal-actions">
 				<Button

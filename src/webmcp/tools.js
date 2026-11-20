@@ -164,9 +164,7 @@ const DEVICES = [ 'desktop', 'tablet', 'mobile' ];
 const MODE_WAIT_MS = 20000;
 
 function isAskingAboutChanges() {
-	return Boolean(
-		document.querySelector( '.cnl-site-canvas__unsaved-dialog' )
-	);
+	return Boolean( document.querySelector( '.cnl-site-canvas__exit-dialog' ) );
 }
 
 function describeCanvas() {
@@ -355,7 +353,7 @@ function listChanges() {
 			detail: change.detail,
 			showsOn: change.isSiteWide ? 'every page' : 'one page',
 		} ) ),
-		note: 'Nothing is live until the person saves, with Save or Review changes in the editor.',
+		note: 'Nothing is live until the person publishes, with Publish site or the page’s own Publish in the editor.',
 	};
 }
 

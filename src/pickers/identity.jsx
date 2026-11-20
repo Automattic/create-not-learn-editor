@@ -381,7 +381,7 @@ export function SiteIdentityFields( {
 				<div className="routes-styles__save">
 					<Text className="routes-styles__muted" variant="body-sm">
 						{ __(
-							'You are previewing changes. Visitors see them once you save.'
+							'You are previewing changes. Visitors see them once you publish the site.'
 						) }
 					</Text>
 					<Stack gap="sm">

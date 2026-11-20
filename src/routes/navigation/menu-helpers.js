@@ -2,7 +2,13 @@
  * Internal dependencies
  */
 import { getNavigationMenuItemCount, getTitleText } from '../../records';
-import { __, _n, sprintf } from '../../wordpress-packages';
+import {
+	__,
+	_n,
+	coreDataStore,
+	resolveSelect,
+	sprintf,
+} from '../../wordpress-packages';
 import { getLocationsSummary } from './navigation-locations';
 
 export const NAVIGATION_MENUS_CHANGED_EVENT =
@@ -106,4 +112,53 @@ export function getMenuRowDescription( menu, locations, isResolvingLocations ) {
 		itemsText,
 		usageText
 	);
+}
+
+/**
+ * Rename a menu. A draft is shown nowhere, so its new name saves straight
+ * away. A published menu may be live, where its name labels the menu for
+ * screen readers, so the new name waits for Publish site like any other
+ * change to it. See `src/top-bar/README.md`.
+ *
+ * @param {Object}   options
+ * @param {Function} options.editEntityRecord Core data action.
+ * @param {number}   options.id               The menu.
+ * @param {boolean}  options.isLive           Whether it is published.
+ * @param {Function} options.saveEntityRecord Core data action.
+ * @param {string}   options.title            Its new name.
+ */
+export async function renameMenu( {
+	editEntityRecord,
+	id,
+	isLive,
+	saveEntityRecord,
+	title,
+} ) {
+	if ( ! isLive ) {
+		await saveEntityRecord(
+			'postType',
+			NAVIGATION_POST_TYPE,
+			{ id, title },
+			{ throwOnError: true }
+		);
+		return;
+	}
+
+	// Loaded first, so the new name counts as a change to it.
+	await resolveSelect( coreDataStore ).getEntityRecord(
+		'postType',
+		NAVIGATION_POST_TYPE,
+		id
+	);
+	editEntityRecord( 'postType', NAVIGATION_POST_TYPE, id, { title } );
+}
+
+/**
+ * @param {Object} menu The menu renamed, as it was.
+ * @return {string} What the snackbar says.
+ */
+export function getRenamedNotice( menu ) {
+	return menu?.status === 'publish'
+		? __( 'Menu renamed. It changes on your site when you publish it.' )
+		: __( 'Menu renamed.' );
 }

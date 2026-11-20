@@ -140,7 +140,7 @@ export function Canvas() {
 			setLocationModalMode( null );
 			createSuccessNotice(
 				__(
-					'Menu locations updated. Review and save changes when you are ready.'
+					'Menu locations updated. They go live when you publish the site.'
 				),
 				{ type: 'snackbar' }
 			);

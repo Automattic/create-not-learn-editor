@@ -77,6 +77,9 @@ if ( ! select( STORE_NAME ) ) {
 					pickedSection: null,
 					postsTrip: null,
 					editableSection: null,
+					openDocument: null,
+					exitRequest: null,
+					selfSaving: [],
 				},
 				action
 			) {
@@ -106,6 +109,19 @@ if ( ! select( STORE_NAME ) ) {
 						return {
 							...state,
 							editableSection: action.editableSection,
+						};
+					case 'SET_OPEN_DOCUMENT':
+						return { ...state, openDocument: action.openDocument };
+					case 'SET_EXIT_REQUEST':
+						return { ...state, exitRequest: action.exitRequest };
+					case 'SET_SELF_SAVING':
+						return {
+							...state,
+							selfSaving: action.isSelfSaving
+								? [ ...state.selfSaving, action.id ]
+								: state.selfSaving.filter(
+										( id ) => id !== action.id
+									),
 						};
 				}
 
@@ -152,6 +168,19 @@ if ( ! select( STORE_NAME ) ) {
 					editableSection,
 					type: 'SET_EDITABLE_SECTION',
 				} ),
+				setOpenDocument: ( openDocument ) => ( {
+					openDocument,
+					type: 'SET_OPEN_DOCUMENT',
+				} ),
+				setExitRequest: ( exitRequest ) => ( {
+					exitRequest,
+					type: 'SET_EXIT_REQUEST',
+				} ),
+				setSelfSaving: ( id, isSelfSaving ) => ( {
+					id,
+					isSelfSaving,
+					type: 'SET_SELF_SAVING',
+				} ),
 			},
 			selectors: {
 				getCanvasMode: ( state ) => state.mode,
@@ -164,6 +193,9 @@ if ( ! select( STORE_NAME ) ) {
 				getPartRequest: ( state ) => state.partRequest,
 				getPostsTrip: ( state ) => state.postsTrip,
 				getEditableSection: ( state ) => state.editableSection,
+				getOpenDocument: ( state ) => state.openDocument,
+				getExitRequest: ( state ) => state.exitRequest,
+				getSelfSaving: ( state ) => state.selfSaving,
 			},
 		} )
 	);
@@ -399,4 +431,94 @@ export function setEditableSection( editableSection ) {
  */
 export function getEditableSection() {
 	return select( STORE_NAME ).getEditableSection();
+}
+
+/**
+ * Note the page or post open in the expanded canvas, or that none is. While
+ * one is, it saves and publishes from the canvas, and everything else waits
+ * for Publish site in the top bar. See `src/top-bar/README.md`.
+ *
+ * @param {?Object} entity `{ postType, postId }`, or null.
+ */
+export function setOpenDocument( entity ) {
+	const current = select( STORE_NAME ).getOpenDocument();
+
+	if (
+		current?.postType !== entity?.postType ||
+		String( current?.postId ) !== String( entity?.postId )
+	) {
+		dispatch( STORE_NAME ).setOpenDocument(
+			entity ? { postType: entity.postType, postId: entity.postId } : null
+		);
+	}
+}
+
+/**
+ * @return {?Object} `{ postType, postId }` of the page or post open in the
+ *                   expanded canvas, or null, kept up to date.
+ */
+export function useOpenDocument() {
+	return useSelect(
+		( selectStore ) => selectStore( STORE_NAME ).getOpenDocument(),
+		[]
+	);
+}
+
+/**
+ * Ask the canvas to stop editing its page or post, as its Exit does, asking
+ * about unsaved edits first, then call `onLeave`. Without a document open,
+ * `onLeave` is called straight away. Keeping the request in the store lets
+ * the top bar, built in app init, ask a canvas built in a route's bundle.
+ *
+ * @param {Function} onLeave Called once the canvas has let go, not at all if
+ *                           the user keeps editing.
+ */
+export function requestExit( onLeave ) {
+	if ( ! select( STORE_NAME ).getOpenDocument() ) {
+		onLeave();
+		return;
+	}
+
+	dispatch( STORE_NAME ).setExitRequest( { onLeave } );
+}
+
+/**
+ * Take up a request to exit, clearing it.
+ *
+ * @return {?Object} `{ onLeave }`, or null.
+ */
+export function useExitRequest() {
+	return useSelect(
+		( selectStore ) => selectStore( STORE_NAME ).getExitRequest(),
+		[]
+	);
+}
+
+export function clearExitRequest() {
+	dispatch( STORE_NAME ).setExitRequest( null );
+}
+
+/**
+ * Note that a record saves itself as it is changed, as a menu shown nowhere
+ * does, so its edits are never counted as waiting for Publish site.
+ *
+ * @param {string}  id           `kind|name|key`.
+ * @param {boolean} isSelfSaving Whether it does now.
+ */
+export function setSelfSaving( id, isSelfSaving ) {
+	const isListed = select( STORE_NAME ).getSelfSaving().includes( id );
+
+	if ( isListed !== isSelfSaving ) {
+		dispatch( STORE_NAME ).setSelfSaving( id, isSelfSaving );
+	}
+}
+
+/**
+ * @return {string[]} `kind|name|key` of every record that saves itself.
+ */
+export function useSelfSaving() {
+	return useSelect(
+		( selectStore ) => selectStore( STORE_NAME ).getSelfSaving(),
+		[]
+	);
 }

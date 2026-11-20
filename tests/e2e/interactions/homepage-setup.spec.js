@@ -9,6 +9,7 @@
 const {
 	expect,
 	expectSnackbar,
+	expectUpToDate,
 	getSitePreview,
 	test,
 	visitEditor,
@@ -251,8 +252,8 @@ test.describe( 'Homepage setup', () => {
 			title: postsTitle,
 		} );
 
-		// Saved straight away, so nothing waits for Save.
-		await expect( page.getByText( /unsaved change/ ) ).toHaveCount( 0 );
+		// Saved straight away, so nothing waits for Publish site.
+		await expectUpToDate( page );
 
 		// The site matches now, so Home has nothing to say.
 		await visitEditor( page );

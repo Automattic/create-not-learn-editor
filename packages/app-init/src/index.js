@@ -33,7 +33,7 @@ import { registerSectionPatterns } from '../../../src/editor-extensions/section-
 import { registerTemplatePartEditing } from '../../../src/editor-extensions/template-part-editing';
 import { mountEditorLayer } from '../../../src/editor-layer';
 import { registerLayoutWireframes } from '../../../src/layouts';
-import { mountSaveControls } from '../../../src/top-bar';
+import { mountTopBar } from '../../../src/top-bar';
 import { mountWorkspaces } from '../../../src/workspaces';
 import { registerWebMcpTools } from '../../../src/webmcp';
 import { mountPreferences } from '../../../src/preferences';
@@ -79,7 +79,7 @@ export async function init() {
 	mountMenuSections();
 	mountPreferences();
 	mountAdminBar();
-	mountSaveControls();
+	mountTopBar();
 	mountCommands();
 	enhanceSidebar();
 	registerWebMcpTools();

@@ -154,7 +154,7 @@ function BatchList( { batches, isActive, name, now, onClose } ) {
 				) }
 			</MenuGroup>
 			<p className="cnl-agent-status__note">
-				{ __( 'Nothing goes live until you save.' ) }
+				{ __( 'Nothing goes live until you publish.' ) }
 			</p>
 		</>
 	);

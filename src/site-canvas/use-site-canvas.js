@@ -9,9 +9,12 @@
  * by every canvas, see `mode.js`. Because the preview only shows what is
  * saved:
  *
- * - Moving to Browse with unsaved changes asks to save or discard them.
- *   A change the caller shows in the preview anyway, such as a page's
- *   layout passed along in its URL, doesn't count.
+ * - Exit, or moving to Browse, asks about unsaved edits to the open page or
+ *   post, and only ever discards those. The site's changes wait for Publish
+ *   site, and while any the preview can't show are waiting, the editor stays
+ *   on show beside the screen to show them. A change the caller shows in the
+ *   preview anyway, such as a page's layout passed along in its URL, doesn't
+ *   count.
  * - Moving to Browse after saving, or from a page the preview isn't on,
  *   holds the editor until the preview has loaded the page, so it never shows
  *   an out-of-date page.
@@ -29,7 +32,11 @@
 import { unlock } from '../lock-unlock';
 import { cnlEditorStore } from '../records';
 import { namespace, settings } from '../settings';
-import { useChanges } from '../top-bar/use-changes';
+import {
+	getDirtyRecords,
+	isDocumentChange,
+	useChanges,
+} from '../top-bar/use-changes';
 import {
 	blockEditorStore,
 	coreDataStore,
@@ -43,7 +50,9 @@ import {
 	useState,
 } from '../wordpress-packages';
 import { DEFAULT_DEVICE, EDITOR_DEVICES } from './constants';
+import { expandCanvas } from './expansion';
 import {
+	clearExitRequest,
 	getCanvasMode,
 	isShowingChange,
 	MODE_BROWSE,
@@ -56,6 +65,8 @@ import {
 	STORE_NAME as CANVAS_STORE,
 	useCanvasDevice,
 	useCanvasMode,
+	useExitRequest,
+	useOpenDocument,
 } from './mode';
 import { getEditRoute, getLiveUrl, isSameLocation } from './urls';
 import { usePreviewFrame } from './use-preview-frame';
@@ -280,7 +291,10 @@ export function useSiteCanvas( {
 	const [ savedVersion, setSavedVersion ] = useState( 0 );
 	const savedVersionRef = useRef( 0 );
 	const waitRef = useRef( 0 );
-	const { changes, isSaving, save, discardAll } = useChanges();
+	const { changes, discard, documentChange, isSaving } = useChanges();
+	const openDocument = useOpenDocument();
+	// What to do once the user has left the open document, if they do.
+	const onLeaveRef = useRef( null );
 	/*
 	 * Counted in a selector so that it follows a record's own edits: a page
 	 * already changed is the same one change whatever else is edited on it.
@@ -292,7 +306,6 @@ export function useSiteCanvas( {
 			).length,
 		[ changes, isShownInPreview ]
 	);
-	const isDirty = unseenChangeCount > 0;
 
 	// Every save that finishes leaves the preview showing an older site.
 	const wasSavingRef = useRef( isSaving );
@@ -468,6 +481,20 @@ export function useSiteCanvas( {
 			setShowingChange( true );
 		}
 
+		/*
+		 * Shown beside the screen, and now published or discarded: nothing
+		 * is left that the preview can't show, so the page is on view again.
+		 */
+		if (
+			! unseenChangeCount &&
+			isShowingChange() &&
+			! isPreviewing &&
+			! openDocument
+		) {
+			setShowingChange( false );
+			showPreview();
+		}
+
 		changeCountRef.current = unseenChangeCount;
 		// Only a new change should switch, not the mode changing.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -556,12 +583,7 @@ export function useSiteCanvas( {
 			return;
 		}
 
-		if ( isDirty ) {
-			setIsDialogOpen( true );
-			return;
-		}
-
-		showPreview();
+		exit();
 	};
 
 	// A move asked for from outside the canvas, by `requestCanvasMode`,
@@ -579,36 +601,120 @@ export function useSiteCanvas( {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ modeRequest ] );
 
-	const saveAndShowPreview = async () => {
-		await save();
+	/*
+	 * Leave editing. The site's changes stay waiting for Publish site, and the
+	 * preview only shows what is published, so while any it can't show are
+	 * waiting, the editor stays on show to show them, put back beside the
+	 * screen. Otherwise the page is on view again.
+	 */
+	const leave = ( { hasSaved = false } = {} ) => {
+		const onLeave = onLeaveRef.current;
+		onLeaveRef.current = null;
+		setIsDialogOpen( false );
 
-		// Core reports a failed save in a snackbar and leaves the changes in
-		// place. Stay in the editor with them.
-		if (
-			select( coreDataStore ).__experimentalGetDirtyEntityRecords().length
-		) {
-			setIsDialogOpen( false );
+		const unseen = getDirtyRecords( select ).filter(
+			( record ) =>
+				! isDocumentChange( record, openDocument ) &&
+				! isShownInPreview( record, select )
+		);
+
+		/*
+		 * The canvas goes back beside the screen straight away, Edit in
+		 * Exit's place, as one transition, even when the preview has to
+		 * load before it shows.
+		 */
+		if ( unseen.length && editorEntity ) {
+			setShowingChange( true );
+			expandCanvas( false );
+		} else if ( hasSaved ) {
+			// The preview hasn't seen the save yet, whatever it last loaded.
+			expandCanvas( false, () =>
+				showPreviewWhenLoaded( getEditorDestination() )
+			);
+		} else {
+			expandCanvas( false, showPreview );
+		}
+
+		onLeave?.();
+	};
+
+	/**
+	 * Exit: leave the open page or post, asking first if it has unsaved
+	 * edits. Nothing else is discarded.
+	 *
+	 * @param {?Function} onLeave Called once left, as when the top bar asks.
+	 */
+	const exit = ( onLeave = null ) => {
+		onLeaveRef.current = onLeave;
+
+		if ( documentChange ) {
+			setIsDialogOpen( true );
 			return;
 		}
 
-		setIsDialogOpen( false );
-		showPreviewWhenLoaded( getEditorDestination() );
+		leave();
 	};
 
-	const discardAndShowPreview = () => {
-		const destination = getEditorDestination();
+	const saveAndExit = async () => {
+		await dispatch( 'core/editor' ).savePost();
 
-		discardAll();
-		setIsDialogOpen( false );
-		cancelWait();
-
-		if ( destination ) {
-			frame.navigate( destination );
-		} else if ( isPreviewStale ) {
-			frame.reload();
+		// Core reports a failed save in a notice and leaves the edits in
+		// place. Stay in the editor with them.
+		if (
+			openDocument &&
+			select( coreDataStore ).hasEditsForEntityRecord(
+				'postType',
+				openDocument.postType,
+				openDocument.postId
+			)
+		) {
+			setIsDialogOpen( false );
+			onLeaveRef.current = null;
+			return;
 		}
 
-		setCanvasMode( MODE_BROWSE );
+		leave( { hasSaved: true } );
+	};
+
+	const discardAndExit = () => {
+		if ( documentChange ) {
+			discard( documentChange );
+		}
+
+		leave();
+	};
+
+	// The top bar asking to leave, to open another screen.
+	const exitRequest = useExitRequest();
+	useEffect( () => {
+		if ( exitRequest ) {
+			clearExitRequest();
+			exit( exitRequest.onLeave );
+		}
+		// Only a new request should exit.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ exitRequest ] );
+
+	/*
+	 * Edit, while the editor is on show beside the screen to show a change:
+	 * fill the editor to change the page, as Edit does from the preview.
+	 */
+	const expand = () => {
+		setShowingChange( false );
+		expandCanvas( true );
+	};
+
+	/*
+	 * Edit, from the page on view: the editor and the expanded canvas come
+	 * in one transition, so Exit and Save take Edit's place as it grows.
+	 */
+	const edit = () => {
+		if ( ! isPreviewing ) {
+			expand();
+			return;
+		}
+
+		expandCanvas( true, () => requestMode( MODE_EDIT ) );
 	};
 
 	const editRoute = canEdit ? getEditRoute( canvasEntity ) : null;
@@ -620,10 +726,14 @@ export function useSiteCanvas( {
 		dialog: {
 			isOpen: isDialogOpen,
 			isSaving,
-			onCancel: () => setIsDialogOpen( false ),
-			onDiscard: discardAndShowPreview,
-			onSave: saveAndShowPreview,
+			onCancel: () => {
+				onLeaveRef.current = null;
+				setIsDialogOpen( false );
+			},
+			onDiscard: discardAndExit,
+			onSave: saveAndExit,
 		},
+		edit,
 		editorEntity,
 		editRoute,
 		isEditorReady,
@@ -640,8 +750,8 @@ export function useSiteCanvas( {
 		previewContextError,
 		previewEntity,
 		requestMode,
-		// Exit: leave editing without saving, as Discard in the dialog does.
-		exit: discardAndShowPreview,
+		exit: () => exit(),
+		expand,
 		setDevice: setCanvasDevice,
 		showEditor,
 	};

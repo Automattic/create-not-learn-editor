@@ -54,20 +54,50 @@
 	}
 }
 
-// Edit while viewing, and Exit beside Save while editing.
+// Edit while viewing, and Exit beside Save while editing. Set apart from
+// the flush View and Zoom cluster before them, as the action they are.
 .cnl-site-canvas__edit.components-button,
 .cnl-site-canvas__exit.components-button {
 	flex-shrink: 0;
+	margin-inline-start: var(--wpds-dimension-gap-md);
 }
 
 .cnl-site-canvas__exit.components-button {
 	margin-inline-end: var(--wpds-dimension-gap-sm);
 }
 
-// Save shows while viewing only when there's something to save, as there is
-// after changing the site's colours or name beside the page.
-.cnl-site-canvas.is-browse .cnl-save-controls:not(.has-changes) {
-	display: none;
+// The open page or post's Save draft and Publish, from core's editor
+// header, after Exit. See `document-actions.jsx`.
+.cnl-document-actions {
+	display: flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+
+	/*
+	 * Core draws Save draft compact, as its header's buttons all are. Here it
+	 * sits beside Exit and the toolbar's other 40px controls, so it takes
+	 * their height, as Publish does.
+	 */
+	.components-button.editor-post-save-draft,
+	.components-button.editor-post-saved-state {
+		height: 40px;
+	}
+
+	/*
+	 * Save with nothing to save. Core keeps a disabled primary button blue
+	 * and only dims its words, which reads as ready, so it takes a faint
+	 * fill instead.
+	 */
+	.components-button.is-primary[aria-disabled="true"] {
+
+		&,
+		&:hover,
+		&:active {
+			background: rgba(0, 0, 0, 0.05);
+			color: var(--wpds-color-foreground-content-neutral-weak);
+			box-shadow: none;
+		}
+	}
 }
 
 /*
@@ -229,14 +259,69 @@
 	transition: max-width 0.16s ease;
 }
 
-.cnl-site-canvas__unsaved-dialog-description {
+.cnl-site-canvas__exit-dialog-description {
 	margin-top: 0;
 }
 
-.cnl-site-canvas__unsaved-dialog-actions {
+// Exit without saving on its own at the start, the safe choices together at
+// the end.
+.cnl-site-canvas__exit-dialog-actions {
 	display: flex;
-	gap: 12px;
-	justify-content: flex-end;
+	gap: var(--wpds-dimension-gap-md);
+	justify-content: space-between;
+}
+
+.cnl-site-canvas__exit-dialog-end {
+	display: flex;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+/*
+ * Core's pre- and post-publish panel, at the canvas's right, over the
+ * editor, rather than fixed to the window's edge as in core's editor.
+ */
+.cnl-site-canvas__publish-panel {
+	position: absolute;
+	z-index: 3;
+	inset-block: 0;
+	inset-inline-end: 0;
+	width: 281px;
+	overflow: auto;
+	border-inline-start: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+	background: #fff;
+
+	.editor-post-publish-panel {
+		position: static;
+		inset: auto;
+		width: auto;
+		height: 100%;
+		border: 0;
+		transform: none;
+		animation: none;
+	}
+}
+
+/*
+ * Core's own Publish in the panel's header reads "Save" while anything else
+ * is unsaved, so `document-actions.jsx` lays its own over it, in the same
+ * place. Core's keeps its room, hidden.
+ */
+.cnl-site-canvas__publish-panel.is-pre-publish .editor-post-publish-panel__header-publish-button {
+	visibility: hidden;
+}
+
+.cnl-site-canvas__publish-panel-button {
+	position: absolute;
+	inset-block-start: 0;
+	inset-inline-end: 16px;
+	display: flex;
+	align-items: center;
+	height: 64px;
+}
+
+.cnl-also-publish-site {
+	padding: var(--wpds-dimension-padding-lg);
+	border-block-start: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
 }
 
 /*

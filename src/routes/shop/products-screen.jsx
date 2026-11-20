@@ -485,7 +485,9 @@ function ProductFields( { id } ) {
 			/>
 			{ ( hasEdits || hasPostEdits ) && (
 				<Text className="routes-styles__muted" variant="body-sm">
-					{ __( 'Visitors see your changes once you save.' ) }
+					{ __(
+						'Visitors see your changes once you publish the site.'
+					) }
 				</Text>
 			) }
 			<Text variant="body-sm">

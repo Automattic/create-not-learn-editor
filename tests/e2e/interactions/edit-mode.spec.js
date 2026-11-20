@@ -387,10 +387,14 @@ test.describe( 'Edit mode', () => {
 		await pickSectionTemplate( page, 'Image left, text right' );
 
 		// Picked: outlined, named and with its bar, the pointer elsewhere.
+		// The hovered section's tab can linger a moment after the pointer
+		// leaves, so the picked one is found by its name.
 		await page.mouse.move( 0, 0 );
-		await expect( page.locator( '.cnl-section-modes__tab' ) ).toHaveText(
-			'Image left, text right'
-		);
+		await expect(
+			page.locator(
+				'.cnl-section-modes__tab[title="Image left, text right"]'
+			)
+		).toBeVisible();
 		await expect( page.locator( '.cnl-section-modes__tint' ) ).toHaveClass(
 			/is-picked/
 		);
@@ -713,6 +717,10 @@ test.describe( 'Edit mode', () => {
 		await expect.poll( getLocks ).not.toEqual( [ 'contentOnly' ] );
 
 		// Locking never counts as a change to the page.
-		await expect( page.getByText( /unsaved change/ ) ).toHaveCount( 0 );
+		expect(
+			await page.evaluate( () =>
+				window.wp.data.select( 'core/editor' ).isEditedPostDirty()
+			)
+		).toBe( false );
 	} );
 } );

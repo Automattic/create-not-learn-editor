@@ -109,6 +109,16 @@ npm run wp-env run cli wp config delete CNL_EDITOR_UI_THEME
 
 The `create-not-learn-editor_ui_theme` filter can override it too. The theme's settings live in `src/theme/`.
 
+## Saving and publishing
+
+Changes are published in two places, one for each scope, and only one save-like button shows at a time.
+
+- **The site's changes** are anything visitors would see on more than one page: the site's name, logo and colours, its header and footer, its layouts, a menu that is shown somewhere, which menu a place shows, and the homepage setting. Pages changed from a screen beside the canvas, their title or place in the menu say, count too. They wait for **Publish site** at the end of the dark top bar (`src/top-bar/`), which shows "Up to date" when there's nothing waiting.
+- **The page or post open in the canvas** saves and publishes there, with core's post editor buttons. While one is open, Publish site steps back to a quiet note, "N site changes waiting", which does nothing.
+- **Anything nobody can see yet** saves at once and is never counted. For menus that means drafts: new menus start as drafts, as core never shows one, and save as they are changed. A published menu may be shown anywhere, so every change to it waits, its name included. Publish site publishes a draft it puts somewhere.
+
+Nothing is kept between visits yet, so the editor warns before the page is left with anything unsaved. See `src/top-bar/README.md`.
+
 ## Site changes are explicit
 
 The editor does not automatically create pages, navigation, or homepage settings, when it loads or when the plugin is activated. A new site keeps WordPress's own default of latest posts on the homepage. Home then offers to set the homepage up the way the workspace expects, step by step, and nothing changes until the person finishes.
