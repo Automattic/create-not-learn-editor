@@ -11,7 +11,6 @@
 /**
  * Internal dependencies
  */
-import { savesHomepage } from '../../../save-scopes';
 import ScreenLinks from '../../../screen-links';
 import useMainMenu from '../use-main-menu';
 import { getPageTitle } from './data';
@@ -268,7 +267,6 @@ export default function HomepageStage() {
 
 	return (
 		<Page
-			saves={ savesHomepage }
 			ariaLabel={ __( 'Homepage' ) }
 			breadcrumbs={
 				<Breadcrumbs

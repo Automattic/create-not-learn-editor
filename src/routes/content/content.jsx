@@ -3,7 +3,6 @@ import { useNavigate, useSearch } from '@wordpress/route';
 /**
  * Internal dependencies
  */
-import { savesPages } from '../../save-scopes';
 import { withCanvasRecovery } from '../../canvas-recovery';
 import { withScreenKey } from '../../screen-key';
 import { getCurrentEditorPath } from '../static/screens';
@@ -641,14 +640,7 @@ function Stage() {
 			};
 
 	return (
-		<Page
-			{ ...pageHeader }
-			hasPadding={ false }
-			headingLevel={ 2 }
-			// Pages are put in order by dragging them, which waits to be
-			// saved.
-			saves={ type.name === 'page' ? savesPages : undefined }
-		>
+		<Page { ...pageHeader } hasPadding={ false } headingLevel={ 2 }>
 			{ ! isPages && (
 				<div className="routes-post-list__tabs-wrapper">
 					<Tabs.Root

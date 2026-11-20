@@ -8,22 +8,14 @@ import { Breadcrumbs, Page, __ } from '../../wordpress-packages';
  * it, as there is no sidebar item to return by. Back retraces the way the
  * screen was reached, wherever that began.
  *
- * @param {Object}   props             Component props.
- * @param {Node}     props.children    The screen's contents.
- * @param {string}   props.description Sentence under the title.
- * @param {boolean}  props.isTopLevel  Whether this is the Design screen itself.
- * @param {Function} props.saves       What it edits, for its Save
- *                                     (`src/save-scopes.js`).
- * @param {string}   props.title       Screen title.
+ * @param {Object}  props             Component props.
+ * @param {Node}    props.children    The screen's contents.
+ * @param {string}  props.description Sentence under the title.
+ * @param {boolean} props.isTopLevel  Whether this is the Design screen itself.
+ * @param {string}  props.title       Screen title.
  * @return {Node} The screen.
  */
-export function DesignPage( {
-	children,
-	description,
-	isTopLevel,
-	saves,
-	title,
-} ) {
+export function DesignPage( { children, description, isTopLevel, title } ) {
 	const breadcrumbs = isTopLevel ? undefined : (
 		<Breadcrumbs
 			items={ [
@@ -39,7 +31,6 @@ export function DesignPage( {
 			className="cnl-editor-stage cnl-editor-content-page"
 			hasPadding={ false }
 			headingLevel={ 1 }
-			saves={ saves }
 			subTitle={ description }
 			title={ breadcrumbs ? undefined : title }
 		>

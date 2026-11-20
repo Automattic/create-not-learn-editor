@@ -3,6 +3,7 @@
  */
 import { Page as AdminPage } from '@wordpress/admin-ui';
 import { Button } from '@wordpress/components';
+import { createContext, useContext } from '@wordpress/element';
 import { __, isRTL } from '@wordpress/i18n';
 import { chevronLeft, chevronRight } from '@wordpress/icons';
 import { useNavigate } from '@wordpress/route';
@@ -12,7 +13,7 @@ import { useNavigate } from '@wordpress/route';
  */
 import { isOnHomeTrip } from './home-trip';
 import { openSidebarHome } from './open-sidebar-home';
-import { ScreenSave } from './top-bar/screen-save';
+import { Publish } from './top-bar/publish';
 
 /**
  * The screen above this one: the last of its breadcrumbs that links
@@ -72,36 +73,27 @@ function StageBack( { parent } ) {
 	);
 }
 
+const IsInPage = createContext( false );
+
 /**
- * Admin UI's page, with Back at the start of its header. Every screen in
- * the stage is one of these.
+ * Admin UI's page, with Back at the start of its header, and Publish at its
+ * foot, for every change on the site (`src/top-bar/publish.jsx`). Every
+ * screen in the stage is one of these.
  *
- * @param {Object}   props         Admin UI `Page` props, and:
- * @param {?Element} props.actions The header's own actions, before Save.
- * @param {boolean}  props.isRoot  Whether this is Home, which is above every
+ * @param {Object}  props          Admin UI `Page` props, and:
+ * @param {Node}    props.children The screen's contents, above Publish.
+ * @param {boolean} props.isRoot   Whether this is Home, which is above every
  *                                 other screen and so has no Back.
- * @param {Function} props.saves   What the screen edits, from
- *                                 `src/save-scopes.js`, for a Save at the
- *                                 end of its header while some of that is
- *                                 unsaved.
  * @return {Element} The page.
  */
-export function Page( { isRoot = false, saves, actions, ...props } ) {
+export function Page( { isRoot = false, children, ...props } ) {
 	const { breadcrumbs } = props;
+	// A screen can show another inside it; Publish is the outermost's.
+	const isNested = useContext( IsInPage );
 
 	return (
 		<AdminPage
 			{ ...props }
-			actions={
-				saves ? (
-					<>
-						{ actions }
-						<ScreenSave only={ saves } />
-					</>
-				) : (
-					actions
-				)
-			}
 			breadcrumbs={
 				<>
 					{ ! isRoot && (
@@ -110,7 +102,14 @@ export function Page( { isRoot = false, saves, actions, ...props } ) {
 					{ breadcrumbs }
 				</>
 			}
-		/>
+		>
+			<IsInPage.Provider value>{ children }</IsInPage.Provider>
+			{ ! isNested && (
+				<div className="cnl-stage-publish">
+					<Publish />
+				</div>
+			) }
+		</AdminPage>
 	);
 }
 
