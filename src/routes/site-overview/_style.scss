@@ -511,21 +511,24 @@ $cnl-site-overview-canvas: #e9eef2;
 }
 
 // ---------------------------------------------------------------------------
-// Rearrange: pages dragged onto each other, and into the main menu.
+// Moving pages: dragged onto each other.
 // ---------------------------------------------------------------------------
 
-.cnl-site-overview__viewport.is-arranging {
-	user-select: none;
+.cnl-site-overview__viewport {
 
 	.cnl-site-overview-card.is-draggable,
 	.cnl-site-overview-card.is-draggable .cnl-site-overview-card__select {
 		cursor: grab;
 	}
 
-	&.is-dragging-page,
-	&.is-dragging-page .cnl-site-overview-card,
-	&.is-dragging-page .cnl-site-overview-card__select {
-		cursor: grabbing;
+	&.is-dragging-page {
+		user-select: none;
+
+		&,
+		.cnl-site-overview-card,
+		.cnl-site-overview-card__select {
+			cursor: grabbing;
+		}
 	}
 }
 
@@ -562,165 +565,6 @@ $cnl-site-overview-canvas: #e9eef2;
 
 	&.is-drop-after::after {
 		inset-inline-end: -22px;
-	}
-}
-
-// The menu as a bucket along the top, where the menu sits on most sites. It
-// takes a row of its own, so it never covers a page.
-.cnl-site-overview__body.is-arranging {
-	grid-template-rows: auto minmax(0, 1fr);
-
-	> .cnl-site-overview__viewport {
-		grid-area: 2 / 1;
-	}
-}
-
-.cnl-site-overview-menu-tray {
-	grid-area: 1 / 1;
-	justify-self: center;
-	display: flex;
-	gap: 16px;
-	align-items: center;
-	box-sizing: border-box;
-	width: min(720px, calc(100% - 32px));
-	min-height: 56px;
-	margin: 16px 0 0;
-	padding: 8px 16px;
-	border: 2px dashed var(--wpds-color-stroke-surface-neutral-strong);
-	border-radius: var(--wpds-border-radius-lg);
-	background: rgba(255, 255, 255, 0.92);
-	transition:
-		border-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle),
-		background-color var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
-
-	&.is-dragging {
-		border-color: $cnl-site-overview-accent;
-	}
-
-	&.is-over {
-		background: color-mix(in srgb, $cnl-site-overview-accent 10%, #fff);
-	}
-}
-
-.cnl-site-overview-menu-tray__header {
-	display: flex;
-	flex: none;
-	flex-direction: column;
-}
-
-.cnl-site-overview-menu-tray__title {
-	font-size: 13px;
-	font-weight: 600;
-}
-
-.cnl-site-overview-menu-tray__subtitle {
-	color: var(--wpds-color-foreground-content-neutral-weak);
-	font-size: 12px;
-}
-
-.cnl-site-overview-menu-tray__empty {
-	margin: 0;
-	color: var(--wpds-color-foreground-content-neutral-weak);
-	font-size: 13px;
-}
-
-.cnl-site-overview-menu-tray__items {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	align-items: flex-start;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-.cnl-site-overview-menu-tray__item {
-	display: inline-flex;
-	gap: 2px;
-	align-items: center;
-	margin: 0;
-	padding-inline-start: 10px;
-	border: 1px solid var(--wpds-color-stroke-surface-neutral);
-	border-radius: var(--wpds-border-radius-md);
-	background: #fff;
-	font-size: 13px;
-
-	// Links that aren't to a page keep the chip's padding on both sides.
-	> span:last-child {
-		padding: 4px 10px 4px 0;
-	}
-}
-
-// Pills that can be dragged into a new order.
-.cnl-site-overview-menu-tray__item.is-movable {
-	cursor: grab;
-	user-select: none;
-	touch-action: none;
-}
-
-.cnl-site-overview-menu-tray__item.is-dragged {
-	opacity: 0.4;
-}
-
-// Where a pill, or a page, will land.
-.cnl-site-overview-menu-tray__marker {
-	align-self: stretch;
-	width: 3px;
-	margin: 0 -5px;
-	border-radius: 2px;
-	background: $cnl-site-overview-accent;
-}
-
-// A top-level item, with the items in its dropdown hanging under it.
-.cnl-site-overview-menu-tray__group {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	align-items: flex-start;
-	margin: 0;
-}
-
-.cnl-site-overview-menu-tray__sub-items {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	align-items: flex-start;
-	margin: 0;
-	padding-inline-start: 12px;
-	border-inline-start: 1px solid var(--wpds-color-stroke-surface-neutral);
-	list-style: none;
-
-	> li {
-		margin: 0;
-	}
-
-	.cnl-site-overview-menu-tray__item {
-		font-size: 12px;
-	}
-}
-
-// Whether the page is in the main menu, switched from its card.
-.cnl-site-overview-card__caption {
-	position: relative;
-}
-
-.cnl-site-overview-card__menu-toggle.components-button {
-	position: absolute;
-	inset-inline-end: 8px;
-	bottom: 8px;
-	height: 24px;
-	padding-inline: 4px 8px;
-	border-radius: var(--wpds-border-radius-md);
-	font-size: 11px;
-
-	&.is-on {
-		background: color-mix(in srgb, #{$cnl-site-overview-accent} 12%, #fff);
-		color: $cnl-site-overview-accent;
-	}
-
-	&.is-off {
-		box-shadow: inset 0 0 0 1px var(--wpds-color-stroke-surface-neutral);
-		color: var(--wpds-color-foreground-content-neutral-weak);
 	}
 }
 

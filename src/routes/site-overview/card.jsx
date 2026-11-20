@@ -14,16 +14,7 @@ import {
 	THUMBNAIL_VIEWPORT_WIDTH,
 } from './layout';
 import { useHasBeenVisible, useThumbnailTurn } from './hooks';
-import {
-	Button,
-	Icon,
-	__,
-	checkIcon,
-	memo,
-	plusIcon,
-	useRef,
-	useState,
-} from '../../wordpress-packages';
+import { Icon, __, memo, useRef, useState } from '../../wordpress-packages';
 
 const THUMBNAIL_SCALE = CARD_WIDTH / THUMBNAIL_VIEWPORT_WIDTH;
 
@@ -98,19 +89,15 @@ function SiteOverviewCard( {
 	dropPosition,
 	group,
 	isActive,
-	isDraggable,
 	isDragged,
 	isRelated,
 	isSelected,
-	menuState,
-	menuNote,
 	node,
 	onDragStart,
 	onFocusCard,
 	onHover,
 	onOpen,
 	onSelect,
-	onToggleMenu,
 	rootRef,
 } ) {
 	const kindLabel = getNodeKindLabel( node );
@@ -122,7 +109,7 @@ function SiteOverviewCard( {
 		isSelected && 'is-selected',
 		isActive && 'is-active',
 		isRelated && 'is-related',
-		isDraggable && 'is-draggable',
+		node.kind === 'page' && 'is-draggable',
 		isDragged && 'is-dragged',
 		dropPosition && `is-drop-${ dropPosition }`,
 	]
@@ -136,11 +123,7 @@ function SiteOverviewCard( {
 			onDoubleClick={ () => onOpen( node ) }
 			onMouseEnter={ () => onHover( node.id ) }
 			onMouseLeave={ () => onHover( '' ) }
-			onPointerDown={
-				isDraggable
-					? ( event ) => onDragStart( event, node )
-					: undefined
-			}
+			onPointerDown={ ( event ) => onDragStart( event, node ) }
 			style={ {
 				height: node.height,
 				left: node.x,
@@ -176,23 +159,6 @@ function SiteOverviewCard( {
 						</span>
 					) }
 				</div>
-				{ menuState && (
-					<Button
-						accessibleWhenDisabled
-						aria-pressed={ menuState === 'on' }
-						className={ `cnl-site-overview-card__menu-toggle is-${ menuState }` }
-						disabled={ menuState === 'disabled' }
-						icon={ menuState === 'on' ? checkIcon : plusIcon }
-						description={ menuNote || undefined }
-						onClick={ () => onToggleMenu( node ) }
-						showTooltip={ Boolean( menuNote ) }
-						size="small"
-					>
-						{ menuState === 'on'
-							? __( 'In menu' )
-							: __( 'Add to menu' ) }
-					</Button>
-				) }
 			</div>
 		</div>
 	);

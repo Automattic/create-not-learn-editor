@@ -34,11 +34,9 @@ import {
 	MemoizedStackSheets,
 } from './lanes';
 import { ZoomControls } from './zoom-controls';
-import { MenuTray } from './menu-tray';
-import useArrange from './use-arrange';
+import usePageMoves from './use-page-moves';
 import { SelectedPage } from './selected-page';
 import {
-	Button,
 	Notice,
 	Page,
 	Spinner,
@@ -99,7 +97,6 @@ export default function Canvas() {
 	const didFitRef = useRef( false );
 	const boundsRef = useRef( null );
 	const hasSize = size.width > 0 && size.height > 0;
-	const [ isArranging, setIsArranging ] = useState( false );
 	// The click that ends dragging a page shouldn't select one.
 	const onDragEnd = useCallback( () => {
 		suppressClickRef.current = true;
@@ -107,11 +104,7 @@ export default function Canvas() {
 			suppressClickRef.current = false;
 		} );
 	}, [] );
-	const arrange = useArrange( {
-		isArranging,
-		onDragEnd,
-		siteOverview,
-	} );
+	const pageMoves = usePageMoves( { onDragEnd, siteOverview } );
 
 	viewRef.current = view;
 	sizeRef.current = size;
@@ -148,8 +141,10 @@ export default function Canvas() {
 
 	const layout = useMemo(
 		() =>
-			arrange.overview ? layoutSiteOverview( arrange.overview ) : null,
-		[ arrange.overview ]
+			pageMoves.overview
+				? layoutSiteOverview( pageMoves.overview )
+				: null,
+		[ pageMoves.overview ]
 	);
 	boundsRef.current = layout?.bounds || null;
 	const scaleLimits =
@@ -520,23 +515,13 @@ export default function Canvas() {
 	return (
 		<Page
 			actions={
-				<>
-					<Button
-						__next40pxDefaultSize
-						aria-pressed={ isArranging }
-						onClick={ () => setIsArranging( ( value ) => ! value ) }
-						variant={ isArranging ? 'primary' : 'secondary' }
-					>
-						{ isArranging ? __( 'Done' ) : __( 'Rearrange' ) }
-					</Button>
-					<ZoomControls
-						canZoomIn={ canZoomIn }
-						isReset={ isReset }
-						onReset={ reset }
-						onZoom={ zoomBy }
-						zoom={ zoomLevel }
-					/>
-				</>
+				<ZoomControls
+					canZoomIn={ canZoomIn }
+					isReset={ isReset }
+					onReset={ reset }
+					onZoom={ zoomBy }
+					zoom={ zoomLevel }
+				/>
 			}
 			className="cnl-editor-stage cnl-editor-content-page cnl-site-overview-page"
 			hasPadding={ false }
@@ -549,11 +534,7 @@ export default function Canvas() {
 				.join( ' · ' ) }
 			title={ __( 'Site overview' ) }
 		>
-			<div
-				className={ `cnl-site-overview__body${
-					isArranging ? ' is-arranging' : ''
-				}` }
-			>
+			<div className="cnl-site-overview__body">
 				{ /* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- The canvas pans and zooms from the pointer and keyboard. */ }
 				<div
 					aria-describedby="cnl-site-overview-help"
@@ -561,8 +542,7 @@ export default function Canvas() {
 					className={ [
 						'cnl-site-overview__viewport',
 						isPanning && 'is-panning',
-						isArranging && 'is-arranging',
-						arrange.drag && 'is-dragging-page',
+						pageMoves.drag && 'is-dragging-page',
 					]
 						.filter( Boolean )
 						.join( ' ' ) }
@@ -612,33 +592,21 @@ export default function Canvas() {
 							{ layout.nodes.map( ( node ) => (
 								<MemoizedSiteOverviewCard
 									dropPosition={
-										arrange.drag?.drop?.nodeId === node.id
-											? arrange.drag.drop.position
+										pageMoves.drag?.drop?.nodeId === node.id
+											? pageMoves.drag.drop.position
 											: undefined
 									}
 									group={ groupsByName.get( node.group ) }
 									isActive={ node.id === hoveredId }
-									isDraggable={ arrange.isDraggable( node ) }
 									isDragged={
-										arrange.drag?.nodeId === node.id
-									}
-									menuNote={
-										isArranging
-											? arrange.getMenuState( node ).note
-											: undefined
-									}
-									menuState={
-										isArranging
-											? arrange.getMenuState( node ).state
-											: undefined
+										pageMoves.drag?.nodeId === node.id
 									}
 									isRelated={ relatedIds.has( node.id ) }
 									isSelected={ node.id === selectedId }
 									key={ node.id }
 									node={ node }
-									onDragStart={ arrange.onCardPointerDown }
+									onDragStart={ pageMoves.onCardPointerDown }
 									onFocusCard={ onFocusCard }
-									onToggleMenu={ arrange.onToggleMenu }
 									onHover={ setHoveredId }
 									onOpen={ onOpen }
 									onSelect={ setSelectedId }
@@ -682,58 +650,35 @@ export default function Canvas() {
 					) }
 					<p
 						className={ `cnl-site-overview__help${
-							hasMoved && ! isArranging ? ' is-dismissed' : ''
+							hasMoved ? ' is-dismissed' : ''
 						}` }
 						id="cnl-site-overview-help"
 					>
-						{ isArranging
-							? __(
-									'Drag a page onto another to put it under it, or onto its edge to put it beside it. Drag a page into Main menu to add it, or drag an item out of Main menu to take it out.'
-								)
-							: __(
-									'Drag or scroll to move around. Pinch, or hold Ctrl or ⌘ and scroll, to zoom. Click a page for details, or double-click it to edit it.'
-								) }
+						{ __(
+							'Drag the background or scroll to move around. Pinch, or hold Ctrl or ⌘ and scroll, to zoom. Click a page for details, or double-click it to edit it. Drag a page onto another to put it under it, or onto its edge to put it beside it.'
+						) }
 					</p>
 				</div>
-				{ isArranging && (
-					<MenuTray
-						canReorder={ arrange.menu.canReorder }
-						draggedKey={ arrange.drag?.pillKey }
-						hasMenu={ arrange.menu.hasMenu }
-						insertIndex={ arrange.menu.insertIndex }
-						isAutomatic={ arrange.menu.isAutomatic }
-						isDragging={ Boolean( arrange.drag ) }
-						isOver={ [ 'menu', 'reorder' ].includes(
-							arrange.drag?.drop?.position
-						) }
-						items={ arrange.menu.items }
-						menuTitle={ arrange.menu.menuTitle }
-						onItemPointerDown={ arrange.menu.onPillPointerDown }
-						onRemove={ arrange.menu.remove }
-					/>
-				) }
-				{ arrange.drag && (
+				{ pageMoves.drag && (
 					<div
 						aria-hidden
-						className={ `cnl-site-overview__drag-label${
-							arrange.drag.drop ? ' has-drop' : ''
-						}` }
+						className="cnl-site-overview__drag-label"
 						style={ {
-							left: arrange.drag.x,
-							top: arrange.drag.y,
+							left: pageMoves.drag.x,
+							top: pageMoves.drag.y,
 						} }
 					>
 						<span className="cnl-site-overview__drag-title">
-							{ arrange.drag.title }
+							{ pageMoves.drag.title }
 						</span>
-						{ arrange.drag.label && (
+						{ pageMoves.drag.label && (
 							<span className="cnl-site-overview__drag-action">
-								{ arrange.drag.label }
+								{ pageMoves.drag.label }
 							</span>
 						) }
 					</div>
 				) }
-				{ selectedNode && hasSize && ! isArranging && (
+				{ selectedNode && hasSize && (
 					<SelectedPage
 						group={ groupsByName.get( selectedNode.group ) }
 						isAnimating={ isAnimating }
