@@ -12,6 +12,7 @@ import { useNavigate } from '@wordpress/route';
  */
 import { isOnHomeTrip } from './home-trip';
 import { openSidebarHome } from './open-sidebar-home';
+import { ScreenSave } from './top-bar/screen-save';
 
 /**
  * The screen above this one: the last of its breadcrumbs that links
@@ -75,17 +76,32 @@ function StageBack( { parent } ) {
  * Admin UI's page, with Back at the start of its header. Every screen in
  * the stage is one of these.
  *
- * @param {Object}  props        Admin UI `Page` props, and:
- * @param {boolean} props.isRoot Whether this is Home, which is above every
- *                               other screen and so has no Back.
+ * @param {Object}   props         Admin UI `Page` props, and:
+ * @param {?Element} props.actions The header's own actions, before Save.
+ * @param {boolean}  props.isRoot  Whether this is Home, which is above every
+ *                                 other screen and so has no Back.
+ * @param {Function} props.saves   What the screen edits, from
+ *                                 `src/save-scopes.js`, for a Save at the
+ *                                 end of its header while some of that is
+ *                                 unsaved.
  * @return {Element} The page.
  */
-export function Page( { isRoot = false, ...props } ) {
+export function Page( { isRoot = false, saves, actions, ...props } ) {
 	const { breadcrumbs } = props;
 
 	return (
 		<AdminPage
 			{ ...props }
+			actions={
+				saves ? (
+					<>
+						{ actions }
+						<ScreenSave only={ saves } />
+					</>
+				) : (
+					actions
+				)
+			}
 			breadcrumbs={
 				<>
 					{ ! isRoot && (

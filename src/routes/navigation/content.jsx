@@ -6,6 +6,7 @@ import { useNavigate, useSearch } from '@wordpress/route';
 /**
  * Internal dependencies
  */
+import { savesMenus } from '../../save-scopes';
 import { withCanvasRecovery } from '../../canvas-recovery';
 import { withUiTheme } from '../../theme';
 import { cnlEditorStore, getErrorMessage } from '../../records';
@@ -259,6 +260,7 @@ function Stage() {
 	);
 	return [
 		<Page
+			saves={ savesMenus }
 			actions={
 				<Button
 					onClick={ () => setIsAddNavigationModalOpen( true ) }

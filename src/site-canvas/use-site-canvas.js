@@ -48,9 +48,11 @@ import {
 	MODE_BROWSE,
 	MODE_COMPOSE,
 	MODE_EDIT,
+	isShowingChange as getIsShowingChange,
 	requestCanvasMode,
 	setCanvasDevice,
 	setCanvasMode,
+	setShowingChange,
 	STORE_NAME as CANVAS_STORE,
 	useCanvasDevice,
 	useCanvasMode,
@@ -278,8 +280,6 @@ export function useSiteCanvas( {
 	const [ savedVersion, setSavedVersion ] = useState( 0 );
 	const savedVersionRef = useRef( 0 );
 	const waitRef = useRef( 0 );
-	// Whether the editor is on show only for a change the preview can't show.
-	const isShowingChangeRef = useRef( false );
 	const { changes, isSaving, save, discardAll } = useChanges();
 	// Exit only discards what changed while editing (`src/edit-session.js`).
 	const { discardAll: discardEditSession } = useChanges( {
@@ -427,7 +427,7 @@ export function useSiteCanvas( {
 	 */
 	useEffect( () => {
 		if ( isPreviewing ) {
-			isShowingChangeRef.current = false;
+			setShowingChange( false );
 			dispatch( blockEditorStore ).clearSelectedBlock();
 			unlock(
 				dispatch( blockEditorStore )
@@ -467,7 +467,7 @@ export function useSiteCanvas( {
 			isPreviewing &&
 			editorEntity
 		) {
-			isShowingChangeRef.current = true;
+			setShowingChange( true );
 			showEditor();
 		}
 
@@ -545,7 +545,7 @@ export function useSiteCanvas( {
 	 * @param {string} next `MODE_BROWSE`, `MODE_EDIT` or `MODE_COMPOSE`.
 	 */
 	const requestMode = ( next ) => {
-		isShowingChangeRef.current = false;
+		setShowingChange( false );
 
 		if ( next !== MODE_BROWSE ) {
 			if ( canvasEntity ) {
@@ -636,7 +636,7 @@ export function useSiteCanvas( {
 		isComposing: mode === MODE_COMPOSE,
 		isLoadingContext,
 		isPreviewing,
-		isShowingChange: () => isShowingChangeRef.current,
+		isShowingChange: getIsShowingChange,
 		liveUrl: getLiveUrl( frame.location ) || url,
 		mode,
 		previewContext,

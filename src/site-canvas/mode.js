@@ -71,6 +71,8 @@ if ( ! select( STORE_NAME ) ) {
 					modeRequest: null,
 					device: DEFAULT_DEVICE,
 					isExpanded: false,
+					// Edit only to show a change made beside the canvas.
+					isShowingChange: false,
 					openPart: null,
 					partRequest: null,
 					pickedSection: null,
@@ -88,6 +90,11 @@ if ( ! select( STORE_NAME ) ) {
 						return { ...state, device: action.device };
 					case 'SET_EXPANDED':
 						return { ...state, isExpanded: action.isExpanded };
+					case 'SET_SHOWING_CHANGE':
+						return {
+							...state,
+							isShowingChange: action.isShowingChange,
+						};
 					case 'SET_OPEN_PART':
 						return { ...state, openPart: action.openPart };
 					case 'SET_PICKED_SECTION':
@@ -117,6 +124,10 @@ if ( ! select( STORE_NAME ) ) {
 				setCanvasDevice: ( device ) => ( {
 					device,
 					type: 'SET_CANVAS_DEVICE',
+				} ),
+				setShowingChange: ( next ) => ( {
+					isShowingChange: next,
+					type: 'SET_SHOWING_CHANGE',
 				} ),
 				setExpanded: ( isExpanded ) => ( {
 					isExpanded,
@@ -148,6 +159,7 @@ if ( ! select( STORE_NAME ) ) {
 				getModeRequest: ( state ) => state.modeRequest,
 				getCanvasDevice: ( state ) => state.device,
 				isExpanded: ( state ) => state.isExpanded,
+				isShowingChange: ( state ) => state.isShowingChange,
 				getOpenPart: ( state ) => state.openPart,
 				getPickedSection: ( state ) => state.pickedSection,
 				getPartRequest: ( state ) => state.partRequest,
@@ -194,6 +206,26 @@ export function useCanvasMode() {
  *
  * @param {boolean} next Whether to expand it.
  */
+/**
+ * Whether the canvas is in Edit only to show a change made beside it, as on
+ * Colors, rather than for editing the page. Kept here, not in the canvas,
+ * as the mode is: the next screen's canvas carries on in it.
+ *
+ * @return {boolean} Whether.
+ */
+export function isShowingChange() {
+	return select( STORE_NAME ).isShowingChange();
+}
+
+/**
+ * @param {boolean} next Whether the canvas is in Edit only to show a change.
+ */
+export function setShowingChange( next ) {
+	if ( next !== isShowingChange() ) {
+		dispatch( STORE_NAME ).setShowingChange( next );
+	}
+}
+
 export function setCanvasExpanded( next ) {
 	if ( next !== select( STORE_NAME ).isExpanded() ) {
 		dispatch( STORE_NAME ).setExpanded( next );

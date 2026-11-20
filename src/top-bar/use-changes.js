@@ -286,26 +286,34 @@ function putBackWhileSettling( registry, kept ) {
 }
 
 /**
- * @param {Object}  [options]
- * @param {boolean} [options.inEditSession] Only what changed while editing
- *                                          the page, from Edit, during a
- *                                          session (`src/edit-session.js`).
+ * @param {Object}   [options]
+ * @param {boolean}  [options.inEditSession] Only what changed while editing
+ *                                           the page, from Edit, during a
+ *                                           session (`src/edit-session.js`).
+ * @param {Function} [options.only]          Only the records it's true for,
+ *                                           called with each: what a screen
+ *                                           edits, for its Save
+ *                                           (`src/save-scopes.js`).
  * @return {Object} `changes`, each with an `id`, a `label`, a `detail` and
  *                  `isSiteWide`, whether they are saving, and `save`,
  *                  `discard` and `discardAll` actions.
  */
-export function useChanges( { inEditSession = false } = {} ) {
+export function useChanges( { inEditSession = false, only } = {} ) {
 	const { dirtyEntityRecords: allDirtyEntityRecords } =
 		useEntitiesSavedStatesIsDirty();
 	// While editing a page, its Save and Exit only reach what changed since
-	// Edit (`src/edit-session.js`).
+	// Edit (`src/edit-session.js`). A screen's Save only reaches what it
+	// edits (`src/save-scopes.js`).
 	const unsavedBefore = useUnsavedBeforeEditSession();
-	const dirtyEntityRecords =
-		inEditSession && unsavedBefore
-			? allDirtyEntityRecords.filter(
-					( record ) => ! unsavedBefore.has( getRecordId( record ) )
-				)
-			: allDirtyEntityRecords;
+	const isScoped = ( inEditSession && unsavedBefore ) || only;
+	const dirtyEntityRecords = isScoped
+		? allDirtyEntityRecords.filter(
+				( record ) =>
+					( ! inEditSession ||
+						! unsavedBefore?.has( getRecordId( record ) ) ) &&
+					( ! only || only( record ) )
+			)
+		: allDirtyEntityRecords;
 	const {
 		editedSite,
 		savedSite,
