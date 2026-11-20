@@ -7,9 +7,9 @@
  *
  * Changes come in two groups, each saying what its changes reach. Those that
  * show on every page, like the header, come first, under a purple heading
- * with a globe and with purple Discard buttons, as the editor marks anything
- * shared. Those that change only the page or post they were made on follow,
- * unmarked. See `src/global-scope`.
+ * with a filled symbol and with purple Discard buttons, as the editor marks
+ * anything shared. Those that change only the page or post they were made on
+ * follow, unmarked. See `src/global-scope`.
  */
 
 /**
@@ -26,7 +26,10 @@ import {
 	useState,
 } from '@wordpress/element';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { globe as globeIcon, page as pageIcon } from '@wordpress/icons';
+import {
+	page as pageIcon,
+	symbolFilled as symbolFilledIcon,
+} from '@wordpress/icons';
 import { store as noticesStore } from '@wordpress/notices';
 import { Icon, Stack, Text } from '@wordpress/ui';
 
@@ -40,7 +43,7 @@ const GROUPS = [
 	{
 		id: 'site-wide',
 		isSiteWide: true,
-		icon: globeIcon,
+		icon: symbolFilledIcon,
 		title: __( 'Site-wide changes' ),
 		description: __( 'These change every page of your site.' ),
 	},
