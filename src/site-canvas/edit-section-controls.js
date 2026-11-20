@@ -1,14 +1,12 @@
 /**
  * Core's own section controls, as Edit shows them:
  *
- * - Core's button for unlocking a section, said as "Edit" and "Done", since
- *   every section is content-only in Edit (see `use-section-lock.js`), and
- *   Freeform unlocks it with core's own unlock.
+ * - Core's button for unlocking what it keeps content-only, like a synced
+ *   pattern, said as "Edit" and "Done".
  * - None of core's "Shuffle styles", which cycles through the same colours
  *   Edit layout shows.
  *
- * A section's layouts and colours are in Edit layout's panel. See
- * `section-modes/`.
+ * A section's layouts and colours are on its toolbar. See `section-modes/`.
  */
 
 /**

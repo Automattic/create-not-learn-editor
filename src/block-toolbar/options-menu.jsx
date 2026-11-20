@@ -657,6 +657,7 @@ function getItemsKey( { first, controls, tools } ) {
  * @param {Object}   props.attributes       Block attributes.
  * @param {Function} props.setAttributes    Block attribute setter.
  * @param {boolean}  props.isContainer      Whether the block has a Layout menu.
+ * @param {?string}  props.title            A name for the block other than its type's, like Section.
  * @param {Function} props.readCoreItems    Reads core's menu items.
  * @param {Function} props.observeCoreItems Calls back when core's menu items may have changed.
  * @return {Element} The menu.
@@ -667,6 +668,7 @@ export function OptionsMenu( {
 	attributes,
 	setAttributes,
 	isContainer,
+	title = null,
 	readCoreItems,
 	observeCoreItems,
 } ) {
@@ -731,7 +733,7 @@ export function OptionsMenu( {
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- Reads through refs and stable readers.
 	}, [ trigger, observeCoreItems ] );
 
-	const blockTitle = getBlockType( name )?.title;
+	const blockTitle = title ?? getBlockType( name )?.title;
 	const { canDuplicate, canInsert, canRemove, hasTextSelection } = useSelect(
 		( select ) => {
 			const {
