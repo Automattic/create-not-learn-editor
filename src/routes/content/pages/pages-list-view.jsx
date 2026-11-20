@@ -227,6 +227,16 @@ function PageRowEnd( { clientId, icon, toggleProps } ) {
 			) }
 			<RowOptions
 				groups={ [
+					// Only a page has details: a homepage of latest posts
+					// is no page.
+					pageId && row.onOpenDetails
+						? [
+								{
+									label: __( 'Page details' ),
+									onClick: () => row.onOpenDetails( target ),
+								},
+							]
+						: [],
 					// The same as the switch, said in words.
 					menuSwitch
 						? [
@@ -366,6 +376,8 @@ function renderPagesAppender( { ref, ...props } ) {
  *                                         isn't a page to the menu.
  * @param {Function} [props.onAddPage]     Starts a page.
  * @param {Function} props.onDelete        Asks to delete a page, given its ID.
+ * @param {Function} [props.onOpenDetails] Opens a page's details, given its
+ *                                         ID or `HOMEPAGE`.
  * @param {Function} props.onPreview       Shows a page, or `HOMEPAGE`.
  * @param {Object}   props.pageOrder       Result of `usePageOrder`.
  * @param {number}   props.previewedId     The page on show, or `HOMEPAGE`.
@@ -378,6 +390,7 @@ export default function PagesListView( {
 	onAddMenuItem,
 	onAddPage,
 	onDelete,
+	onOpenDetails,
 	onPreview,
 	pageOrder,
 	previewedId,
@@ -496,6 +509,7 @@ export default function PagesListView( {
 		onAddMenuItem,
 		onAddPage,
 		onDelete,
+		onOpenDetails,
 		pagesById,
 	};
 

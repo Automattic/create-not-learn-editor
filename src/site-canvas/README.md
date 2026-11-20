@@ -22,6 +22,8 @@ Moving to Browse with unsaved changes asks to save or discard them, because the 
 | `use-site-canvas.js` | `useSiteCanvas()`: the canvas's state and the rules for moving between modes. |
 | `mode.js` | The shared mode: `useCanvasMode()`, `getCanvasMode()`, `setCanvasMode()`. |
 | `writing-mode.js` | Which blocks are containers, and how a page's runs of text between them are grouped into sections. |
+| `page-switcher.jsx` | The page's name in the middle of the toolbar, which turns into the page finder, and the page's status at its end. |
+| `page-settings.jsx` | A page's status as a button that opens its settings in a popover, every detail the Pages screen has for it, where core's editor has them in its sidebar's Page tab. Changes are unsaved edits to the page, saved with Save. Only Layout leads on, to the layouts in the sidebar. |
 | `toolbar.jsx` | Edit while viewing and Exit while editing, undo and redo, Document Overview, the preview's history, the View menu (the device, the live page in a new tab and the full-screen editor), and Zoom out (Compose). |
 | `zoom-controls.jsx` | Compose from the canvas itself: a zoom in and zoom out pair in its corner, as on a map, and a pinch on a trackpad, or Ctrl or ⌘ with the scroll wheel. One gesture moves one step. |
 | `use-section-lock.js` | In Edit, every section made of other blocks, in whatever is built from sections, starts content-only, with core's own lock, kept in the editor's settings rather than the page. A section whose own block says its blocks are free isn't locked, with core's `templateLock: false`: a blank section, or a Text page's text, which have no design to keep. |
