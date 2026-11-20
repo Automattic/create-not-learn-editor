@@ -48,6 +48,7 @@ For menus, the editor can't know every place one is shown: a Navigation block ca
 - **New menus are drafts**, whether added or duplicated. A draft saves as it is changed, renamed or filled (`useSaveWhileDraft()` in `src/routes/navigation-edit/content.jsx`), and is listed in the mode's store as saving itself so it never shows as waiting.
 - **A published menu may be live**, so every change to it waits for Publish site, its name included: the name labels the menu for screen readers on the site.
 - **Putting a draft somewhere** is a change to the template part it goes in, so it waits. Publish site then publishes the draft with it (`publishDraftMenus()` in `use-changes.js`), so the place never shows an empty menu.
+- **Putting a draft in a page or post** is a change to that page or post, which publishes from the canvas. Publishing, scheduling or saving it while live publishes the drafts its content shows with it (`publishDocumentMenus()` in `src/site-canvas/document-actions.jsx`), for the same reason.
 - **Deleting** a menu in a place the editor knows of, the header say, isn't possible until another takes its place. Any other menu can be deleted after a warning, which for a published menu says it goes from wherever the site shows it, at once.
 
 ## Site history

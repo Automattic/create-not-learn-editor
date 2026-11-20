@@ -26,7 +26,7 @@ import { store as preferencesStore } from '@wordpress/preferences';
 /**
  * Internal dependencies
  */
-import { useChanges } from '../top-bar/use-changes';
+import { publishDraftMenus, useChanges } from '../top-bar/use-changes';
 import {
 	__,
 	_n,
@@ -36,9 +36,11 @@ import {
 	dispatch,
 	sprintf,
 	useContext,
+	coreDataStore,
 	useDispatch,
 	useEffect,
 	useRef,
+	useRegistry,
 	useSelect,
 	useState,
 } from '../wordpress-packages';
@@ -136,6 +138,38 @@ function getPublishStatus( state ) {
 }
 
 /**
+ * Publish the draft menus the open page or post shows, a new menu put in
+ * its content say, as it goes live. Core never shows a draft menu, and
+ * Publish site only publishes the menus of what it publishes, so without
+ * this the page would go live with an empty menu that nothing then
+ * publishes. See `src/top-bar/README.md`.
+ *
+ * @param {Object} registry Data registry.
+ * @return {Promise} Resolves once the menus are saved.
+ */
+function publishDocumentMenus( registry ) {
+	const editor = registry.select( editorStore );
+	const menus = publishDraftMenus( registry, [
+		{
+			kind: 'postType',
+			name: editor.getCurrentPostType(),
+			key: editor.getCurrentPostId(),
+		},
+	] );
+	const { saveEditedEntityRecord } = registry.dispatch( coreDataStore );
+
+	return Promise.all(
+		menus.map( ( { kind, name, key } ) =>
+			saveEditedEntityRecord( kind, name, key )
+		)
+	);
+}
+
+// Statuses that leave the page or post where visitors can't see it, so its
+// draft menus stay drafts.
+const HIDDEN_STATUSES = [ 'draft', 'pending', 'auto-draft' ];
+
+/**
  * Publish, Schedule or Save: the primary button, in the toolbar and in the
  * pre-publish panel's header.
  *
@@ -148,6 +182,7 @@ function PublishButton( { canOpenPanel = false } ) {
 	const state = useSelect( getPublishState, [] );
 	const { editPost, savePost, togglePublishSidebar } =
 		useDispatch( editorStore );
+	const registry = useRegistry();
 	const isLive =
 		state.isPublished || ( state.isScheduled && state.isBeingScheduled );
 	// The post's status is final, as core's toggle reads it, so it saves.
@@ -173,12 +208,16 @@ function PublishButton( { canOpenPanel = false } ) {
 			return;
 		}
 
-		if ( isLive ) {
-			savePost();
-			return;
+		const status = isLive ? state.status : getPublishStatus( state );
+
+		if ( ! isLive ) {
+			editPost( { status }, { undoIgnore: true } );
 		}
 
-		editPost( { status: getPublishStatus( state ) }, { undoIgnore: true } );
+		if ( ! HIDDEN_STATUSES.includes( status ) ) {
+			publishDocumentMenus( registry );
+		}
+
 		savePost();
 	};
 
@@ -259,29 +298,38 @@ function AlsoPublishSiteChanges() {
  * @return {?Element} The panel.
  */
 export function DocumentPublishPanel() {
-	const { isOpen, isPublished, isSaving } = useSelect(
-		( select ) => ( {
-			isOpen: select( editorStore ).isPublishSidebarOpened(),
-			isPublished: select( editorStore ).isCurrentPostPublished(),
-			isSaving: select( editorStore ).isSavingPost(),
-		} ),
-		[]
-	);
+	const { isOpen, isPublished, isLive, isSaving, hasPublishAction } =
+		useSelect( ( select ) => {
+			const editor = select( editorStore );
+
+			return {
+				isOpen: editor.isPublishSidebarOpened(),
+				isPublished: editor.isCurrentPostPublished(),
+				// Published or scheduled: either way it no longer waits on
+				// anyone, so the site's changes ticked to go with it go too.
+				isLive:
+					editor.isCurrentPostPublished() ||
+					editor.isCurrentPostScheduled(),
+				isSaving: editor.isSavingPost(),
+				hasPublishAction:
+					!! editor.getCurrentPost()?._links?.[ 'wp:action-publish' ],
+			};
+		}, [] );
 	const { closePublishSidebar } = useDispatch( editorStore );
 	const { siteChanges, publishSite } = useChanges();
 	const [ isIncluded, setIsIncluded ] = useState( false );
-	const wasPublished = useRef( isPublished );
+	const wasLive = useRef( isLive );
 
 	useEffect( () => {
-		if ( isPublished && ! wasPublished.current && isIncluded ) {
+		if ( isLive && ! wasLive.current && isIncluded ) {
 			setIsIncluded( false );
 			publishSite();
 		}
 
-		wasPublished.current = isPublished;
-		// Only the page going live should publish.
+		wasLive.current = isLive;
+		// Only the page going live, or being scheduled, should publish.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ isPublished ] );
+	}, [ isLive ] );
 
 	// Closed with the panel, so it's never ticked without being seen.
 	useEffect( () => {
@@ -299,7 +347,9 @@ export function DocumentPublishPanel() {
 	return (
 		<AlsoPublishContext.Provider
 			value={ {
-				count: siteChanges.length,
+				// Submitting for review publishes nothing, so there is
+				// nothing for the site's changes to go with.
+				count: hasPublishAction ? siteChanges.length : 0,
 				isIncluded,
 				setIsIncluded,
 			} }

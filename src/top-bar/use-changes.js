@@ -292,7 +292,7 @@ function getNavigationRefs( record ) {
  * @param {Object[]} records  The records being published.
  * @return {Object[]} The menus, as records for core's save.
  */
-function publishDraftMenus( registry, records ) {
+export function publishDraftMenus( registry, records ) {
 	const store = registry.select( coreStore );
 	const ids = new Set(
 		records
