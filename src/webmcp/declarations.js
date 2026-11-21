@@ -6,6 +6,11 @@
  * Kept free of WordPress packages, as app init imports it.
  */
 
+/**
+ * Internal dependencies
+ */
+import { canOpen, userCan } from '../capabilities';
+
 const SECTION = {
 	type: 'integer',
 	minimum: 1,
@@ -278,3 +283,40 @@ export const TOOLS = [
 		annotations: CHANGES,
 	},
 ];
+
+// The tools that work on the site's pages, which are opened on the Pages
+// screen.
+const PAGE_TOOLS = [
+	'cnl-list-pages',
+	'cnl-open-page',
+	'cnl-get-page',
+	'cnl-get-designs',
+	'cnl-add-section',
+	'cnl-move-section',
+	'cnl-duplicate-section',
+	'cnl-remove-section',
+	'cnl-style-section',
+];
+
+/**
+ * Whether a tool is offered to the person using the editor. An agent works
+ * for them, so it can only do what they could do themselves.
+ *
+ * @param {string} name The tool's name.
+ * @return {boolean} Whether it is offered.
+ */
+export function isToolOffered( name ) {
+	if ( PAGE_TOOLS.includes( name ) ) {
+		return canOpen( '/types/page/list/all' );
+	}
+
+	if ( name === 'cnl-set-site-style' ) {
+		return userCan( 'site' );
+	}
+
+	if ( name === 'cnl-set-site-title' ) {
+		return userCan( 'identity' );
+	}
+
+	return true;
+}

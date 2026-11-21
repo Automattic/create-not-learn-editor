@@ -12,6 +12,7 @@
  * Internal dependencies
  */
 import ScreenLinks from '../../../screen-links';
+import { userCan } from '../../../capabilities';
 import useMainMenu from '../use-main-menu';
 import { getPageTitle } from './data';
 import {
@@ -197,15 +198,16 @@ function LatestPostsBody( { canConfigure, homepage, onConfigure } ) {
 			<ScreenLinks
 				label={ __( 'More for your homepage' ) }
 				links={ [
-					layout && {
-						description: __(
-							'Change how your posts are displayed'
-						),
-						icon: layoutIcon,
-						search: layout.search,
-						title: __( 'Change layout' ),
-						to: layout.to,
-					},
+					userCan( 'site' ) &&
+						layout && {
+							description: __(
+								'Change how your posts are displayed'
+							),
+							icon: layoutIcon,
+							search: layout.search,
+							title: __( 'Change layout' ),
+							to: layout.to,
+						},
 					{
 						description: __( 'Write, edit and publish blog posts' ),
 						icon: postIcon,

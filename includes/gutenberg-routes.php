@@ -110,7 +110,8 @@ function cnl_editor_register_gutenberg_routes() {
 			continue;
 		}
 
-		cnl_editor_register_route( $route['path'], $modules['content'] ?? null, $modules['route'] );
+		// Each of them changes the whole site's look.
+		cnl_editor_register_route( $route['path'], $modules['content'] ?? null, $modules['route'], 'site' );
 	}
 }
 

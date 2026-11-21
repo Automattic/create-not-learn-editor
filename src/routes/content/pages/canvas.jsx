@@ -16,6 +16,7 @@ import { useNavigate, useSearch } from '@wordpress/route';
 /**
  * Internal dependencies
  */
+import { userCan } from '../../../capabilities';
 import { settings } from '../../../settings';
 import {
 	MODE_BROWSE,
@@ -224,7 +225,7 @@ function PageOptions( { isHomepage, link, pageId } ) {
 								{ __( 'Rename' ) }
 							</MenuItem>
 						) }
-						{ pageId > 0 && (
+						{ pageId > 0 && userCan( 'site' ) && (
 							<EditLayoutItem
 								isHomepage={ isHomepage }
 								onClose={ onClose }
@@ -411,6 +412,7 @@ function useLatestPostsLayout( { templateId, isEditing } ) {
 	useEffect( () => {
 		if (
 			! isEditing ||
+			! userCan( 'site' ) ||
 			typeof indexContent !== 'string' ||
 			isCopying.current
 		) {

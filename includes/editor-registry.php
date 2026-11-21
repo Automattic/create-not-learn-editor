@@ -28,11 +28,24 @@ function cnl_editor_reset_editor_registry() {
 /**
  * Register a route for the Create Not Learn full-page editor.
  *
- * @param string      $path           Route path.
- * @param string|null $content_module Script module ID for stage/inspector content.
- * @param string|null $route_module   Script module ID for route lifecycle hooks.
+ * A route the current user can't use is registered with the "Not available"
+ * screen in place of its own modules, so a link to it explains itself rather
+ * than loading a screen they can't use.
+ *
+ * @param string                   $path           Route path.
+ * @param string|null              $content_module Script module ID for stage/inspector content.
+ * @param string|null              $route_module   Script module ID for route lifecycle hooks.
+ * @param string|string[]|Closure $capability     What the route needs, as
+ *                                                 `cnl_editor_user_can()`
+ *                                                 takes it. Empty for anyone
+ *                                                 who can open the editor.
  */
-function cnl_editor_register_route( $path, $content_module = null, $route_module = null ) {
+function cnl_editor_register_route( $path, $content_module = null, $route_module = null, $capability = '' ) {
+	if ( ! cnl_editor_user_can( $capability ) ) {
+		$content_module = 'create-not-learn-editor/routes/not-available/content';
+		$route_module   = 'create-not-learn-editor/routes/not-available/route';
+	}
+
 	$route = array( 'path' => $path );
 	if ( ! empty( $content_module ) ) {
 		$route['content_module'] = $content_module;
@@ -57,8 +70,17 @@ function cnl_editor_register_route( $path, $content_module = null, $route_module
  *                             `advanced`, which titles the item's group.
  * @param bool   $always_shown Whether the item stays listed when its section
  *                             puts the rest behind a "…".
+ * @param string|string[]|Closure $capability What the item needs, as
+ *                                             `cnl_editor_user_can()` takes
+ *                                             it. Empty for anyone who can
+ *                                             open the editor.
  */
-function cnl_editor_register_menu_item( $id, $label, $to, $parent_id = '', $parent_type = '', $icon = '', $section = '', $always_shown = false ) {
+function cnl_editor_register_menu_item( $id, $label, $to, $parent_id = '', $parent_type = '', $icon = '', $section = '', $always_shown = false, $capability = '' ) {
+	// Only what this person can use is listed.
+	if ( ! cnl_editor_user_can( $capability ) ) {
+		return;
+	}
+
 	$menu_item = array(
 		'id'    => $id,
 		'label' => $label,
@@ -98,6 +120,23 @@ function cnl_editor_get_registered_routes() {
 }
 
 /**
+ * Get the paths of the registered routes the current user can use.
+ *
+ * @return string[] Route paths.
+ */
+function cnl_editor_get_available_route_paths() {
+	$paths = array();
+
+	foreach ( cnl_editor_get_registered_routes() as $route ) {
+		if ( 0 !== strpos( $route['route_module'] ?? '', 'create-not-learn-editor/routes/not-available/' ) ) {
+			$paths[] = $route['path'];
+		}
+	}
+
+	return $paths;
+}
+
+/**
  * Get registered full-page editor menu items.
  *
  * @return array[] Registered menu items.
@@ -114,7 +153,8 @@ function cnl_editor_register_default_routes_and_menu() {
 		cnl_editor_register_route(
 			$route['path'],
 			$route['content_module'] ?? null,
-			$route['route_module'] ?? null
+			$route['route_module'] ?? null,
+			$route['capability'] ?? ''
 		);
 	}
 
@@ -127,7 +167,8 @@ function cnl_editor_register_default_routes_and_menu() {
 			$item['parent_type'] ?? '',
 			$item['icon'] ?? '',
 			$item['section'] ?? '',
-			! empty( $item['alwaysShown'] )
+			! empty( $item['alwaysShown'] ),
+			$item['capability'] ?? ''
 		);
 	}
 }
@@ -146,6 +187,7 @@ function cnl_editor_get_routes() {
 		),
 		array(
 			'path'           => '/site-overview',
+			'capability'     => 'site',
 			'route_module'   => 'create-not-learn-editor/routes/site-overview/route',
 			'content_module' => 'create-not-learn-editor/routes/site-overview/content',
 		),
@@ -169,24 +211,29 @@ function cnl_editor_get_routes() {
 		),
 		array(
 			'path'           => '/navigation',
+			'capability'     => 'site',
 			'route_module'   => 'create-not-learn-editor/routes/navigation/route',
 			'content_module' => 'create-not-learn-editor/routes/navigation/content',
 		),
 		array(
 			'path'           => '/navigation/edit/$id',
+			'capability'     => 'site',
 			'route_module'   => 'create-not-learn-editor/routes/navigation-edit/route',
 			'content_module' => 'create-not-learn-editor/routes/navigation-edit/content',
 		),
 		array(
 			'path'         => '/wp_template',
+			'capability'   => 'site',
 			'route_module' => 'create-not-learn-editor/routes/template-edit/route',
 		),
 		array(
 			'path'         => '/wp_template_part',
+			'capability'   => 'site',
 			'route_module' => 'create-not-learn-editor/routes/template-part-edit/route',
 		),
 		array(
 			'path'           => '/media',
+			'capability'     => 'media',
 			'route_module'   => 'create-not-learn-editor/routes/static/route',
 			'content_module' => 'create-not-learn-editor/routes/static/content',
 		),
@@ -196,54 +243,71 @@ function cnl_editor_get_routes() {
 		 */
 		array(
 			'path'         => '/types/attachment/list/$view',
+			'capability'   => 'media',
 			'route_module' => 'create-not-learn-editor/routes/static/route',
 		),
 		array(
 			'path'           => '/design',
+			'capability'     => 'site',
 			'route_module'   => 'create-not-learn-editor/routes/static/route',
 			'content_module' => 'create-not-learn-editor/routes/static/content',
 		),
 		array(
 			'path'           => '/design/colors',
+			'capability'     => 'site',
 			'route_module'   => 'create-not-learn-editor/routes/static/route',
 			'content_module' => 'create-not-learn-editor/routes/static/content',
 		),
 		array(
 			'path'           => '/design/fonts',
+			'capability'     => 'site',
 			'route_module'   => 'create-not-learn-editor/routes/static/route',
 			'content_module' => 'create-not-learn-editor/routes/static/content',
 		),
 		array(
 			'path'           => '/design/identity',
+			'capability'     => 'identity',
 			'route_module'   => 'create-not-learn-editor/routes/static/route',
 			'content_module' => 'create-not-learn-editor/routes/static/content',
 		),
 		array(
 			'path'           => '/site-parts',
+			'capability'     => 'site',
 			'route_module'   => 'create-not-learn-editor/routes/site-parts/route',
 			'content_module' => 'create-not-learn-editor/routes/site-part/content',
 		),
 		array(
 			'path'           => '/site-parts/header',
+			'capability'     => 'site',
 			'route_module'   => 'create-not-learn-editor/routes/header/route',
 			'content_module' => 'create-not-learn-editor/routes/site-part/content',
 		),
 		array(
 			'path'           => '/site-parts/footer',
+			'capability'     => 'site',
 			'route_module'   => 'create-not-learn-editor/routes/footer/route',
 			'content_module' => 'create-not-learn-editor/routes/site-part/content',
 		),
 		array(
 			'path'           => '/patterns',
+			'capability'     => 'site',
 			'route_module'   => 'create-not-learn-editor/routes/static/route',
 			'content_module' => 'create-not-learn-editor/routes/static/content',
 		),
 		array(
 			'path'           => '/template-parts',
+			'capability'     => 'site',
 			'route_module'   => 'create-not-learn-editor/routes/static/route',
 			'content_module' => 'create-not-learn-editor/routes/static/content',
 		),
 		// `/templates` is Gutenberg's own, see `includes/gutenberg-routes.php`.
+		// Where a list or an editor sends someone who can't open what it was
+		// asked for.
+		array(
+			'path'           => '/not-available',
+			'route_module'   => 'create-not-learn-editor/routes/not-available/route',
+			'content_module' => 'create-not-learn-editor/routes/not-available/content',
+		),
 	);
 
 	return array_merge( $routes, cnl_editor_get_shop_routes() );
@@ -284,21 +348,24 @@ function cnl_editor_get_menu_items() {
 				'to'          => '/shop/products',
 				'section'     => 'content',
 				'alwaysShown' => true,
+				'capability'  => 'edit_products',
 			);
 			continue;
 		}
 
 		$items[] = array(
-			'id'      => 'page' === $post_type['name'] ? 'pages' : 'content-' . $post_type['name'],
-			'icon'    => $post_type['menuIcon'],
-			'label'   => $post_type['menuName'],
+			'id'         => 'page' === $post_type['name'] ? 'pages' : 'content-' . $post_type['name'],
+			'icon'       => $post_type['menuIcon'],
+			'label'      => $post_type['menuName'],
 			// The route prefix, not a specific list view: switching tabs or
 			// filters within the list (or editing/creating an item) changes
 			// the URL past this point, and the sidebar's drilldown-restoration
 			// logic matches by longest `to` prefix, so this must cover every
 			// URL under this post type for the drilldown to stay open.
-			'to'      => '/types/' . $post_type['name'],
-			'section' => 'content',
+			'to'         => '/types/' . $post_type['name'],
+			'section'    => 'content',
+			// Only the kinds of content this person can write are listed.
+			'capability' => get_post_type_object( $post_type['name'] )->cap->edit_posts,
 		);
 	}
 
@@ -311,56 +378,63 @@ function cnl_editor_get_menu_items() {
 		$items,
 		array(
 			array(
-				'id'      => 'site-overview',
-				'icon'    => 'dashicons-networking',
-				'label'   => __( 'Site overview', 'create-not-learn-editor' ),
-				'to'      => '/site-overview',
-				'section' => 'site',
+				'id'         => 'site-overview',
+				'capability' => 'site',
+				'icon'       => 'dashicons-networking',
+				'label'      => __( 'Site overview', 'create-not-learn-editor' ),
+				'to'         => '/site-overview',
+				'section'    => 'site',
 			),
 			// The parts every page shares, the main ones, each leading on to
 			// the rest in its area.
 			array(
-				'id'      => 'site-parts',
-				'icon'    => 'dashicons-layout',
-				'label'   => __( 'Site parts', 'create-not-learn-editor' ),
-				'to'      => '/site-parts',
-				'section' => 'site',
+				'id'         => 'site-parts',
+				'capability' => 'site',
+				'icon'       => 'dashicons-layout',
+				'label'      => __( 'Site parts', 'create-not-learn-editor' ),
+				'to'         => '/site-parts',
+				'section'    => 'site',
 			),
 			// The main menu is managed on the Pages screen; this is for the rest.
 			array(
-				'id'      => 'navigation',
-				'label'   => __( 'Menus', 'create-not-learn-editor' ),
-				'to'      => '/navigation',
-				'section' => 'site',
+				'id'         => 'navigation',
+				'capability' => 'site',
+				'label'      => __( 'Menus', 'create-not-learn-editor' ),
+				'to'         => '/navigation',
+				'section'    => 'site',
 			),
 			array(
-				'id'      => 'identity',
-				'icon'    => 'dashicons-id',
-				'label'   => __( 'Name & logo', 'create-not-learn-editor' ),
-				'to'      => '/design/identity',
-				'section' => 'site',
+				'id'         => 'identity',
+				'capability' => 'identity',
+				'icon'       => 'dashicons-id',
+				'label'      => __( 'Name & logo', 'create-not-learn-editor' ),
+				'to'         => '/design/identity',
+				'section'    => 'site',
 			),
 			array(
-				'id'      => 'media',
-				'icon'    => 'dashicons-admin-media',
-				'label'   => __( 'Media', 'create-not-learn-editor' ),
-				'to'      => '/media',
-				'section' => 'site',
+				'id'         => 'media',
+				'capability' => 'media',
+				'icon'       => 'dashicons-admin-media',
+				'label'      => __( 'Media', 'create-not-learn-editor' ),
+				'to'         => '/media',
+				'section'    => 'site',
 			),
 			// The Design screen itself is reached from Home.
 			array(
-				'id'      => 'colors',
-				'icon'    => 'dashicons-art',
-				'label'   => __( 'Colors', 'create-not-learn-editor' ),
-				'to'      => '/design/colors',
-				'section' => 'design',
+				'id'         => 'colors',
+				'capability' => 'site',
+				'icon'       => 'dashicons-art',
+				'label'      => __( 'Colors', 'create-not-learn-editor' ),
+				'to'         => '/design/colors',
+				'section'    => 'design',
 			),
 			array(
-				'id'      => 'fonts',
-				'icon'    => 'dashicons-editor-textcolor',
-				'label'   => __( 'Fonts', 'create-not-learn-editor' ),
-				'to'      => '/design/fonts',
-				'section' => 'design',
+				'id'         => 'fonts',
+				'capability' => 'site',
+				'icon'       => 'dashicons-editor-textcolor',
+				'label'      => __( 'Fonts', 'create-not-learn-editor' ),
+				'to'         => '/design/fonts',
+				'section'    => 'design',
 			),
 		),
 		// Plugins: those that add to the site, each leading to its screens.
@@ -369,28 +443,32 @@ function cnl_editor_get_menu_items() {
 			// Gutenberg's full Styles editor (`includes/gutenberg-routes.php`),
 			// for every style setting the Design screens leave out.
 			array(
-				'id'      => 'styles',
-				'label'   => __( 'Styles', 'create-not-learn-editor' ),
-				'to'      => '/styles',
-				'section' => 'advanced',
+				'id'         => 'styles',
+				'capability' => 'site',
+				'label'      => __( 'Styles', 'create-not-learn-editor' ),
+				'to'         => '/styles',
+				'section'    => 'advanced',
 			),
 			array(
-				'id'      => 'patterns',
-				'label'   => __( 'Patterns', 'create-not-learn-editor' ),
-				'to'      => '/patterns',
-				'section' => 'advanced',
+				'id'         => 'patterns',
+				'capability' => 'site',
+				'label'      => __( 'Patterns', 'create-not-learn-editor' ),
+				'to'         => '/patterns',
+				'section'    => 'advanced',
 			),
 			array(
-				'id'      => 'templateParts',
-				'label'   => __( 'All site parts', 'create-not-learn-editor' ),
-				'to'      => '/template-parts',
-				'section' => 'advanced',
+				'id'         => 'templateParts',
+				'capability' => 'site',
+				'label'      => __( 'All site parts', 'create-not-learn-editor' ),
+				'to'         => '/template-parts',
+				'section'    => 'advanced',
 			),
 			array(
-				'id'      => 'templates',
-				'label'   => __( 'Templates', 'create-not-learn-editor' ),
-				'to'      => '/templates',
-				'section' => 'advanced',
+				'id'         => 'templates',
+				'capability' => 'site',
+				'label'      => __( 'Templates', 'create-not-learn-editor' ),
+				'to'         => '/templates',
+				'section'    => 'advanced',
 			),
 		)
 	);

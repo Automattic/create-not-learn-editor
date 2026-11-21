@@ -2,7 +2,9 @@
  * Internal dependencies
  */
 import { startHomeTrip } from '../../home-trip';
+import { canOpen, userCan } from '../../capabilities';
 import ScreenLinks from '../../screen-links';
+import { getPostType } from '../../settings';
 import { getStartPlaces } from '../../start-places';
 import { MODE_EDIT, setCanvasMode } from '../../site-canvas/mode';
 import { requestDistractionFreeEntry } from '../../editor-layer/distraction-free';
@@ -11,6 +13,7 @@ import { isAskingPostKind } from '../../post-kinds-base';
 import PostKindPicker from '../../pickers/post-kinds';
 import BlogAdmin from './blog-admin';
 import HomepageNotice from './homepage-notice';
+import RecentContent from './recent-content';
 import { SiteAddress, SiteMark, SiteStatus, useSite } from './site-card';
 import {
 	Page,
@@ -52,38 +55,61 @@ const START_ROUTES = {
 	patterns: { to: '/patterns' },
 };
 
+/**
+ * Whether the person can do what a place to start offers. Steps they can't
+ * do are left out, rather than shown and refused.
+ *
+ * @param {Object} place The place, with its route.
+ * @return {boolean} Whether to offer it.
+ */
+function canStartAt( place ) {
+	if ( place.id === 'write' ) {
+		return Boolean( getPostType( 'post' )?.canCreate );
+	}
+
+	// The homepage opens to be edited.
+	if ( place.id === 'home' && ! userCan( 'editHomepage' ) ) {
+		return false;
+	}
+
+	return canOpen( place.to );
+}
+
 function getStartLinks( workspace, { isAskingKind, onPickPostKind } ) {
-	return getStartPlaces( workspace.home ).map( ( place ) => {
-		const route = START_ROUTES[ place.id ];
-		const link = {
-			...place,
-			...route,
-			// Back on whatever this opens leads straight back here.
-			onSelect: () => {
-				startHomeTrip();
-				route?.onSelect?.();
-			},
-		};
-
-		if ( place.id !== 'write' ) {
-			return link;
-		}
-
-		// Asked what kind of post it is first, unless they'd rather not be.
-		if ( isAskingKind ) {
-			return { ...link, onOpen: onPickPostKind, to: undefined };
-		}
-
-		// A new post opens with nothing but the writing on show.
-		if ( workspace.writeInFocus ) {
-			link.onSelect = () => {
-				startHomeTrip();
-				requestDistractionFreeEntry();
+	return getStartPlaces( workspace.home )
+		.map( ( place ) => ( { ...place, ...START_ROUTES[ place.id ] } ) )
+		.filter( canStartAt )
+		.map( ( place ) => {
+			const route = START_ROUTES[ place.id ];
+			const link = {
+				...place,
+				...route,
+				// Back on whatever this opens leads straight back here.
+				onSelect: () => {
+					startHomeTrip();
+					route?.onSelect?.();
+				},
 			};
-		}
 
-		return link;
-	} );
+			if ( place.id !== 'write' ) {
+				return link;
+			}
+
+			// Asked what kind of post it is first, unless they'd rather not be.
+			if ( isAskingKind ) {
+				return { ...link, onOpen: onPickPostKind, to: undefined };
+			}
+
+			// A new post opens with nothing but the writing on show.
+			if ( workspace.writeInFocus ) {
+				link.onSelect = () => {
+					startHomeTrip();
+					requestDistractionFreeEntry();
+				};
+			}
+
+			return link;
+		} );
 }
 
 export default function Stage() {
@@ -94,6 +120,10 @@ export default function Stage() {
 		[ workspace ]
 	);
 	const [ isPickingPostKind, setIsPickingPostKind ] = useState( false );
+	const startLinks = getStartLinks( workspace, {
+		isAskingKind,
+		onPickPostKind: () => setIsPickingPostKind( true ),
+	} );
 
 	return (
 		<Page
@@ -112,13 +142,16 @@ export default function Stage() {
 			<div className="cnl-editor-stage cnl-site-hub">
 				<HomepageNotice />
 				<Stack direction="column" gap="sm">
-					<ScreenLinks
-						label={ __( 'Start working on your site' ) }
-						links={ getStartLinks( workspace, {
-							isAskingKind,
-							onPickPostKind: () => setIsPickingPostKind( true ),
-						} ) }
-					/>
+					{ startLinks.length ? (
+						<ScreenLinks
+							label={ __( 'Start working on your site' ) }
+							links={ startLinks }
+						/>
+					) : (
+						// Nothing to set up that this person can do, so
+						// Home is about their writing instead.
+						<RecentContent />
+					) }
 				</Stack>
 				{ !! workspace.home.adminLinks.length && (
 					<BlogAdmin ids={ workspace.home.adminLinks } />

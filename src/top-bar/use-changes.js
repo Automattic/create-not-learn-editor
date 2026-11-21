@@ -18,6 +18,7 @@ import { __, sprintf } from '@wordpress/i18n';
  * Internal dependencies
  */
 import { unlock } from '../lock-unlock';
+import { getEditablePostType } from '../settings';
 
 /*
  * Named as the editor names them, so a change reads as the place it was made.
@@ -376,7 +377,23 @@ export function useChanges() {
 
 	// Core's own save, as its review uses: it saves site settings together
 	// and publishes menus, and reports success or failure in a snackbar.
-	const save = () => saveDirtyEntities( { dirtyEntityRecords } );
+	// What someone can't publish, a Contributor's post say, goes for review
+	// instead, as core's own Publish button sends it.
+	const save = () => {
+		dirtyEntityRecords.forEach( ( { kind, name, key } ) => {
+			if (
+				kind === 'postType' &&
+				getEditablePostType( name )?.canPublish === false &&
+				[ 'publish', 'future' ].includes(
+					getEditedEntityRecord( kind, name, key )?.status
+				)
+			) {
+				editEntityRecord( kind, name, key, { status: 'pending' } );
+			}
+		} );
+
+		return saveDirtyEntities( { dirtyEntityRecords } );
+	};
 
 	return { changes, isSaving, save, discard, discardAll };
 }

@@ -6,6 +6,7 @@ import { useNavigate } from '@wordpress/route';
 /**
  * Internal dependencies
  */
+import { canOpen, userCan } from '../../capabilities';
 import { withCanvasRecovery } from '../../canvas-recovery';
 import { startHomeTrip } from '../../home-trip';
 import { withUiTheme } from '../../theme';
@@ -102,8 +103,13 @@ function PreviewDocument( { canvas } ) {
 		<div className="cnl-editor-homepage-document">
 			<PageSwitcher { ...getPreviewSwitcherProps( canvas ) } />
 			<PageOptionsDropdown
+				// Only for those who can change the homepage, on the Pages
+				// screen it opens.
 				hasHomepageOptions={
-					previewContext?.previewStatus === 'homepage'
+					previewContext?.previewStatus === 'homepage' &&
+					Boolean( previewContext?.previewCanEdit ) &&
+					userCan( 'editHomepage' ) &&
+					canOpen( '/types/page/list/all' )
 				}
 				isBusy={ false }
 				// The homepage opened up on the Pages screen.

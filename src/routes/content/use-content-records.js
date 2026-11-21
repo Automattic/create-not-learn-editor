@@ -35,7 +35,8 @@ export const POST_QUERY_FIELDS =
 
 /*
  * Lists by status also ask for each post's links, which say
- * what the user may do with it, as core's trash actions need to know.
+ * what the user may do with it, as core's trash actions need to know. So do
+ * lists for people who can't change everyone's posts.
  */
 export const POST_QUERY_FIELDS_WITH_LINKS = `${ POST_QUERY_FIELDS },_links`;
 
@@ -202,14 +203,17 @@ export default function useContentRecords() {
 	const statuses = statusView ? statusView.statuses : LISTED_STATUSES;
 	const statusesKey = statuses.join( ',' );
 	const hasStatusFilter = !! statusView;
+	// Someone who can't change everyone's posts, an Author say, is only
+	// offered what they can do with each.
+	const needsPermissions = hasStatusFilter || type?.canEditOthers === false;
 	const postQuery = useMemo(
 		() =>
 			getPostQuery(
 				contentView.search,
 				statusesKey.split( ',' ),
-				hasStatusFilter
+				needsPermissions
 			),
-		[ contentView.search, hasStatusFilter, statusesKey ]
+		[ contentView.search, needsPermissions, statusesKey ]
 	);
 
 	// Moving to another status starts its list afresh.
@@ -310,7 +314,7 @@ export default function useContentRecords() {
 	);
 	const postsWithPermissions = usePostPermissions(
 		posts,
-		hasStatusFilter ? type : null
+		needsPermissions ? type : null
 	);
 	const requestedTemplateId = getSearchValue( searchParams.postIds );
 	const templates = useMemo( () => {

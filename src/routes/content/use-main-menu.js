@@ -1,6 +1,7 @@
 /**
  * Internal dependencies
  */
+import { userCan } from '../../capabilities';
 import { cnlEditorStore } from '../../records';
 import {
 	buildNavigationLocationsMap,
@@ -58,14 +59,7 @@ export async function getEditedMenuContent( menuId ) {
 	);
 }
 
-/**
- * The menu in the site header, and which pages it links to, counting changes
- * that haven't been saved yet. Also where on the site it shows, and where the
- * site's other menus show.
- *
- * @return {Object} Main menu details.
- */
-export default function useMainMenu() {
+function useSiteMainMenu() {
 	const { isLoading, menus, templateParts } = useSelect(
 		( selectFromStore ) => {
 			const menuStore = selectFromStore( cnlEditorStore );
@@ -181,6 +175,33 @@ export default function useMainMenu() {
 		otherMenuAreas,
 	};
 }
+
+// Someone who can't change menus has none to show or change here.
+const NO_MAIN_MENU = {
+	isAutoMenu: false,
+	isLoading: false,
+	menuArea: '',
+	menuId: undefined,
+	menuPages: null,
+	menuTitle: '',
+	otherMenuAreas: EMPTY_ARRAY,
+};
+
+function useNoMainMenu() {
+	return NO_MAIN_MENU;
+}
+
+/**
+ * The menu in the site header, and which pages it links to, counting changes
+ * that haven't been saved yet. Also where on the site it shows, and where the
+ * site's other menus show. None for someone who can't change menus, so the
+ * screens that use it offer no menu changes.
+ *
+ * @return {Object} Main menu details.
+ */
+const useMainMenu = userCan( 'site' ) ? useSiteMainMenu : useNoMainMenu;
+
+export default useMainMenu;
 
 /**
  * Add a link to a page at the end of a menu, as a change to review and save
