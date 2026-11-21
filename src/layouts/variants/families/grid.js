@@ -39,7 +39,7 @@ function getCountOptions( items ) {
 	return COUNTS.filter( ( count ) => count <= items ).map( ( count ) => ( {
 		name: `per-row-${ count }`,
 		/* translators: %d: How many items sit side by side. */
-		label: sprintf( __( '%d per row' ), count ),
+		label: sprintf( __( '%d per row', 'create-not-learn-editor' ), count ),
 		count,
 	} ) );
 }

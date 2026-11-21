@@ -102,13 +102,16 @@ export default function BlogAdmin( { ids } ) {
 			 * already says it opens a new tab.
 			 */ }
 			<Text render={ <h2 /> } variant="heading-sm">
-				{ __( 'Run your blog' ) }
+				{ __( 'Run your blog', 'create-not-learn-editor' ) }
 			</Text>
-			<ScreenLinks label={ __( 'Run your blog' ) } links={ links } />
+			<ScreenLinks
+				label={ __( 'Run your blog', 'create-not-learn-editor' ) }
+				links={ links }
+			/>
 			{ settingsUrl && (
 				<Text variant="body-sm">
 					<Link href={ settingsUrl } openInNewTab>
-						{ __( 'All settings' ) }
+						{ __( 'All settings', 'create-not-learn-editor' ) }
 					</Link>
 				</Text>
 			) }

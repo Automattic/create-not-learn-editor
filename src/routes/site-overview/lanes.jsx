@@ -24,16 +24,16 @@ const LANE_LABEL_MIN_WIDTH = 160;
 
 function getLaneDescription( lane, group ) {
 	if ( lane.name === 'home' ) {
-		return __( 'The first page visitors see' );
+		return __( 'The first page visitors see', 'create-not-learn-editor' );
 	}
 
 	if ( lane.name === 'page' ) {
-		return __( 'Made by you' );
+		return __( 'Made by you', 'create-not-learn-editor' );
 	}
 
 	return sprintf(
 		/* translators: %s: Content type label, e.g. "posts". */
-		__( 'Made from your %s' ),
+		__( 'Made from your %s', 'create-not-learn-editor' ),
 		String( group?.label || '' ).toLowerCase()
 	);
 }
@@ -141,7 +141,7 @@ export function LaneLabel( { group, lane, nextLane, view } ) {
 				<Tooltip.Trigger
 					aria-label={ sprintf(
 						/* translators: 1: Lane name, e.g. "Pages". 2: What it holds. */
-						__( 'About %1$s: %2$s' ),
+						__( 'About %1$s: %2$s', 'create-not-learn-editor' ),
 						lane.label,
 						getLaneDescription( lane, group )
 					) }
@@ -204,7 +204,7 @@ function Edges( { activeId, edges, nodesById, groupsByName } ) {
 				>
 					{ sprintf(
 						/* translators: %s: Number of items, e.g. "12 posts". */
-						__( 'Shows each of %s' ),
+						__( 'Shows each of %s', 'create-not-learn-editor' ),
 						getItemCountLabel(
 							path.count || 0,
 							groupsByName.get( nodesById.get( path.to )?.group )

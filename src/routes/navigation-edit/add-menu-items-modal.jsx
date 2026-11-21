@@ -31,53 +31,72 @@ import {
 	createNavigationLinkBlock,
 	getParsedBlocks,
 } from './navigation-blocks';
-import { EMPTY_ARRAY, getPageTitle } from './shared';
+import { EMPTY_ARRAY, getPageTitle, normalizeMenuItemUrl } from './shared';
 import { useDataViews } from '../../use-dataviews';
 
 const MENU_ITEM_GROUPS = [
 	{
-		description: __( 'Site pages and page-like content.' ),
+		description: __(
+			'Site pages and page-like content.',
+			'create-not-learn-editor'
+		),
 		icon: pageIcon,
 		id: 'pages',
-		title: __( 'Pages' ),
-	},
-	{
-		description: __( 'Posts and other individual content.' ),
-		icon: postListIcon,
-		id: 'content',
-		title: __( 'Content' ),
-	},
-	{
-		description: __( 'Blocks that can be inserted into navigation menus.' ),
-		icon: blockDefaultIcon,
-		id: 'blocks',
-		title: __( 'Blocks' ),
-	},
-	{
-		description: __( 'Categories, tags, and other term archives.' ),
-		icon: categoryIcon,
-		id: 'taxonomy',
-		title: __( 'Categories & tags' ),
+		title: __( 'Pages', 'create-not-learn-editor' ),
 	},
 	{
 		description: __(
-			'Post type archive index pages, such as all Posts, Products, or Events.'
+			'Posts and other individual content.',
+			'create-not-learn-editor'
+		),
+		icon: postListIcon,
+		id: 'content',
+		title: __( 'Content', 'create-not-learn-editor' ),
+	},
+	{
+		description: __(
+			'Blocks that can be inserted into navigation menus.',
+			'create-not-learn-editor'
+		),
+		icon: blockDefaultIcon,
+		id: 'blocks',
+		title: __( 'Blocks', 'create-not-learn-editor' ),
+	},
+	{
+		description: __(
+			'Categories, tags, and other term archives.',
+			'create-not-learn-editor'
+		),
+		icon: categoryIcon,
+		id: 'taxonomy',
+		title: __( 'Categories & tags', 'create-not-learn-editor' ),
+	},
+	{
+		description: __(
+			'Post type archive index pages, such as all Posts, Products, or Events.',
+			'create-not-learn-editor'
 		),
 		icon: archiveIcon,
 		id: 'archives',
-		title: __( 'Archives' ),
+		title: __( 'Archives', 'create-not-learn-editor' ),
 	},
 	{
-		description: __( 'Media files and downloads.' ),
+		description: __(
+			'Media files and downloads.',
+			'create-not-learn-editor'
+		),
 		icon: imageIcon,
 		id: 'media',
-		title: __( 'Media' ),
+		title: __( 'Media', 'create-not-learn-editor' ),
 	},
 	{
-		description: __( 'Any URL, email, phone, anchor, or relative link.' ),
+		description: __(
+			'Any URL, email, phone, anchor, or relative link.',
+			'create-not-learn-editor'
+		),
 		icon: customLinkIcon,
 		id: 'custom',
-		title: __( 'Custom link' ),
+		title: __( 'Custom link', 'create-not-learn-editor' ),
 	},
 ];
 const PRIMARY_MENU_ITEM_GROUPS = new Set( [ 'pages', 'content', 'blocks' ] );
@@ -162,42 +181,9 @@ function isPickerItemInMenu( item, linkedState ) {
 }
 
 function getRecordStatusLabel( status ) {
-	return status === 'publish' ? __( 'Published' ) : __( 'Draft' );
-}
-
-function normalizeMenuItemUrl( rawUrl ) {
-	const trimmed = rawUrl.trim();
-
-	if ( ! trimmed ) {
-		return { error: __( 'Enter a URL' ) };
-	}
-
-	try {
-		if ( trimmed.startsWith( '#' ) ) {
-			return { href: trimmed };
-		}
-
-		if (
-			trimmed.startsWith( '/' ) ||
-			trimmed.startsWith( './' ) ||
-			trimmed.startsWith( '../' )
-		) {
-			const url = new URL( trimmed, 'https://example.invalid' );
-			return { href: `${ url.pathname }${ url.search }${ url.hash }` };
-		}
-
-		if ( /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test( trimmed ) ) {
-			return { href: `mailto:${ trimmed }` };
-		}
-
-		const href = /^[a-z][a-z0-9+.-]*:/i.test( trimmed )
-			? trimmed
-			: `https://${ trimmed }`;
-		new URL( href );
-		return { href };
-	} catch {
-		return { error: __( 'Enter a valid URL' ) };
-	}
+	return status === 'publish'
+		? __( 'Published', 'create-not-learn-editor' )
+		: __( 'Draft', 'create-not-learn-editor' );
 }
 
 function createBlockFromPickerItem( item ) {
@@ -353,7 +339,7 @@ export default function AddMenuItemsModal( {
 				sourceKind: 'custom',
 				sourceType: blockType.name,
 				title: blockType.title || blockType.name,
-				typeLabel: __( 'Block' ),
+				typeLabel: __( 'Block', 'create-not-learn-editor' ),
 			} ) );
 	}, [ allowedBlocks, blockTypeList ] );
 	const linkedState = useMemo(
@@ -371,7 +357,7 @@ export default function AddMenuItemsModal( {
 				sourceType: 'page',
 				status: page.status || 'publish',
 				title: getPageTitle( page ),
-				typeLabel: __( 'Page' ),
+				typeLabel: __( 'Page', 'create-not-learn-editor' ),
 				url: page.link || '',
 			} ) ),
 			...posts.map( ( post ) => ( {
@@ -383,7 +369,7 @@ export default function AddMenuItemsModal( {
 				sourceType: post.type || 'post',
 				status: post.status || 'publish',
 				title: getPageTitle( post ),
-				typeLabel: __( 'Post' ),
+				typeLabel: __( 'Post', 'create-not-learn-editor' ),
 				url: post.link || '',
 			} ) ),
 			...blockItems,
@@ -394,11 +380,13 @@ export default function AddMenuItemsModal( {
 				objectId: term.id,
 				sourceKind: 'taxonomy',
 				sourceType: term.taxonomy === 'post_tag' ? 'tag' : 'category',
-				title: decodeEntities( term.name || __( '(no title)' ) ),
+				title: decodeEntities(
+					term.name || __( '(no title)', 'create-not-learn-editor' )
+				),
 				typeLabel:
 					term.taxonomy === 'post_tag'
-						? __( 'Tag' )
-						: __( 'Category' ),
+						? __( 'Tag', 'create-not-learn-editor' )
+						: __( 'Category', 'create-not-learn-editor' ),
 				url: term.link || '',
 			} ) ),
 			{
@@ -407,8 +395,8 @@ export default function AddMenuItemsModal( {
 				linkLabel: '/?post_type=post',
 				sourceKind: 'post-type-archive',
 				sourceType: 'post',
-				title: __( 'Posts' ),
-				typeLabel: __( 'Archive' ),
+				title: __( 'Posts', 'create-not-learn-editor' ),
+				typeLabel: __( 'Archive', 'create-not-learn-editor' ),
 				url: '/?post_type=post',
 			},
 			...media.map( ( item ) => ( {
@@ -423,7 +411,9 @@ export default function AddMenuItemsModal( {
 				status: item.status || 'publish',
 				title: getPageTitle( item ),
 				typeLabel:
-					item.media_type === 'image' ? __( 'Image' ) : __( 'Media' ),
+					item.media_type === 'image'
+						? __( 'Image', 'create-not-learn-editor' )
+						: __( 'Media', 'create-not-learn-editor' ),
 				url: item.link || item.source_url || '',
 			} ) ),
 		];
@@ -480,7 +470,7 @@ export default function AddMenuItemsModal( {
 		const trimmedLabel = customLabel.trim();
 
 		if ( ! trimmedLabel ) {
-			setError( __( 'Enter link text' ) );
+			setError( __( 'Enter link text', 'create-not-learn-editor' ) );
 			return;
 		}
 
@@ -497,7 +487,7 @@ export default function AddMenuItemsModal( {
 		<Modal
 			className="navigation-add-items-modal"
 			onRequestClose={ onClose }
-			title={ __( 'Add menu items' ) }
+			title={ __( 'Add menu items', 'create-not-learn-editor' ) }
 		>
 			<div className="navigation-add-items-modal__inner">
 				<Tabs.Root
@@ -537,7 +527,7 @@ export default function AddMenuItemsModal( {
 									<Icon icon={ chevronDownIcon } />
 								</span>
 								<span className="navigation-add-items-modal__tab-label">
-									{ __( 'More' ) }
+									{ __( 'More', 'create-not-learn-editor' ) }
 								</span>
 							</Button>
 						) }
@@ -558,7 +548,10 @@ export default function AddMenuItemsModal( {
 									<Notice status="error">{ error }</Notice>
 								) }
 								<InputControl
-									label={ __( 'URL' ) }
+									label={ __(
+										'URL',
+										'create-not-learn-editor'
+									) }
 									onValueChange={ ( nextUrl ) => {
 										setError( '' );
 										setCustomUrl( nextUrl );
@@ -566,7 +559,10 @@ export default function AddMenuItemsModal( {
 									value={ customUrl }
 								/>
 								<InputControl
-									label={ __( 'Link text' ) }
+									label={ __(
+										'Link text',
+										'create-not-learn-editor'
+									) }
 									onValueChange={ ( nextLabel ) => {
 										setError( '' );
 										setCustomLabel( nextLabel );
@@ -579,7 +575,10 @@ export default function AddMenuItemsModal( {
 										onClick={ onClose }
 										variant="tertiary"
 									>
-										{ __( 'Cancel' ) }
+										{ __(
+											'Cancel',
+											'create-not-learn-editor'
+										) }
 									</Button>
 									<Button
 										disabled={ isSaving }
@@ -587,7 +586,10 @@ export default function AddMenuItemsModal( {
 										onClick={ addCustomLink }
 										variant="primary"
 									>
-										{ __( 'Add to menu' ) }
+										{ __(
+											'Add to menu',
+											'create-not-learn-editor'
+										) }
 									</Button>
 								</div>
 							</div>
@@ -604,7 +606,10 @@ export default function AddMenuItemsModal( {
 										callback: addSelectedItems,
 										id: 'add-to-menu',
 										isPrimary: true,
-										label: __( 'Add to menu' ),
+										label: __(
+											'Add to menu',
+											'create-not-learn-editor'
+										),
 										supportsBulk: true,
 									},
 								] }
@@ -625,7 +630,10 @@ export default function AddMenuItemsModal( {
 							>
 								<div className="navigation-add-items-modal__toolbar">
 									<DataViewsPicker.Search
-										label={ __( 'Search menu items' ) }
+										label={ __(
+											'Search menu items',
+											'create-not-learn-editor'
+										) }
 									/>
 									<div className="navigation-add-items-modal__toolbar-actions">
 										<DataViewsPicker.FiltersToggle />
@@ -700,7 +708,7 @@ const pickerFields = [
 		enableSorting: false,
 		filterBy: false,
 		id: 'preview',
-		label: __( 'Preview' ),
+		label: __( 'Preview', 'create-not-learn-editor' ),
 		render: PickerPreview,
 		type: 'media',
 	},
@@ -708,7 +716,7 @@ const pickerFields = [
 		enableGlobalSearch: true,
 		enableHiding: false,
 		id: 'title',
-		label: __( 'Title' ),
+		label: __( 'Title', 'create-not-learn-editor' ),
 		render: ( { item } ) => (
 			<span className="navigation-add-items-picker__title-cell">
 				<PickerSourceIcon item={ item } />
@@ -724,7 +732,7 @@ const pickerFields = [
 		enableSorting: false,
 		filterBy: false,
 		id: 'description',
-		label: __( 'Description' ),
+		label: __( 'Description', 'create-not-learn-editor' ),
 		render: ( { item } ) => (
 			<span className="navigation-add-items-picker__description">
 				{ item.description || item.typeLabel }
@@ -738,7 +746,7 @@ const pickerFields = [
 		enableSorting: false,
 		filterBy: false,
 		id: 'typeLabel',
-		label: __( 'Type' ),
+		label: __( 'Type', 'create-not-learn-editor' ),
 		render: ( { item } ) => (
 			<span className="navigation-add-items-picker__type">
 				{ item.typeLabel }
@@ -751,7 +759,7 @@ const pickerFields = [
 		enableSorting: false,
 		filterBy: false,
 		id: 'linkLabel',
-		label: __( 'Link' ),
+		label: __( 'Link', 'create-not-learn-editor' ),
 		render: ( { item } ) => (
 			<span className="navigation-add-items-picker__link">
 				{ item.linkLabel }
@@ -765,7 +773,7 @@ const pickerFields = [
 		enableSorting: false,
 		filterBy: false,
 		id: 'status',
-		label: __( 'Status' ),
+		label: __( 'Status', 'create-not-learn-editor' ),
 		render: ( { item } ) => (
 			<span
 				className={
@@ -785,11 +793,11 @@ const pickerFields = [
 		enableSorting: false,
 		filterBy: false,
 		id: 'inThisMenu',
-		label: __( 'Menu' ),
+		label: __( 'Menu', 'create-not-learn-editor' ),
 		render: ( { item } ) =>
 			item.inThisMenu ? (
 				<span className="navigation-add-items-picker__badge is-linked">
-					{ __( 'In this menu' ) }
+					{ __( 'In this menu', 'create-not-learn-editor' ) }
 				</span>
 			) : (
 				<span className="navigation-add-items-picker__empty">-</span>

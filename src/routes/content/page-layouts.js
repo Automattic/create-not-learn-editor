@@ -10,7 +10,9 @@ export const DEFAULT_PAGE_LAYOUT_COLUMNS = 3;
 
 export function getPatternTitle( pattern ) {
 	return decodeEntities(
-		pattern?.title || pattern?.name || __( 'Untitled' )
+		pattern?.title ||
+			pattern?.name ||
+			__( 'Untitled', 'create-not-learn-editor' )
 	);
 }
 
@@ -98,13 +100,31 @@ export function replacePreviewTitleInBlocks(
 
 export function getPageLayoutTypes() {
 	return [
-		{ label: __( 'Homepages' ), slug: 'homepage' },
-		{ label: __( 'Landing pages' ), slug: 'landing-page' },
-		{ label: __( 'Events' ), slug: 'event' },
-		{ label: __( 'Link in bio' ), slug: 'link-in-bio' },
-		{ label: __( 'Personal' ), slug: 'personal' },
-		{ label: __( 'Coming soon' ), slug: 'coming-soon' },
-		{ label: __( 'Other designs' ), slug: OTHER_PAGE_LAYOUT_TYPE },
+		{
+			label: __( 'Homepages', 'create-not-learn-editor' ),
+			slug: 'homepage',
+		},
+		{
+			label: __( 'Landing pages', 'create-not-learn-editor' ),
+			slug: 'landing-page',
+		},
+		{ label: __( 'Events', 'create-not-learn-editor' ), slug: 'event' },
+		{
+			label: __( 'Link in bio', 'create-not-learn-editor' ),
+			slug: 'link-in-bio',
+		},
+		{
+			label: __( 'Personal', 'create-not-learn-editor' ),
+			slug: 'personal',
+		},
+		{
+			label: __( 'Coming soon', 'create-not-learn-editor' ),
+			slug: 'coming-soon',
+		},
+		{
+			label: __( 'Other designs', 'create-not-learn-editor' ),
+			slug: OTHER_PAGE_LAYOUT_TYPE,
+		},
 	];
 }
 

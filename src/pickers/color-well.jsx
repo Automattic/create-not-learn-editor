@@ -50,8 +50,14 @@ export function withBlackAndWhite( palette ) {
 	return [
 		...palette,
 		...[
-			{ color: '#000000', name: __( 'Black' ) },
-			{ color: '#ffffff', name: __( 'White' ) },
+			{
+				color: '#000000',
+				name: __( 'Black', 'create-not-learn-editor' ),
+			},
+			{
+				color: '#ffffff',
+				name: __( 'White', 'create-not-learn-editor' ),
+			},
 		].filter( ( item ) => ! has( item.color ) ),
 	];
 }

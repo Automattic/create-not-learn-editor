@@ -85,13 +85,13 @@ export function useSelectedNode() {
 export function getNodeKindLabel( node ) {
 	switch ( node?.kind ) {
 		case 'home':
-			return __( 'Homepage' );
+			return __( 'Homepage', 'create-not-learn-editor' );
 		case 'collection':
-			return __( 'Collection' );
+			return __( 'Collection', 'create-not-learn-editor' );
 		case 'single':
-			return __( 'Single' );
+			return __( 'Single', 'create-not-learn-editor' );
 		default:
-			return __( 'Page' );
+			return __( 'Page', 'create-not-learn-editor' );
 	}
 }
 
@@ -140,7 +140,7 @@ export function getItemCountLabel( count, group ) {
 
 	return sprintf(
 		/* translators: 1: Number of items. 2: Content type label, e.g. "posts". */
-		__( '%1$d %2$s' ),
+		__( '%1$d %2$s', 'create-not-learn-editor' ),
 		count,
 		( count === 1 ? group.singular : group.label ).toLowerCase()
 	);

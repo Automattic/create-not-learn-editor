@@ -179,6 +179,7 @@ function cnl_editor_render_full_page() {
 
 	cnl_editor_register_lazy_editor_compat_module();
 	wp_script_modules()->print_import_map();
+	cnl_editor_print_script_module_translations();
 	print_footer_scripts();
 	wp_script_modules()->print_enqueued_script_modules();
 	wp_script_modules()->print_script_module_preloads();

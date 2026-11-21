@@ -72,7 +72,7 @@ function createPageLink( page ) {
 
 function createHomeLink() {
 	return {
-		attributes: { label: __( 'Home' ) },
+		attributes: { label: __( 'Home', 'create-not-learn-editor' ) },
 		innerBlocks: [],
 		name: 'core/home-link',
 	};
@@ -233,7 +233,7 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 
 	const getTitle = ( target ) =>
 		target === HOMEPAGE
-			? __( 'Homepage' )
+			? __( 'Homepage', 'create-not-learn-editor' )
 			: getPageTitle( pagesById.get( Number( target ) ) );
 
 	/**
@@ -264,7 +264,7 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 				disabled: true,
 				note: sprintf(
 					/* translators: %s: parent page title. */
-					__( 'Out of the menu with %s' ),
+					__( 'Out of the menu with %s', 'create-not-learn-editor' ),
 					getPageTitle( parent )
 				),
 			};
@@ -276,7 +276,8 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 				checked: false,
 				disabled: true,
 				note: __(
-					'Your homepage shows your latest posts, and your auto menu only lists pages.'
+					'Your homepage shows your latest posts, and your auto menu only lists pages.',
+					'create-not-learn-editor'
 				),
 			};
 		}
@@ -286,14 +287,17 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 		let note = '';
 
 		if ( checked && isDraft ) {
-			note = __( 'In your menu once published' );
+			note = __(
+				'In your menu once published',
+				'create-not-learn-editor'
+			);
 		} else if ( checked && ! listsPages ) {
 			const place = getItemPlace( blocks, getMatch( target ) );
 
 			if ( place?.parent ) {
 				note = sprintf(
 					/* translators: %s: menu item label. */
-					__( 'In the %s dropdown' ),
+					__( 'In the %s dropdown', 'create-not-learn-editor' ),
 					getNavigationItemLabel( place.parent )
 				);
 			}
@@ -326,7 +330,10 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 				next,
 				sprintf(
 					/* translators: %s: page title. */
-					__( '“%s” is no longer in your menu.' ),
+					__(
+						'“%s” is no longer in your menu.',
+						'create-not-learn-editor'
+					),
 					title
 				)
 			);
@@ -340,7 +347,10 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 				setPageExcluded( blocks, id, false ),
 				sprintf(
 					/* translators: %s: page title. */
-					__( '“%s” is back in your menu.' ),
+					__(
+						'“%s” is back in your menu.',
+						'create-not-learn-editor'
+					),
 					title
 				)
 			);
@@ -352,7 +362,10 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 		if ( target === HOMEPAGE ) {
 			apply(
 				addItemFirst( blocks, createHomeLink() ),
-				__( 'Your homepage is in your menu.' )
+				__(
+					'Your homepage is in your menu.',
+					'create-not-learn-editor'
+				)
 			);
 
 			return;
@@ -377,13 +390,19 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 			under
 				? sprintf(
 						/* translators: 1: page title, 2: parent page title. */
-						__( '“%1$s” added to the %2$s dropdown.' ),
+						__(
+							'“%1$s” added to the %2$s dropdown.',
+							'create-not-learn-editor'
+						),
 						title,
 						getPageTitle( pagesById.get( under ) )
 					)
 				: sprintf(
 						/* translators: %s: page title. */
-						__( '“%s” added to the end of your menu.' ),
+						__(
+							'“%s” added to the end of your menu.',
+							'create-not-learn-editor'
+						),
 						title
 					)
 		);
@@ -411,26 +430,32 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 		const moves = [
 			{
 				disabled: ! place.previous,
-				label: __( 'Move earlier in menu' ),
+				label: __( 'Move earlier in menu', 'create-not-learn-editor' ),
 				onClick: () =>
 					apply(
 						moveItem( blocks, match, -1 ),
 						sprintf(
 							/* translators: %s: page title. */
-							__( 'Moved “%s” earlier in your menu.' ),
+							__(
+								'Moved “%s” earlier in your menu.',
+								'create-not-learn-editor'
+							),
 							title
 						)
 					),
 			},
 			{
 				disabled: ! place.next,
-				label: __( 'Move later in menu' ),
+				label: __( 'Move later in menu', 'create-not-learn-editor' ),
 				onClick: () =>
 					apply(
 						moveItem( blocks, match, 1 ),
 						sprintf(
 							/* translators: %s: page title. */
-							__( 'Moved “%s” later in your menu.' ),
+							__(
+								'Moved “%s” later in your menu.',
+								'create-not-learn-editor'
+							),
 							title
 						)
 					),
@@ -443,7 +468,10 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 			moves.push( {
 				label: sprintf(
 					/* translators: %s: menu item label. */
-					__( 'Move into the %s dropdown' ),
+					__(
+						'Move into the %s dropdown',
+						'create-not-learn-editor'
+					),
 					label
 				),
 				onClick: () =>
@@ -452,7 +480,8 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 						sprintf(
 							/* translators: 1: page title, 2: menu item label. */
 							__(
-								'Moved “%1$s” into the %2$s dropdown. Its address hasn’t changed.'
+								'Moved “%1$s” into the %2$s dropdown. Its address hasn’t changed.',
+								'create-not-learn-editor'
 							),
 							title,
 							label
@@ -465,7 +494,10 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 			moves.push( {
 				label: sprintf(
 					/* translators: %s: menu item label. */
-					__( 'Move out of the %s dropdown' ),
+					__(
+						'Move out of the %s dropdown',
+						'create-not-learn-editor'
+					),
 					getNavigationItemLabel( place.parent )
 				),
 				onClick: () =>
@@ -473,7 +505,10 @@ export function useMenuSwitches( { homepage, menuId, pages } ) {
 						outdentItem( blocks, match ),
 						sprintf(
 							/* translators: %s: page title. */
-							__( 'Moved “%s” out of the dropdown.' ),
+							__(
+								'Moved “%s” out of the dropdown.',
+								'create-not-learn-editor'
+							),
 							title
 						)
 					),

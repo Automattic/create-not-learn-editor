@@ -65,14 +65,26 @@ export const ALTERNATING_ROWS = {
 	getOptions: () => [
 		{
 			name: 'alternate-left',
-			label: __( 'Alternating, starting on the left' ),
+			label: __(
+				'Alternating, starting on the left',
+				'create-not-learn-editor'
+			),
 		},
 		{
 			name: 'alternate-right',
-			label: __( 'Alternating, starting on the right' ),
+			label: __(
+				'Alternating, starting on the right',
+				'create-not-learn-editor'
+			),
 		},
-		{ name: 'images-left', label: __( 'All images on the left' ) },
-		{ name: 'images-right', label: __( 'All images on the right' ) },
+		{
+			name: 'images-left',
+			label: __( 'All images on the left', 'create-not-learn-editor' ),
+		},
+		{
+			name: 'images-right',
+			label: __( 'All images on the right', 'create-not-learn-editor' ),
+		},
 	],
 	getCurrent: ( items, options ) => {
 		const sides = items

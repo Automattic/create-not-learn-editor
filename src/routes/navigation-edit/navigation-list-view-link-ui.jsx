@@ -176,7 +176,7 @@ export default function NavigationListViewLinkUI( {
 	// would act on the new item, removing it while its URL is typed.
 	return (
 		<Popover
-			aria-label={ __( 'Add link' ) }
+			aria-label={ __( 'Add link', 'create-not-learn-editor' ) }
 			className="routes-navigation-edit-list-view__link-ui-popover"
 			onClose={ cleanupInsertedBlock }
 			placement="bottom-start"

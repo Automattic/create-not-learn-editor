@@ -22,7 +22,10 @@ function decodeText( value, fallback = '' ) {
 }
 
 export function getPatternTitle( pattern ) {
-	return decodeText( pattern?.title, __( 'Untitled pattern' ) );
+	return decodeText(
+		pattern?.title,
+		__( 'Untitled pattern', 'create-not-learn-editor' )
+	);
 }
 
 export function getPatternDescription( pattern ) {
@@ -31,18 +34,18 @@ export function getPatternDescription( pattern ) {
 
 export function getPatternSyncStatusLabel( syncStatus ) {
 	if ( syncStatus === PATTERN_SYNC_STATUS.unsynced ) {
-		return __( 'Not synced' );
+		return __( 'Not synced', 'create-not-learn-editor' );
 	}
 
-	return __( 'Synced' );
+	return __( 'Synced', 'create-not-learn-editor' );
 }
 
 export function getPatternTypeLabel( type ) {
 	if ( type === PATTERN_TYPES.user ) {
-		return __( 'Saved by you' );
+		return __( 'Saved by you', 'create-not-learn-editor' );
 	}
 
-	return __( 'From your theme' );
+	return __( 'From your theme', 'create-not-learn-editor' );
 }
 
 function getUserPatternCategorySlugs( pattern, userCategories ) {
@@ -76,7 +79,7 @@ export function getPatternCategoryLabels( pattern, categoryMap ) {
 	const categories = getNamedCategories( pattern, categoryMap );
 
 	if ( ! categories.length ) {
-		return __( 'Other' );
+		return __( 'Other', 'create-not-learn-editor' );
 	}
 
 	return categories
@@ -93,7 +96,10 @@ export function normalizeThemePattern( pattern ) {
 		keywords: pattern?.keywords || EMPTY_ARRAY,
 		name: pattern?.name,
 		syncStatus: PATTERN_SYNC_STATUS.unsynced,
-		title: pattern?.title || pattern?.name || __( 'Untitled pattern' ),
+		title:
+			pattern?.title ||
+			pattern?.name ||
+			__( 'Untitled pattern', 'create-not-learn-editor' ),
 		type: PATTERN_TYPES.theme,
 		viewportWidth: pattern?.viewportWidth,
 	};
@@ -120,7 +126,7 @@ export function normalizeUserPattern( pattern, userCategories ) {
 				? pattern.title
 				: pattern?.title?.raw ||
 					pattern?.title?.rendered ||
-					__( 'Untitled pattern' ),
+					__( 'Untitled pattern', 'create-not-learn-editor' ),
 		type: PATTERN_TYPES.user,
 	};
 }

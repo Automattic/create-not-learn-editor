@@ -140,7 +140,7 @@ export function getSectionBlock( clientId ) {
  */
 export function getSectionName( section ) {
 	return section.isText
-		? __( 'Text' )
+		? __( 'Text', 'create-not-learn-editor' )
 		: getSectionTitle( getSectionBlock( section.clientIds[ 0 ] ) );
 }
 

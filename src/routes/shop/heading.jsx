@@ -30,7 +30,10 @@ export function ShopPage( {
 	description,
 	hasPadding = true,
 } ) {
-	const shopCrumb = { label: __( 'Shop' ), to: SHOP_PATH };
+	const shopCrumb = {
+		label: __( 'Shop', 'create-not-learn-editor' ),
+		to: SHOP_PATH,
+	};
 	const items = [ shopCrumb, ...crumbs ];
 	const isTitled = items.length === 1;
 

@@ -55,7 +55,7 @@ export default function PostKindPicker( { onClose, isFocusedOpen } ) {
 			className="cnl-post-kinds"
 			focusOnMount="firstContentElement"
 			onRequestClose={ onClose }
-			title={ __( 'What are you posting?' ) }
+			title={ __( 'What are you posting?', 'create-not-learn-editor' ) }
 		>
 			<div className="cnl-post-kinds__grid" role="list">
 				{ kinds.map( ( kind, index ) => {
@@ -65,9 +65,7 @@ export default function PostKindPicker( { onClose, isFocusedOpen } ) {
 
 					return (
 						<div
-							className={ `cnl-post-kinds__item${
-								isLead ? ' is-lead' : ''
-							}` }
+							className={ `cnl-post-kinds__item${ isLead ? ' is-lead' : '' }` }
 							key={ kind.name }
 							role="listitem"
 						>
@@ -97,9 +95,10 @@ export default function PostKindPicker( { onClose, isFocusedOpen } ) {
 				checked={ ! isAsking }
 				className="cnl-post-kinds__skip"
 				help={ __(
-					'Start every post as a plain post. You can turn this back on in Preferences, in the ⋮ menu at the top right.'
+					'Start every post as a plain post. You can turn this back on in Preferences, in the ⋮ menu at the top right.',
+					'create-not-learn-editor'
 				) }
-				label={ __( 'Don’t ask me again' ) }
+				label={ __( 'Don’t ask me again', 'create-not-learn-editor' ) }
 				onChange={ ( isSkipping ) => setAskingPostKind( ! isSkipping ) }
 			/>
 		</Modal>

@@ -73,45 +73,50 @@ export function getLocationLabel( part ) {
 
 	switch ( part?.area ) {
 		case 'header':
-			return __( 'Header' );
+			return __( 'Header', 'create-not-learn-editor' );
 		case 'footer':
-			return __( 'Footer' );
+			return __( 'Footer', 'create-not-learn-editor' );
 		case 'sidebar':
-			return __( 'Side area' );
+			return __( 'Side area', 'create-not-learn-editor' );
 		case 'navigation-overlay':
-			return __( 'Navigation overlay' );
+			return __( 'Navigation overlay', 'create-not-learn-editor' );
 		case 'uncategorized':
-			return __( 'General area' );
+			return __( 'General area', 'create-not-learn-editor' );
 		default:
-			return __( 'Site area' );
+			return __( 'Site area', 'create-not-learn-editor' );
 	}
 }
 
 export function getLocationAreaLabel( part ) {
 	switch ( part?.area ) {
 		case 'header':
-			return __( 'Header' );
+			return __( 'Header', 'create-not-learn-editor' );
 		case 'footer':
-			return __( 'Footer' );
+			return __( 'Footer', 'create-not-learn-editor' );
 		case 'sidebar':
-			return __( 'Side area' );
+			return __( 'Side area', 'create-not-learn-editor' );
 		case 'navigation-overlay':
-			return __( 'Navigation overlay' );
+			return __( 'Navigation overlay', 'create-not-learn-editor' );
 		case 'uncategorized':
-			return __( 'General area' );
+			return __( 'General area', 'create-not-learn-editor' );
 		default:
-			return part?.area || __( 'Site area' );
+			return part?.area || __( 'Site area', 'create-not-learn-editor' );
 	}
 }
 
 export function getLocationsSummary( locations ) {
 	if ( ! locations?.length ) {
-		return __( 'Not used' );
+		return __( 'Not used', 'create-not-learn-editor' );
 	}
 
 	return sprintf(
 		/* translators: %d: Number of locations where this navigation menu is shown. */
-		_n( '%d location', '%d locations', locations.length ),
+		_n(
+			'%d location',
+			'%d locations',
+			locations.length,
+			'create-not-learn-editor'
+		),
 		locations.length
 	);
 }
@@ -545,11 +550,11 @@ export const COMMON_MENU_LOCATION_AREAS = [ 'header', 'footer', 'sidebar' ];
 function getCommonMenuLocationLabel( area ) {
 	switch ( area ) {
 		case 'header':
-			return __( 'Header menu' );
+			return __( 'Header menu', 'create-not-learn-editor' );
 		case 'footer':
-			return __( 'Footer menu' );
+			return __( 'Footer menu', 'create-not-learn-editor' );
 		default:
-			return __( 'Side area menu' );
+			return __( 'Side area menu', 'create-not-learn-editor' );
 	}
 }
 

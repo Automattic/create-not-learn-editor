@@ -80,23 +80,28 @@ export function getPostLayouts( { hasManyAuthors = false } = {} ) {
 }
 
 const STATUS_OPTIONS = [
-	{ label: __( 'Published' ), value: 'publish' },
-	{ label: __( 'Draft' ), value: 'draft' },
-	{ label: __( 'Scheduled' ), value: 'future' },
-	{ label: __( 'Pending review' ), value: 'pending' },
-	{ label: __( 'Private' ), value: 'private' },
-	{ label: __( 'Trash' ), value: 'trash' },
+	{ label: __( 'Published', 'create-not-learn-editor' ), value: 'publish' },
+	{ label: __( 'Draft', 'create-not-learn-editor' ), value: 'draft' },
+	{ label: __( 'Scheduled', 'create-not-learn-editor' ), value: 'future' },
+	{
+		label: __( 'Pending review', 'create-not-learn-editor' ),
+		value: 'pending',
+	},
+	{ label: __( 'Private', 'create-not-learn-editor' ), value: 'private' },
+	{ label: __( 'Trash', 'create-not-learn-editor' ), value: 'trash' },
 ];
 
 function getDateLabel( post ) {
 	const date = post?.date || post?.modified;
 
 	if ( ! date ) {
-		return __( 'No date' );
+		return __( 'No date', 'create-not-learn-editor' );
 	}
 
 	const prefix =
-		post.status === 'publish' ? __( 'Published' ) : __( 'Modified' );
+		post.status === 'publish'
+			? __( 'Published', 'create-not-learn-editor' )
+			: __( 'Modified', 'create-not-learn-editor' );
 	const formatted = new Date( date ).toLocaleString( undefined, {
 		day: 'numeric',
 		hour: 'numeric',
@@ -107,7 +112,7 @@ function getDateLabel( post ) {
 
 	return sprintf(
 		/* translators: 1: date prefix, 2: formatted date. */
-		__( '%1$s: %2$s' ),
+		__( '%1$s: %2$s', 'create-not-learn-editor' ),
 		prefix,
 		formatted
 	);
@@ -144,18 +149,30 @@ function renderSiteRoleBadges( item, siteRoles ) {
 	}
 
 	if ( Number( item.id ) === siteRoles.frontPageId ) {
-		badges.push( { intent: 'informational', label: __( 'Homepage' ) } );
+		badges.push( {
+			intent: 'informational',
+			label: __( 'Homepage', 'create-not-learn-editor' ),
+		} );
 	}
 
 	if ( Number( item.id ) === siteRoles.postsPageId ) {
-		badges.push( { intent: 'informational', label: __( 'Blog' ) } );
+		badges.push( {
+			intent: 'informational',
+			label: __( 'Blog', 'create-not-learn-editor' ),
+		} );
 	}
 
 	if ( siteRoles.menuPages ) {
 		badges.push(
 			isPageInMenu( item, siteRoles.menuPages )
-				? { intent: 'stable', label: __( 'In menu' ) }
-				: { intent: 'none', label: __( 'Not in menu' ) }
+				? {
+						intent: 'stable',
+						label: __( 'In menu', 'create-not-learn-editor' ),
+					}
+				: {
+						intent: 'none',
+						label: __( 'Not in menu', 'create-not-learn-editor' ),
+					}
 		);
 	}
 
@@ -370,7 +387,7 @@ function getAuthorName( item, authors ) {
 	const authorId = Number( item.author );
 
 	if ( ! authorId ) {
-		return __( 'No author' );
+		return __( 'No author', 'create-not-learn-editor' );
 	}
 
 	return authors.get( authorId ) || '';
@@ -396,7 +413,7 @@ export function getContentFields(
 			enableHiding: false,
 			getValue: ( { item } ) => getTitleText( item.title ),
 			id: 'title',
-			label: __( 'Title' ),
+			label: __( 'Title', 'create-not-learn-editor' ),
 			render: ( { item } ) => (
 				<span className="cnl-editor-dataviews-title">
 					{ getTitleText( item.title ) }
@@ -409,7 +426,7 @@ export function getContentFields(
 			filterBy: false,
 			getValue: ( { item } ) => getAuthorName( item, authors ),
 			id: 'author',
-			label: __( 'Author' ),
+			label: __( 'Author', 'create-not-learn-editor' ),
 			type: 'text',
 		},
 		{
@@ -423,7 +440,7 @@ export function getContentFields(
 					},
 			getValue: ( { item } ) => getStatusLabel( item.status ),
 			id: 'status',
-			label: __( 'Status' ),
+			label: __( 'Status', 'create-not-learn-editor' ),
 			render: ( { item } ) =>
 				item.status === 'publish' ? (
 					getStatusLabel( item.status )
@@ -439,10 +456,10 @@ export function getContentFields(
 			filterBy: false,
 			getValue: ( { item } ) =>
 				isPageInMenu( item, siteRoles.menuPages )
-					? __( 'In menu' )
-					: __( 'Not in menu' ),
+					? __( 'In menu', 'create-not-learn-editor' )
+					: __( 'Not in menu', 'create-not-learn-editor' ),
 			id: 'on-site',
-			label: __( 'Details' ),
+			label: __( 'Details', 'create-not-learn-editor' ),
 			render: ( { item } ) => renderSiteRoleBadges( item, siteRoles ),
 			type: 'text',
 		},
@@ -451,7 +468,7 @@ export function getContentFields(
 			filterBy: false,
 			getValue: ( { item } ) => Number( item.comment_count ) || 0,
 			id: 'comments',
-			label: __( 'Comments' ),
+			label: __( 'Comments', 'create-not-learn-editor' ),
 			render: ( { item } ) => Number( item.comment_count ) || 0,
 			type: 'integer',
 		},
@@ -460,7 +477,7 @@ export function getContentFields(
 			filterBy: false,
 			getValue: ( { item } ) => getCategoryText( item, categories ),
 			id: 'categories',
-			label: __( 'Categories' ),
+			label: __( 'Categories', 'create-not-learn-editor' ),
 			type: 'text',
 		},
 		{
@@ -469,7 +486,7 @@ export function getContentFields(
 			filterBy: false,
 			getValue: ( { item } ) => getExcerptText( item ),
 			id: 'excerpt',
-			label: __( 'Excerpt' ),
+			label: __( 'Excerpt', 'create-not-learn-editor' ),
 			render: ( { item } ) => (
 				<span className="cnl-editor-dataviews-excerpt">
 					{ getExcerptText( item ) }
@@ -480,7 +497,7 @@ export function getContentFields(
 		{
 			getValue: ( { item } ) => item.date || item.modified || '',
 			id: 'date',
-			label: __( 'Date' ),
+			label: __( 'Date', 'create-not-learn-editor' ),
 			render: ( { item } ) => getDateLabel( item ),
 			type: 'datetime',
 		},
@@ -489,7 +506,7 @@ export function getContentFields(
 			filterBy: false,
 			getValue: ( { item } ) => Number( item.featured_media ) || 0,
 			id: 'featured-image',
-			label: __( 'Featured image' ),
+			label: __( 'Featured image', 'create-not-learn-editor' ),
 			render: ( { item } ) => {
 				const image = featuredImages.get(
 					Number( item.featured_media )
@@ -517,7 +534,7 @@ export function getContentActions( navigate, type ) {
 			},
 			id: 'edit',
 			isPrimary: true,
-			label: __( 'Edit' ),
+			label: __( 'Edit', 'create-not-learn-editor' ),
 			supportsBulk: false,
 		},
 		{
@@ -529,7 +546,7 @@ export function getContentActions( navigate, type ) {
 			},
 			id: 'open-preview',
 			isEligible: ( item ) => !! item.link,
-			label: __( 'Open preview' ),
+			label: __( 'Open preview', 'create-not-learn-editor' ),
 			supportsBulk: false,
 		},
 	];
@@ -549,7 +566,12 @@ export function PostListDataViewsLayout( { layout = null } ) {
 		<div className="routes-post-list__dataviews">
 			<div className="routes-post-list__dataviews-toolbar">
 				<div className="routes-post-list__dataviews-toolbar-start">
-					<DataViews.Search label={ __( 'Search content' ) } />
+					<DataViews.Search
+						label={ __(
+							'Search content',
+							'create-not-learn-editor'
+						) }
+					/>
 					<DataViews.FiltersToggle />
 				</div>
 				<div className="routes-post-list__dataviews-toolbar-end">

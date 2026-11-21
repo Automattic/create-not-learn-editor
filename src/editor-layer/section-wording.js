@@ -29,53 +29,67 @@ const NAMESPACE = 'create-not-learn-editor/section-wording';
 const CONTEXT_SEPARATOR = '\u0004';
 
 const SECTION_WORDING = {
-	Patterns: () => __( 'Sections' ),
-	Pattern: () => __( 'Section' ),
-	'Patterns list': () => __( 'Sections list' ),
-	'My patterns': () => __( 'My sections' ),
-	'My pattern': () => __( 'My section' ),
-	'A block pattern.': () => __( 'A section.' ),
-	'Explore all patterns': () => __( 'Explore all sections' ),
-	'Filter patterns': () => __( 'Filter sections' ),
+	Patterns: () => __( 'Sections', 'create-not-learn-editor' ),
+	Pattern: () => __( 'Section', 'create-not-learn-editor' ),
+	'Patterns list': () => __( 'Sections list', 'create-not-learn-editor' ),
+	'My patterns': () => __( 'My sections', 'create-not-learn-editor' ),
+	'My pattern': () => __( 'My section', 'create-not-learn-editor' ),
+	'A block pattern.': () => __( 'A section.', 'create-not-learn-editor' ),
+	'Explore all patterns': () =>
+		__( 'Explore all sections', 'create-not-learn-editor' ),
+	'Filter patterns': () => __( 'Filter sections', 'create-not-learn-editor' ),
 	'Drag and drop patterns into the canvas.': () =>
-		__( 'Drag and drop sections into the canvas.' ),
-	'Drop pattern.': () => __( 'Drop section.' ),
-	'Next pattern': () => __( 'Next section' ),
-	'Previous pattern': () => __( 'Previous section' ),
+		__(
+			'Drag and drop sections into the canvas.',
+			'create-not-learn-editor'
+		),
+	'Drop pattern.': () => __( 'Drop section.', 'create-not-learn-editor' ),
+	'Next pattern': () => __( 'Next section', 'create-not-learn-editor' ),
+	'Previous pattern': () =>
+		__( 'Previous section', 'create-not-learn-editor' ),
 	'Pattern "%s" inserted.': () =>
 		/* translators: %s: section name. */
-		__( 'Section "%s" inserted.' ),
-	'Edit pattern': () => __( 'Edit section' ),
-	'Exit pattern': () => __( 'Exit section' ),
-	'Enable editing all patterns': () => __( 'Enable editing all sections' ),
-	'Disable editing all patterns': () => __( 'Disable editing all sections' ),
-	'Create pattern': () => __( 'Create section' ),
-	'Duplicate pattern': () => __( 'Duplicate section' ),
-	'Rename pattern': () => __( 'Rename section' ),
-	'Pattern renamed': () => __( 'Section renamed' ),
-	'Manage patterns': () => __( 'Manage sections' ),
+		__( 'Section "%s" inserted.', 'create-not-learn-editor' ),
+	'Edit pattern': () => __( 'Edit section', 'create-not-learn-editor' ),
+	'Exit pattern': () => __( 'Exit section', 'create-not-learn-editor' ),
+	'Enable editing all patterns': () =>
+		__( 'Enable editing all sections', 'create-not-learn-editor' ),
+	'Disable editing all patterns': () =>
+		__( 'Disable editing all sections', 'create-not-learn-editor' ),
+	'Create pattern': () => __( 'Create section', 'create-not-learn-editor' ),
+	'Duplicate pattern': () =>
+		__( 'Duplicate section', 'create-not-learn-editor' ),
+	'Rename pattern': () => __( 'Rename section', 'create-not-learn-editor' ),
+	'Pattern renamed': () => __( 'Section renamed', 'create-not-learn-editor' ),
+	'Manage patterns': () => __( 'Manage sections', 'create-not-learn-editor' ),
 	'Sync this pattern across multiple locations.': () =>
-		__( 'Sync this section across multiple locations.' ),
+		__(
+			'Sync this section across multiple locations.',
+			'create-not-learn-editor'
+		),
 	'Synced pattern created: %s': () =>
 		/* translators: %s: section name. */
-		__( 'Synced section created: %s' ),
+		__( 'Synced section created: %s', 'create-not-learn-editor' ),
 	'Unsynced pattern created: %s': () =>
 		/* translators: %s: section name. */
-		__( 'Unsynced section created: %s' ),
-	'Detach pattern?': () => __( 'Detach section?' ),
+		__( 'Unsynced section created: %s', 'create-not-learn-editor' ),
+	'Detach pattern?': () => __( 'Detach section?', 'create-not-learn-editor' ),
 	'Blocks will no longer be associated with this pattern and will be fully editable.':
 		() =>
 			__(
-				'Blocks will no longer be associated with this section and will be fully editable.'
+				'Blocks will no longer be associated with this section and will be fully editable.',
+				'create-not-learn-editor'
 			),
 	'The blocks will be separated from the original pattern and will be fully editable. Future changes to the pattern will not apply here.':
 		() =>
 			__(
-				'The blocks will be separated from the original section and will be fully editable. Future changes to the section will not apply here.'
+				'The blocks will be separated from the original section and will be fully editable. Future changes to the section will not apply here.',
+				'create-not-learn-editor'
 			),
 	[ `Generic label for pattern inserter button${ CONTEXT_SEPARATOR }Add pattern` ]:
-		() => __( 'Add section' ),
-	[ `block title${ CONTEXT_SEPARATOR }Pattern` ]: () => __( 'Section' ),
+		() => __( 'Add section', 'create-not-learn-editor' ),
+	[ `block title${ CONTEXT_SEPARATOR }Pattern` ]: () =>
+		__( 'Section', 'create-not-learn-editor' ),
 };
 
 /**

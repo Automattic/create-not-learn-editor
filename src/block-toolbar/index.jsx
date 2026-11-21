@@ -75,7 +75,7 @@ function TrashButton( { clientId } ) {
 		<ToolbarButton
 			className="cnl-block-toolbar__trash"
 			icon={ trash }
-			label={ __( 'Delete' ) }
+			label={ __( 'Delete', 'create-not-learn-editor' ) }
 			shortcut={ remove?.displayShortcut }
 			onClick={ () => removeBlocks( [ clientId ], true ) }
 		/>

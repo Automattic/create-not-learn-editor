@@ -50,18 +50,27 @@ const DEVICE_ICONS = {
 function getDeviceOptions() {
 	return [
 		{
-			description: __( 'How it looks on a computer.' ),
-			label: __( 'Desktop' ),
+			description: __(
+				'How it looks on a computer.',
+				'create-not-learn-editor'
+			),
+			label: __( 'Desktop', 'create-not-learn-editor' ),
 			value: 'desktop',
 		},
 		{
-			description: __( 'How it looks on a tablet.' ),
-			label: __( 'Tablet' ),
+			description: __(
+				'How it looks on a tablet.',
+				'create-not-learn-editor'
+			),
+			label: __( 'Tablet', 'create-not-learn-editor' ),
 			value: 'tablet',
 		},
 		{
-			description: __( 'How it looks on a phone.' ),
-			label: __( 'Mobile' ),
+			description: __(
+				'How it looks on a phone.',
+				'create-not-learn-editor'
+			),
+			label: __( 'Mobile', 'create-not-learn-editor' ),
 			value: 'mobile',
 		},
 	];
@@ -80,12 +89,12 @@ export function EditButton( { onEdit } ) {
 		<Button
 			__next40pxDefaultSize
 			className="cnl-site-canvas__edit"
-			description={ __( 'Change this page' ) }
+			description={ __( 'Change this page', 'create-not-learn-editor' ) }
 			icon={ pencilIcon }
 			onClick={ onEdit }
 			variant="primary"
 		>
-			{ __( 'Edit' ) }
+			{ __( 'Edit', 'create-not-learn-editor' ) }
 		</Button>
 	);
 }
@@ -103,11 +112,14 @@ export function ExitButton( { onExit } ) {
 		<Button
 			__next40pxDefaultSize
 			className="cnl-site-canvas__exit"
-			description={ __( 'Stop editing without saving' ) }
+			description={ __(
+				'Stop editing without saving',
+				'create-not-learn-editor'
+			) }
 			onClick={ onExit }
 			variant="secondary"
 		>
-			{ __( 'Exit' ) }
+			{ __( 'Exit', 'create-not-learn-editor' ) }
 		</Button>
 	);
 }
@@ -130,18 +142,18 @@ export function EditHistory() {
 
 	return (
 		<HistoryGroup
-			label={ __( 'Edit history' ) }
+			label={ __( 'Edit history', 'create-not-learn-editor' ) }
 			back={ {
 				disabled: ! hasUndo,
 				icon: isRTL() ? redoIcon : undoIcon,
-				label: __( 'Undo' ),
+				label: __( 'Undo', 'create-not-learn-editor' ),
 				onClick: undo,
 				shortcut: displayShortcut.primary( 'z' ),
 			} }
 			forward={ {
 				disabled: ! hasRedo,
 				icon: isRTL() ? undoIcon : redoIcon,
-				label: __( 'Redo' ),
+				label: __( 'Redo', 'create-not-learn-editor' ),
 				onClick: redo,
 				shortcut: displayShortcut.primaryShift( 'z' ),
 			} }
@@ -189,7 +201,7 @@ export function DocumentOverviewToggle() {
 			className="cnl-site-canvas__document-overview-toggle"
 			icon={ listViewIcon }
 			isPressed={ isOpen }
-			label={ __( 'Document Overview' ) }
+			label={ __( 'Document Overview', 'create-not-learn-editor' ) }
 			onClick={ () =>
 				dispatch( EDITOR_STORE )?.setIsListViewOpened?.( ! isOpen )
 			}
@@ -239,7 +251,7 @@ export function ViewMenu( {
 						__next40pxDefaultSize
 						className="cnl-site-canvas__view-menu-toggle"
 						icon={ DEVICE_ICONS[ shown ] }
-						label={ __( 'View' ) }
+						label={ __( 'View', 'create-not-learn-editor' ) }
 						showTooltip
 					/>
 				}
@@ -280,7 +292,10 @@ export function ViewMenu( {
 						}
 					>
 						<Menu.ItemLabel>
-							{ __( 'Open in a new tab' ) }
+							{ __(
+								'Open in a new tab',
+								'create-not-learn-editor'
+							) }
 						</Menu.ItemLabel>
 					</Menu.Item>
 					{ editRoute && (
@@ -290,7 +305,10 @@ export function ViewMenu( {
 							}
 						>
 							<Menu.ItemLabel>
-								{ __( 'Open in advanced editor' ) }
+								{ __(
+									'Open in advanced editor',
+									'create-not-learn-editor'
+								) }
 							</Menu.ItemLabel>
 						</Menu.Item>
 					) }
@@ -316,7 +334,7 @@ export function ZoomOutToggle( { isComposing, onToggle } ) {
 			className="cnl-site-canvas__zoom-out-toggle"
 			icon={ squareIcon }
 			isPressed={ isComposing }
-			label={ __( 'Zoom out' ) }
+			label={ __( 'Zoom out', 'create-not-learn-editor' ) }
 			onClick={ onToggle }
 			showTooltip
 		/>
@@ -359,17 +377,17 @@ function HistoryGroup( { label, back, forward } ) {
 export function PreviewHistory( { history, onMove } ) {
 	return (
 		<HistoryGroup
-			label={ __( 'Preview history' ) }
+			label={ __( 'Preview history', 'create-not-learn-editor' ) }
 			back={ {
 				disabled: ! history.canGoBack,
 				icon: chevronLeftIcon,
-				label: __( 'Back in preview' ),
+				label: __( 'Back in preview', 'create-not-learn-editor' ),
 				onClick: () => onMove( 'back' ),
 			} }
 			forward={ {
 				disabled: ! history.canGoForward,
 				icon: chevronRightIcon,
-				label: __( 'Forward in preview' ),
+				label: __( 'Forward in preview', 'create-not-learn-editor' ),
 				onClick: () => onMove( 'forward' ),
 			} }
 		/>

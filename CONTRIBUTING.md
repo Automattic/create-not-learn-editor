@@ -101,6 +101,7 @@ Generated `build/` assets and plugin zips are intentionally ignored by git. The 
 - `npm run test:e2e` runs every end-to-end test against the `wp-env` tests site. `test:e2e:smoke`, `test:e2e:views` and `test:e2e:interactions` run one group. See [the end-to-end tests guide](tests/e2e/README.md).
 - `npm run wporg-assets` renders the plugin directory icon and banner PNGs in `.wordpress-org/`.
 - `npm run wp-env` proxies to `wp-env`, after preparing the shared downloads on `start`.
+- `npm run i18n` makes the translation template and module JSON with WP-CLI. See [Translations](#translations).
 
 ## Verification
 
@@ -122,6 +123,32 @@ When checking runtime behavior, start `wp-env` with explicit local ports and vis
 ```text
 http://localhost:<dev-port>/wp-admin/admin.php?page=create-not-learn-editor
 ```
+
+## Translations
+
+Every string the editor adds is in the `create-not-learn-editor` text domain. In JavaScript that means passing it to `__()`, `_x()`, `_n()` and `_nx()`, which the `@wordpress/i18n-text-domain` lint rule checks for `src/`, `routes/` and `packages/*/src/`. `npm run lint:js -- --fix` adds a missing domain.
+
+A few strings are deliberately core's, in the default domain, because the editor finds one of core's controls by its words, such as the format buttons in `src/block-toolbar/`. They turn the rule off where they are, saying why. Section wording (`src/editor-layer/section-wording.js`) swaps core's strings through the default domain's gettext filters, and says its replacements in the editor's own domain.
+
+How they load:
+
+- Each of the editor's script modules is registered with `wp_set_script_module_translations()` (WordPress 7.0) in `includes/translations.php`. `@wordpress/build` has no text domain option for plugin builds, so the editor sets it when it registers its modules itself.
+- WordPress finds a module's translations by the md5 of its unminified path in the plugin, as it does for scripts, such as `create-not-learn-editor-de_DE-<md5 of build/routes/home/content.js>.json` in `wp-content/languages/plugins`.
+- The full-page editor prints them itself, before the modules run, since it doesn't fire `admin_print_footer_scripts`, where core prints them.
+- A string with no translation in the editor's domain falls back to core's translation of the same words, so strings like "Save" stay translated while a language pack is missing or behind.
+
+To make the files, build, then run WP-CLI over the built plugin. `npm run i18n` does both steps with the right options, and runs WP-CLI with enough memory to parse the modules:
+
+```sh
+npm run build
+npm run i18n -- pot                     # languages/create-not-learn-editor.pot, from this checkout
+npm run i18n -- pot path/to/unzipped    # the same, from an unzipped plugin-zip
+npm run i18n -- json languages          # a JSON file per module, beside each .po in languages/
+```
+
+The template is made from `build/` and `includes/`, not `src/`, so each string points at the module file that ships it, which is the path WordPress hashes. `languages/` is ignored by git.
+
+The e2e spec `tests/e2e/views/translations.spec.js` checks this end to end with a German test locale. The tests site maps `tests/e2e/fixtures/mu-plugins/` into `wp-content/mu-plugins`, where a plugin switches requests carrying a test cookie to German and reads the editor's translations from the fixture beside it. After changing its `.po`, run `npm run i18n -- fixture`.
 
 ## Repository shape
 

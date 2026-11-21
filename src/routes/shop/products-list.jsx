@@ -43,7 +43,9 @@ const DEFAULT_LAYOUTS = { list: {} };
 function ProductsListLayout( { DataViews } ) {
 	return (
 		<div className="cnl-shop-list">
-			<DataViews.Search label={ __( 'Search products' ) } />
+			<DataViews.Search
+				label={ __( 'Search products', 'create-not-learn-editor' ) }
+			/>
 			<DataViews.Layout />
 			<DataViews.Pagination />
 		</div>

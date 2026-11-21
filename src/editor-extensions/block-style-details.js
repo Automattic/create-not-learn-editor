@@ -29,7 +29,11 @@ export function getStyleChoices( styles ) {
 		: [
 				{
 					name: 'default',
-					label: _x( 'Default', 'block style' ),
+					label: _x(
+						'Default',
+						'block style',
+						'create-not-learn-editor'
+					),
 					isDefault: true,
 				},
 				...styles,

@@ -143,7 +143,7 @@ export function SiteStatus() {
 	if ( isSaving ) {
 		badge = (
 			<Badge className="cnl-site-card__status" intent="draft">
-				{ __( 'Saving…' ) }
+				{ __( 'Saving…', 'create-not-learn-editor' ) }
 			</Badge>
 		);
 	} else if ( count ) {
@@ -162,14 +162,17 @@ export function SiteStatus() {
 								_n(
 									'%d unsaved change',
 									'%d unsaved changes',
-									count
+									count,
+									'create-not-learn-editor'
 								),
 								count
 							) }
 						</Badge>
 					}
 				/>
-				<Tooltip.Popup>{ __( 'Review changes' ) }</Tooltip.Popup>
+				<Tooltip.Popup>
+					{ __( 'Review changes', 'create-not-learn-editor' ) }
+				</Tooltip.Popup>
 			</Tooltip.Root>
 		);
 	}

@@ -388,11 +388,26 @@ export const IMAGE_AND_TEXT = {
 		const canCover = media.name === 'core/image' && isText( text );
 
 		return [
-			{ side: 'left', label: __( 'Image on the left' ) },
-			{ side: 'right', label: __( 'Image on the right' ) },
-			canStack && { side: 'above', label: __( 'Image above' ) },
-			canStack && { side: 'below', label: __( 'Image below' ) },
-			canCover && { side: 'cover', label: __( 'Text over image' ) },
+			{
+				side: 'left',
+				label: __( 'Image on the left', 'create-not-learn-editor' ),
+			},
+			{
+				side: 'right',
+				label: __( 'Image on the right', 'create-not-learn-editor' ),
+			},
+			canStack && {
+				side: 'above',
+				label: __( 'Image above', 'create-not-learn-editor' ),
+			},
+			canStack && {
+				side: 'below',
+				label: __( 'Image below', 'create-not-learn-editor' ),
+			},
+			canCover && {
+				side: 'cover',
+				label: __( 'Text over image', 'create-not-learn-editor' ),
+			},
 		]
 			.filter( Boolean )
 			.map( ( option ) => ( {

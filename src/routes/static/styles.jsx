@@ -41,21 +41,30 @@ import {
  */
 const DESIGN_LINKS = [
 	{
-		description: __( 'Pick the colors your whole site uses.' ),
+		description: __(
+			'Pick the colors your whole site uses.',
+			'create-not-learn-editor'
+		),
 		icon: colorIcon,
-		title: __( 'Colors' ),
+		title: __( 'Colors', 'create-not-learn-editor' ),
 		to: '/design/colors',
 	},
 	{
-		description: __( 'Pick the fonts your whole site uses.' ),
+		description: __(
+			'Pick the fonts your whole site uses.',
+			'create-not-learn-editor'
+		),
 		icon: typographyIcon,
-		title: __( 'Fonts' ),
+		title: __( 'Fonts', 'create-not-learn-editor' ),
 		to: '/design/fonts',
 	},
 	{
-		description: __( 'Name your site and add a logo.' ),
+		description: __(
+			'Name your site and add a logo.',
+			'create-not-learn-editor'
+		),
 		icon: siteLogoIcon,
-		title: __( 'Name & logo' ),
+		title: __( 'Name & logo', 'create-not-learn-editor' ),
 		to: '/design/identity',
 	},
 ];
@@ -71,9 +80,12 @@ function FullStylesLink() {
 
 	return (
 		<Text className="routes-styles__muted" variant="body-sm">
-			{ __( 'Want more control? Every style setting is in the' ) }{ ' ' }
+			{ __(
+				'Want more control? Every style setting is in the',
+				'create-not-learn-editor'
+			) }{ ' ' }
 			<Link href={ href } onClick={ onClick }>
-				{ __( 'full Styles editor' ) }
+				{ __( 'full Styles editor', 'create-not-learn-editor' ) }
 			</Link>
 			.
 		</Text>
@@ -116,27 +128,39 @@ function FontLibraryLinks() {
 	const links = [
 		link( FONT_LIBRARY_TABS.library, {
 			description: __(
-				'Turn fonts and their styles on or off, or remove them.'
+				'Turn fonts and their styles on or off, or remove them.',
+				'create-not-learn-editor'
 			),
 			icon: typographyIcon,
-			title: __( 'Configure fonts' ),
+			title: __( 'Configure fonts', 'create-not-learn-editor' ),
 		} ),
 		canAddFonts &&
 			collection &&
 			link( collection.slug, {
-				description: __( 'Choose from hundreds of free fonts.' ),
+				description: __(
+					'Choose from hundreds of free fonts.',
+					'create-not-learn-editor'
+				),
 				icon: cloudDownloadIcon,
-				title: __( 'Install fonts' ),
+				title: __( 'Install fonts', 'create-not-learn-editor' ),
 			} ),
 		canAddFonts &&
 			link( FONT_LIBRARY_TABS.upload, {
-				description: __( 'Add font files from your computer.' ),
+				description: __(
+					'Add font files from your computer.',
+					'create-not-learn-editor'
+				),
 				icon: uploadIcon,
-				title: __( 'Upload fonts' ),
+				title: __( 'Upload fonts', 'create-not-learn-editor' ),
 			} ),
 	].filter( Boolean );
 
-	return <ScreenLinks label={ __( 'More font options' ) } links={ links } />;
+	return (
+		<ScreenLinks
+			label={ __( 'More font options', 'create-not-learn-editor' ) }
+			links={ links }
+		/>
+	);
 }
 
 /**
@@ -183,14 +207,17 @@ export function DesignStage() {
 
 	return (
 		<StylesScreen
-			description={ __( 'How your whole site looks.' ) }
+			description={ __(
+				'How your whole site looks.',
+				'create-not-learn-editor'
+			) }
 			isLoading={ isLoading }
 			isTopLevel
-			title={ __( 'Design' ) }
+			title={ __( 'Design', 'create-not-learn-editor' ) }
 		>
 			<LookPicker />
 			<ScreenLinks
-				label={ __( 'More design options' ) }
+				label={ __( 'More design options', 'create-not-learn-editor' ) }
 				links={ DESIGN_LINKS }
 			/>
 		</StylesScreen>
@@ -200,7 +227,7 @@ export function DesignStage() {
 function getThemeDescription( themeName, template ) {
 	return themeName
 		? sprintf( template, themeName )
-		: __( 'Changes the whole site at once.' );
+		: __( 'Changes the whole site at once.', 'create-not-learn-editor' );
 }
 
 export function ColorsStage() {
@@ -212,11 +239,12 @@ export function ColorsStage() {
 				themeName,
 				/* translators: %s: Theme name. */
 				__(
-					'Changes the whole site at once. Your theme, %s, provides these palettes.'
+					'Changes the whole site at once. Your theme, %s, provides these palettes.',
+					'create-not-learn-editor'
 				)
 			) }
 			isLoading={ isLoading }
-			title={ __( 'Colors' ) }
+			title={ __( 'Colors', 'create-not-learn-editor' ) }
 		>
 			<PalettePicker allowCustom />
 		</StylesScreen>
@@ -232,12 +260,13 @@ export function FontsStage() {
 				themeName,
 				/* translators: %s: Theme name. */
 				__(
-					'Changes the whole site at once. Your theme, %s, provides these pairings.'
+					'Changes the whole site at once. Your theme, %s, provides these pairings.',
+					'create-not-learn-editor'
 				)
 			) }
 			isLoading={ isLoading }
 			moreLink={ <FontLibraryLinks /> }
-			title={ __( 'Fonts' ) }
+			title={ __( 'Fonts', 'create-not-learn-editor' ) }
 		>
 			<FontPicker />
 		</StylesScreen>

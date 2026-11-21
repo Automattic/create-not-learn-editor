@@ -30,7 +30,8 @@
 		"plugin-zip": "wp-scripts plugin-zip",
 		"wp-env": "node scripts/wp-env.mjs",
 		"wporg-assets": "node scripts/render-wordpress-org-assets.mjs",
-		"ui": "node scripts/ui-check.mjs"
+		"ui": "node scripts/ui-check.mjs",
+		"i18n": "node scripts/i18n.mjs"
 	},
 	"wpPlugin": {
 		"name": "cnl_editor",

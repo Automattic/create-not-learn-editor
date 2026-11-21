@@ -419,7 +419,7 @@ export function NavigationListViewContent( {
 
 	const description = sprintf(
 		/* translators: %s: Navigation menu title. */
-		__( 'Structure for Navigation Menu: %s' ),
+		__( 'Structure for Navigation Menu: %s', 'create-not-learn-editor' ),
 		menuTitle
 	);
 
@@ -476,7 +476,10 @@ export function NavigationListViewContent( {
 					>
 						<InputControl
 							autoComplete="off"
-							label={ __( 'Submenu label' ) }
+							label={ __(
+								'Submenu label',
+								'create-not-learn-editor'
+							) }
 							onValueChange={ setLabelOnlySubmenuLabel }
 							value={ labelOnlySubmenuLabel }
 						/>
@@ -487,7 +490,7 @@ export function NavigationListViewContent( {
 								type="button"
 								variant="tertiary"
 							>
-								{ __( 'Cancel' ) }
+								{ __( 'Cancel', 'create-not-learn-editor' ) }
 							</Button>
 							<Button
 								__next40pxDefaultSize
@@ -496,7 +499,10 @@ export function NavigationListViewContent( {
 								type="submit"
 								variant="primary"
 							>
-								{ __( 'Add drop-down' ) }
+								{ __(
+									'Add drop-down',
+									'create-not-learn-editor'
+								) }
 							</Button>
 						</div>
 					</form>
@@ -521,7 +527,8 @@ export function showMenuSetByHandNotice( {
 	createSuccessNotice,
 	editEntityRecord,
 	message = __(
-		'Your menu is now set by hand. New pages won’t be added to it automatically.'
+		'Your menu is now set by hand. New pages won’t be added to it automatically.',
+		'create-not-learn-editor'
 	),
 	navigationId,
 	previousContent,
@@ -529,7 +536,7 @@ export function showMenuSetByHandNotice( {
 	createSuccessNotice( message, {
 		actions: [
 			{
-				label: __( 'Undo' ),
+				label: __( 'Undo', 'create-not-learn-editor' ),
 				onClick: () =>
 					editEntityRecord(
 						'postType',

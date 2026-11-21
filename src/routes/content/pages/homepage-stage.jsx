@@ -64,7 +64,7 @@ function HomepageProblem( { homepage } ) {
 		actions.push( {
 			label: sprintf(
 				/* translators: %s: page title. */
-				__( 'Publish “%s”' ),
+				__( 'Publish “%s”', 'create-not-learn-editor' ),
 				getPageTitle( homepage.page )
 			),
 			onClick: () => useAsHomepage.request( homepage.page ),
@@ -74,7 +74,7 @@ function HomepageProblem( { homepage } ) {
 
 	if ( homepage.canSwitch ) {
 		actions.push( {
-			label: __( 'Show your latest posts' ),
+			label: __( 'Show your latest posts', 'create-not-learn-editor' ),
 			onClick: () => showLatestPosts( menuId ),
 			variant: 'link',
 		} );
@@ -90,10 +90,12 @@ function HomepageProblem( { homepage } ) {
 			>
 				{ homepage.problem === 'missing'
 					? __(
-							'Visitors can’t see your homepage. The page it showed has gone. Pick another page, or show your latest posts.'
+							'Visitors can’t see your homepage. The page it showed has gone. Pick another page, or show your latest posts.',
+							'create-not-learn-editor'
 						)
 					: __(
-							'Visitors can’t see your homepage, as its page isn’t published. Publish it, pick another page, or show your latest posts.'
+							'Visitors can’t see your homepage, as its page isn’t published. Publish it, pick another page, or show your latest posts.',
+							'create-not-learn-editor'
 						) }
 			</Notice>
 			{ useAsHomepage.modal }
@@ -104,7 +106,8 @@ function HomepageProblem( { homepage } ) {
 function getSentence( homepage ) {
 	if ( homepage.shows === 'theme' ) {
 		return __(
-			'Your theme designs your homepage, so it always looks like this.'
+			'Your theme designs your homepage, so it always looks like this.',
+			'create-not-learn-editor'
 		);
 	}
 
@@ -113,10 +116,13 @@ function getSentence( homepage ) {
 	}
 
 	return homepage.shows === 'posts'
-		? __( 'Your homepage shows your latest posts.' )
+		? __(
+				'Your homepage shows your latest posts.',
+				'create-not-learn-editor'
+			)
 		: sprintf(
 				/* translators: %s: page title. */
-				__( 'Your homepage shows “%s”.' ),
+				__( 'Your homepage shows “%s”.', 'create-not-learn-editor' ),
 				getPageTitle( homepage.page )
 			);
 }
@@ -190,33 +196,52 @@ function LatestPostsBody( { canConfigure, homepage, onConfigure } ) {
 		<>
 			{ homepage.shows === 'posts' && (
 				<Text className="cnl-homepage-intro" variant="body-md">
-					{ __( 'Shows your newest posts, newest first.' ) }
+					{ __(
+						'Shows your newest posts, newest first.',
+						'create-not-learn-editor'
+					) }
 				</Text>
 			) }
 			{ homepage.shows === 'posts' && canConfigure && <PostsPerPage /> }
 			<ScreenLinks
-				label={ __( 'More for your homepage' ) }
+				label={ __(
+					'More for your homepage',
+					'create-not-learn-editor'
+				) }
 				links={ [
 					layout && {
 						description: __(
-							'Change how your posts are displayed'
+							'Change how your posts are displayed',
+							'create-not-learn-editor'
 						),
 						icon: layoutIcon,
 						search: layout.search,
-						title: __( 'Change layout' ),
+						title: __( 'Change layout', 'create-not-learn-editor' ),
 						to: layout.to,
 					},
 					{
-						description: __( 'Write, edit and publish blog posts' ),
+						description: __(
+							'Write, edit and publish blog posts',
+							'create-not-learn-editor'
+						),
 						icon: postIcon,
-						title: __( 'Edit your posts' ),
+						title: __(
+							'Edit your posts',
+							'create-not-learn-editor'
+						),
 						to: '/types/post/list/all',
 					},
 					onConfigure && {
-						description: __( 'Choose what visitors see first' ),
+						description: __(
+							'Choose what visitors see first',
+							'create-not-learn-editor'
+						),
 						icon: settingsIcon,
 						onOpen: onConfigure,
-						title: __( 'Configure homepage' ),
+						title: __(
+							'Configure homepage',
+							'create-not-learn-editor'
+						),
 					},
 				].filter( Boolean ) }
 			/>
@@ -267,12 +292,15 @@ export default function HomepageStage() {
 
 	return (
 		<Page
-			ariaLabel={ __( 'Homepage' ) }
+			ariaLabel={ __( 'Homepage', 'create-not-learn-editor' ) }
 			breadcrumbs={
 				<Breadcrumbs
 					items={ [
-						{ label: __( 'Pages' ), to: LIST_PATH },
-						{ label: __( 'Homepage' ) },
+						{
+							label: __( 'Pages', 'create-not-learn-editor' ),
+							to: LIST_PATH,
+						},
+						{ label: __( 'Homepage', 'create-not-learn-editor' ) },
 					] }
 				/>
 			}

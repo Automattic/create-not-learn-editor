@@ -103,7 +103,10 @@ export default function ScreenLinks( { label, links } ) {
 						/>
 						{ href && (
 							<span className="screen-reader-text">
-								{ __( '(opens in a new tab)' ) }
+								{ __(
+									'(opens in a new tab)',
+									'create-not-learn-editor'
+								) }
 							</span>
 						) }
 					</Button>

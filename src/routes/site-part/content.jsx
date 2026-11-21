@@ -48,6 +48,7 @@ import {
 	useSitePart,
 	useSitePartContents,
 	useSitePartLayouts,
+	getLinkCount,
 } from './data';
 import {
 	getSocialLinksDescription,
@@ -96,66 +97,94 @@ const VIEWS = {
 	[ IDENTITY_VIEW ]: {
 		description: () =>
 			__(
-				'Change them here, and see them on the right. Save to keep them.'
+				'Change them here, and see them on the right. Save to keep them.',
+				'create-not-learn-editor'
 			),
-		title: () => __( 'Name & logo' ),
+		title: () => __( 'Name & logo', 'create-not-learn-editor' ),
 	},
 	[ LAYOUTS_VIEW ]: {
 		description: () =>
-			__( 'Pick one to try it on the right. Save to keep it.' ),
-		title: () => __( 'Layouts' ),
+			__(
+				'Pick one to try it on the right. Save to keep it.',
+				'create-not-learn-editor'
+			),
+		title: () => __( 'Layouts', 'create-not-learn-editor' ),
 	},
 	[ MENU_VIEW ]: {
 		description: () =>
 			__(
-				'The links in your menu. Change them here, and see them on the right. Save to keep them.'
+				'The links in your menu. Change them here, and see them on the right. Save to keep them.',
+				'create-not-learn-editor'
 			),
-		title: () => __( 'Menu' ),
+		title: () => __( 'Menu', 'create-not-learn-editor' ),
 	},
 	[ SOCIAL_VIEW ]: {
 		description: () =>
 			__(
-				'Your social profiles. Change them here, and see them on the right. Save to keep them.'
+				'Your social profiles. Change them here, and see them on the right. Save to keep them.',
+				'create-not-learn-editor'
 			),
-		title: () => __( 'Social links' ),
+		title: () => __( 'Social links', 'create-not-learn-editor' ),
 	},
 };
 
 const SITE_PARTS = {
 	footer: {
-		allDescription: __( 'Every footer your site has.' ),
-		allTitle: __( 'See all footers' ),
-		choice: __( 'Choose how the bottom of every page looks.' ),
+		allDescription: __(
+			'Every footer your site has.',
+			'create-not-learn-editor'
+		),
+		allTitle: __( 'See all footers', 'create-not-learn-editor' ),
+		choice: __(
+			'Choose how the bottom of every page looks.',
+			'create-not-learn-editor'
+		),
 		description: __(
-			'Shown at the bottom of every page. Pick Edit design or Edit content on it, on the right, to change it.'
+			'Shown at the bottom of every page. Pick Edit design or Edit content on it, on the right, to change it.',
+			'create-not-learn-editor'
 		),
 		icon: footerIcon,
-		linksLabel: __( 'Footer options' ),
-		missing: __( 'Your homepage doesn’t have a footer.' ),
-		noOptions: __(
-			'Your footer has no name, logo, menu or social links, and your theme offers no other layouts for it.'
+		linksLabel: __( 'Footer options', 'create-not-learn-editor' ),
+		missing: __(
+			'Your homepage doesn’t have a footer.',
+			'create-not-learn-editor'
 		),
-		title: __( 'Footer' ),
+		noOptions: __(
+			'Your footer has no name, logo, menu or social links, and your theme offers no other layouts for it.',
+			'create-not-learn-editor'
+		),
+		title: __( 'Footer', 'create-not-learn-editor' ),
 	},
 	header: {
-		allDescription: __( 'Every header your site has.' ),
-		allTitle: __( 'See all headers' ),
-		choice: __( 'Choose how the top of every page looks.' ),
+		allDescription: __(
+			'Every header your site has.',
+			'create-not-learn-editor'
+		),
+		allTitle: __( 'See all headers', 'create-not-learn-editor' ),
+		choice: __(
+			'Choose how the top of every page looks.',
+			'create-not-learn-editor'
+		),
 		description: __(
-			'Shown at the top of every page. Pick Edit design or Edit content on it, on the right, to change it.'
+			'Shown at the top of every page. Pick Edit design or Edit content on it, on the right, to change it.',
+			'create-not-learn-editor'
 		),
 		icon: headerIcon,
-		linksLabel: __( 'Header options' ),
-		missing: __( 'Your homepage doesn’t have a header.' ),
-		noOptions: __(
-			'Your header has no name, logo, menu or social links, and your theme offers no other layouts for it.'
+		linksLabel: __( 'Header options', 'create-not-learn-editor' ),
+		missing: __(
+			'Your homepage doesn’t have a header.',
+			'create-not-learn-editor'
 		),
-		title: __( 'Header' ),
+		noOptions: __(
+			'Your header has no name, logo, menu or social links, and your theme offers no other layouts for it.',
+			'create-not-learn-editor'
+		),
+		title: __( 'Header', 'create-not-learn-editor' ),
 	},
 };
 
 // The screen listing the parts, and the first crumb back on each.
-const SITE_PARTS_TITLE = __( 'Site parts' );
+const SITE_PARTS_TITLE = __( 'Site parts', 'create-not-learn-editor' );
 
 function getSitePartsCrumb() {
 	return { label: SITE_PARTS_TITLE, to: SITE_PARTS_PATH };
@@ -225,7 +254,12 @@ function getLayoutsDescription( { currentName, layouts } ) {
 		? getPatternTitle( current )
 		: sprintf(
 				/* translators: %d: Number of layouts. */
-				_n( '%d to pick from', '%d to pick from', layouts.length ),
+				_n(
+					'%d to pick from',
+					'%d to pick from',
+					layouts.length,
+					'create-not-learn-editor'
+				),
 				layouts.length
 			);
 }
@@ -235,25 +269,38 @@ function getIdentityLink( { hasLogo, hasSiteTitle }, site ) {
 	if ( ! hasSiteTitle ) {
 		return site.site_logo
 			? {
-					description: __( 'Swap in a different image.' ),
-					title: __( 'Change logo' ),
+					description: __(
+						'Swap in a different image.',
+						'create-not-learn-editor'
+					),
+					title: __( 'Change logo', 'create-not-learn-editor' ),
 				}
 			: {
-					description: __( 'Upload one, or pick an image you have.' ),
-					title: __( 'Add a logo' ),
+					description: __(
+						'Upload one, or pick an image you have.',
+						'create-not-learn-editor'
+					),
+					title: __( 'Add a logo', 'create-not-learn-editor' ),
 				};
 	}
 
 	if ( ! site.title ) {
 		return {
-			description: __( 'Your site has no name yet.' ),
-			title: hasLogo ? __( 'Add a name & logo' ) : __( 'Name your site' ),
+			description: __(
+				'Your site has no name yet.',
+				'create-not-learn-editor'
+			),
+			title: hasLogo
+				? __( 'Add a name & logo', 'create-not-learn-editor' )
+				: __( 'Name your site', 'create-not-learn-editor' ),
 		};
 	}
 
 	return {
 		description: site.title,
-		title: hasLogo ? __( 'Change name & logo' ) : __( 'Change site name' ),
+		title: hasLogo
+			? __( 'Change name & logo', 'create-not-learn-editor' )
+			: __( 'Change site name', 'create-not-learn-editor' ),
 	};
 }
 
@@ -290,10 +337,10 @@ function SitePartLinks( { area, clientId, id } ) {
 		links.push( {
 			description: layouts.hasResolved
 				? getLayoutsDescription( layouts )
-				: __( 'Finding layouts…' ),
+				: __( 'Finding layouts…', 'create-not-learn-editor' ),
 			icon: layoutIcon,
 			search: { view: LAYOUTS_VIEW },
-			title: __( 'Change layout' ),
+			title: __( 'Change layout', 'create-not-learn-editor' ),
 			to: SITE_PART_PATHS[ area ],
 		} );
 	}
@@ -310,17 +357,18 @@ function SitePartLinks( { area, clientId, id } ) {
 	// A row for each menu, as a footer often has several.
 	menus.forEach( ( menu, position ) => {
 		links.push( {
-			description: menu.title || __( 'Your menu' ),
+			description:
+				menu.title || __( 'Your menu', 'create-not-learn-editor' ),
 			icon: compassIcon,
 			search: { view: MENU_VIEW, menu: menu.index },
 			title:
 				menus.length > 1
 					? sprintf(
 							/* translators: %d: The menu's place in the part, from 1. */
-							__( 'Edit menu %d' ),
+							__( 'Edit menu %d', 'create-not-learn-editor' ),
 							position + 1
 						)
-					: __( 'Edit menu' ),
+					: __( 'Edit menu', 'create-not-learn-editor' ),
 			to: SITE_PART_PATHS[ area ],
 		} );
 	} );
@@ -333,7 +381,7 @@ function SitePartLinks( { area, clientId, id } ) {
 			),
 			icon: shareIcon,
 			search: { view: SOCIAL_VIEW },
-			title: __( 'Social links' ),
+			title: __( 'Social links', 'create-not-learn-editor' ),
 			to: SITE_PART_PATHS[ area ],
 		} );
 	}
@@ -359,40 +407,6 @@ function SitePartLinks( { area, clientId, id } ) {
 			/>
 		</>
 	);
-}
-
-// What a menu holds, from its saved blocks: its links, and whether it lists
-// the site's pages by itself.
-function getLinkCount( menu ) {
-	const content = String(
-		( typeof menu?.content === 'string'
-			? menu.content
-			: menu?.content?.raw ) || ''
-	);
-	const count = (
-		content.match(
-			/<!-- wp:(navigation-link|navigation-submenu|home-link)\b/g
-		) || []
-	).length;
-	const hasPages = content.includes( '<!-- wp:page-list' );
-
-	if ( hasPages && ! count ) {
-		return __( 'Lists your pages' );
-	}
-
-	const links = sprintf(
-		/* translators: %d: Number of links in a menu. */
-		_n( '%d link', '%d links', count ),
-		count
-	);
-
-	return hasPages
-		? sprintf(
-				/* translators: %s: Number of links, like "2 links". */
-				__( '%s and your pages' ),
-				links
-			)
-		: links;
 }
 
 /**
@@ -447,14 +461,14 @@ function getSharedWithText( areas, area ) {
 	if ( ! others.length ) {
 		return sprintf(
 			/* translators: %s: A part of the site, like "footer". */
-			__( 'Also shown elsewhere in your %s' ),
+			__( 'Also shown elsewhere in your %s', 'create-not-learn-editor' ),
 			SITE_PARTS[ area ].title.toLowerCase()
 		);
 	}
 
 	return sprintf(
 		/* translators: %s: A part of the site, like "header". */
-		__( 'Also shown in your %s' ),
+		__( 'Also shown in your %s', 'create-not-learn-editor' ),
 		SITE_PARTS[ others[ 0 ] ].title.toLowerCase()
 	);
 }
@@ -485,8 +499,12 @@ function SwitchMenuDialog( { area, clientId, menuId, menus, onClose } ) {
 		createSuccessNotice(
 			sprintf(
 				/* translators: 1: Menu title. 2: A part of the site, like "footer". */
-				__( 'Your %2$s now shows %1$s. Save to keep it.' ),
-				getTitleText( next.title ) || __( 'the menu' ),
+				__(
+					'Your %2$s now shows %1$s. Save to keep it.',
+					'create-not-learn-editor'
+				),
+				getTitleText( next.title ) ||
+					__( 'the menu', 'create-not-learn-editor' ),
 				partName
 			),
 			{ type: 'snackbar' }
@@ -501,7 +519,7 @@ function SwitchMenuDialog( { area, clientId, menuId, menus, onClose } ) {
 			size="medium"
 			title={ sprintf(
 				/* translators: %s: A part of the site, like "footer". */
-				__( 'Switch the menu in your %s' ),
+				__( 'Switch the menu in your %s', 'create-not-learn-editor' ),
 				partName
 			) }
 		>
@@ -514,25 +532,32 @@ function SwitchMenuDialog( { area, clientId, menuId, menus, onClose } ) {
 					{ sprintf(
 						/* translators: %s: Menu title. */
 						__(
-							'Pick another menu to show here. %s stays as it is, and nothing changes on your site until you save.'
+							'Pick another menu to show here. %s stays as it is, and nothing changes on your site until you save.',
+							'create-not-learn-editor'
 						),
-						getTitleText( current?.title ) || __( 'Your menu' )
+						getTitleText( current?.title ) ||
+							__( 'Your menu', 'create-not-learn-editor' )
 					) }
 				</Text>
 				<RadioControl
 					hideLabelFromVision
-					label={ __( 'Menus' ) }
+					label={ __( 'Menus', 'create-not-learn-editor' ) }
 					onChange={ setSelected }
 					options={ menus.map( ( menu ) => ( {
 						description:
 							menu.id === menuId
 								? sprintf(
 										/* translators: %s: Number of links, like "2 links". */
-										__( '%s · Shown here now' ),
+										__(
+											'%s · Shown here now',
+											'create-not-learn-editor'
+										),
 										getLinkCount( menu )
 									)
 								: getLinkCount( menu ),
-						label: getTitleText( menu.title ) || __( '(no title)' ),
+						label:
+							getTitleText( menu.title ) ||
+							__( '(no title)', 'create-not-learn-editor' ),
 						value: String( menu.id ),
 					} ) ) }
 					selected={ selected }
@@ -543,7 +568,7 @@ function SwitchMenuDialog( { area, clientId, menuId, menus, onClose } ) {
 						onClick={ onClose }
 						variant="tertiary"
 					>
-						{ __( 'Cancel' ) }
+						{ __( 'Cancel', 'create-not-learn-editor' ) }
 					</Button>
 					<Button
 						__next40pxDefaultSize
@@ -552,7 +577,7 @@ function SwitchMenuDialog( { area, clientId, menuId, menus, onClose } ) {
 						onClick={ onConfirm }
 						variant="primary"
 					>
-						{ __( 'Show this menu' ) }
+						{ __( 'Show this menu', 'create-not-learn-editor' ) }
 					</Button>
 				</div>
 			</Stack>
@@ -595,12 +620,12 @@ function MenuInUse( { area, clientId, menuId, title } ) {
 				<Text className="routes-styles__muted" variant="body-sm">
 					{ sprintf(
 						/* translators: %s: A part of the site, like "footer". */
-						__( 'Menu in your %s' ),
+						__( 'Menu in your %s', 'create-not-learn-editor' ),
 						SITE_PARTS[ area ].title.toLowerCase()
 					) }
 				</Text>
 				<Text render={ <p /> } variant="heading-md">
-					{ title || __( 'Your menu' ) }
+					{ title || __( 'Your menu', 'create-not-learn-editor' ) }
 				</Text>
 				<Text className="routes-styles__muted" variant="body-sm">
 					{ [ getLinkCount( menu ), sharedWith ]
@@ -615,7 +640,7 @@ function MenuInUse( { area, clientId, menuId, title } ) {
 					size="compact"
 					variant="link"
 				>
-					{ __( 'Switch menu' ) }
+					{ __( 'Switch menu', 'create-not-learn-editor' ) }
 				</Button>
 			) }
 			{ isSwitching && (
@@ -650,7 +675,14 @@ function PartMenu( { area, clientId, index } ) {
 	const { editor, isMenuReady } = useMenuItemsEditor( menu?.menuId );
 
 	if ( ! menu?.menuId ) {
-		return <Note>{ __( 'Your site doesn’t have a menu yet.' ) }</Note>;
+		return (
+			<Note>
+				{ __(
+					'Your site doesn’t have a menu yet.',
+					'create-not-learn-editor'
+				) }
+			</Note>
+		);
 	}
 
 	return (
@@ -799,7 +831,8 @@ function SitePartsStage() {
 			hasPadding={ false }
 			headingLevel={ 2 }
 			subTitle={ __(
-				'The parts every page shares. Pick one to change it everywhere.'
+				'The parts every page shares. Pick one to change it everywhere.',
+				'create-not-learn-editor'
 			) }
 			title={ SITE_PARTS_TITLE }
 		>
@@ -817,11 +850,12 @@ function PartDocument( { title } ) {
 		<div className="cnl-editor-homepage-document">
 			<PageSwitcher
 				canSwitch={ false }
-				meta={ __( 'Every page' ) }
+				meta={ __( 'Every page', 'create-not-learn-editor' ) }
 				shared={ sprintf(
 					/* translators: %s: Header or Footer. */
 					__(
-						'The %s is the same on every page. Changes show on all of them.'
+						'The %s is the same on every page. Changes show on all of them.',
+						'create-not-learn-editor'
 					),
 					title
 				) }

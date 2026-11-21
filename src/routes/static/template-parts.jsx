@@ -67,27 +67,27 @@ const DEFAULT_TEMPLATE_PART_VIEW = {
 };
 const TEMPLATE_PART_AREAS = [
 	{
-		label: __( 'All' ),
+		label: __( 'All', 'create-not-learn-editor' ),
 		value: 'all',
 	},
 	{
-		label: __( 'Headers' ),
+		label: __( 'Headers', 'create-not-learn-editor' ),
 		value: 'header',
 	},
 	{
-		label: __( 'Footers' ),
+		label: __( 'Footers', 'create-not-learn-editor' ),
 		value: 'footer',
 	},
 	{
-		label: __( 'Sidebars' ),
+		label: __( 'Sidebars', 'create-not-learn-editor' ),
 		value: 'sidebar',
 	},
 	{
-		label: __( 'Overlays' ),
+		label: __( 'Overlays', 'create-not-learn-editor' ),
 		value: 'navigation-overlay',
 	},
 	{
-		label: __( 'General' ),
+		label: __( 'General', 'create-not-learn-editor' ),
 		value: 'uncategorized',
 	},
 ];
@@ -100,22 +100,22 @@ function getTemplatePartAreaLabel( area ) {
 		TEMPLATE_PART_AREAS.find( ( option ) => option.value === area )
 			?.label ||
 		area ||
-		__( 'General' )
+		__( 'General', 'create-not-learn-editor' )
 	);
 }
 
 function getTemplatePartCreateAreaLabel( area ) {
 	switch ( area ) {
 		case 'header':
-			return __( 'Header' );
+			return __( 'Header', 'create-not-learn-editor' );
 		case 'footer':
-			return __( 'Footer' );
+			return __( 'Footer', 'create-not-learn-editor' );
 		case 'sidebar':
-			return __( 'Sidebar' );
+			return __( 'Sidebar', 'create-not-learn-editor' );
 		case 'navigation-overlay':
-			return __( 'Overlay' );
+			return __( 'Overlay', 'create-not-learn-editor' );
 		case 'uncategorized':
-			return __( 'General' );
+			return __( 'General', 'create-not-learn-editor' );
 		default:
 			return getTemplatePartAreaLabel( area );
 	}
@@ -179,7 +179,7 @@ function getTemplatePartFields( activeArea ) {
 			enableHiding: false,
 			getValue: ( { item } ) => getTitleText( item.title ),
 			id: 'title',
-			label: __( 'Title' ),
+			label: __( 'Title', 'create-not-learn-editor' ),
 			render: ( { item } ) => (
 				<span className="cnl-editor-dataviews-title">
 					{ getTitleText( item.title ) }
@@ -192,7 +192,7 @@ function getTemplatePartFields( activeArea ) {
 			enableSorting: false,
 			getValue: ( { item } ) => getTemplatePartDescription( item ),
 			id: 'description',
-			label: __( 'Description' ),
+			label: __( 'Description', 'create-not-learn-editor' ),
 			render: ( { item } ) => getTemplatePartDescription( item ),
 			type: 'text',
 		},
@@ -200,21 +200,21 @@ function getTemplatePartFields( activeArea ) {
 			getValue: ( { item } ) =>
 				getTemplatePartCreateAreaLabel( item.area ),
 			id: 'area',
-			label: __( 'Where it goes' ),
+			label: __( 'Where it goes', 'create-not-learn-editor' ),
 			type: 'text',
 		},
 		{
 			enableGlobalSearch: true,
 			getValue: ( { item } ) => getTemplateAuthorText( item ),
 			id: 'author',
-			label: __( 'Author' ),
+			label: __( 'Author', 'create-not-learn-editor' ),
 			type: 'text',
 		},
 		{
 			enableGlobalSearch: true,
 			getValue: ( { item } ) => item?.slug || String( item?.id || '' ),
 			id: 'slug',
-			label: __( 'Slug' ),
+			label: __( 'Slug', 'create-not-learn-editor' ),
 			type: 'text',
 		},
 		{
@@ -222,7 +222,7 @@ function getTemplatePartFields( activeArea ) {
 			enableSorting: false,
 			filterBy: false,
 			id: 'preview',
-			label: __( 'Preview' ),
+			label: __( 'Preview', 'create-not-learn-editor' ),
 			render: renderTemplatePartPreview,
 			type: 'media',
 		},
@@ -252,7 +252,7 @@ function getTemplatePartActions( navigate ) {
 			callback: ( items ) => openTemplatePart( navigate, items[ 0 ] ),
 			id: 'edit-template-part',
 			isPrimary: true,
-			label: __( 'Edit' ),
+			label: __( 'Edit', 'create-not-learn-editor' ),
 			supportsBulk: false,
 		},
 	];
@@ -273,7 +273,9 @@ function CreateTemplatePartModal( {
 		event.preventDefault();
 
 		if ( ! canCreate ) {
-			setValidationError( __( 'Enter a template part name.' ) );
+			setValidationError(
+				__( 'Enter a template part name.', 'create-not-learn-editor' )
+			);
 			return;
 		}
 
@@ -292,7 +294,7 @@ function CreateTemplatePartModal( {
 					onClose();
 				}
 			} }
-			title={ __( 'Add a site part' ) }
+			title={ __( 'Add a site part', 'create-not-learn-editor' ) }
 		>
 			<form
 				className="routes-template-part-list__create-form"
@@ -301,7 +303,7 @@ function CreateTemplatePartModal( {
 				<InputControl
 					autoComplete="off"
 					disabled={ isSaving }
-					label={ __( 'Name' ) }
+					label={ __( 'Name', 'create-not-learn-editor' ) }
 					onValueChange={ ( value ) => {
 						setTitle( value );
 						setValidationError( '' );
@@ -312,7 +314,7 @@ function CreateTemplatePartModal( {
 					__next40pxDefaultSize
 					__nextHasNoMarginBottom
 					disabled={ isSaving }
-					label={ __( 'Area' ) }
+					label={ __( 'Area', 'create-not-learn-editor' ) }
 					onChange={ setArea }
 					options={ TEMPLATE_PART_CREATE_AREAS.map( ( option ) => ( {
 						label: getTemplatePartCreateAreaLabel( option.value ),
@@ -332,7 +334,7 @@ function CreateTemplatePartModal( {
 						onClick={ onClose }
 						variant="tertiary"
 					>
-						{ __( 'Cancel' ) }
+						{ __( 'Cancel', 'create-not-learn-editor' ) }
 					</Button>
 					<Button
 						__next40pxDefaultSize
@@ -341,7 +343,7 @@ function CreateTemplatePartModal( {
 						type="submit"
 						variant="primary"
 					>
-						{ __( 'Add' ) }
+						{ __( 'Add', 'create-not-learn-editor' ) }
 					</Button>
 				</div>
 			</form>
@@ -548,7 +550,7 @@ export function TemplatePartsStage() {
 				onClick={ openCreateModal }
 				variant="primary"
 			>
-				{ __( 'Add site part' ) }
+				{ __( 'Add site part', 'create-not-learn-editor' ) }
 			</Button>
 		</div>
 	);
@@ -557,16 +559,20 @@ export function TemplatePartsStage() {
 			<EmptyState.Root>
 				<EmptyState.Icon icon={ layoutIcon } />
 				<EmptyState.Title>
-					{ __( 'No site parts found' ) }
+					{ __( 'No site parts found', 'create-not-learn-editor' ) }
 				</EmptyState.Title>
 				<EmptyState.Description>
 					{ activeArea === 'all'
 						? __(
-								'Template parts will appear here when the active theme or site defines reusable structural areas.'
+								'Template parts will appear here when the active theme or site defines reusable structural areas.',
+								'create-not-learn-editor'
 							)
 						: sprintf(
 								/* translators: %s: template part area label. */
-								__( 'No template parts are available for %s.' ),
+								__(
+									'No template parts are available for %s.',
+									'create-not-learn-editor'
+								),
 								getTemplatePartAreaLabel(
 									activeArea
 								).toLowerCase()

@@ -11,7 +11,7 @@ export const route = {
 			throw notFound();
 		}
 	},
-	title: () => __( 'Edit navigation menu' ),
+	title: () => __( 'Edit navigation menu', 'create-not-learn-editor' ),
 	async canvas() {
 		return null;
 	},

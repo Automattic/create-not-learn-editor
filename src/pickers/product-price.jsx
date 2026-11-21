@@ -41,15 +41,17 @@ export function ProductPriceFields( { product, update } ) {
 		return (
 			<Stack direction="column" gap="xs">
 				<Text render={ <h3 /> } variant="heading-sm">
-					{ __( 'Price' ) }
+					{ __( 'Price', 'create-not-learn-editor' ) }
 				</Text>
 				<Text className="routes-styles__muted" variant="body-sm">
 					{ product.type === 'variable'
 						? __(
-								'Each option, like a size or colour, has its own price and stock. Change them in WP Admin.'
+								'Each option, like a size or colour, has its own price and stock. Change them in WP Admin.',
+								'create-not-learn-editor'
 							)
 						: __(
-								'It is a group of other products, each with its own price.'
+								'It is a group of other products, each with its own price.',
+								'create-not-learn-editor'
 							) }
 				</Text>
 			</Stack>
@@ -62,7 +64,7 @@ export function ProductPriceFields( { product, update } ) {
 	return (
 		<>
 			<PriceInput
-				label={ __( 'Price' ) }
+				label={ __( 'Price', 'create-not-learn-editor' ) }
 				onChange={ ( price ) => update( { regular_price: price } ) }
 				placeholder="0.00"
 				prefix={ prefix }
@@ -72,13 +74,17 @@ export function ProductPriceFields( { product, update } ) {
 				description={
 					sale >= regular || ( sale && ! regular )
 						? __(
-								'WooCommerce only keeps a sale price that is less than the price. This one won’t be saved.'
+								'WooCommerce only keeps a sale price that is less than the price. This one won’t be saved.',
+								'create-not-learn-editor'
 							)
-						: __( 'Leave empty unless it is on sale.' )
+						: __(
+								'Leave empty unless it is on sale.',
+								'create-not-learn-editor'
+							)
 				}
-				label={ __( 'Sale price' ) }
+				label={ __( 'Sale price', 'create-not-learn-editor' ) }
 				onChange={ ( price ) => update( { sale_price: price } ) }
-				placeholder={ __( 'Not on sale' ) }
+				placeholder={ __( 'Not on sale', 'create-not-learn-editor' ) }
 				prefix={ prefix }
 				value={ product.sale_price }
 			/>
@@ -121,7 +127,12 @@ function PriceInput( {
 	return (
 		<InputControl
 			description={
-				isPrice ? description : __( 'Use numbers only, like 12.50.' )
+				isPrice
+					? description
+					: __(
+							'Use numbers only, like 12.50.',
+							'create-not-learn-editor'
+						)
 			}
 			inputMode="decimal"
 			label={ label }

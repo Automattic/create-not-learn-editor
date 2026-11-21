@@ -38,38 +38,47 @@ export function getSectionGroups() {
 	return [
 		{
 			name: 'introduce',
-			label: __( 'Introduce' ),
-			description: __( 'Say who you are' ),
+			label: __( 'Introduce', 'create-not-learn-editor' ),
+			description: __( 'Say who you are', 'create-not-learn-editor' ),
 			categories: [ 'banner', 'about', 'team' ],
 		},
 		{
 			name: 'sell',
-			label: __( 'Sell' ),
-			description: __( 'Win people over' ),
+			label: __( 'Sell', 'create-not-learn-editor' ),
+			description: __( 'Win people over', 'create-not-learn-editor' ),
 			categories: [ 'call-to-action', 'services', 'testimonials' ],
 		},
 		{
 			name: 'showcase',
-			label: __( 'Showcase' ),
-			description: __( 'Show off your work' ),
+			label: __( 'Showcase', 'create-not-learn-editor' ),
+			description: __( 'Show off your work', 'create-not-learn-editor' ),
 			categories: [ 'portfolio', 'gallery', 'media', 'videos', 'audio' ],
 		},
 		{
 			name: 'write',
-			label: __( 'Write' ),
-			description: __( 'Words, quotes and lists' ),
+			label: __( 'Write', 'create-not-learn-editor' ),
+			description: __(
+				'Words, quotes and lists',
+				'create-not-learn-editor'
+			),
 			categories: [ 'text', 'columns', 'buttons' ],
 		},
 		{
 			name: 'posts',
-			label: __( 'Posts' ),
-			description: __( 'Share your latest writing' ),
+			label: __( 'Posts', 'create-not-learn-editor' ),
+			description: __(
+				'Share your latest writing',
+				'create-not-learn-editor'
+			),
 			categories: [ 'posts' ],
 		},
 		{
 			name: 'contact',
-			label: __( 'Get in touch' ),
-			description: __( 'Help people reach you' ),
+			label: __( 'Get in touch', 'create-not-learn-editor' ),
+			description: __(
+				'Help people reach you',
+				'create-not-learn-editor'
+			),
 			categories: [ 'contact' ],
 		},
 	];
@@ -86,38 +95,47 @@ export function getLayoutGroups() {
 	return [
 		{
 			name: 'layout-banners',
-			label: __( 'Banners' ),
-			description: __( 'Big openers for the top of a page' ),
+			label: __( 'Banners', 'create-not-learn-editor' ),
+			description: __(
+				'Big openers for the top of a page',
+				'create-not-learn-editor'
+			),
 			categories: [ 'cnl-layouts-banners' ],
 		},
 		{
 			name: 'layout-text',
-			label: __( 'Text' ),
-			description: __( 'Words on their own' ),
+			label: __( 'Text', 'create-not-learn-editor' ),
+			description: __( 'Words on their own', 'create-not-learn-editor' ),
 			categories: [ 'cnl-layouts-text' ],
 		},
 		{
 			name: 'layout-image-text',
-			label: __( 'Image and text' ),
-			description: __( 'A picture with words beside it' ),
+			label: __( 'Image and text', 'create-not-learn-editor' ),
+			description: __(
+				'A picture with words beside it',
+				'create-not-learn-editor'
+			),
 			categories: [ 'cnl-layouts-image-text' ],
 		},
 		{
 			name: 'layout-columns',
-			label: __( 'Columns' ),
-			description: __( 'Things side by side' ),
+			label: __( 'Columns', 'create-not-learn-editor' ),
+			description: __( 'Things side by side', 'create-not-learn-editor' ),
 			categories: [ 'cnl-layouts-columns' ],
 		},
 		{
 			name: 'layout-images',
-			label: __( 'Images' ),
-			description: __( 'Pictures first' ),
+			label: __( 'Images', 'create-not-learn-editor' ),
+			description: __( 'Pictures first', 'create-not-learn-editor' ),
 			categories: [ 'cnl-layouts-images' ],
 		},
 		{
 			name: 'layout-calls-to-action',
-			label: __( 'Calls to action' ),
-			description: __( 'Ask people to do something' ),
+			label: __( 'Calls to action', 'create-not-learn-editor' ),
+			description: __(
+				'Ask people to do something',
+				'create-not-learn-editor'
+			),
 			categories: [ 'cnl-layouts-calls-to-action' ],
 		},
 	];
@@ -165,11 +183,14 @@ export function groupSectionDesigns( patterns, themeName ) {
 			label: themeName
 				? sprintf(
 						/* translators: %s: theme name. */
-						__( 'From %s' ),
+						__( 'From %s', 'create-not-learn-editor' ),
 						themeName
 					)
-				: __( 'More designs' ),
-			description: __( 'Designs from your theme' ),
+				: __( 'More designs', 'create-not-learn-editor' ),
+			description: __(
+				'Designs from your theme',
+				'create-not-learn-editor'
+			),
 			categories: EMPTY_ARRAY,
 		},
 	] );
@@ -186,8 +207,8 @@ export function groupLayouts( patterns ) {
 		...getLayoutGroups(),
 		{
 			name: 'layout-more',
-			label: __( 'More templates' ),
-			description: __( 'Other shapes' ),
+			label: __( 'More templates', 'create-not-learn-editor' ),
+			description: __( 'Other shapes', 'create-not-learn-editor' ),
 			categories: EMPTY_ARRAY,
 		},
 	] );

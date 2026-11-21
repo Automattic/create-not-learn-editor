@@ -51,7 +51,7 @@ export function NavigationMenuRow( {
 				icon={ moreVerticalIcon }
 				label={ sprintf(
 					/* translators: %s: navigation menu title. */
-					__( '%s options' ),
+					__( '%s options', 'create-not-learn-editor' ),
 					title
 				) }
 				popoverProps={ { placement: 'bottom-end' } }
@@ -68,7 +68,7 @@ export function NavigationMenuRow( {
 								onClose();
 							} }
 						>
-							{ __( 'Rename' ) }
+							{ __( 'Rename', 'create-not-learn-editor' ) }
 						</MenuItem>
 						<MenuItem
 							onClick={ () => {
@@ -76,7 +76,7 @@ export function NavigationMenuRow( {
 								onClose();
 							} }
 						>
-							{ __( 'Duplicate' ) }
+							{ __( 'Duplicate', 'create-not-learn-editor' ) }
 						</MenuItem>
 						<MenuItem
 							isDestructive
@@ -85,7 +85,7 @@ export function NavigationMenuRow( {
 								onClose();
 							} }
 						>
-							{ __( 'Delete' ) }
+							{ __( 'Delete', 'create-not-learn-editor' ) }
 						</MenuItem>
 					</>
 				) }
@@ -139,11 +139,11 @@ export function RenameNavigationMenuModal( {
 		<Modal
 			className="routes-navigation-edit__item-modal"
 			onRequestClose={ onClose }
-			title={ __( 'Rename navigation menu' ) }
+			title={ __( 'Rename navigation menu', 'create-not-learn-editor' ) }
 		>
 			<InputControl
 				disabled={ isSaving }
-				label={ __( 'Name' ) }
+				label={ __( 'Name', 'create-not-learn-editor' ) }
 				onValueChange={ onChangeTitle }
 				value={ title }
 			/>
@@ -153,7 +153,7 @@ export function RenameNavigationMenuModal( {
 					onClick={ onClose }
 					variant="tertiary"
 				>
-					{ __( 'Cancel' ) }
+					{ __( 'Cancel', 'create-not-learn-editor' ) }
 				</Button>
 				<Button
 					disabled={
@@ -163,7 +163,7 @@ export function RenameNavigationMenuModal( {
 					onClick={ onSave }
 					variant="primary"
 				>
-					{ __( 'Save' ) }
+					{ __( 'Save', 'create-not-learn-editor' ) }
 				</Button>
 			</div>
 		</Modal>
@@ -180,13 +180,14 @@ export function DeleteNavigationMenuModal( {
 		<Modal
 			className="routes-navigation-edit__item-modal"
 			onRequestClose={ onClose }
-			title={ __( 'Delete navigation menu' ) }
+			title={ __( 'Delete navigation menu', 'create-not-learn-editor' ) }
 		>
 			<p>
 				{ sprintf(
 					/* translators: %s: navigation menu title. */
 					__(
-						'Are you sure you want to delete "%s"? This cannot be undone.'
+						'Are you sure you want to delete "%s"? This cannot be undone.',
+						'create-not-learn-editor'
 					),
 					menuTitle
 				) }
@@ -197,7 +198,7 @@ export function DeleteNavigationMenuModal( {
 					onClick={ onClose }
 					variant="tertiary"
 				>
-					{ __( 'Cancel' ) }
+					{ __( 'Cancel', 'create-not-learn-editor' ) }
 				</Button>
 				<Button
 					disabled={ isSaving }
@@ -206,7 +207,7 @@ export function DeleteNavigationMenuModal( {
 					onClick={ onDelete }
 					variant="primary"
 				>
-					{ __( 'Delete' ) }
+					{ __( 'Delete', 'create-not-learn-editor' ) }
 				</Button>
 			</div>
 		</Modal>

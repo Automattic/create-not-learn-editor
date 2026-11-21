@@ -26,4 +26,18 @@ module.exports = [
 			],
 		},
 	},
+	{
+		// Every string the editor adds is in its own text domain, so its
+		// translations load for its modules. A string that has to be core's,
+		// because it finds one of core's controls by its words, turns the
+		// rule off where it is, saying why.
+		files: [ 'src/**', 'routes/**', 'packages/*/src/**' ],
+		ignores: [ 'src/vendor/**' ],
+		rules: {
+			'@wordpress/i18n-text-domain': [
+				'error',
+				{ allowedTextDomain: 'create-not-learn-editor' },
+			],
+		},
+	},
 ];

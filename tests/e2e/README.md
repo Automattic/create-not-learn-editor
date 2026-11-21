@@ -8,6 +8,7 @@ Playwright tests that drive the editor in a real browser against the `wp-env` te
 - `views/` checks what each screen shows when it opens, one file per area.
 - `interactions/` checks what happens when you do something, such as adding a page, customising a menu or discarding a change. Again, one file per area.
 - `utils/` holds the shared `test` fixture and helpers. Import `test` and `expect` from `./utils` rather than from `@playwright/test`.
+- `fixtures/mu-plugins/` is mapped into the tests site's `wp-content/mu-plugins` (see `.wp-env.json`). It holds the German test locale `views/translations.spec.js` uses; see [Translations](../../CONTRIBUTING.md#translations).
 
 The areas are `home`, `pages`, `add-page`, `menus`, `design`, `advanced` (Layouts, All site parts and Sections) and `block-editor`, plus `site-canvas` for the Preview and Edit canvas shared by Home, Pages and Design.
 
