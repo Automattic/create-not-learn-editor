@@ -176,7 +176,13 @@ export function getPaletteColorSets( { palette, background, text, button } ) {
 	if ( soft ) {
 		// Close to the page, so buttons stay as they are on it.
 		sets.push(
-			makeSet( 'palette-soft', __( 'Soft' ), soft, words, false )
+			makeSet(
+				'palette-soft',
+				__( 'Soft', 'create-not-learn-editor' ),
+				soft,
+				words,
+				false
+			)
 		);
 	}
 
@@ -184,8 +190,8 @@ export function getPaletteColorSets( { palette, background, text, button } ) {
 		makeSet(
 			'palette-inverse',
 			getLuminance( page.rgb ) > getLuminance( words.rgb )
-				? __( 'Dark' )
-				: __( 'Light' ),
+				? __( 'Dark', 'create-not-learn-editor' )
+				: __( 'Light', 'create-not-learn-editor' ),
 			words,
 			page
 		)

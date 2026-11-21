@@ -37,8 +37,8 @@ import { Flyout, useSearchLabel } from './menu-search';
 import { useLeaveFocus } from './toolbar-menu';
 
 const LABELS = {
-	text: __( 'Text color' ),
-	background: __( 'Background color' ),
+	text: __( 'Text color', 'create-not-learn-editor' ),
+	background: __( 'Background color', 'create-not-learn-editor' ),
 };
 
 /**
@@ -264,7 +264,11 @@ export function ColorSubmenu( {
 	const value = getActiveColor( choices, attributes, kind ) ?? NONE;
 	const color = getColor( choices, attributes, kind );
 	const options = [
-		{ value: NONE, label: __( 'Default' ), color: canvas.initial },
+		{
+			value: NONE,
+			label: __( 'Default', 'create-not-learn-editor' ),
+			color: canvas.initial,
+		},
 		...choices.map( ( choice ) => ( {
 			value: getColorChoiceValue( choice ),
 			label: choice.name || choice.slug || choice.color,
@@ -282,7 +286,7 @@ export function ColorSubmenu( {
 					prefix={ <Swatch color={ color ?? canvas.initial } /> }
 					suffix={
 						value === CUSTOM
-							? __( 'Custom' )
+							? __( 'Custom', 'create-not-learn-editor' )
 							: options.find(
 									( option ) => option.value === value
 								)?.label
@@ -361,7 +365,10 @@ function ColorItems( {
 						suffix={
 							option.choice &&
 							isChoiceHardToRead( kind, option.color, canvas )
-								? __( 'Hard to read' )
+								? __(
+										'Hard to read',
+										'create-not-learn-editor'
+									)
 								: undefined
 						}
 					>
@@ -373,7 +380,9 @@ function ColorItems( {
 				<>
 					<Menu.Separator />
 					<Menu.Item
-						label={ searchLabel( __( 'Custom' ) ) }
+						label={ searchLabel(
+							__( 'Custom', 'create-not-learn-editor' )
+						) }
 						prefix={
 							<span
 								className="cnl-block-options__swatch is-wheel"
@@ -390,7 +399,9 @@ function ColorItems( {
 							onCustom( kind );
 						} }
 					>
-						<Menu.ItemLabel>{ __( 'Custom…' ) }</Menu.ItemLabel>
+						<Menu.ItemLabel>
+							{ __( 'Custom…', 'create-not-learn-editor' ) }
+						</Menu.ItemLabel>
 					</Menu.Item>
 				</>
 			) }
@@ -462,9 +473,13 @@ export function ColorPickerPopover( {
 						<Icon icon={ cautionIcon } size={ 20 } />
 						{ kind === 'text'
 							? __(
-									'This color may be hard to read on the background.'
+									'This color may be hard to read on the background.',
+									'create-not-learn-editor'
 								)
-							: __( 'Text may be hard to read on this color.' ) }
+							: __(
+									'Text may be hard to read on this color.',
+									'create-not-learn-editor'
+								) }
 					</Text>
 				) }
 			</div>

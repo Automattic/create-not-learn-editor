@@ -97,7 +97,7 @@ function AddSubmenuItem( {
 				onClose();
 			} }
 		>
-			{ __( 'Add submenu link' ) }
+			{ __( 'Add submenu link', 'create-not-learn-editor' ) }
 		</MenuItem>
 	);
 }
@@ -172,7 +172,7 @@ export default function NavigationListViewMoreMenu( props ) {
 
 	const removeLabel = sprintf(
 		/* translators: %s: block name. */
-		__( 'Remove %s' ),
+		__( 'Remove %s', 'create-not-learn-editor' ),
 		BlockTitle( { clientId, maximumLength: 25 } )
 	);
 
@@ -181,7 +181,7 @@ export default function NavigationListViewMoreMenu( props ) {
 			className="block-editor-block-settings-menu"
 			disableOpenOnArrowDown={ props.disableOpenOnArrowDown }
 			icon={ moreVerticalIcon }
-			label={ __( 'Options' ) }
+			label={ __( 'Options', 'create-not-learn-editor' ) }
 			noIcons
 			popoverProps={ {
 				...POPOVER_PROPS,
@@ -201,7 +201,7 @@ export default function NavigationListViewMoreMenu( props ) {
 								onClose();
 							} }
 						>
-							{ __( 'Move up' ) }
+							{ __( 'Move up', 'create-not-learn-editor' ) }
 						</MenuItem>
 						<MenuItem
 							accessibleWhenDisabled
@@ -212,7 +212,7 @@ export default function NavigationListViewMoreMenu( props ) {
 								onClose();
 							} }
 						>
-							{ __( 'Move down' ) }
+							{ __( 'Move down', 'create-not-learn-editor' ) }
 						</MenuItem>
 						<AddSubmenuItem
 							block={ block }
@@ -237,7 +237,7 @@ export default function NavigationListViewMoreMenu( props ) {
 									onClose();
 								} }
 							>
-								{ __( 'Duplicate' ) }
+								{ __( 'Duplicate', 'create-not-learn-editor' ) }
 							</MenuItem>
 						) }
 						{ canInsertBlock && (
@@ -247,7 +247,10 @@ export default function NavigationListViewMoreMenu( props ) {
 									onClose();
 								} }
 							>
-								{ __( 'Add before' ) }
+								{ __(
+									'Add before',
+									'create-not-learn-editor'
+								) }
 							</MenuItem>
 						) }
 						{ canInsertBlock && (
@@ -257,7 +260,7 @@ export default function NavigationListViewMoreMenu( props ) {
 									onClose();
 								} }
 							>
-								{ __( 'Add after' ) }
+								{ __( 'Add after', 'create-not-learn-editor' ) }
 							</MenuItem>
 						) }
 					</MenuGroup>

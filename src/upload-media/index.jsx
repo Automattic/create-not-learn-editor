@@ -64,7 +64,7 @@ function isOnMediaScreen() {
 function formatMegabytes( bytes ) {
 	return sprintf(
 		/* translators: %s: a number of megabytes. */
-		__( '%s MB' ),
+		__( '%s MB', 'create-not-learn-editor' ),
 		Math.floor( bytes / ( 1024 * 1024 ) ).toLocaleString()
 	);
 }
@@ -113,7 +113,8 @@ function announceAdded( count ) {
 			_n(
 				'%d file added to your media.',
 				'%d files added to your media.',
-				count
+				count,
+				'create-not-learn-editor'
 			),
 			count
 		),
@@ -122,7 +123,10 @@ function announceAdded( count ) {
 				? []
 				: [
 						{
-							label: __( 'View media' ),
+							label: __(
+								'View media',
+								'create-not-learn-editor'
+							),
 							onClick: () => openRoute( '/media' ),
 						},
 					],
@@ -146,7 +150,9 @@ function FileRow( { file } ) {
 					{ file.name }
 				</Text>
 				{ file.status === 'done' && (
-					<Badge intent="stable">{ __( 'Added' ) }</Badge>
+					<Badge intent="stable">
+						{ __( 'Added', 'create-not-learn-editor' ) }
+					</Badge>
 				) }
 			</Stack>
 			{ file.status === 'uploading' && (
@@ -154,7 +160,7 @@ function FileRow( { file } ) {
 					className="cnl-upload-media__progress"
 					aria-label={ sprintf(
 						/* translators: %s: file name. */
-						__( 'Uploading %s' ),
+						__( 'Uploading %s', 'create-not-learn-editor' ),
 						file.name
 					) }
 					value={ null }
@@ -257,7 +263,8 @@ export function UploadMediaModal( { initialFiles, onClose } ) {
 							_n(
 								'%d file added to your media.',
 								'%d files added to your media.',
-								tally.added
+								tally.added,
+								'create-not-learn-editor'
 							),
 							tally.added
 						),
@@ -306,10 +313,16 @@ export function UploadMediaModal( { initialFiles, onClose } ) {
 				( error ) => {
 					const message =
 						error?.message ||
-						__( 'Something went wrong. Please try again.' );
+						__(
+							'Something went wrong. Please try again.',
+							'create-not-learn-editor'
+						);
 					const failure = sprintf(
 						/* translators: 1: file name, 2: the reason it wasn't added. */
-						__( '%1$s wasn’t added. %2$s' ),
+						__(
+							'%1$s wasn’t added. %2$s',
+							'create-not-learn-editor'
+						),
 						file.name,
 						message
 					);
@@ -347,7 +360,7 @@ export function UploadMediaModal( { initialFiles, onClose } ) {
 			focusOnMount="firstContentElement"
 			onRequestClose={ onClose }
 			size="medium"
-			title={ __( 'Upload media' ) }
+			title={ __( 'Upload media', 'create-not-learn-editor' ) }
 		>
 			<Stack direction="column" gap="lg">
 				<FormFileUpload
@@ -375,29 +388,40 @@ export function UploadMediaModal( { initialFiles, onClose } ) {
 							<EmptyState.Root>
 								<EmptyState.Icon icon={ upload } />
 								<EmptyState.Title>
-									{ __( 'Drag and drop files here' ) }
+									{ __(
+										'Drag and drop files here',
+										'create-not-learn-editor'
+									) }
 								</EmptyState.Title>
 								<EmptyState.Description>
 									{ maxSize
 										? sprintf(
 												/* translators: %s: largest file size, like "64 MB". */
 												__(
-													'Or choose them from your device. Photos, videos, audio, and documents, up to %s each.'
+													'Or choose them from your device. Photos, videos, audio, and documents, up to %s each.',
+													'create-not-learn-editor'
 												),
 												formatMegabytes( maxSize )
 											)
 										: __(
-												'Or choose them from your device. Photos, videos, audio, and documents.'
+												'Or choose them from your device. Photos, videos, audio, and documents.',
+												'create-not-learn-editor'
 											) }
 								</EmptyState.Description>
 								<EmptyState.Actions>
 									<Button onClick={ openFileDialog }>
-										{ __( 'Choose files' ) }
+										{ __(
+											'Choose files',
+											'create-not-learn-editor'
+										) }
 									</Button>
 								</EmptyState.Actions>
 							</EmptyState.Root>
 							<DropZone
-								label={ __( 'Drop to upload' ) }
+								label={ __(
+									'Drop to upload',
+									'create-not-learn-editor'
+								) }
 								onFilesDrop={ addFiles }
 							/>
 						</div>
@@ -410,7 +434,10 @@ export function UploadMediaModal( { initialFiles, onClose } ) {
 								<Notice.Title>
 									{ sprintf(
 										/* translators: %s: file name. */
-										__( '%s wasn’t added' ),
+										__(
+											'%s wasn’t added',
+											'create-not-learn-editor'
+										),
 										file.name
 									) }
 								</Notice.Title>
@@ -426,7 +453,7 @@ export function UploadMediaModal( { initialFiles, onClose } ) {
 				) }
 				{ !! rows.length && (
 					<Stack
-						aria-label={ __( 'Files' ) }
+						aria-label={ __( 'Files', 'create-not-learn-editor' ) }
 						className="cnl-upload-media__files"
 						direction="column"
 						gap="md"

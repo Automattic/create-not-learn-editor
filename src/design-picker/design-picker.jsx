@@ -92,7 +92,7 @@ export function DesignPicker( {
 						{ actions }
 						<Button
 							icon={ closeSmallIcon }
-							label={ __( 'Close' ) }
+							label={ __( 'Close', 'create-not-learn-editor' ) }
 							onClick={ onClose }
 						/>
 					</div>
@@ -216,7 +216,8 @@ export function StartFromScratch( {
 			</span>
 			<span className="cnl-design-picker__scratch-text">
 				<span className="cnl-design-picker__scratch-title">
-					{ title || __( 'Start from scratch' ) }
+					{ title ||
+						__( 'Start from scratch', 'create-not-learn-editor' ) }
 				</span>
 				<span className="cnl-design-picker__scratch-description">
 					{ description }

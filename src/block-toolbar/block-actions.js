@@ -68,7 +68,7 @@ function describe( registry, clientIds ) {
 	if ( clientIds.length > 1 ) {
 		return sprintf(
 			/* translators: %d: number of blocks. */
-			__( '%d blocks' ),
+			__( '%d blocks', 'create-not-learn-editor' ),
 			clientIds.length
 		);
 	}
@@ -76,7 +76,9 @@ function describe( registry, clientIds ) {
 	const name = registry
 		.select( blockEditorStore )
 		.getBlockName( clientIds[ 0 ] );
-	return getBlockType( name )?.title ?? __( 'Block' );
+	return (
+		getBlockType( name )?.title ?? __( 'Block', 'create-not-learn-editor' )
+	);
 }
 
 export async function copyBlocks( registry, clientIds ) {
@@ -85,7 +87,7 @@ export async function copyBlocks( registry, clientIds ) {
 			registry,
 			sprintf(
 				/* translators: %s: block name, or a number of blocks. */
-				__( 'Copied %s to clipboard.' ),
+				__( 'Copied %s to clipboard.', 'create-not-learn-editor' ),
 				describe( registry, clientIds )
 			)
 		);
@@ -101,7 +103,7 @@ export async function cutBlocks( registry, clientIds ) {
 			registry,
 			sprintf(
 				/* translators: %s: block name, or a number of blocks. */
-				__( 'Moved %s to clipboard.' ),
+				__( 'Moved %s to clipboard.', 'create-not-learn-editor' ),
 				label
 			)
 		);
@@ -110,7 +112,7 @@ export async function cutBlocks( registry, clientIds ) {
 
 export async function copyStyles( registry, clientIds ) {
 	if ( await writeBlocks( registry, clientIds ) ) {
-		notify( registry, __( 'Copied styles.' ) );
+		notify( registry, __( 'Copied styles.', 'create-not-learn-editor' ) );
 	}
 }
 
@@ -133,9 +135,15 @@ export async function pasteStyles( registry, clientIds ) {
 	if ( ! source ) {
 		registry
 			.dispatch( noticesStore )
-			.createErrorNotice( __( 'There are no styles to paste.' ), {
-				type: 'snackbar',
-			} );
+			.createErrorNotice(
+				__(
+					'There are no styles to paste.',
+					'create-not-learn-editor'
+				),
+				{
+					type: 'snackbar',
+				}
+			);
 		return;
 	}
 
@@ -153,5 +161,5 @@ export async function pasteStyles( registry, clientIds ) {
 		updateBlockAttributes( clientId, styles );
 	} );
 
-	notify( registry, __( 'Pasted styles.' ) );
+	notify( registry, __( 'Pasted styles.', 'create-not-learn-editor' ) );
 }

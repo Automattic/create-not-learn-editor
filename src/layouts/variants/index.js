@@ -322,7 +322,7 @@ export function getSectionArrangements( block ) {
 		options: [
 			{
 				name: AS_IT_IS,
-				label: __( 'As it is' ),
+				label: __( 'As it is', 'create-not-learn-editor' ),
 				block: cloneBlock( block ),
 			},
 			...options,

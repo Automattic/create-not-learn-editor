@@ -131,7 +131,10 @@ export function PageSwitcher( {
 						shouldRefocus.current = isEscape;
 						setIsFinding( false );
 					} }
-					placeholder={ __( 'Go to page…' ) }
+					placeholder={ __(
+						'Go to page…',
+						'create-not-learn-editor'
+					) }
 				/>
 			) : (
 				// Still the screen's heading, as the page's name was before it
@@ -142,7 +145,10 @@ export function PageSwitcher( {
 							<Tooltip.Trigger
 								aria-label={ sprintf(
 									/* translators: %s: The name of the page on show, and its status. */
-									__( '%s. Go to another page' ),
+									__(
+										'%s. Go to another page',
+										'create-not-learn-editor'
+									),
 									[ title, statusLabel ]
 										.filter( Boolean )
 										.join( ', ' )
@@ -236,11 +242,16 @@ export function getPreviewSwitcherProps( {
 	previewContext,
 	liveUrl,
 } ) {
-	const title = previewContext?.previewLabel || __( 'Home' );
+	const title =
+		previewContext?.previewLabel || __( 'Home', 'create-not-learn-editor' );
 	const url = liveUrl || '';
 
 	if ( isLoadingContext ) {
-		return { title, url, meta: __( 'Loading preview details' ) };
+		return {
+			title,
+			url,
+			meta: __( 'Loading preview details', 'create-not-learn-editor' ),
+		};
 	}
 
 	// The homepage is live whatever it shows.
@@ -263,7 +274,8 @@ export function getPreviewSwitcherProps( {
 		url,
 		meta: [
 			previewContext?.previewTypeLabel,
-			previewContext?.previewStatusLabel || __( 'Preview' ),
+			previewContext?.previewStatusLabel ||
+				__( 'Preview', 'create-not-learn-editor' ),
 		]
 			.filter( Boolean )
 			.join( ' · ' ),

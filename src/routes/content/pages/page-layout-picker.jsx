@@ -88,14 +88,18 @@ function useLayoutOptions( slug, isFrontPage, showsLatestPosts ) {
 				toOption(
 					frontPageTemplate,
 					getTemplateDisplayTitle( frontPageTemplate ) ||
-						__( 'Homepage' )
+						__( 'Homepage', 'create-not-learn-editor' )
 				),
 			];
 		}
 
 		return [
 			defaultTemplate &&
-				toOption( defaultTemplate, __( 'Standard' ), '' ),
+				toOption(
+					defaultTemplate,
+					__( 'Standard', 'create-not-learn-editor' ),
+					''
+				),
 			...custom
 				.filter( ( template ) => template.content?.raw )
 				.map( ( template ) =>
@@ -189,7 +193,7 @@ function PageLayouts( {
 	} else {
 		body = (
 			<ul
-				aria-label={ __( 'Layouts' ) }
+				aria-label={ __( 'Layouts', 'create-not-learn-editor' ) }
 				className="cnl-page-layouts__grid"
 				role="list"
 			>
@@ -224,16 +228,18 @@ function PageLayouts( {
 
 	return (
 		<section
-			aria-label={ __( 'Change layout' ) }
+			aria-label={ __( 'Change layout', 'create-not-learn-editor' ) }
 			className="cnl-page-layouts"
 		>
 			<Text className="cnl-page-sections__hint" variant="body-sm">
 				{ frontPageTemplate
 					? __(
-							'Your homepage always uses this layout. WordPress calls layouts templates.'
+							'Your homepage always uses this layout. WordPress calls layouts templates.',
+							'create-not-learn-editor'
 						)
 					: __(
-							'How the page is set out around its sections. WordPress calls these templates.'
+							'How the page is set out around its sections. WordPress calls these templates.',
+							'create-not-learn-editor'
 						) }
 			</Text>
 			{ body }

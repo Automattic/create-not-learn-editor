@@ -68,8 +68,8 @@ export default function NavigationListViewAppender( {
 	const shouldShowEmptySubmenu =
 		isEmptyBranch || ( isSubmenuAppender && blockCount === 0 );
 	const appenderLabel = isSubmenuAppender
-		? __( 'Add to submenu' )
-		: __( 'Add menu item' );
+		? __( 'Add to submenu', 'create-not-learn-editor' )
+		: __( 'Add menu item', 'create-not-learn-editor' );
 	const toggleClassName = [
 		typeof props.className === 'string' ? props.className : '',
 		'block-editor-inserter__toggle',
@@ -118,7 +118,7 @@ export default function NavigationListViewAppender( {
 									setIsChoosingSubmenuType( false )
 								}
 							>
-								{ __( 'Back' ) }
+								{ __( 'Back', 'create-not-learn-editor' ) }
 							</MenuItem>
 						</MenuGroup>
 						<MenuGroup>
@@ -134,7 +134,10 @@ export default function NavigationListViewAppender( {
 									);
 								} }
 							>
-								{ __( 'Existing page' ) }
+								{ __(
+									'Existing page',
+									'create-not-learn-editor'
+								) }
 							</MenuItem>
 							<MenuItem
 								icon={ linkIcon }
@@ -148,7 +151,10 @@ export default function NavigationListViewAppender( {
 									);
 								} }
 							>
-								{ __( 'Custom link' ) }
+								{ __(
+									'Custom link',
+									'create-not-learn-editor'
+								) }
 							</MenuItem>
 							<MenuItem
 								icon={ addSubmenuIcon }
@@ -166,7 +172,10 @@ export default function NavigationListViewAppender( {
 									} );
 								} }
 							>
-								{ __( 'Label only' ) }
+								{ __(
+									'Label only',
+									'create-not-learn-editor'
+								) }
 							</MenuItem>
 						</MenuGroup>
 					</div>
@@ -184,7 +193,10 @@ export default function NavigationListViewAppender( {
 									);
 								} }
 							>
-								{ __( 'Add existing page' ) }
+								{ __(
+									'Add existing page',
+									'create-not-learn-editor'
+								) }
 							</MenuItem>
 							<MenuItem
 								icon={ linkIcon }
@@ -197,7 +209,10 @@ export default function NavigationListViewAppender( {
 									);
 								} }
 							>
-								{ __( 'Custom link' ) }
+								{ __(
+									'Custom link',
+									'create-not-learn-editor'
+								) }
 							</MenuItem>
 							<MenuItem
 								icon={ addSubmenuIcon }
@@ -205,7 +220,7 @@ export default function NavigationListViewAppender( {
 									setIsChoosingSubmenuType( true )
 								}
 							>
-								{ __( 'Submenu' ) }
+								{ __( 'Submenu', 'create-not-learn-editor' ) }
 							</MenuItem>
 						</MenuGroup>
 						<MenuGroup>
@@ -216,7 +231,7 @@ export default function NavigationListViewAppender( {
 									onClose();
 								} }
 							>
-								{ __( 'More…' ) }
+								{ __( 'More…', 'create-not-learn-editor' ) }
 							</MenuItem>
 						</MenuGroup>
 					</div>
@@ -231,7 +246,9 @@ export default function NavigationListViewAppender( {
 
 	return (
 		<div className="routes-navigation-edit-list-view__empty-submenu">
-			<span>{ __( 'This submenu is empty.' ) }</span>
+			<span>
+				{ __( 'This submenu is empty.', 'create-not-learn-editor' ) }
+			</span>
 			{ dropdown }
 		</div>
 	);

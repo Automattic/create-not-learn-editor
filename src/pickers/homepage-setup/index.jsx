@@ -37,6 +37,7 @@ import { Badge, Notice, Stack, Text } from '@wordpress/ui';
 import { getMenuBlocks } from '../../routes/content/pages/menu-items';
 import { settings } from '../../settings';
 import { applyHomepageSetup } from './apply';
+import { getOtherPages, withChoices } from './choices';
 import { getHomepageSetupPlan, isPageInMenu } from './plan';
 
 // The same pages, in the same order, as the Pages screen asks for, so they
@@ -69,7 +70,7 @@ function getTitle( page ) {
  * @return {string} Title.
  */
 function getLabel( page ) {
-	return getTitle( page ) || __( '(no title)' );
+	return getTitle( page ) || __( '(no title)', 'create-not-learn-editor' );
 }
 
 /**
@@ -110,114 +111,6 @@ function useSiteNow( menuId ) {
 		},
 		[ menuId ]
 	);
-}
-
-/**
- * An old homepage or posts page, with what the person chose for it.
- *
- * @param {?Object} old    `{ page, isInMenu, leaveMenu, toTrash }`.
- * @param {Object}  chosen `{ leaveMenu, toTrash }`, as changed.
- * @return {?Object} The page's plan.
- */
-function withOldPageChoices( old, chosen = {} ) {
-	if ( ! old ) {
-		return old;
-	}
-
-	const toTrash = chosen.toTrash ?? old.toTrash;
-
-	return {
-		...old,
-		// A page in the trash can't stay in the menu.
-		leaveMenu: toTrash || ( chosen.leaveMenu ?? old.leaveMenu ),
-		toTrash,
-	};
-}
-
-/**
- * Every page but the one offered as the homepage, for anyone who wants
- * another.
- *
- * @param {Object} plan  Result of `getHomepageSetupPlan`.
- * @param {Array}  pages Every page.
- * @return {Object[]} The pages.
- */
-function getOtherPages( plan, pages ) {
-	const offered = plan.homepage.page?.id;
-	const others = pages.filter(
-		( page ) => ! offered || Number( page.id ) !== Number( offered )
-	);
-	const isPublished = ( page ) => page.status === 'publish';
-
-	// Published pages first, as one of those is the likely choice.
-	return [
-		...others.filter( isPublished ),
-		...others.filter( ( page ) => ! isPublished( page ) ),
-	];
-}
-
-/**
- * The page chosen as the homepage from the other pages: the one picked, or
- * else the first.
- *
- * @param {Object}  plan  Result of `getHomepageSetupPlan`.
- * @param {Array}   pages Every page.
- * @param {?string} id    The page picked, if any.
- * @return {?Object} The page.
- */
-function getOtherHomepage( plan, pages, id ) {
-	const others = getOtherPages( plan, pages );
-
-	return (
-		others.find( ( page ) => String( page.id ) === String( id ) ) ||
-		others[ 0 ] ||
-		null
-	);
-}
-
-/**
- * The plan, with whatever the person changed along the way.
- *
- * @param {Object} plan    Result of `getHomepageSetupPlan`.
- * @param {Object} choices What was changed.
- * @param {Array}  pages   Every page.
- * @return {Object} The plan to carry out.
- */
-function withChoices( plan, choices, pages ) {
-	if ( plan.to === 'posts' ) {
-		return {
-			...plan,
-			oldHomepage: withOldPageChoices(
-				plan.oldHomepage,
-				choices.oldHomepage
-			),
-			oldPostsPage: withOldPageChoices(
-				plan.oldPostsPage,
-				choices.oldPostsPage
-			),
-		};
-	}
-
-	const homepage = choices.isOtherHomepage
-		? getOtherHomepage( plan, pages, choices.homepageId )
-		: plan.homepage.page;
-	const postsPage =
-		plan.posts.page && plan.posts.page.id === homepage?.id
-			? null
-			: plan.posts.page;
-	const typedTitle = ( choices.postsTitle ?? '' ).trim();
-
-	return {
-		...plan,
-		homepage: { ...plan.homepage, page: homepage },
-		posts: {
-			...plan.posts,
-			isOn: choices.postsOn ?? plan.posts.isOn,
-			newTitle: typedTitle || plan.posts.newTitle,
-			page: postsPage,
-		},
-		useMenu: choices.useMenu ?? plan.useMenu,
-	};
 }
 
 // WordPress's own guide to homepages, for anyone who wants to read more.
@@ -296,7 +189,7 @@ function RadioOption( {
 				{ label }
 				{ isRecommended && (
 					<Badge intent="informational">
-						{ __( 'Recommended' ) }
+						{ __( 'Recommended', 'create-not-learn-editor' ) }
 					</Badge>
 				) }
 			</label>
@@ -347,7 +240,7 @@ function getPageOptionLabel( page ) {
 		? getLabel( page )
 		: sprintf(
 				/* translators: %s: page title. */
-				__( '%s (not published yet)' ),
+				__( '%s (not published yet)', 'create-not-learn-editor' ),
 				getLabel( page )
 			);
 }
@@ -360,18 +253,24 @@ function HomepageStep( { defaults, plan, pages, choices, setChoices } ) {
 	const isOther = !! choices.isOtherHomepage && others.length > 0;
 	const choose = ( change ) => setChoices( { ...choices, ...change } );
 	const isNowPosts = defaults.site?.show_on_front !== 'page';
-	const publishHelp = __( 'Not published yet. It will be published.' );
+	const publishHelp = __(
+		'Not published yet. It will be published.',
+		'create-not-learn-editor'
+	);
 	let offeredHelp = null;
 
 	if ( ! offered ) {
-		offeredHelp = __( 'A blank page, ready for you to fill in.' );
+		offeredHelp = __(
+			'A blank page, ready for you to fill in.',
+			'create-not-learn-editor'
+		);
 	} else if ( offered.status !== 'publish' ) {
 		offeredHelp = publishHelp;
 	} else if (
 		! isNowPosts &&
 		Number( offered.id ) === Number( defaults.site?.page_on_front )
 	) {
-		offeredHelp = __( 'Your homepage now.' );
+		offeredHelp = __( 'Your homepage now.', 'create-not-learn-editor' );
 	}
 
 	return (
@@ -380,13 +279,22 @@ function HomepageStep( { defaults, plan, pages, choices, setChoices } ) {
 				description={
 					isNowPosts
 						? __(
-								'Visitors will land on this page instead of a list of your posts.'
+								'Visitors will land on this page instead of a list of your posts.',
+								'create-not-learn-editor'
 							)
-						: __( 'It’s the first page visitors see.' )
+						: __(
+								'It’s the first page visitors see.',
+								'create-not-learn-editor'
+							)
 				}
-				title={ __( 'Which page should be your homepage?' ) }
+				title={ __(
+					'Which page should be your homepage?',
+					'create-not-learn-editor'
+				) }
 			/>
-			<Choices legend={ __( 'Your homepage' ) }>
+			<Choices
+				legend={ __( 'Your homepage', 'create-not-learn-editor' ) }
+			>
 				<RadioOption
 					checked={ ! isOther }
 					help={ offeredHelp }
@@ -396,12 +304,15 @@ function HomepageStep( { defaults, plan, pages, choices, setChoices } ) {
 						offered
 							? sprintf(
 									/* translators: %s: page title, like Home. */
-									__( '“%s”' ),
+									__( '“%s”', 'create-not-learn-editor' ),
 									getLabel( offered )
 								)
 							: sprintf(
 									/* translators: %s: page title, like Home. */
-									__( 'A new page called “%s”' ),
+									__(
+										'A new page called “%s”',
+										'create-not-learn-editor'
+									),
 									defaults.homepage.newTitle
 								)
 					}
@@ -414,8 +325,14 @@ function HomepageStep( { defaults, plan, pages, choices, setChoices } ) {
 						id={ `${ id }-other` }
 						label={
 							offered
-								? __( 'Another page' )
-								: __( 'A page you already have' )
+								? __(
+										'Another page',
+										'create-not-learn-editor'
+									)
+								: __(
+										'A page you already have',
+										'create-not-learn-editor'
+									)
 						}
 						name={ id }
 						onChange={ () => choose( { isOtherHomepage: true } ) }
@@ -429,7 +346,10 @@ function HomepageStep( { defaults, plan, pages, choices, setChoices } ) {
 									: undefined
 							}
 							hideLabelFromVision
-							label={ __( 'Page for your homepage' ) }
+							label={ __(
+								'Page for your homepage',
+								'create-not-learn-editor'
+							) }
 							onChange={ ( value ) =>
 								choose( { homepageId: value } )
 							}
@@ -444,7 +364,10 @@ function HomepageStep( { defaults, plan, pages, choices, setChoices } ) {
 			</Choices>
 			<Text className="cnl-homepage-setup__doc" variant="body-sm">
 				<ExternalLink href={ HOMEPAGE_DOCS }>
-					{ __( 'Learn more about homepages' ) }
+					{ __(
+						'Learn more about homepages',
+						'create-not-learn-editor'
+					) }
 				</ExternalLink>
 			</Text>
 		</>
@@ -460,17 +383,27 @@ function PostsPageStep( { plan, choices, setChoices } ) {
 		<>
 			<StepHeading
 				description={ __(
-					'Give them a page of their own, so visitors can still find them.'
+					'Give them a page of their own, so visitors can still find them.',
+					'create-not-learn-editor'
 				) }
-				title={ __( 'Where should your posts go?' ) }
+				title={ __(
+					'Where should your posts go?',
+					'create-not-learn-editor'
+				) }
 			/>
-			<Choices legend={ __( 'Your posts' ) }>
+			<Choices legend={ __( 'Your posts', 'create-not-learn-editor' ) }>
 				<RadioOption
 					checked={ isOn }
 					help={
 						page
-							? __( 'Where they are now.' )
-							: __( 'What most websites do.' )
+							? __(
+									'Where they are now.',
+									'create-not-learn-editor'
+								)
+							: __(
+									'What most websites do.',
+									'create-not-learn-editor'
+								)
 					}
 					id={ `${ id }-page` }
 					isRecommended
@@ -478,10 +411,10 @@ function PostsPageStep( { plan, choices, setChoices } ) {
 						page
 							? sprintf(
 									/* translators: %s: page title. */
-									__( 'On “%s”' ),
+									__( 'On “%s”', 'create-not-learn-editor' ),
 									getLabel( page )
 								)
-							: __( 'On a new page' )
+							: __( 'On a new page', 'create-not-learn-editor' )
 					}
 					name={ id }
 					onChange={ () => choose( true ) }
@@ -491,7 +424,10 @@ function PostsPageStep( { plan, choices, setChoices } ) {
 							__next40pxDefaultSize
 							__nextHasNoMarginBottom
 							hideLabelFromVision
-							label={ __( 'Page name' ) }
+							label={ __(
+								'Page name',
+								'create-not-learn-editor'
+							) }
 							onChange={ ( value ) =>
 								setChoices( { ...choices, postsTitle: value } )
 							}
@@ -501,9 +437,15 @@ function PostsPageStep( { plan, choices, setChoices } ) {
 				</RadioOption>
 				<RadioOption
 					checked={ ! isOn }
-					help={ __( 'You can add a page for them later.' ) }
+					help={ __(
+						'You can add a page for them later.',
+						'create-not-learn-editor'
+					) }
 					id={ `${ id }-none` }
-					label={ __( 'I don’t want a blog' ) }
+					label={ __(
+						'I don’t want a blog',
+						'create-not-learn-editor'
+					) }
 					name={ id }
 					onChange={ () => choose( false ) }
 				/>
@@ -527,7 +469,7 @@ function getMenuAdditions( plan ) {
 	const postsPage = plan.posts.page;
 
 	return [
-		! plan.menu.hasHomeLink && __( 'Home' ),
+		! plan.menu.hasHomeLink && __( 'Home', 'create-not-learn-editor' ),
 		plan.posts.isOn &&
 			! ( postsPage && isPageInMenu( plan.menu, postsPage.id ) ) &&
 			( postsPage ? getLabel( postsPage ) : plan.posts.newTitle ),
@@ -538,34 +480,47 @@ function MenuStep( { plan, menuTitle, choices, setChoices } ) {
 	const id = `cnl-homepage-setup-menu-${ useId() }`;
 	const additions = getMenuAdditions( plan );
 	const choose = ( value ) => setChoices( { ...choices, useMenu: value } );
-	const menuName = menuTitle || __( 'your menu' );
+	const menuName = menuTitle || __( 'your menu', 'create-not-learn-editor' );
 
 	return (
 		<>
 			<StepHeading
 				description={ __(
-					'Your menu doesn’t pick up new pages by itself.'
+					'Your menu doesn’t pick up new pages by itself.',
+					'create-not-learn-editor'
 				) }
-				title={ __( 'Add them to your menu?' ) }
+				title={ __(
+					'Add them to your menu?',
+					'create-not-learn-editor'
+				) }
 			/>
-			<Choices legend={ __( 'Your menu' ) }>
+			<Choices legend={ __( 'Your menu', 'create-not-learn-editor' ) }>
 				<RadioOption
 					checked={ plan.useMenu }
-					help={ __( 'So visitors can find them.' ) }
+					help={ __(
+						'So visitors can find them.',
+						'create-not-learn-editor'
+					) }
 					id={ `${ id }-add` }
 					isRecommended
 					label={
 						additions.length > 1
 							? sprintf(
 									/* translators: 1: page title, like Home. 2: page title, like Blog. 3: menu name. */
-									__( 'Add “%1$s” and “%2$s” to “%3$s”' ),
+									__(
+										'Add “%1$s” and “%2$s” to “%3$s”',
+										'create-not-learn-editor'
+									),
 									additions[ 0 ],
 									additions[ 1 ],
 									menuName
 								)
 							: sprintf(
 									/* translators: 1: page title. 2: menu name. */
-									__( 'Add “%1$s” to “%2$s”' ),
+									__(
+										'Add “%1$s” to “%2$s”',
+										'create-not-learn-editor'
+									),
 									additions[ 0 ],
 									menuName
 								)
@@ -575,9 +530,15 @@ function MenuStep( { plan, menuTitle, choices, setChoices } ) {
 				/>
 				<RadioOption
 					checked={ ! plan.useMenu }
-					help={ __( 'You can add them from Menus later.' ) }
+					help={ __(
+						'You can add them from Menus later.',
+						'create-not-learn-editor'
+					) }
 					id={ `${ id }-leave` }
-					label={ __( 'Leave my menu as it is' ) }
+					label={ __(
+						'Leave my menu as it is',
+						'create-not-learn-editor'
+					) }
 					name={ id }
 					onChange={ () => choose( false ) }
 				/>
@@ -590,9 +551,13 @@ function LatestPostsStep() {
 	return (
 		<StepHeading
 			description={ __(
-				'Your homepage will list your newest posts, so visitors see what you’ve just written as soon as they arrive.'
+				'Your homepage will list your newest posts, so visitors see what you’ve just written as soon as they arrive.',
+				'create-not-learn-editor'
 			) }
-			title={ __( 'Show your latest posts first' ) }
+			title={ __(
+				'Show your latest posts first',
+				'create-not-learn-editor'
+			) }
 		/>
 	);
 }
@@ -629,14 +594,16 @@ function OldPagesStep( { plan, choices, setChoices } ) {
 						? sprintf(
 								/* translators: %s: page title. */
 								__(
-									'Your homepage will list your latest posts, so “%s” isn’t needed for that any more.'
+									'Your homepage will list your latest posts, so “%s” isn’t needed for that any more.',
+									'create-not-learn-editor'
 								),
 								titles[ 0 ]
 							)
 						: sprintf(
 								/* translators: 1: page title. 2: page title. */
 								__(
-									'Your homepage will list your latest posts, so “%1$s” and “%2$s” aren’t needed for that any more.'
+									'Your homepage will list your latest posts, so “%1$s” and “%2$s” aren’t needed for that any more.',
+									'create-not-learn-editor'
 								),
 								titles[ 0 ],
 								titles[ 1 ]
@@ -644,20 +611,27 @@ function OldPagesStep( { plan, choices, setChoices } ) {
 				}
 				title={
 					isOne
-						? __( 'Keep your old page?' )
-						: __( 'Keep your old pages?' )
+						? __( 'Keep your old page?', 'create-not-learn-editor' )
+						: __(
+								'Keep your old pages?',
+								'create-not-learn-editor'
+							)
 				}
 			/>
-			<Choices legend={ __( 'Your old pages' ) }>
+			<Choices
+				legend={ __( 'Your old pages', 'create-not-learn-editor' ) }
+			>
 				<RadioOption
 					checked={ ! toTrash }
 					help={
 						isAnyInMenu
 							? __(
-									'Nothing is lost. You’ll find them under Pages, out of your menu.'
+									'Nothing is lost. You’ll find them under Pages, out of your menu.',
+									'create-not-learn-editor'
 								)
 							: __(
-									'Nothing is lost. You’ll find them under Pages.'
+									'Nothing is lost. You’ll find them under Pages.',
+									'create-not-learn-editor'
 								)
 					}
 					id={ `${ id }-keep` }
@@ -666,10 +640,13 @@ function OldPagesStep( { plan, choices, setChoices } ) {
 						isOne
 							? sprintf(
 									/* translators: %s: page title. */
-									__( 'Keep “%s”' ),
+									__(
+										'Keep “%s”',
+										'create-not-learn-editor'
+									),
 									titles[ 0 ]
 								)
-							: __( 'Keep them' )
+							: __( 'Keep them', 'create-not-learn-editor' )
 					}
 					name={ id }
 					onChange={ () => choose( false ) }
@@ -677,17 +654,21 @@ function OldPagesStep( { plan, choices, setChoices } ) {
 				<RadioOption
 					checked={ toTrash }
 					help={ __(
-						'They go to the trash, where you can restore them.'
+						'They go to the trash, where you can restore them.',
+						'create-not-learn-editor'
 					) }
 					id={ `${ id }-trash` }
 					label={
 						isOne
 							? sprintf(
 									/* translators: %s: page title. */
-									__( 'Delete “%s”' ),
+									__(
+										'Delete “%s”',
+										'create-not-learn-editor'
+									),
 									titles[ 0 ]
 								)
-							: __( 'Delete them' )
+							: __( 'Delete them', 'create-not-learn-editor' )
 					}
 					name={ id }
 					onChange={ () => choose( true ) }
@@ -714,29 +695,45 @@ function ShowsStep( { direction, recommends, setDirection } ) {
 	return (
 		<>
 			<StepHeading
-				description={ __( 'It’s the first thing they see.' ) }
-				title={ __( 'What should visitors see first?' ) }
+				description={ __(
+					'It’s the first thing they see.',
+					'create-not-learn-editor'
+				) }
+				title={ __(
+					'What should visitors see first?',
+					'create-not-learn-editor'
+				) }
 			/>
-			<Choices legend={ __( 'Your homepage shows' ) }>
+			<Choices
+				legend={ __(
+					'Your homepage shows',
+					'create-not-learn-editor'
+				) }
+			>
 				<RadioOption
 					checked={ direction === 'page' }
 					help={ __(
-						'Most websites open on a page that says who they are. Posts go on a page of their own.'
+						'Most websites open on a page that says who they are. Posts go on a page of their own.',
+						'create-not-learn-editor'
 					) }
 					id={ `${ id }-page` }
 					isRecommended={ recommends === 'page' }
-					label={ __( 'A page' ) }
+					label={ __( 'A page', 'create-not-learn-editor' ) }
 					name={ id }
 					onChange={ () => setDirection( 'page' ) }
 				/>
 				<RadioOption
 					checked={ direction === 'posts' }
 					help={ __(
-						'Most blogs open on their newest posts, newest first.'
+						'Most blogs open on their newest posts, newest first.',
+						'create-not-learn-editor'
 					) }
 					id={ `${ id }-posts` }
 					isRecommended={ recommends === 'posts' }
-					label={ __( 'Your latest posts' ) }
+					label={ __(
+						'Your latest posts',
+						'create-not-learn-editor'
+					) }
 					name={ id }
 					onChange={ () => setDirection( 'posts' ) }
 				/>
@@ -821,7 +818,10 @@ export default function HomepageSetup( {
 				expects: to,
 				getTitle,
 				homeUrl: settings.homeUrl,
-				labels: { home: __( 'Home' ), posts: __( 'Blog' ) },
+				labels: {
+					home: __( 'Home', 'create-not-learn-editor' ),
+					posts: __( 'Blog', 'create-not-learn-editor' ),
+				},
 				menu: siteNow.menu,
 				pages,
 				site: siteNow.site,
@@ -844,7 +844,7 @@ export default function HomepageSetup( {
 	const basePlan = planRef.current?.[ to ];
 	const plan = basePlan && withChoices( basePlan, choices, pages );
 	// The same wherever it's opened from, whichever way it's going.
-	const title = __( 'Configure site homepage' );
+	const title = __( 'Configure site homepage', 'create-not-learn-editor' );
 
 	if ( ! plan ) {
 		return (
@@ -854,7 +854,9 @@ export default function HomepageSetup( {
 				size="medium"
 				title={ title }
 			>
-				<Text render={ <p /> }>{ __( 'Looking at your site…' ) }</Text>
+				<Text render={ <p /> }>
+					{ __( 'Looking at your site…', 'create-not-learn-editor' ) }
+				</Text>
 			</Modal>
 		);
 	}
@@ -870,7 +872,7 @@ export default function HomepageSetup( {
 
 		try {
 			const result = await applyHomepageSetup( plan, {
-				homeLabel: __( 'Home' ),
+				homeLabel: __( 'Home', 'create-not-learn-editor' ),
 			} );
 
 			onDone( { plan, ...result } );
@@ -878,7 +880,8 @@ export default function HomepageSetup( {
 			setError(
 				failure?.message ||
 					__(
-						'Your homepage couldn’t be changed, so it’s as it was. Check your connection, then try again.'
+						'Your homepage couldn’t be changed, so it’s as it was. Check your connection, then try again.',
+						'create-not-learn-editor'
 					)
 			);
 			setIsSaving( false );
@@ -919,7 +922,10 @@ export default function HomepageSetup( {
 					>
 						{ sprintf(
 							/* translators: 1: this step's number. 2: how many steps. */
-							__( 'Step %1$d of %2$d' ),
+							__(
+								'Step %1$d of %2$d',
+								'create-not-learn-editor'
+							),
 							stepIndex + 1,
 							steps.length
 						) }
@@ -933,7 +939,7 @@ export default function HomepageSetup( {
 							onClick={ () => setStepIndex( stepIndex - 1 ) }
 							variant="tertiary"
 						>
-							{ __( 'Back' ) }
+							{ __( 'Back', 'create-not-learn-editor' ) }
 						</Button>
 					) }
 					<Button
@@ -949,9 +955,15 @@ export default function HomepageSetup( {
 						{ /* Saves straight away, so it says what it does. */ }
 						{ isLast &&
 							plan.to === 'posts' &&
-							__( 'Show latest posts' ) }
-						{ isLast && plan.to === 'page' && __( 'Set homepage' ) }
-						{ ! isLast && __( 'Continue' ) }
+							__(
+								'Show latest posts',
+								'create-not-learn-editor'
+							) }
+						{ isLast &&
+							plan.to === 'page' &&
+							__( 'Set homepage', 'create-not-learn-editor' ) }
+						{ ! isLast &&
+							__( 'Continue', 'create-not-learn-editor' ) }
 					</Button>
 				</div>
 			</div>

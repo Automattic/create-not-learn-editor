@@ -180,7 +180,7 @@ function EditLayoutItem( { isHomepage, onClose, pageId } ) {
 				setCanvasMode( MODE_EDIT );
 			} }
 		>
-			{ __( 'Edit layout' ) }
+			{ __( 'Edit layout', 'create-not-learn-editor' ) }
 		</MenuItem>
 	);
 }
@@ -221,7 +221,7 @@ function PageOptions( { isHomepage, link, pageId } ) {
 									setIsRenaming( true );
 								} }
 							>
-								{ __( 'Rename' ) }
+								{ __( 'Rename', 'create-not-learn-editor' ) }
 							</MenuItem>
 						) }
 						{ pageId > 0 && (
@@ -243,7 +243,10 @@ function PageOptions( { isHomepage, link, pageId } ) {
 									);
 								} }
 							>
-								{ __( 'View on your site' ) }
+								{ __(
+									'View on your site',
+									'create-not-learn-editor'
+								) }
 							</MenuItem>
 						) }
 						{ link && (
@@ -254,12 +257,18 @@ function PageOptions( { isHomepage, link, pageId } ) {
 									await window.navigator.clipboard?.writeText(
 										link
 									);
-									createSuccessNotice( __( 'Link copied.' ), {
-										type: 'snackbar',
-									} );
+									createSuccessNotice(
+										__(
+											'Link copied.',
+											'create-not-learn-editor'
+										),
+										{
+											type: 'snackbar',
+										}
+									);
 								} }
 							>
-								{ __( 'Copy link' ) }
+								{ __( 'Copy link', 'create-not-learn-editor' ) }
 							</MenuItem>
 						) }
 					</MenuGroup>
@@ -269,7 +278,10 @@ function PageOptions( { isHomepage, link, pageId } ) {
 						aria-expanded={ isOpen }
 						className="cnl-editor-homepage-options__toggle"
 						icon={ moreHorizontalIcon }
-						label={ __( 'Page options' ) }
+						label={ __(
+							'Page options',
+							'create-not-learn-editor'
+						) }
 						onClick={ onToggle }
 						showTooltip
 						size="compact"
@@ -292,11 +304,15 @@ function CanvasEmptyState() {
 			<EmptyState.Root>
 				<EmptyState.Icon icon={ pageIcon } />
 				<EmptyState.Title>
-					{ __( 'Your page will show here' ) }
+					{ __(
+						'Your page will show here',
+						'create-not-learn-editor'
+					) }
 				</EmptyState.Title>
 				<EmptyState.Description>
 					{ __(
-						'Add a page and you will see it take shape as you work.'
+						'Add a page and you will see it take shape as you work.',
+						'create-not-learn-editor'
 					) }
 				</EmptyState.Description>
 			</EmptyState.Root>
@@ -347,7 +363,7 @@ function PageDocument( { homepage, page } ) {
 
 	if ( homepage ) {
 		link = settings.homeUrl;
-		heading = __( 'Homepage' );
+		heading = __( 'Homepage', 'create-not-learn-editor' );
 		const { badge, summary } = getHomepageSummary( homepage );
 
 		// What it shows. It is live unless it shows a page that isn't.
@@ -425,7 +441,7 @@ function useLatestPostsLayout( { templateId, isEditing } ) {
 				content: indexContent,
 				slug: 'home',
 				status: 'publish',
-				title: __( 'Blog Home' ),
+				title: __( 'Blog Home', 'create-not-learn-editor' ),
 			},
 			{ throwOnError: true }
 		)

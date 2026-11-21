@@ -48,11 +48,14 @@ function PageStatus( { item, frontPageId, postsPageId } ) {
 	let text = getStatusLabel( item.status );
 
 	if ( id && id === frontPageId ) {
-		/* translators: %s: page status, like Published. */
-		text = sprintf( __( '%s · Homepage' ), text );
+		text = sprintf(
+			/* translators: %s: page status, like Published. */
+			__( '%s · Homepage', 'create-not-learn-editor' ),
+			text
+		);
 	} else if ( id && id === postsPageId ) {
 		/* translators: %s: page status, like Published. */
-		text = sprintf( __( '%s · Blog' ), text );
+		text = sprintf( __( '%s · Blog', 'create-not-learn-editor' ), text );
 	}
 
 	return (
@@ -108,7 +111,7 @@ export default function PagesDataView( {
 				filterBy: { operators: [ 'isAny' ] },
 				getValue: ( { item } ) => item.status,
 				id: 'status',
-				label: __( 'Status' ),
+				label: __( 'Status', 'create-not-learn-editor' ),
 				render: ( { item } ) => (
 					<PageStatus
 						frontPageId={ frontPageId }
@@ -129,7 +132,7 @@ export default function PagesDataView( {
 				isDestructive: true,
 				// The homepage needs another before it can go.
 				isEligible: ( item ) => Number( item.id ) !== frontPageId,
-				label: __( 'Move to Trash' ),
+				label: __( 'Move to Trash', 'create-not-learn-editor' ),
 				supportsBulk: false,
 			},
 		],

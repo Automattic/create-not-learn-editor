@@ -39,12 +39,12 @@ export default function CustomLinkModal( {
 				onSubmit={ submit }
 			>
 				<InputControl
-					label={ __( 'Label' ) }
+					label={ __( 'Label', 'create-not-learn-editor' ) }
 					onValueChange={ setLabel }
 					value={ label }
 				/>
 				<InputControl
-					label={ __( 'URL' ) }
+					label={ __( 'URL', 'create-not-learn-editor' ) }
 					onValueChange={ setUrl }
 					type="url"
 					value={ url }
@@ -56,7 +56,7 @@ export default function CustomLinkModal( {
 						type="button"
 						variant="tertiary"
 					>
-						{ __( 'Cancel' ) }
+						{ __( 'Cancel', 'create-not-learn-editor' ) }
 					</Button>
 					<Button
 						disabled={ ! canSave || isSaving }
@@ -64,7 +64,9 @@ export default function CustomLinkModal( {
 						type="submit"
 						variant="primary"
 					>
-						{ isSubmenu ? __( 'Add submenu' ) : __( 'Add link' ) }
+						{ isSubmenu
+							? __( 'Add submenu', 'create-not-learn-editor' )
+							: __( 'Add link', 'create-not-learn-editor' ) }
 					</Button>
 				</div>
 			</form>

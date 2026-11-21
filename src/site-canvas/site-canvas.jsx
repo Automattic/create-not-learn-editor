@@ -198,7 +198,10 @@ export function SiteCanvas( {
 						>
 							<Spinner />
 							<span className="screen-reader-text">
-								{ __( 'Loading the preview' ) }
+								{ __(
+									'Loading the preview',
+									'create-not-learn-editor'
+								) }
 							</span>
 						</span>
 					) }
@@ -298,7 +301,10 @@ export function SiteCanvas( {
 						<iframe
 							{ ...frame.frameProps }
 							className="cnl-site-canvas__frame"
-							title={ __( 'Site preview' ) }
+							title={ __(
+								'Site preview',
+								'create-not-learn-editor'
+							) }
 						/>
 					) : (
 						emptyPreview

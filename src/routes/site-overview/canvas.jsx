@@ -65,12 +65,17 @@ function getSummary( nodes ) {
 	return [
 		sprintf(
 			/* translators: %d: Number of pages. */
-			_n( '%d page', '%d pages', pageCount ),
+			_n( '%d page', '%d pages', pageCount, 'create-not-learn-editor' ),
 			pageCount
 		),
 		sprintf(
 			/* translators: %d: Number of dynamic pages. */
-			_n( '%d dynamic page', '%d dynamic pages', dynamicCount ),
+			_n(
+				'%d dynamic page',
+				'%d dynamic pages',
+				dynamicCount,
+				'create-not-learn-editor'
+			),
 			dynamicCount
 		),
 	].join( ' · ' );
@@ -527,18 +532,24 @@ export default function Canvas() {
 			hasPadding={ false }
 			headingLevel={ 2 }
 			subTitle={ [
-				__( 'Every page on your site, at a glance' ),
+				__(
+					'Every page on your site, at a glance',
+					'create-not-learn-editor'
+				),
 				layout && getSummary( layout.nodes ),
 			]
 				.filter( Boolean )
 				.join( ' · ' ) }
-			title={ __( 'Site overview' ) }
+			title={ __( 'Site overview', 'create-not-learn-editor' ) }
 		>
 			<div className="cnl-site-overview__body">
 				{ /* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- The canvas pans and zooms from the pointer and keyboard. */ }
 				<div
 					aria-describedby="cnl-site-overview-help"
-					aria-label={ __( 'Site overview canvas' ) }
+					aria-label={ __(
+						'Site overview canvas',
+						'create-not-learn-editor'
+					) }
 					className={ [
 						'cnl-site-overview__viewport',
 						isPanning && 'is-panning',
@@ -655,7 +666,8 @@ export default function Canvas() {
 						id="cnl-site-overview-help"
 					>
 						{ __(
-							'Drag the background or scroll to move around. Pinch, or hold Ctrl or ⌘ and scroll, to zoom. Click a page for details, or double-click it to edit it. Drag a page onto another to put it under it, or onto its edge to put it beside it.'
+							'Drag the background or scroll to move around. Pinch, or hold Ctrl or ⌘ and scroll, to zoom. Click a page for details, or double-click it to edit it. Drag a page onto another to put it under it, or onto its edge to put it beside it.',
+							'create-not-learn-editor'
 						) }
 					</p>
 				</div>

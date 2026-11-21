@@ -56,14 +56,17 @@ function PostsControls( { clientId, onManageAll } ) {
 					<SelectControl
 						__next40pxDefaultSize
 						__nextHasNoMarginBottom
-						label={ __( 'How many to show' ) }
+						label={ __(
+							'How many to show',
+							'create-not-learn-editor'
+						) }
 						onChange={ ( value ) =>
 							posts.onCount( Number( value ) )
 						}
 						options={ countOptions.map( ( count ) => ( {
 							label: sprintf(
 								/* translators: 1: how many. 2: the posts' plural name, lowercase, like posts. */
-								__( '%1$d %2$s' ),
+								__( '%1$d %2$s', 'create-not-learn-editor' ),
 								count,
 								name
 							),
@@ -77,7 +80,7 @@ function PostsControls( { clientId, onManageAll } ) {
 							__nextHasNoMarginBottom
 							label={ sprintf(
 								/* translators: %s: the posts' plural name, lowercase, like posts. */
-								__( 'Show %s from' ),
+								__( 'Show %s from', 'create-not-learn-editor' ),
 								name
 							) }
 							onChange={ ( value ) =>
@@ -85,7 +88,10 @@ function PostsControls( { clientId, onManageAll } ) {
 							}
 							options={ [
 								{
-									label: __( 'All categories' ),
+									label: __(
+										'All categories',
+										'create-not-learn-editor'
+									),
 									value: '0',
 								},
 								...terms.map( ( term ) => ( {
@@ -99,15 +105,21 @@ function PostsControls( { clientId, onManageAll } ) {
 					<SelectControl
 						__next40pxDefaultSize
 						__nextHasNoMarginBottom
-						label={ __( 'Order' ) }
+						label={ __( 'Order', 'create-not-learn-editor' ) }
 						onChange={ posts.onOrder }
 						options={ [
 							{
-								label: __( 'Newest first' ),
+								label: __(
+									'Newest first',
+									'create-not-learn-editor'
+								),
 								value: ORDER_NEWEST,
 							},
 							{
-								label: __( 'Oldest first' ),
+								label: __(
+									'Oldest first',
+									'create-not-learn-editor'
+								),
 								value: ORDER_OLDEST,
 							},
 						] }
@@ -123,7 +135,7 @@ function PostsControls( { clientId, onManageAll } ) {
 			>
 				{ sprintf(
 					/* translators: %s: the posts' plural name, lowercase, like posts. */
-					__( 'Manage all %s' ),
+					__( 'Manage all %s', 'create-not-learn-editor' ),
 					name
 				) }
 			</Button>
@@ -149,7 +161,7 @@ export default function PostsMenu( {
 } ) {
 	const text = sprintf(
 		/* translators: %s: the posts' plural name, lowercase, like posts. */
-		__( 'Manage %s' ),
+		__( 'Manage %s', 'create-not-learn-editor' ),
 		posts.label.toLowerCase()
 	);
 

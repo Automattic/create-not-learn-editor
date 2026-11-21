@@ -52,11 +52,15 @@ export default function ProductsTable() {
 		<ShopPage
 			className="cnl-shop-table"
 			crumbs={ [
-				{ label: __( 'Products' ), to: PRODUCTS_PATH },
-				{ label: __( 'All products' ) },
+				{
+					label: __( 'Products', 'create-not-learn-editor' ),
+					to: PRODUCTS_PATH,
+				},
+				{ label: __( 'All products', 'create-not-learn-editor' ) },
 			] }
 			description={ __(
-				'Every product, to look through and change many at once. Changes wait for Save, like any other.'
+				'Every product, to look through and change many at once. Changes wait for Save, like any other.',
+				'create-not-learn-editor'
 			) }
 			hasPadding={ false }
 		>

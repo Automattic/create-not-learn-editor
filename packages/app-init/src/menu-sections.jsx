@@ -84,25 +84,26 @@ import { PREFERENCES_SCOPE, getActiveWorkspace } from '../../../src/workspaces';
  */
 const SECTIONS = {
 	content: {
-		label: __( 'Content' ),
+		label: __( 'Content', 'create-not-learn-editor' ),
 		defaults: [ 'pages', 'content-post' ],
-		moreLabel: __( 'Show all content types' ),
+		moreLabel: __( 'Show all content types', 'create-not-learn-editor' ),
 	},
 	// Media waits behind the "…" until it is used.
 	site: {
-		label: __( 'Site' ),
+		label: __( 'Site', 'create-not-learn-editor' ),
 		defaults: [ 'site-overview', 'navigation', 'identity' ],
 	},
-	design: { label: __( 'Design' ) },
+	design: { label: __( 'Design', 'create-not-learn-editor' ) },
 	plugins: {
-		label: __( 'Plugins' ),
+		label: __( 'Plugins', 'create-not-learn-editor' ),
 		help: __(
-			'Plugins extend what WordPress can do. Each one here leads to its own screens.'
+			'Plugins extend what WordPress can do. Each one here leads to its own screens.',
+			'create-not-learn-editor'
 		),
 	},
 	// Folded on load anyway, and four short items, so none goes behind a "…".
 	advanced: {
-		label: __( 'Advanced' ),
+		label: __( 'Advanced', 'create-not-learn-editor' ),
 		shownItems: 4,
 		tucked: true,
 		foldsOnLoad: true,
@@ -341,7 +342,12 @@ function MoreItems( { count, label, onExpand } ) {
 		label ||
 		sprintf(
 			/* translators: %d: How many more items there are. */
-			_n( 'Show %d more item', 'Show %d more items', count ),
+			_n(
+				'Show %d more item',
+				'Show %d more items',
+				count,
+				'create-not-learn-editor'
+			),
 			count
 		);
 
@@ -395,7 +401,10 @@ function SectionStandIn( { id } ) {
 				dispatch( preferencesStore ).set(
 					PREFERENCES_SCOPE,
 					PREFERENCE_NAME,
-					{ ...getFolded(), [ id ]: false }
+					{
+						...getFolded(),
+						[ id ]: false,
+					}
 				);
 				// Its items take its place once the sidebar has expanded.
 				window.requestAnimationFrame( () =>
@@ -528,7 +537,10 @@ export function mountMenuSections() {
 			dispatch( preferencesStore ).set(
 				PREFERENCES_SCOPE,
 				PREFERENCE_NAME,
-				{ ...left, ...changes }
+				{
+					...left,
+					...changes,
+				}
 			);
 		}
 	};

@@ -88,6 +88,9 @@ import {
 import { toShortcut, useBlockShortcuts } from './shortcuts';
 import { ToolbarMenu, useLeaveFocus } from './toolbar-menu';
 
+/* eslint-disable @wordpress/i18n-text-domain -- core's own words for its
+   controls, which these find them by, so core's translations. */
+
 /**
  * Core's items that sit with Group rather than in More, as the design has
  * them, matched by core's words for them.
@@ -111,6 +114,16 @@ const CORE_ITEM_ICONS = {
 	[ __( 'Hide' ) ]: unseen,
 	[ __( 'Show' ) ]: seen,
 };
+
+/**
+ * Core's labels for its format buttons, which Format presses.
+ */
+const CORE_FORMAT_LABELS = {
+	bold: __( 'Bold' ),
+	italic: __( 'Italic' ),
+};
+
+/* eslint-enable @wordpress/i18n-text-domain */
 
 /**
  * A flyout of choices, showing the one in use beside its name.
@@ -278,7 +291,7 @@ function ToolbarTools( { items } ) {
  */
 function FormatSubmenu( { toolbarRef } ) {
 	return (
-		<Submenu label={ __( 'Format' ) }>
+		<Submenu label={ __( 'Format', 'create-not-learn-editor' ) }>
 			<FormatItems toolbarRef={ toolbarRef } />
 		</Submenu>
 	);
@@ -307,20 +320,26 @@ function FormatItems( { toolbarRef } ) {
 	return (
 		<>
 			<Menu.Item
-				label={ searchLabel( __( 'Bold' ) ) }
+				label={ searchLabel( __( 'Bold', 'create-not-learn-editor' ) ) }
 				prefix={ <Menu.PrefixIcon icon={ formatBold } /> }
 				shortcut={ toShortcut( 'primary', 'b' ) }
-				onClick={ press( __( 'Bold' ) ) }
+				onClick={ press( CORE_FORMAT_LABELS.bold ) }
 			>
-				<Menu.ItemLabel>{ __( 'Bold' ) }</Menu.ItemLabel>
+				<Menu.ItemLabel>
+					{ __( 'Bold', 'create-not-learn-editor' ) }
+				</Menu.ItemLabel>
 			</Menu.Item>
 			<Menu.Item
-				label={ searchLabel( __( 'Italic' ) ) }
+				label={ searchLabel(
+					__( 'Italic', 'create-not-learn-editor' )
+				) }
 				prefix={ <Menu.PrefixIcon icon={ formatItalic } /> }
 				shortcut={ toShortcut( 'primary', 'i' ) }
-				onClick={ press( __( 'Italic' ) ) }
+				onClick={ press( CORE_FORMAT_LABELS.italic ) }
 			>
-				<Menu.ItemLabel>{ __( 'Italic' ) }</Menu.ItemLabel>
+				<Menu.ItemLabel>
+					{ __( 'Italic', 'create-not-learn-editor' ) }
+				</Menu.ItemLabel>
 			</Menu.Item>
 		</>
 	);
@@ -335,7 +354,7 @@ function FormatItems( { toolbarRef } ) {
  */
 function InsertSubmenu( { clientId } ) {
 	return (
-		<Submenu label={ __( 'Insert' ) }>
+		<Submenu label={ __( 'Insert', 'create-not-learn-editor' ) }>
 			<InsertItems clientId={ clientId } />
 		</Submenu>
 	);
@@ -357,18 +376,26 @@ function InsertItems( { clientId } ) {
 	return (
 		<>
 			<Menu.Item
-				label={ searchLabel( __( 'Block before' ) ) }
+				label={ searchLabel(
+					__( 'Block before', 'create-not-learn-editor' )
+				) }
 				shortcut={ shortcuts[ 'insert-before' ] }
 				onClick={ () => insertBeforeBlock( clientId ) }
 			>
-				<Menu.ItemLabel>{ __( 'Block before' ) }</Menu.ItemLabel>
+				<Menu.ItemLabel>
+					{ __( 'Block before', 'create-not-learn-editor' ) }
+				</Menu.ItemLabel>
 			</Menu.Item>
 			<Menu.Item
-				label={ searchLabel( __( 'Block after' ) ) }
+				label={ searchLabel(
+					__( 'Block after', 'create-not-learn-editor' )
+				) }
 				shortcut={ shortcuts[ 'insert-after' ] }
 				onClick={ () => insertAfterBlock( clientId ) }
 			>
-				<Menu.ItemLabel>{ __( 'Block after' ) }</Menu.ItemLabel>
+				<Menu.ItemLabel>
+					{ __( 'Block after', 'create-not-learn-editor' ) }
+				</Menu.ItemLabel>
 			</Menu.Item>
 		</>
 	);
@@ -408,12 +435,14 @@ function useStyleChoices( name, editingMode ) {
 function StylesSubmenu( { clientId, className, styles, canCopy } ) {
 	return (
 		<Flyout
-			label={ __( 'Styles' ) }
+			label={ __( 'Styles', 'create-not-learn-editor' ) }
 			trigger={
 				<Menu.SubmenuTrigger
 					suffix={ getActiveStyle( styles, className )?.label }
 				>
-					<Menu.ItemLabel>{ __( 'Styles' ) }</Menu.ItemLabel>
+					<Menu.ItemLabel>
+						{ __( 'Styles', 'create-not-learn-editor' ) }
+					</Menu.ItemLabel>
 				</Menu.SubmenuTrigger>
 			}
 		>
@@ -476,17 +505,23 @@ function StylesItems( { clientId, className, styles, canCopy } ) {
 			{ canCopy && (
 				<>
 					<Menu.Item
-						label={ searchLabel( __( 'Copy styles' ) ) }
+						label={ searchLabel(
+							__( 'Copy styles', 'create-not-learn-editor' )
+						) }
 						onClick={ () => copyStyles( registry, [ clientId ] ) }
 					>
-						<Menu.ItemLabel>{ __( 'Copy styles' ) }</Menu.ItemLabel>
+						<Menu.ItemLabel>
+							{ __( 'Copy styles', 'create-not-learn-editor' ) }
+						</Menu.ItemLabel>
 					</Menu.Item>
 					<Menu.Item
-						label={ searchLabel( __( 'Paste styles' ) ) }
+						label={ searchLabel(
+							__( 'Paste styles', 'create-not-learn-editor' )
+						) }
 						onClick={ () => pasteStyles( registry, [ clientId ] ) }
 					>
 						<Menu.ItemLabel>
-							{ __( 'Paste styles' ) }
+							{ __( 'Paste styles', 'create-not-learn-editor' ) }
 						</Menu.ItemLabel>
 					</Menu.Item>
 				</>
@@ -542,7 +577,10 @@ function useStyleSections( {
 		hasBlockSupport( name, 'typography.fontSize' ) &&
 		fontSizes?.length
 			? [
-					{ value: NONE, label: __( 'Default' ) },
+					{
+						value: NONE,
+						label: __( 'Default', 'create-not-learn-editor' ),
+					},
 					...fontSizes.map( ( fontSize ) => ( {
 						value: fontSize.slug,
 						label: fontSize.name || fontSize.slug,
@@ -554,19 +592,27 @@ function useStyleSections( {
 	const align = ( textAlign || showWidths ) && (
 		<Menu.Group key="align">
 			{ ! isSearching && (
-				<Menu.GroupLabel>{ __( 'Align' ) }</Menu.GroupLabel>
+				<Menu.GroupLabel>
+					{ __( 'Align', 'create-not-learn-editor' ) }
+				</Menu.GroupLabel>
 			) }
 			{ textAlign && (
 				<ChoiceSubmenu
-					label={ __( 'Text' ) }
-					searchLabel={ __( 'Text alignment' ) }
+					label={ __( 'Text', 'create-not-learn-editor' ) }
+					searchLabel={ __(
+						'Text alignment',
+						'create-not-learn-editor'
+					) }
 					icon={
 						textAlign.options.find(
 							( option ) => option.value === textAlign.value
 						)?.icon ?? textAlign.options[ 0 ].icon
 					}
 					options={ [
-						{ value: NONE, label: __( 'Default' ) },
+						{
+							value: NONE,
+							label: __( 'Default', 'create-not-learn-editor' ),
+						},
 						...textAlign.options,
 					] }
 					value={ textAlign.value ?? NONE }
@@ -577,8 +623,11 @@ function useStyleSections( {
 			) }
 			{ showWidths && (
 				<ChoiceSubmenu
-					label={ __( 'Block' ) }
-					searchLabel={ __( 'Block alignment' ) }
+					label={ __( 'Block', 'create-not-learn-editor' ) }
+					searchLabel={ __(
+						'Block alignment',
+						'create-not-learn-editor'
+					) }
 					icon={
 						widths.find( ( option ) => option.value === width )
 							?.icon
@@ -597,7 +646,7 @@ function useStyleSections( {
 		<Menu.Group key="text">
 			{ sizes.length > 0 && (
 				<ChoiceSubmenu
-					label={ __( 'Text size' ) }
+					label={ __( 'Text size', 'create-not-learn-editor' ) }
 					icon={ typography }
 					options={ sizes }
 					value={
@@ -823,29 +872,35 @@ export function OptionsMenu( {
 			<Menu.Group key="clipboard">
 				{ isDefaultEditingMode && (
 					<Menu.Item
-						label={ __( 'Copy' ) }
+						label={ __( 'Copy', 'create-not-learn-editor' ) }
 						shortcut={ toShortcut( 'primary', 'c' ) }
 						onClick={ () => copyBlocks( registry, [ clientId ] ) }
 					>
-						<Menu.ItemLabel>{ __( 'Copy' ) }</Menu.ItemLabel>
+						<Menu.ItemLabel>
+							{ __( 'Copy', 'create-not-learn-editor' ) }
+						</Menu.ItemLabel>
 					</Menu.Item>
 				) }
 				{ isDefaultEditingMode && canRemove && (
 					<Menu.Item
-						label={ __( 'Cut' ) }
+						label={ __( 'Cut', 'create-not-learn-editor' ) }
 						shortcut={ toShortcut( 'primary', 'x' ) }
 						onClick={ () => cutBlocks( registry, [ clientId ] ) }
 					>
-						<Menu.ItemLabel>{ __( 'Cut' ) }</Menu.ItemLabel>
+						<Menu.ItemLabel>
+							{ __( 'Cut', 'create-not-learn-editor' ) }
+						</Menu.ItemLabel>
 					</Menu.Item>
 				) }
 				{ canDuplicate && (
 					<Menu.Item
-						label={ __( 'Duplicate' ) }
+						label={ __( 'Duplicate', 'create-not-learn-editor' ) }
 						shortcut={ shortcuts.duplicate }
 						onClick={ () => duplicateBlocks( [ clientId ] ) }
 					>
-						<Menu.ItemLabel>{ __( 'Duplicate' ) }</Menu.ItemLabel>
+						<Menu.ItemLabel>
+							{ __( 'Duplicate', 'create-not-learn-editor' ) }
+						</Menu.ItemLabel>
 					</Menu.Item>
 				) }
 			</Menu.Group>
@@ -855,7 +910,9 @@ export function OptionsMenu( {
 				<Menu.Group key="core">
 					<CoreItems items={ topLevelCoreItems } />
 					{ moreCoreItems.length > 0 && (
-						<Submenu label={ __( 'More' ) }>
+						<Submenu
+							label={ __( 'More', 'create-not-learn-editor' ) }
+						>
 							<CoreItems items={ moreCoreItems } />
 						</Submenu>
 					) }
@@ -871,7 +928,7 @@ export function OptionsMenu( {
 					buttonProps={ {
 						className: 'cnl-block-options__toggle',
 						icon: optionsIcon,
-						label: __( 'Options' ),
+						label: __( 'Options', 'create-not-learn-editor' ),
 					} }
 					popupClassName={
 						isSearching

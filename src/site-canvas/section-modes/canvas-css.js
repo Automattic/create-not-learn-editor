@@ -64,9 +64,12 @@ export function getCanvasCss(
 			`.is-root-container :is(${ lockedIds
 				.map( ( id ) => `#block-${ id }` )
 				.join( ', ' ) }) [data-rich-text-placeholder=${ JSON.stringify(
-				__( 'Type / to choose a block' )
+				__( 'Type / to choose a block', 'create-not-learn-editor' )
 			) }]::after { content: ${ JSON.stringify(
-				__( 'Type here, or use Add for a heading, button or image' )
+				__(
+					'Type here, or use Add for a heading, button or image',
+					'create-not-learn-editor'
+				)
 			) }; }`,
 		// An empty page keeps room for its placeholder, in place of core's
 		// prompt to type, the only thing core draws there.

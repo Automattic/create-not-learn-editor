@@ -404,7 +404,8 @@ function TemplatePartEditButton( { attributes, clientId, isSelected } ) {
 				<ToolbarButton
 					className="cnl-template-part-edit-button"
 					description={ __(
-						'Changes show on every page that uses it.'
+						'Changes show on every page that uses it.',
+						'create-not-learn-editor'
 					) }
 					icon={ symbolFilledIcon }
 					label={ label }

@@ -28,16 +28,36 @@ import {
 export const SYSTEM_PAGES_CONTENT = 'system';
 
 const SYSTEM_PAGES = [
-	{ icon: notFoundIcon, slug: '404', title: __( 'Page not found' ) },
-	{ icon: searchIcon, slug: 'search', title: __( 'Search results' ) },
+	{
+		icon: notFoundIcon,
+		slug: '404',
+		title: __( 'Page not found', 'create-not-learn-editor' ),
+	},
+	{
+		icon: searchIcon,
+		slug: 'search',
+		title: __( 'Search results', 'create-not-learn-editor' ),
+	},
 	{
 		icon: categoryIcon,
 		slug: 'category',
-		title: __( 'Posts in a category' ),
+		title: __( 'Posts in a category', 'create-not-learn-editor' ),
 	},
-	{ icon: tagIcon, slug: 'tag', title: __( 'Posts with a tag' ) },
-	{ icon: userIcon, slug: 'author', title: __( 'Posts by an author' ) },
-	{ icon: calendarIcon, slug: 'date', title: __( 'Posts by date' ) },
+	{
+		icon: tagIcon,
+		slug: 'tag',
+		title: __( 'Posts with a tag', 'create-not-learn-editor' ),
+	},
+	{
+		icon: userIcon,
+		slug: 'author',
+		title: __( 'Posts by an author', 'create-not-learn-editor' ),
+	},
+	{
+		icon: calendarIcon,
+		slug: 'date',
+		title: __( 'Posts by date', 'create-not-learn-editor' ),
+	},
 ];
 
 const SYSTEM_PAGE_SLUGS = SYSTEM_PAGES.map( ( { slug } ) => slug );

@@ -32,28 +32,40 @@ function getAdminLinks() {
 
 	return [
 		can.editOrders && {
-			description: __( 'See new orders and mark them as sent.' ),
+			description: __(
+				'See new orders and mark them as sent.',
+				'create-not-learn-editor'
+			),
 			href: adminUrls.orders,
 			icon: receiptIcon,
-			title: __( 'Orders' ),
+			title: __( 'Orders', 'create-not-learn-editor' ),
 		},
 		can.manageShop && {
-			description: __( 'Choose how customers pay you.' ),
+			description: __(
+				'Choose how customers pay you.',
+				'create-not-learn-editor'
+			),
 			href: adminUrls.payments,
 			icon: paymentIcon,
-			title: __( 'Payments' ),
+			title: __( 'Payments', 'create-not-learn-editor' ),
 		},
 		can.manageShop && {
-			description: __( 'Where you deliver, and what it costs.' ),
+			description: __(
+				'Where you deliver, and what it costs.',
+				'create-not-learn-editor'
+			),
 			href: adminUrls.shipping,
 			icon: shippingIcon,
-			title: __( 'Shipping' ),
+			title: __( 'Shipping', 'create-not-learn-editor' ),
 		},
 		can.manageShop && {
-			description: __( 'Whether to add tax to your prices.' ),
+			description: __(
+				'Whether to add tax to your prices.',
+				'create-not-learn-editor'
+			),
 			href: adminUrls.tax,
 			icon: percentIcon,
-			title: __( 'Tax' ),
+			title: __( 'Tax', 'create-not-learn-editor' ),
 		},
 	].filter( ( link ) => link?.href );
 }
@@ -64,28 +76,39 @@ export function ShopStage() {
 
 	return (
 		<ShopPage
-			description={ __( 'What you sell, and how your shop looks.' ) }
+			description={ __(
+				'What you sell, and how your shop looks.',
+				'create-not-learn-editor'
+			) }
 			hasPadding={ false }
 		>
 			{ /* Laid out as Home is, as it too is a list of places to go. */ }
 			<div className="cnl-editor-stage cnl-site-hub">
 				<ScreenLinks
-					label={ __( 'Your shop on your site' ) }
+					label={ __(
+						'Your shop on your site',
+						'create-not-learn-editor'
+					) }
 					links={ [
 						can.editProducts && {
 							description: __(
-								'Add what you sell, with photos and prices.'
+								'Add what you sell, with photos and prices.',
+								'create-not-learn-editor'
 							),
 							icon: tagIcon,
-							title: __( 'Products' ),
+							title: __( 'Products', 'create-not-learn-editor' ),
 							to: PRODUCTS_PATH,
 						},
 						{
 							description: __(
-								'How your shop, product, cart and checkout pages look.'
+								'How your shop, product, cart and checkout pages look.',
+								'create-not-learn-editor'
 							),
 							icon: storeIcon,
-							title: __( 'Shop pages' ),
+							title: __(
+								'Shop pages',
+								'create-not-learn-editor'
+							),
 							to: SHOP_PAGES_PATH,
 						},
 					].filter( Boolean ) }
@@ -94,25 +117,35 @@ export function ShopStage() {
 					<Stack direction="column" gap="sm">
 						<Stack direction="column" gap="xs">
 							<Text render={ <h2 /> } variant="heading-sm">
-								{ __( 'Run your shop' ) }
+								{ __(
+									'Run your shop',
+									'create-not-learn-editor'
+								) }
 							</Text>
 							<Text
 								className="routes-styles__muted"
 								variant="body-sm"
 							>
 								{ __(
-									'Visitors never see these, so they open in WP Admin.'
+									'Visitors never see these, so they open in WP Admin.',
+									'create-not-learn-editor'
 								) }
 							</Text>
 						</Stack>
 						<ScreenLinks
-							label={ __( 'Run your shop in WP Admin' ) }
+							label={ __(
+								'Run your shop in WP Admin',
+								'create-not-learn-editor'
+							) }
 							links={ adminLinks }
 						/>
 						{ can.manageShop && adminUrls.settings && (
 							<Text variant="body-sm">
 								<Link href={ adminUrls.settings } openInNewTab>
-									{ __( 'All shop settings' ) }
+									{ __(
+										'All shop settings',
+										'create-not-learn-editor'
+									) }
 								</Link>
 							</Text>
 						) }

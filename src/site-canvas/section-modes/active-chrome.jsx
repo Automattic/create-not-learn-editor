@@ -187,8 +187,8 @@ export function ActiveChrome( {
 				isSmall={ isSmall }
 				label={
 					active.mode === MODE_FREEFORM
-						? __( 'Freeform' )
-						: __( 'Edit content' )
+						? __( 'Freeform', 'create-not-learn-editor' )
+						: __( 'Edit content', 'create-not-learn-editor' )
 				}
 				onDone={ exitMode }
 				onRestore={ restore }

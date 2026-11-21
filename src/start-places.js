@@ -39,86 +39,118 @@ import sitePartsIcon from './site-parts-icon';
 function getAllPlaces() {
 	return [
 		{
-			description: __( 'Start something new.' ),
+			description: __(
+				'Start something new.',
+				'create-not-learn-editor'
+			),
 			icon: pencilIcon,
 			id: 'write',
-			title: __( 'Write a post' ),
+			title: __( 'Write a post', 'create-not-learn-editor' ),
 		},
 		{
 			description: __(
-				'Pick up a draft, or change something you’ve published.'
+				'Pick up a draft, or change something you’ve published.',
+				'create-not-learn-editor'
 			),
 			icon: postListIcon,
 			id: 'posts',
-			title: __( 'Posts' ),
-		},
-		{
-			description: __( 'Make the first page visitors see your own.' ),
-			icon: homeIcon,
-			id: 'home',
-			title: __( 'Your homepage' ),
+			title: __( 'Posts', 'create-not-learn-editor' ),
 		},
 		{
 			description: __(
-				'Add pages like About and Contact, and pick your menu.'
+				'Make the first page visitors see your own.',
+				'create-not-learn-editor'
+			),
+			icon: homeIcon,
+			id: 'home',
+			title: __( 'Your homepage', 'create-not-learn-editor' ),
+		},
+		{
+			description: __(
+				'Add pages like About and Contact, and pick your menu.',
+				'create-not-learn-editor'
 			),
 			icon: pagesIcon,
 			id: 'pages',
-			title: __( 'Pages' ),
+			title: __( 'Pages', 'create-not-learn-editor' ),
 		},
 		{
-			description: __( 'Name your site and add a logo.' ),
+			description: __(
+				'Name your site and add a logo.',
+				'create-not-learn-editor'
+			),
 			icon: siteLogoIcon,
 			id: 'identity',
-			title: __( 'Name & logo' ),
+			title: __( 'Name & logo', 'create-not-learn-editor' ),
 		},
 		{
 			// Design leads with whole-site looks and links on to Colors and
 			// Fonts, so one place covers both without adding to the choices.
-			description: __( 'Pick the colors and fonts of your whole site.' ),
+			description: __(
+				'Pick the colors and fonts of your whole site.',
+				'create-not-learn-editor'
+			),
 			icon: brushIcon,
 			id: 'style',
-			title: __( 'Design' ),
+			title: __( 'Design', 'create-not-learn-editor' ),
 		},
 		{
 			// One place for both, as they work the same way, and a screen
 			// beyond it to pick which.
-			description: __( 'Choose the top and bottom of every page.' ),
+			description: __(
+				'Choose the top and bottom of every page.',
+				'create-not-learn-editor'
+			),
 			icon: sitePartsIcon,
 			id: 'siteParts',
-			title: __( 'Header & footer' ),
+			title: __( 'Header & footer', 'create-not-learn-editor' ),
 		},
 		// For people who know WordPress, so in WordPress's own words.
 		{
-			description: __( 'Global styles, block styles and custom CSS.' ),
+			description: __(
+				'Global styles, block styles and custom CSS.',
+				'create-not-learn-editor'
+			),
 			icon: stylesIcon,
 			id: 'globalStyles',
-			title: __( 'Styles' ),
+			title: __( 'Styles', 'create-not-learn-editor' ),
 		},
 		{
-			description: __( 'Lay out each kind of page.' ),
+			description: __(
+				'Lay out each kind of page.',
+				'create-not-learn-editor'
+			),
 			icon: layoutIcon,
 			id: 'templates',
-			title: __( 'Templates' ),
+			title: __( 'Templates', 'create-not-learn-editor' ),
 		},
 		{
-			description: __( 'Edit the areas templates share.' ),
+			description: __(
+				'Edit the areas templates share.',
+				'create-not-learn-editor'
+			),
 			icon: symbolFilledIcon,
 			id: 'templateParts',
-			title: __( 'All site parts' ),
+			title: __( 'All site parts', 'create-not-learn-editor' ),
 		},
 		{
-			description: __( 'Synced and unsynced patterns.' ),
+			description: __(
+				'Synced and unsynced patterns.',
+				'create-not-learn-editor'
+			),
 			icon: symbolIcon,
 			id: 'patterns',
-			title: __( 'Patterns' ),
+			title: __( 'Patterns', 'create-not-learn-editor' ),
 		},
 		// Only a site with a shop has one to run.
 		settings.shop && {
-			description: __( 'Add what you sell and run your shop.' ),
+			description: __(
+				'Add what you sell and run your shop.',
+				'create-not-learn-editor'
+			),
 			icon: storeIcon,
 			id: 'shop',
-			title: __( 'Your shop' ),
+			title: __( 'Your shop', 'create-not-learn-editor' ),
 		},
 	].filter( Boolean );
 }

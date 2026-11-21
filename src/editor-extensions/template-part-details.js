@@ -14,12 +14,12 @@ export function getTemplatePartEditLabel( areaLabel, title ) {
 	const name = ( areaLabel || title || '' ).trim();
 
 	if ( ! name ) {
-		return __( 'Edit template part' );
+		return __( 'Edit template part', 'create-not-learn-editor' );
 	}
 
 	return sprintf(
 		/* translators: %s: template part area or title, for example "Header". */
-		__( 'Edit %s' ),
+		__( 'Edit %s', 'create-not-learn-editor' ),
 		name
 	);
 }

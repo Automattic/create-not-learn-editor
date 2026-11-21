@@ -10,9 +10,10 @@ export function SiteIdentityStage() {
 	return (
 		<DesignPage
 			description={ __(
-				'How your site introduces itself. Shown in your header, browser tabs, and search results.'
+				'How your site introduces itself. Shown in your header, browser tabs, and search results.',
+				'create-not-learn-editor'
 			) }
-			title={ __( 'Name & logo' ) }
+			title={ __( 'Name & logo', 'create-not-learn-editor' ) }
 		>
 			<SiteIdentityFields />
 		</DesignPage>

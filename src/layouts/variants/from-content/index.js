@@ -415,7 +415,7 @@ const designedGroup = ( own, blocks ) =>
 const RECIPES = [
 	{
 		key: 'stacked',
-		label: () => __( 'Stacked' ),
+		label: () => __( 'Stacked', 'create-not-learn-editor' ),
 		// Already one stack, it would look the same.
 		applies: ( pictures, text, parts, section ) =>
 			hasSideBySide( section ) || hasCover( section ),
@@ -423,7 +423,7 @@ const RECIPES = [
 	},
 	{
 		key: 'centred',
-		label: () => __( 'Centered' ),
+		label: () => __( 'Centered', 'create-not-learn-editor' ),
 		applies: ( pictures, text, parts, section ) =>
 			parts.length <= SHORT && ! hasSideBySide( section ),
 		build: ( parts, own ) =>
@@ -448,8 +448,8 @@ const RECIPES = [
 		key: 'picture-moved',
 		label: ( parts ) =>
 			isPicture( parts[ 0 ] )
-				? __( 'Picture last' )
-				: __( 'Picture first' ),
+				? __( 'Picture last', 'create-not-learn-editor' )
+				: __( 'Picture first', 'create-not-learn-editor' ),
 		applies: ( pictures, text ) => pictures.length === 1 && text.length > 0,
 		build: ( parts, own, [ picture ], text ) =>
 			designedGroup(
@@ -465,8 +465,8 @@ const RECIPES = [
 		key: 'split-' + side,
 		label: () =>
 			side === 'left'
-				? __( 'Picture on the left' )
-				: __( 'Picture on the right' ),
+				? __( 'Picture on the left', 'create-not-learn-editor' )
+				: __( 'Picture on the right', 'create-not-learn-editor' ),
 		applies: ( pictures, text ) => pictures.length === 1 && text.length > 0,
 		build: ( parts, own, [ picture ], text ) => {
 			const cols = [ column( [ picture ] ), column( text ) ];
@@ -481,7 +481,7 @@ const RECIPES = [
 	} ) ),
 	{
 		key: 'cover',
-		label: () => __( 'Picture behind' ),
+		label: () => __( 'Picture behind', 'create-not-learn-editor' ),
 		applies: ( pictures, text ) =>
 			pictures.length === 1 &&
 			canCover( pictures[ 0 ] ) &&
@@ -506,7 +506,7 @@ const RECIPES = [
 	},
 	{
 		key: 'two-columns',
-		label: () => __( 'Split in two' ),
+		label: () => __( 'Split in two', 'create-not-learn-editor' ),
 		// For text: the split layouts are for a picture. The first heading goes
 		// above both columns.
 		applies: ( pictures, text ) =>
@@ -526,7 +526,7 @@ const RECIPES = [
 	},
 	{
 		key: 'card',
-		label: () => __( 'Card' ),
+		label: () => __( 'Card', 'create-not-learn-editor' ),
 		applies: ( pictures, text, parts, section ) =>
 			parts.length <= SHORT &&
 			! hasCard( section ) &&
@@ -715,8 +715,11 @@ function columnCounts( section, top ) {
 		.filter( ( n ) => n >= 1 && n <= MOST_COLUMNS )
 		.map( ( n ) => ( {
 			key: 'content:columns-' + n,
-			/* translators: %d: a number of columns. */
-			label: sprintf( _n( '%d column', '%d columns', n ), n ),
+			label: sprintf(
+				/* translators: %d: a number of columns. */
+				_n( '%d column', '%d columns', n, 'create-not-learn-editor' ),
+				n
+			),
 			block: asSection( found.rebuild( inColumns( found, n ) ), top ),
 		} ) );
 }
@@ -786,7 +789,7 @@ function shapesFor( count ) {
 			key: String( n ),
 			label: sprintf(
 				/* translators: 1: rows, 2: columns. */
-				__( '%1$d × %2$d grid' ),
+				__( '%1$d × %2$d grid', 'create-not-learn-editor' ),
 				Math.ceil( count / n ),
 				n
 			),
@@ -798,8 +801,11 @@ function shapesFor( count ) {
 		if ( count >= 1 + 2 * ( n - 2 ) ) {
 			shapes.push( {
 				key: 'featured-' + n,
-				/* translators: %d: a number of columns. */
-				label: sprintf( __( 'Featured, %d across' ), n ),
+				label: sprintf(
+					/* translators: %d: a number of columns. */
+					__( 'Featured, %d across', 'create-not-learn-editor' ),
+					n
+				),
 				across: n,
 				span: { columnSpan: 2, rowSpan: 2 },
 			} );
@@ -809,8 +815,11 @@ function shapesFor( count ) {
 		if ( count - 1 >= n && ( count - 1 ) % n === 0 ) {
 			shapes.push( {
 				key: 'banner-' + n,
-				/* translators: %d: a number of columns. */
-				label: sprintf( __( 'Banner, then %d across' ), n ),
+				label: sprintf(
+					/* translators: %d: a number of columns. */
+					__( 'Banner, then %d across', 'create-not-learn-editor' ),
+					n
+				),
 				across: n,
 				span: { columnSpan: n },
 			} );

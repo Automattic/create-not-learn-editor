@@ -108,7 +108,7 @@ export function PageLayoutCard( {
 				<button
 					aria-label={ sprintf(
 						/* translators: %s: page design name. */
-						__( 'Use the “%s” design' ),
+						__( 'Use the “%s” design', 'create-not-learn-editor' ),
 						title
 					) }
 					aria-pressed={ isSelected || undefined }
@@ -132,7 +132,9 @@ export function PageLayoutCard( {
 					onClick={ () => onSelect( pattern ) }
 					type="button"
 				>
-					{ isSelected ? __( 'Chosen' ) : __( 'Use design' ) }
+					{ isSelected
+						? __( 'Chosen', 'create-not-learn-editor' )
+						: __( 'Use design', 'create-not-learn-editor' ) }
 					<Icon
 						icon={
 							// eslint-disable-next-line no-nested-ternary

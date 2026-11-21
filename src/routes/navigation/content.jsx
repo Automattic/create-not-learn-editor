@@ -130,14 +130,20 @@ function Stage() {
 			);
 			refreshNavigationMenus();
 			setMenuToRename( null );
-			createSuccessNotice( __( 'Navigation menu renamed.' ), {
-				type: 'snackbar',
-			} );
+			createSuccessNotice(
+				__( 'Navigation menu renamed.', 'create-not-learn-editor' ),
+				{
+					type: 'snackbar',
+				}
+			);
 		} catch ( renameError ) {
 			createErrorNotice(
 				sprintf(
 					/* translators: %s: error message. */
-					__( 'Unable to rename navigation menu (%s).' ),
+					__(
+						'Unable to rename navigation menu (%s).',
+						'create-not-learn-editor'
+					),
 					getErrorMessage( renameError )
 				),
 				{ type: 'snackbar' }
@@ -160,7 +166,7 @@ function Stage() {
 					status: 'publish',
 					title: sprintf(
 						/* translators: %s: navigation menu title. */
-						__( '%s (Copy)' ),
+						__( '%s (Copy)', 'create-not-learn-editor' ),
 						menuTitle
 					),
 				},
@@ -168,9 +174,12 @@ function Stage() {
 			);
 
 			refreshNavigationMenus();
-			createSuccessNotice( __( 'Navigation menu duplicated.' ), {
-				type: 'snackbar',
-			} );
+			createSuccessNotice(
+				__( 'Navigation menu duplicated.', 'create-not-learn-editor' ),
+				{
+					type: 'snackbar',
+				}
+			);
 
 			if ( savedRecord?.id ) {
 				navigateToNavigationEditRoute( navigate, savedRecord );
@@ -179,7 +188,10 @@ function Stage() {
 			createErrorNotice(
 				sprintf(
 					/* translators: %s: error message. */
-					__( 'Unable to duplicate navigation menu (%s).' ),
+					__(
+						'Unable to duplicate navigation menu (%s).',
+						'create-not-learn-editor'
+					),
 					getErrorMessage( duplicateError )
 				),
 				{ type: 'snackbar' }
@@ -207,9 +219,12 @@ function Stage() {
 			);
 			refreshNavigationMenus();
 			setMenuToDelete( null );
-			createSuccessNotice( __( 'Navigation menu deleted.' ), {
-				type: 'snackbar',
-			} );
+			createSuccessNotice(
+				__( 'Navigation menu deleted.', 'create-not-learn-editor' ),
+				{
+					type: 'snackbar',
+				}
+			);
 
 			if ( getNavigationMenuId( searchParams.menuId ) === menuId ) {
 				navigate( {
@@ -224,7 +239,10 @@ function Stage() {
 			createErrorNotice(
 				sprintf(
 					/* translators: %s: error message. */
-					__( 'Unable to delete navigation menu (%s).' ),
+					__(
+						'Unable to delete navigation menu (%s).',
+						'create-not-learn-editor'
+					),
 					getErrorMessage( deleteError )
 				),
 				{ type: 'snackbar' }
@@ -239,10 +257,13 @@ function Stage() {
 		<div className="cnl-editor-empty-state">
 			<EmptyState.Root>
 				<EmptyState.Icon icon={ compassIcon } />
-				<EmptyState.Title>{ __( 'No menus yet' ) }</EmptyState.Title>
+				<EmptyState.Title>
+					{ __( 'No menus yet', 'create-not-learn-editor' ) }
+				</EmptyState.Title>
 				<EmptyState.Description>
 					{ __(
-						'Create your first menu to start adding links to your site navigation.'
+						'Create your first menu to start adding links to your site navigation.',
+						'create-not-learn-editor'
 					) }
 				</EmptyState.Description>
 				<EmptyState.Actions>
@@ -251,7 +272,10 @@ function Stage() {
 						onClick={ () => setIsAddNavigationModalOpen( true ) }
 						variant="primary"
 					>
-						{ __( 'Add your first menu' ) }
+						{ __(
+							'Add your first menu',
+							'create-not-learn-editor'
+						) }
 					</Button>
 				</EmptyState.Actions>
 			</EmptyState.Root>
@@ -265,7 +289,7 @@ function Stage() {
 					size="compact"
 					variant="primary"
 				>
-					{ __( 'Add menu' ) }
+					{ __( 'Add menu', 'create-not-learn-editor' ) }
 				</Button>
 			}
 			className="cnl-editor-stage routes-navigation-list"
@@ -275,11 +299,15 @@ function Stage() {
 			subTitle={
 				isMainMenuAuto
 					? __(
-							'The links visitors use to get around your site. Your main menu, the one in your header, lists your pages by itself. Choose which on the Pages screen.'
+							'The links visitors use to get around your site. Your main menu, the one in your header, lists your pages by itself. Choose which on the Pages screen.',
+							'create-not-learn-editor'
 						)
-					: __( 'The links visitors use to get around your site.' )
+					: __(
+							'The links visitors use to get around your site.',
+							'create-not-learn-editor'
+						)
 			}
-			title={ __( 'Menus' ) }
+			title={ __( 'Menus', 'create-not-learn-editor' ) }
 		>
 			{ ( error || locationsError ) && (
 				<Notice
@@ -301,7 +329,10 @@ function Stage() {
 					{ ! isResolvingLocations && !! commonLocations.length && (
 						<section className="routes-navigation-list__group">
 							<h3 className="routes-navigation-list__group-title">
-								{ __( 'Common locations' ) }
+								{ __(
+									'Common locations',
+									'create-not-learn-editor'
+								) }
 							</h3>
 							{ commonLocations.map(
 								( { area, label, menu } ) => (
@@ -320,7 +351,7 @@ function Stage() {
 					) }
 					<section className="routes-navigation-list__group">
 						<h3 className="routes-navigation-list__group-title">
-							{ __( 'All menus' ) }
+							{ __( 'All menus', 'create-not-learn-editor' ) }
 						</h3>
 						{ menus.map( ( menu ) => (
 							<NavigationMenuRow

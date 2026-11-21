@@ -59,12 +59,12 @@ export function registerProductEntity() {
 			getTitle: ( record ) =>
 				getPostTitle( record?.id ) ||
 				record?.name ||
-				__( 'Untitled product' ),
+				__( 'Untitled product', 'create-not-learn-editor' ),
 			key: 'id',
 			kind: PRODUCT_KIND,
 			// Its post is listed as a product, so this says what this
 			// record adds to it.
-			label: __( 'Price, stock and photo' ),
+			label: __( 'Price, stock and photo', 'create-not-learn-editor' ),
 			name: PRODUCT_NAME,
 			plural: 'wcProducts',
 		},

@@ -46,9 +46,12 @@ function copyError( error, componentStack ) {
 		.join( '\n\n' );
 
 	window.navigator.clipboard?.writeText( text ).then( () =>
-		dispatch( noticesStore ).createSuccessNotice( __( 'Error copied.' ), {
-			type: 'snackbar',
-		} )
+		dispatch( noticesStore ).createSuccessNotice(
+			__( 'Error copied.', 'create-not-learn-editor' ),
+			{
+				type: 'snackbar',
+			}
+		)
 	);
 }
 
@@ -96,11 +99,15 @@ class CanvasErrorBoundary extends Component {
 				<EmptyState.Root>
 					<EmptyState.Icon icon={ cautionIcon } />
 					<EmptyState.Title>
-						{ __( 'This view stopped working' ) }
+						{ __(
+							'This view stopped working',
+							'create-not-learn-editor'
+						) }
 					</EmptyState.Title>
 					<EmptyState.Description>
 						{ __(
-							'Your unsaved changes are safe. Try again to load it afresh.'
+							'Your unsaved changes are safe. Try again to load it afresh.',
+							'create-not-learn-editor'
 						) }
 					</EmptyState.Description>
 					<EmptyState.Actions>
@@ -109,14 +116,14 @@ class CanvasErrorBoundary extends Component {
 							onClick={ this.retry }
 							variant="primary"
 						>
-							{ __( 'Try again' ) }
+							{ __( 'Try again', 'create-not-learn-editor' ) }
 						</Button>
 						<Button
 							__next40pxDefaultSize
 							onClick={ () => copyError( error, componentStack ) }
 							variant="tertiary"
 						>
-							{ __( 'Copy error' ) }
+							{ __( 'Copy error', 'create-not-learn-editor' ) }
 						</Button>
 					</EmptyState.Actions>
 				</EmptyState.Root>

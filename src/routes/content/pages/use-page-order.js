@@ -39,13 +39,19 @@ function getMoveMessage( changes, byId ) {
 		return reparented.parent
 			? sprintf(
 					/* translators: 1: page title, 2: parent page title. */
-					__( 'Moved “%1$s” under “%2$s”.' ),
+					__(
+						'Moved “%1$s” under “%2$s”.',
+						'create-not-learn-editor'
+					),
 					title,
 					getPageTitle( byId.get( reparented.parent ) )
 				)
 			: sprintf(
 					/* translators: %s: page title. */
-					__( 'Moved “%s” out to the top level.' ),
+					__(
+						'Moved “%s” out to the top level.',
+						'create-not-learn-editor'
+					),
 					title
 				);
 	}
@@ -63,7 +69,7 @@ function getMoveMessage( changes, byId ) {
 
 	return sprintf(
 		/* translators: %s: page title. */
-		__( 'Moved “%s”.' ),
+		__( 'Moved “%s”.', 'create-not-learn-editor' ),
 		getPageTitle( byId.get( furthest?.id ) )
 	);
 }
@@ -115,7 +121,7 @@ export default function usePageOrder( { frontPageId, pages } ) {
 		createSuccessNotice( getMoveMessage( changes, byId ), {
 			actions: [
 				{
-					label: __( 'Undo' ),
+					label: __( 'Undo', 'create-not-learn-editor' ),
 					onClick: () => applyChanges( previous ),
 				},
 			],

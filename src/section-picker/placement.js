@@ -12,24 +12,33 @@ import { __, sprintf } from '@wordpress/i18n';
  */
 export function getPlacementText( previousTitle, nextTitle ) {
 	if ( ! previousTitle && ! nextTitle ) {
-		return __( 'It will be the first thing on the page.' );
+		return __(
+			'It will be the first thing on the page.',
+			'create-not-learn-editor'
+		);
 	}
 
 	if ( ! previousTitle ) {
 		return sprintf(
 			/* translators: %s: section name. */
-			__( 'It will go at the top, above “%s”.' ),
+			__(
+				'It will go at the top, above “%s”.',
+				'create-not-learn-editor'
+			),
 			nextTitle
 		);
 	}
 
 	if ( ! nextTitle ) {
-		return __( 'It will go at the end of the page.' );
+		return __(
+			'It will go at the end of the page.',
+			'create-not-learn-editor'
+		);
 	}
 
 	return sprintf(
 		/* translators: %s: section name. */
-		__( 'It will go after “%s”.' ),
+		__( 'It will go after “%s”.', 'create-not-learn-editor' ),
 		previousTitle
 	);
 }

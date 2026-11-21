@@ -88,21 +88,31 @@ function useKeptLast( host ) {
  */
 function CreateNotLearnSection() {
 	return (
-		<PreferencesModalSection title={ __( 'Create not Learn' ) }>
+		<PreferencesModalSection
+			title={ __( 'Create not Learn', 'create-not-learn-editor' ) }
+		>
 			<PreferenceToggleControl
 				featureName={ ASK_POST_KIND_PREFERENCE }
 				help={ __(
-					'Writing a post starts by asking what kind it is, like a note, a photo or a quote.'
+					'Writing a post starts by asking what kind it is, like a note, a photo or a quote.',
+					'create-not-learn-editor'
 				) }
-				label={ __( 'Ask what I’m posting' ) }
+				label={ __(
+					'Ask what I’m posting',
+					'create-not-learn-editor'
+				) }
 				scope={ POST_KINDS_PREFERENCES_SCOPE }
 			/>
 			<PreferenceToggleControl
 				featureName={ SHOW_PAGE_DESIGNS_PREFERENCE }
 				help={ __(
-					'Adding a page starts with designs to choose from. Turned off, it goes straight to naming a blank page.'
+					'Adding a page starts with designs to choose from. Turned off, it goes straight to naming a blank page.',
+					'create-not-learn-editor'
 				) }
-				label={ __( 'Show designs when adding a page' ) }
+				label={ __(
+					'Show designs when adding a page',
+					'create-not-learn-editor'
+				) }
 				scope={ ADD_PAGE_PREFERENCES_SCOPE }
 			/>
 		</PreferencesModalSection>
@@ -166,7 +176,7 @@ function Preferences() {
 					dispatch( 'core/interface' ).closeModal()
 				}
 				size="medium"
-				title={ __( 'Preferences' ) }
+				title={ __( 'Preferences', 'create-not-learn-editor' ) }
 			>
 				<CreateNotLearnSection />
 			</Modal>

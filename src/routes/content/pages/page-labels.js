@@ -17,13 +17,25 @@ export function getStatusBadge( status ) {
 	switch ( status ) {
 		case 'draft':
 		case 'auto-draft':
-			return { intent: 'draft', label: __( 'Draft' ) };
+			return {
+				intent: 'draft',
+				label: __( 'Draft', 'create-not-learn-editor' ),
+			};
 		case 'pending':
-			return { intent: 'draft', label: __( 'Pending review' ) };
+			return {
+				intent: 'draft',
+				label: __( 'Pending review', 'create-not-learn-editor' ),
+			};
 		case 'future':
-			return { intent: 'informational', label: __( 'Scheduled' ) };
+			return {
+				intent: 'informational',
+				label: __( 'Scheduled', 'create-not-learn-editor' ),
+			};
 		case 'private':
-			return { intent: 'informational', label: __( 'Private' ) };
+			return {
+				intent: 'informational',
+				label: __( 'Private', 'create-not-learn-editor' ),
+			};
 		default:
 			return null;
 	}

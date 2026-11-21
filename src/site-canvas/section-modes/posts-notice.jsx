@@ -57,10 +57,12 @@ function getExplanation( type, label ) {
 	if ( type === 'post' ) {
 		return [
 			__(
-				'Posts are the news, stories and updates you publish over time, like the entries in a blog. Each one gets its own page on your site.'
+				'Posts are the news, stories and updates you publish over time, like the entries in a blog. Each one gets its own page on your site.',
+				'create-not-learn-editor'
 			),
 			__(
-				'Your posts show up in this section by themselves, so there’s nothing to type here. To write a post or change one, go to Posts.'
+				'Your posts show up in this section by themselves, so there’s nothing to type here. To write a post or change one, go to Posts.',
+				'create-not-learn-editor'
 			),
 		];
 	}
@@ -69,7 +71,8 @@ function getExplanation( type, label ) {
 		sprintf(
 			/* translators: 1: the posts' plural name, lowercase, like products. 2: their screen's name, like Products. */
 			__(
-				'Your %1$s show up in this section by themselves, so there’s nothing to type here. To add or change them, go to %2$s.'
+				'Your %1$s show up in this section by themselves, so there’s nothing to type here. To add or change them, go to %2$s.',
+				'create-not-learn-editor'
 			),
 			label.toLowerCase(),
 			label
@@ -96,7 +99,7 @@ export function PostsNotice( { label, onCancel, onGo, type } ) {
 			size="small"
 			title={ sprintf(
 				/* translators: %s: the posts' plural name, lowercase, like posts. */
-				__( 'This section shows your %s' ),
+				__( 'This section shows your %s', 'create-not-learn-editor' ),
 				label.toLowerCase()
 			) }
 		>
@@ -107,14 +110,15 @@ export function PostsNotice( { label, onCancel, onGo, type } ) {
 				{ sprintf(
 					/* translators: %s: the posts' screen's name, like Posts. */
 					__(
-						'Your changes to this page are kept, and you can come back to it from %s.'
+						'Your changes to this page are kept, and you can come back to it from %s.',
+						'create-not-learn-editor'
 					),
 					label
 				) }
 			</p>
 			<div className="cnl-section-modes__posts-notice-actions">
 				<Button onClick={ onCancel } variant="secondary">
-					{ __( 'Stay here' ) }
+					{ __( 'Stay here', 'create-not-learn-editor' ) }
 				</Button>
 				<Button
 					onClick={ () => {
@@ -125,7 +129,7 @@ export function PostsNotice( { label, onCancel, onGo, type } ) {
 				>
 					{ sprintf(
 						/* translators: %s: the posts' screen's name, like Posts. */
-						__( 'Go to %s' ),
+						__( 'Go to %s', 'create-not-learn-editor' ),
 						label
 					) }
 				</Button>

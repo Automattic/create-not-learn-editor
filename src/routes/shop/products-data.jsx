@@ -45,24 +45,36 @@ import {
 export const EMPTY_ARRAY = [];
 
 const STATUS_OPTIONS = [
-	{ label: __( 'In the shop' ), value: 'publish' },
-	{ label: __( 'Draft' ), value: 'draft' },
-	{ label: __( 'Waiting for review' ), value: 'pending' },
-	{ label: __( 'Private' ), value: 'private' },
-	{ label: __( 'Scheduled' ), value: 'future' },
+	{ label: __( 'In the shop', 'create-not-learn-editor' ), value: 'publish' },
+	{ label: __( 'Draft', 'create-not-learn-editor' ), value: 'draft' },
+	{
+		label: __( 'Waiting for review', 'create-not-learn-editor' ),
+		value: 'pending',
+	},
+	{ label: __( 'Private', 'create-not-learn-editor' ), value: 'private' },
+	{ label: __( 'Scheduled', 'create-not-learn-editor' ), value: 'future' },
 ];
 
 const STOCK_OPTIONS = [
-	{ label: __( 'In stock' ), value: 'instock' },
-	{ label: __( 'Sold out' ), value: 'outofstock' },
-	{ label: __( 'Taking orders' ), value: 'onbackorder' },
+	{ label: __( 'In stock', 'create-not-learn-editor' ), value: 'instock' },
+	{ label: __( 'Sold out', 'create-not-learn-editor' ), value: 'outofstock' },
+	{
+		label: __( 'Taking orders', 'create-not-learn-editor' ),
+		value: 'onbackorder',
+	},
 ];
 
 const TYPE_OPTIONS = [
-	{ label: __( 'Simple' ), value: 'simple' },
-	{ label: __( 'With options' ), value: 'variable' },
-	{ label: __( 'Group' ), value: 'grouped' },
-	{ label: __( 'Sold elsewhere' ), value: 'external' },
+	{ label: __( 'Simple', 'create-not-learn-editor' ), value: 'simple' },
+	{
+		label: __( 'With options', 'create-not-learn-editor' ),
+		value: 'variable',
+	},
+	{ label: __( 'Group', 'create-not-learn-editor' ), value: 'grouped' },
+	{
+		label: __( 'Sold elsewhere', 'create-not-learn-editor' ),
+		value: 'external',
+	},
 ];
 
 // The fields WooCommerce can sort by, and what it calls them.
@@ -92,7 +104,7 @@ function getProductBadges( product ) {
 		STATUS_LABELS[ product.status ],
 		! HAS_OPTIONS.includes( product.type ) &&
 			product.sale_price &&
-			__( 'On sale' ),
+			__( 'On sale', 'create-not-learn-editor' ),
 		product.type !== 'external' && STOCK_LABELS[ product.stock_status ],
 	].filter( Boolean );
 }
@@ -127,7 +139,7 @@ export function getProductFields() {
 			enableSorting: false,
 			filterBy: false,
 			id: 'image',
-			label: __( 'Photo' ),
+			label: __( 'Photo', 'create-not-learn-editor' ),
 			render: ( { item } ) =>
 				item.images?.[ 0 ]?.src ? (
 					<img
@@ -149,13 +161,15 @@ export function getProductFields() {
 			filterBy: false,
 			getValue: ( { item } ) => decodeEntities( item.name || '' ),
 			id: 'name',
-			label: __( 'Name' ),
+			label: __( 'Name', 'create-not-learn-editor' ),
 			render: ( { item } ) => (
 				<Stack align="center" direction="row" gap="sm">
 					{ decodeEntities( item.name || '' ) ||
-						__( 'Untitled product' ) }
+						__( 'Untitled product', 'create-not-learn-editor' ) }
 					{ item.isUnsaved && (
-						<Badge intent="draft">{ __( 'Not saved' ) }</Badge>
+						<Badge intent="draft">
+							{ __( 'Not saved', 'create-not-learn-editor' ) }
+						</Badge>
 					) }
 				</Stack>
 			),
@@ -172,14 +186,14 @@ export function getProductFields() {
 					item.manage_stock &&
 						sprintf(
 							/* translators: %d: How many are in stock. */
-							__( '%d in stock' ),
+							__( '%d in stock', 'create-not-learn-editor' ),
 							item.stock_quantity ?? 0
 						),
 				]
 					.filter( Boolean )
 					.join( ' · ' ),
 			id: 'summary',
-			label: __( 'Summary' ),
+			label: __( 'Summary', 'create-not-learn-editor' ),
 			type: 'text',
 		},
 		{
@@ -188,7 +202,7 @@ export function getProductFields() {
 			filterBy: false,
 			getValue: ( { item } ) => getProductBadges( item ).join( ', ' ),
 			id: 'badges',
-			label: __( 'Notes' ),
+			label: __( 'Notes', 'create-not-learn-editor' ),
 			render: ( { item } ) => {
 				const badges = getProductBadges( item );
 
@@ -208,12 +222,12 @@ export function getProductFields() {
 			filterBy: false,
 			getValue: ( { item } ) => Number( item.price ) || 0,
 			id: 'price',
-			label: __( 'Price' ),
+			label: __( 'Price', 'create-not-learn-editor' ),
 			render: ( { item } ) =>
 				! HAS_OPTIONS.includes( item.type ) && item.sale_price
 					? sprintf(
 							/* translators: 1: Sale price, 2: Usual price. */
-							__( '%1$s (was %2$s)' ),
+							__( '%1$s (was %2$s)', 'create-not-learn-editor' ),
 							formatPrice( item.sale_price ),
 							formatPrice( item.regular_price )
 						)
@@ -226,7 +240,7 @@ export function getProductFields() {
 			filterBy: { operators: [ 'is' ] },
 			getValue: ( { item } ) => item.stock_status,
 			id: 'stock_status',
-			label: __( 'Stock' ),
+			label: __( 'Stock', 'create-not-learn-editor' ),
 			render: ( { item } ) => {
 				// Sold on another site, so it has no stock here.
 				if ( item.type === 'external' ) {
@@ -236,7 +250,7 @@ export function getProductFields() {
 				return item.manage_stock
 					? sprintf(
 							/* translators: %d: How many are in stock. */
-							__( '%d in stock' ),
+							__( '%d in stock', 'create-not-learn-editor' ),
 							item.stock_quantity ?? 0
 						)
 					: getLabel( STOCK_OPTIONS, item.stock_status );
@@ -249,7 +263,7 @@ export function getProductFields() {
 			filterBy: { operators: [ 'is' ] },
 			getValue: ( { item } ) => item.status,
 			id: 'status',
-			label: __( 'Shown' ),
+			label: __( 'Shown', 'create-not-learn-editor' ),
 			render: ( { item } ) =>
 				item.status === 'publish' ? (
 					getLabel( STATUS_OPTIONS, item.status )
@@ -266,7 +280,7 @@ export function getProductFields() {
 			filterBy: { operators: [ 'is' ] },
 			getValue: ( { item } ) => item.type,
 			id: 'type',
-			label: __( 'Kind' ),
+			label: __( 'Kind', 'create-not-learn-editor' ),
 			render: ( { item } ) =>
 				getLabel( TYPE_OPTIONS, item.type ) || item.type,
 			type: 'text',
@@ -279,7 +293,7 @@ export function getProductFields() {
 					.map( ( { name } ) => decodeEntities( name ) )
 					.join( ', ' ),
 			id: 'categories',
-			label: __( 'Categories' ),
+			label: __( 'Categories', 'create-not-learn-editor' ),
 			type: 'text',
 		},
 		{
@@ -287,26 +301,30 @@ export function getProductFields() {
 			filterBy: false,
 			getValue: ( { item } ) => item.sku || '',
 			id: 'sku',
-			label: __( 'SKU' ),
+			label: __( 'SKU', 'create-not-learn-editor' ),
 			type: 'text',
 		},
 		{
 			filterBy: false,
 			getValue: ( { item } ) => item.total_sales || 0,
 			id: 'total_sales',
-			label: __( 'Sold' ),
+			label: __( 'Sold', 'create-not-learn-editor' ),
 			type: 'integer',
 		},
 		{
 			filterBy: false,
 			getValue: ( { item } ) => item.date_created,
 			id: 'date',
-			label: __( 'Added' ),
+			label: __( 'Added', 'create-not-learn-editor' ),
 			render: ( { item } ) =>
 				item.date_created
 					? new Date( item.date_created ).toLocaleDateString(
 							undefined,
-							{ day: 'numeric', month: 'short', year: 'numeric' }
+							{
+								day: 'numeric',
+								month: 'short',
+								year: 'numeric',
+							}
 						)
 					: '',
 			type: 'datetime',
@@ -402,7 +420,11 @@ export function useAddProduct() {
 			const product = await saveEntityRecord(
 				PRODUCT_KIND,
 				PRODUCT_NAME,
-				{ name: __( 'New product' ), status: 'draft', type: 'simple' },
+				{
+					name: __( 'New product', 'create-not-learn-editor' ),
+					status: 'draft',
+					type: 'simple',
+				},
 				{ throwOnError: true }
 			);
 			navigate( {
@@ -430,16 +452,16 @@ export function useAddProduct() {
 export function ProductsEmpty( { view } ) {
 	const { add, isAdding } = useAddProduct();
 	const isFiltered = !! view.search || !! view.filters?.length;
-	let title = __( 'No products yet' );
+	let title = __( 'No products yet', 'create-not-learn-editor' );
 
 	if ( view.search ) {
 		title = sprintf(
 			/* translators: %s: What the products were searched for. */
-			__( 'Nothing matches “%s”' ),
+			__( 'Nothing matches “%s”', 'create-not-learn-editor' ),
 			view.search
 		);
 	} else if ( isFiltered ) {
-		title = __( 'No products match' );
+		title = __( 'No products match', 'create-not-learn-editor' );
 	}
 
 	return (
@@ -449,9 +471,13 @@ export function ProductsEmpty( { view } ) {
 				<EmptyState.Title>{ title }</EmptyState.Title>
 				<EmptyState.Description>
 					{ isFiltered
-						? __( 'Try other words, or clear the filters.' )
+						? __(
+								'Try other words, or clear the filters.',
+								'create-not-learn-editor'
+							)
 						: __(
-								'Add what you sell, with a photo and a price, and it shows in your shop.'
+								'Add what you sell, with a photo and a price, and it shows in your shop.',
+								'create-not-learn-editor'
 							) }
 				</EmptyState.Description>
 				{ ! isFiltered && (
@@ -463,7 +489,7 @@ export function ProductsEmpty( { view } ) {
 							onClick={ add }
 							variant="primary"
 						>
-							{ __( 'Add product' ) }
+							{ __( 'Add product', 'create-not-learn-editor' ) }
 						</Button>
 					</EmptyState.Actions>
 				) }
@@ -493,20 +519,20 @@ export function useProductActions() {
 				} ),
 			id: 'edit',
 			isPrimary: true,
-			label: __( 'Edit' ),
+			label: __( 'Edit', 'create-not-learn-editor' ),
 		},
 		{
 			callback: ( items ) => edit( items, { status: 'publish' } ),
 			id: 'show',
 			isEligible: ( item ) => item.status !== 'publish',
-			label: __( 'Show in your shop' ),
+			label: __( 'Show in your shop', 'create-not-learn-editor' ),
 			supportsBulk: true,
 		},
 		{
 			callback: ( items ) => edit( items, { status: 'draft' } ),
 			id: 'hide',
 			isEligible: ( item ) => item.status === 'publish',
-			label: __( 'Hide from your shop' ),
+			label: __( 'Hide from your shop', 'create-not-learn-editor' ),
 			supportsBulk: true,
 		},
 		{
@@ -514,7 +540,7 @@ export function useProductActions() {
 			id: 'in-stock',
 			isEligible: ( item ) =>
 				isSimple( item ) && item.stock_status !== 'instock',
-			label: __( 'Mark as in stock' ),
+			label: __( 'Mark as in stock', 'create-not-learn-editor' ),
 			supportsBulk: true,
 		},
 		{
@@ -523,7 +549,7 @@ export function useProductActions() {
 			id: 'sold-out',
 			isEligible: ( item ) =>
 				isSimple( item ) && item.stock_status !== 'outofstock',
-			label: __( 'Mark as sold out' ),
+			label: __( 'Mark as sold out', 'create-not-learn-editor' ),
 			supportsBulk: true,
 		},
 		{
@@ -531,7 +557,7 @@ export function useProductActions() {
 				window.open( item.permalink, '_blank', 'noopener,noreferrer' ),
 			id: 'view',
 			isEligible: ( item ) => item.status === 'publish',
-			label: __( 'View in your shop' ),
+			label: __( 'View in your shop', 'create-not-learn-editor' ),
 		},
 		{
 			callback: ( [ item ] ) =>
@@ -541,7 +567,7 @@ export function useProductActions() {
 					'noopener,noreferrer'
 				),
 			id: 'admin',
-			label: __( 'Edit in WP Admin' ),
+			label: __( 'Edit in WP Admin', 'create-not-learn-editor' ),
 		},
 	];
 }

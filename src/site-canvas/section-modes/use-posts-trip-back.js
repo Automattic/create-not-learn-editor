@@ -58,7 +58,7 @@ export function usePostsTripBack( {
 		setPostsNotice( null );
 		setPostsTrip( {
 			entity: entityKey,
-			label: title || __( 'Your page' ),
+			label: title || __( 'Your page', 'create-not-learn-editor' ),
 			postType: posts.name,
 			sectionIndex: sectionIds.indexOf( clientId ),
 			to: getCurrentRoute(),

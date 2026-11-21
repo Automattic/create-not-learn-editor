@@ -28,12 +28,21 @@ export const SHOW_CHANGE_EVENT = 'cnl-editor-show-change';
 
 // What the AI plugin's block tools change, in the person's words.
 const AI_TOOL_CHANGES = {
-	'editor-insert-block': __( 'Added a block' ),
-	'editor-update-block-text': __( 'Changed some words' ),
-	'editor-update-block-attributes': __( 'Changed a block' ),
-	'editor-move-block': __( 'Moved a block' ),
-	'editor-duplicate-block': __( 'Copied a block' ),
-	'editor-transform-block': __( 'Changed a block' ),
+	'editor-insert-block': __( 'Added a block', 'create-not-learn-editor' ),
+	'editor-update-block-text': __(
+		'Changed some words',
+		'create-not-learn-editor'
+	),
+	'editor-update-block-attributes': __(
+		'Changed a block',
+		'create-not-learn-editor'
+	),
+	'editor-move-block': __( 'Moved a block', 'create-not-learn-editor' ),
+	'editor-duplicate-block': __( 'Copied a block', 'create-not-learn-editor' ),
+	'editor-transform-block': __(
+		'Changed a block',
+		'create-not-learn-editor'
+	),
 };
 
 function getModelContext() {
@@ -86,7 +95,8 @@ export function registerWebMcpTools() {
 
 		noteToolCall();
 		recordChange(
-			AI_TOOL_CHANGES[ tool ] || __( 'Changed a block' ),
+			AI_TOOL_CHANGES[ tool ] ||
+				__( 'Changed a block', 'create-not-learn-editor' ),
 			clientId
 		);
 		loadDeferred().then( ( { showWebMcpChange } ) =>

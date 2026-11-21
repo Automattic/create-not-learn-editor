@@ -208,17 +208,17 @@ export function getLayoutOutline( content, { resolvePattern } = {} ) {
 function getItemLabel( item ) {
 	switch ( item.kind ) {
 		case 'header':
-			return __( 'Header' );
+			return __( 'Header', 'create-not-learn-editor' );
 		case 'footer':
-			return __( 'Footer' );
+			return __( 'Footer', 'create-not-learn-editor' );
 		case 'title':
-			return __( 'Title' );
+			return __( 'Title', 'create-not-learn-editor' );
 		case 'image':
-			return __( 'Featured image' );
+			return __( 'Featured image', 'create-not-learn-editor' );
 		case 'comments':
-			return __( 'Comments' );
+			return __( 'Comments', 'create-not-learn-editor' );
 		case 'posts':
-			return __( 'Posts' );
+			return __( 'Posts', 'create-not-learn-editor' );
 	}
 
 	return null;
@@ -234,8 +234,11 @@ function getItemLabel( item ) {
 export function getLayoutDescription( outline ) {
 	const labels = [
 		...outline.before.map( getItemLabel ),
-		outline.hasContent && __( 'The page’s sections' ),
-		outline.hasContent && outline.sidebar && __( 'Sidebar' ),
+		outline.hasContent &&
+			__( 'The page’s sections', 'create-not-learn-editor' ),
+		outline.hasContent &&
+			outline.sidebar &&
+			__( 'Sidebar', 'create-not-learn-editor' ),
 		...outline.after.map( getItemLabel ),
 	].filter( Boolean );
 	const description = labels.join( ', ' );
@@ -244,7 +247,10 @@ export function getLayoutDescription( outline ) {
 		return description;
 	}
 
-	const missing = __( 'Doesn’t show the page’s sections' );
+	const missing = __(
+		'Doesn’t show the page’s sections',
+		'create-not-learn-editor'
+	);
 
 	return description ? `${ description }. ${ missing }` : missing;
 }

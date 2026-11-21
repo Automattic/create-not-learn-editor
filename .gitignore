@@ -14,6 +14,7 @@ packages/*/build/
 packages/*/build-module/
 packages/*/build-style/
 *.zip
+/languages/
 playwright-report/
 test-results/
 

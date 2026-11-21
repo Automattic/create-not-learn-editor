@@ -59,6 +59,7 @@ function cnl_editor_bootstrap() {
 	require_once CNL_EDITOR_PATH . 'includes/blog-admin.php';
 	require_once CNL_EDITOR_PATH . 'includes/editor-registry.php';
 	require_once CNL_EDITOR_PATH . 'includes/app-settings.php';
+	require_once CNL_EDITOR_PATH . 'includes/translations.php';
 	require_once CNL_EDITOR_PATH . 'includes/editor-assets.php';
 	require_once CNL_EDITOR_PATH . 'includes/admin-page.php';
 	require_once CNL_EDITOR_PATH . 'includes/media.php';
