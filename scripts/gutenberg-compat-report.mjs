@@ -14,6 +14,10 @@
 import { readFileSync } from 'node:fs';
 import process from 'node:process';
 
+// Enough of an error to say what went wrong, such as the page errors the
+// smoke test lists.
+const ERROR_LINES = 8;
+
 /**
  * Every test in the report that failed, retries and all.
  *
@@ -39,13 +43,14 @@ export function findFailures( suite, titles = [] ) {
 				title: [ ...path, spec.title ].join( ' › ' ),
 				file: spec.file,
 				line: spec.line,
+				// The start of the error, where Playwright puts what it
+				// expected and what it got, without its terminal colours.
 				error: ( last?.error?.message ?? '' )
-					// Playwright colours its messages for the terminal.
-
 					.replace( /\u001b\[[0-9;]*m/g, '' )
 					.split( '\n' )
-					.find( ( text ) => text.trim() )
-					?.trim(),
+					.filter( ( text ) => text.trim() )
+					.slice( 0, ERROR_LINES )
+					.join( '\n' ),
 			} );
 		}
 	}
@@ -115,7 +120,12 @@ export function formatReport( { name, version, runUrl, steps, failures } ) {
 		for ( const failure of failures ) {
 			lines.push(
 				`- \`${ failure.file }:${ failure.line }\` ${ failure.title }` +
-					( failure.error ? `\n  > ${ failure.error }` : '' )
+					( failure.error
+						? `\n\n  \`\`\`\n${ failure.error
+								.split( '\n' )
+								.map( ( text ) => `  ${ text }` )
+								.join( '\n' ) }\n  \`\`\`\n`
+						: '' )
 			);
 		}
 	}

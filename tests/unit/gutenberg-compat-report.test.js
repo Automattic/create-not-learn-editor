@@ -57,7 +57,7 @@ describe( 'Gutenberg compatibility report', () => {
 				title: 'every main screen loads',
 				file: 'smoke.spec.js',
 				line: 17,
-				error: 'Error: not visible',
+				error: 'Error: not visible\nmore',
 			},
 		] );
 	} );
