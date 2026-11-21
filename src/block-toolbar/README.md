@@ -38,6 +38,7 @@ Multiple selection keeps core's toolbar and menu.
 | `name-menu.js` | Keeps the block's name as a label when its menu would be empty without its styles. |
 | `use-parent-selector-fit.js` | Moves the toolbar in when the parent selector would be cut off. |
 | `toolbar-keyboard.js` | Arrow keys through the toolbar's visible items. |
+| `core-labels.js` | Core's controls found by their labels, in the site's language, and the rules that hide them. |
 | `_style.scss` | The toolbar's look, and what it hides. |
 
 ## Working with core's toolbar
@@ -52,7 +53,9 @@ Multiple selection keeps core's toolbar and menu.
 
 These are core's markup and words, not APIs, so an upstream change can break them silently:
 
-- The style controls the toolbar hides, the format buttons that mark the format group, and the icons counted as well known are found by their English `aria-label`s (`$style-controls`, `$format-buttons` and `$well-known` in `_style.scss`). A reworded label shows the control again.
-- Core's items that sit at the top of the options menu, Group and Create pattern, and their icons, are matched by their words.
+- The style controls the toolbar hides, the format buttons that mark the format group, and the icons counted as well known are found by their `aria-label`s, translated into the site's language (`core-labels.js`, which writes the rules that use them). A reworded label shows the control again. See [Finding core's controls by their labels](../../docs/editor-workarounds.md#finding-cores-controls-by-their-labels).
+- Core's items that sit at the top of the options menu, Group, Ungroup and Create pattern, and their icons, are matched by their words, translated with core's own contexts (`getCoreItemLabels()` in `core-labels.js`). The Format flyout's Bold and Italic click core's buttons found by their translated labels.
+- The movers' arrows rely on core's `is-up-button`, `is-down-button` and `is-horizontal` classes, and the format group's More on its being the group's last `components-dropdown-menu`.
+- `tests/e2e/interactions/block-toolbar-locale.spec.js` checks all of these in German.
 - The block's name is core's switcher's `aria-label`, shown through CSS. Its styles are hidden by core's `block-editor-block-switcher__styles__menugroup` class.
 - The layout relies on core's toolbar classes: `__block-controls`, `__slot`, `has-parent`, `block-editor-block-parent-selector` and the mover's.
