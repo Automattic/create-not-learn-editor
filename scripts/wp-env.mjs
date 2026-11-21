@@ -15,6 +15,15 @@
  * and uploads into it.
  *
  * Set CNL_WP_ENV_CACHE to move the cache.
+ *
+ * Set CNL_GUTENBERG_VERSION to try another Gutenberg: a release such as
+ * `24.4.2`, a release candidate such as `24.5.0-rc.1`, `latest` for the
+ * newest release, or `trunk` for the newest build of Gutenberg's trunk
+ * (`trunk-<commit>` for one build of it), which needs a GitHub token in
+ * GITHUB_TOKEN or GH_TOKEN, or the `gh` CLI signed in.
+ * Each resolves to a version, cached under its own key like any other.
+ * Without it, the pin below is used. `node scripts/wp-env.mjs
+ * --resolve-gutenberg` prints what it resolves to.
  */
 import fs from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -49,12 +58,13 @@ const WORDPRESS = {
 	url: 'https://wordpress.org/wordpress-7.1.zip',
 	link: 'wordpress',
 };
-const GUTENBERG = {
-	name: 'Gutenberg 24.0.0',
-	key: 'gutenberg-24.0.0',
-	url: 'https://downloads.wordpress.org/plugin/gutenberg.24.0.0.zip',
-	link: 'plugins/gutenberg',
-};
+// The minimum Gutenberg the editor supports, and the one every checkout and
+// pull request runs, unless CNL_GUTENBERG_VERSION says otherwise.
+const GUTENBERG_PIN = '24.0.0';
+const GUTENBERG_LINK = 'plugins/gutenberg';
+const GUTENBERG_REPO = 'WordPress/gutenberg';
+// Gutenberg's workflow that builds the plugin on every push to trunk.
+const GUTENBERG_TRUNK_WORKFLOW = 'build-plugin-zip.yml';
 const WORDPRESS_DEVELOP = 'https://github.com/WordPress/wordpress-develop.git';
 
 async function exists( target ) {
@@ -123,11 +133,15 @@ async function withLock( name, callback ) {
  * the whole process part way through a large download (an uncaught
  * `assert(!this.paused)` inside undici), which no retry here could catch.
  */
-async function download( url, destination ) {
+async function download( url, destination, headers = {} ) {
+	const headerArgs = Object.entries( headers ).flatMap(
+		( [ name, value ] ) => [ '--header', `${ name }: ${ value }` ]
+	);
 	try {
 		await execFileAsync(
 			'curl',
 			[
+				...headerArgs,
 				'--fail',
 				'--location',
 				'--silent',
@@ -152,6 +166,158 @@ async function download( url, destination ) {
 	}
 }
 
+function getGitHubToken() {
+	return process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
+}
+
+async function readJson( url, headers = {} ) {
+	const args = [
+		'--fail',
+		'--location',
+		'--silent',
+		'--show-error',
+		'--retry',
+		'3',
+		'--retry-all-errors',
+		'--max-time',
+		'60',
+	];
+	for ( const [ name, value ] of Object.entries( headers ) ) {
+		args.push( '--header', `${ name }: ${ value }` );
+	}
+	try {
+		const { stdout } = await execFileAsync( 'curl', [ ...args, url ], {
+			maxBuffer: 16 * 1024 * 1024,
+		} );
+		return JSON.parse( stdout );
+	} catch ( error ) {
+		throw new Error(
+			`Could not read ${ url }: ${ error.stderr || error.message }`
+		);
+	}
+}
+
+async function resolveGitHubToken() {
+	const token = getGitHubToken();
+	if ( token ) {
+		return token;
+	}
+	try {
+		const { stdout } = await execFileAsync( 'gh', [ 'auth', 'token' ] );
+		return stdout.trim();
+	} catch {
+		throw new Error(
+			"Gutenberg's trunk build is a GitHub Actions artifact, which needs a GitHub token. Set GITHUB_TOKEN, or sign in with `gh auth login`."
+		);
+	}
+}
+
+/**
+ * The newest build of Gutenberg's trunk, from the workflow that builds the
+ * plugin zip on every push, or the build of one commit on it. Its key names
+ * the commit, so each one downloads once.
+ *
+ * @param {string} [commit] The start of a commit's hash, for that build.
+ * @return {Promise<Object>} A zipped source.
+ */
+async function resolveGutenbergTrunk( commit = '' ) {
+	const token = await resolveGitHubToken();
+	const headers = {
+		Accept: 'application/vnd.github+json',
+		Authorization: `Bearer ${ token }`,
+	};
+	const api = `https://api.github.com/repos/${ GUTENBERG_REPO }`;
+	const { workflow_runs: runs } = await readJson(
+		`${ api }/actions/workflows/${ GUTENBERG_TRUNK_WORKFLOW }/runs?branch=trunk&event=push&status=success&per_page=${
+			commit ? 50 : 5
+		}`,
+		headers
+	);
+
+	for ( const run of runs ) {
+		if ( commit && ! run.head_sha.startsWith( commit ) ) {
+			continue;
+		}
+		const { artifacts } = await readJson(
+			`${ api }/actions/runs/${ run.id }/artifacts`,
+			headers
+		);
+		const artifact = artifacts.find(
+			( { name, expired } ) => name === 'gutenberg.zip' && ! expired
+		);
+		if ( artifact ) {
+			const short = run.head_sha.slice( 0, 7 );
+			return {
+				name: `Gutenberg trunk (${ short })`,
+				version: `trunk-${ short }`,
+				key: `gutenberg-trunk-${ short }`,
+				url: artifact.archive_download_url,
+				headers: { Authorization: `Bearer ${ token }` },
+				link: GUTENBERG_LINK,
+			};
+		}
+	}
+	throw new Error(
+		commit
+			? `No build of Gutenberg's trunk at ${ commit } with a gutenberg.zip artifact in the last ${ runs.length } runs.`
+			: `No build of Gutenberg's trunk with a gutenberg.zip artifact in the last ${ runs.length } runs.`
+	);
+}
+
+/**
+ * The Gutenberg to run: the pin, or CNL_GUTENBERG_VERSION.
+ *
+ * @param {string} [requested] Version asked for.
+ * @return {Promise<Object>} A zipped source.
+ */
+async function resolveGutenberg(
+	requested = process.env.CNL_GUTENBERG_VERSION
+) {
+	let version = ( requested || '' ).trim() || GUTENBERG_PIN;
+
+	if ( version === 'trunk' || version === 'nightly' ) {
+		return resolveGutenbergTrunk();
+	}
+
+	// What `trunk` resolved to, to run the same build again.
+	const trunkCommit = version.match( /^trunk-([0-9a-f]{7,40})$/ );
+	if ( trunkCommit ) {
+		return resolveGutenbergTrunk( trunkCommit[ 1 ] );
+	}
+
+	if ( version === 'latest' ) {
+		( { version } = await readJson(
+			'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&request%5Bslug%5D=gutenberg&request%5Bfields%5D%5Bsections%5D=0&request%5Bfields%5D%5Bversions%5D=0'
+		) );
+	}
+
+	const source = {
+		name: `Gutenberg ${ version }`,
+		version,
+		key: `gutenberg-${ version }`,
+		link: GUTENBERG_LINK,
+	};
+
+	if ( /^\d+\.\d+\.\d+$/.test( version ) ) {
+		return {
+			...source,
+			url: `https://downloads.wordpress.org/plugin/gutenberg.${ version }.zip`,
+		};
+	}
+
+	// Release candidates are only on GitHub.
+	if ( /^\d+\.\d+\.\d+-rc\.\d+$/.test( version ) ) {
+		return {
+			...source,
+			url: `https://github.com/${ GUTENBERG_REPO }/releases/download/v${ version }/gutenberg.zip`,
+		};
+	}
+
+	throw new Error(
+		`CNL_GUTENBERG_VERSION should be a release such as ${ GUTENBERG_PIN }, a release candidate such as 24.5.0-rc.1, "latest", "trunk" or "trunk-<commit>", not "${ version }".`
+	);
+}
+
 /**
  * Downloads and unzips a source into the cache, moving it into place only once
  * it is complete. Zips holding a single directory are unwrapped, as wp-env
@@ -166,7 +332,7 @@ async function fetchZip( source ) {
 
 	console.log( `Downloading ${ source.name }...` );
 	try {
-		await download( source.url, zipPath );
+		await download( source.url, zipPath, source.headers );
 		await fs.mkdir( temp );
 		await execFileAsync( 'unzip', [ '-q', zipPath, '-d', temp ] );
 
@@ -341,8 +507,13 @@ async function preparePHPUnit( tag ) {
 async function prepareSources() {
 	await fs.mkdir( cacheDir, { recursive: true } );
 
+	const gutenberg = await resolveGutenberg();
+	if ( gutenberg.version !== GUTENBERG_PIN ) {
+		console.log( `Using ${ gutenberg.name }, from CNL_GUTENBERG_VERSION.` );
+	}
+
 	const wordpress = await copyWordPress( await ensureZip( WORDPRESS ) );
-	await linkSource( GUTENBERG.link, await ensureZip( GUTENBERG ) );
+	await linkSource( gutenberg.link, await ensureZip( gutenberg ) );
 	await preparePHPUnit( await readWordPressVersion( wordpress ) );
 }
 
@@ -365,6 +536,11 @@ function runWpEnv( args ) {
 
 async function main() {
 	const args = process.argv.slice( 2 );
+	if ( args[ 0 ] === '--resolve-gutenberg' ) {
+		const { name, version, key } = await resolveGutenberg();
+		console.log( JSON.stringify( { name, version, key } ) );
+		return;
+	}
 	if ( args[ 0 ] === 'start' ) {
 		await prepareSources();
 	}
