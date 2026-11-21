@@ -26,15 +26,23 @@
 /**
  * Internal dependencies
  */
+import {
+	hasUnsavedChanges,
+	openCoreEditor,
+	selectCoreEditorUrl,
+} from '../core-editor';
 import { unlock } from '../lock-unlock';
 import { cnlEditorStore } from '../records';
-import { namespace, settings } from '../settings';
+import { getEditablePostType, namespace, settings } from '../settings';
 import { useChanges } from '../top-bar/use-changes';
 import {
 	blockEditorStore,
+	__,
 	coreDataStore,
 	dispatch,
+	noticesStore,
 	select,
+	sprintf,
 	subscribe,
 	useCallback,
 	useEffect,
@@ -394,6 +402,56 @@ export function useSiteCanvas( {
 	const isEditorReady = isSameEntity( editorEntity, canvasEntity );
 
 	useIgnoreLayoutTidying( editorEntity, isPreviewing );
+
+	/*
+	 * A page with meta boxes, or of a classic post type, is edited in core's
+	 * editor, which shows them, however the canvas was asked to edit it:
+	 * Edit, a screen opening a page to change, or the mode carrying over to
+	 * it. Browse still shows it. Changes to another page are saved or
+	 * discarded first, as leaving would lose them.
+	 */
+	const coreEditorUrl = useSelect(
+		( registrySelect ) =>
+			selectCoreEditorUrl(
+				registrySelect,
+				canvasEntity?.postType,
+				canvasEntity?.postId
+			),
+		[ canvasEntity?.postType, canvasEntity?.postId ]
+	);
+	useEffect( () => {
+		// Not for the canvas switching itself to show a change made beside
+		// it, which nobody asked to edit.
+		if ( isPreviewing || ! coreEditorUrl || isShowingChange() ) {
+			return;
+		}
+
+		// Back to Browse, keeping the changes for Save, rather than lose them
+		// or leave the page open here to change.
+		if ( hasUnsavedChanges() ) {
+			const singular =
+				getEditablePostType( canvasEntity.postType )?.singular ||
+				__( 'Page' );
+			dispatch( noticesStore ).createWarningNotice(
+				sprintf(
+					/* translators: %s: post type singular label, like "page". */
+					__(
+						'Save or discard your changes first. This %s opens in the full editor, which has its extra settings.'
+					),
+					singular.toLowerCase()
+				),
+				{ id: 'cnl-core-editor-unsaved', type: 'snackbar' }
+			);
+			setCanvasMode( MODE_BROWSE );
+			return;
+		}
+
+		// Browse, for whoever comes back to this page in the history.
+		setCanvasMode( MODE_BROWSE );
+		openCoreEditor( coreEditorUrl );
+		// Only a page or mode changing should send the person on.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ isPreviewing, coreEditorUrl ] );
 	/*
 	 * Whether the page on show can be opened in the full-screen editor.
 	 * In Browse, nothing can be while the preview is on an archive, say, or

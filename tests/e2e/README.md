@@ -46,3 +46,4 @@ The base URL comes from `wp-env status`. Set `WP_BASE_URL` to point somewhere el
 - Open screens directly with `visitEditor( page, '/route' )`. Only click through the sidebar when the navigation is what is being tested.
 - The global setup logs in once and shares the session with every test.
 - Tests run one at a time, because they share one WordPress site.
+- A test that needs a plugin's PHP, such as a meta box, uses a small plugin in `tests/e2e/plugins/`. `.wp-env.json` maps each into the tests site only, inactive. The test activates it over REST and deactivates it in `rest.onCleanup()`, as `interactions/core-editor.spec.js` does. Restart wp-env after adding a mapping.

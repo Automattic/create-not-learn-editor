@@ -83,3 +83,13 @@ Both of those rules repeat the base rule's `:not()` chain. Without it the base r
 Core's `ListViewSidebar` hard-codes its List View tab, with no slot or filter for another list. The site canvas shows a list of the page's sections there instead (`src/site-canvas/section-modes/canvas-overview.jsx`), portalled into the tab's `.editor-list-view-sidebar__list-view-panel-content` panel, which `src/site-canvas/section-modes/_canvas-overview.scss` uses to hide core's list view beside it. Core's list still mounts, and its focus on opening lands on nothing, so ours moves focus into itself as it opens.
 
 This depends on that class name, on the panel being unmounted while Outline is shown, and on core's `isListViewOpened` selector. Remove it once the editor lets the List View tab's content be replaced.
+
+## Finding a post type's meta boxes
+
+Falling back to core's editor (see `docs/architecture.md`) needs to know whether a post type's edit screen has meta boxes from a plugin, and core only works that out while it renders `post.php`. `cnl_editor_detect_post_type_meta_boxes()` in `includes/core-editor.php` builds the same screen in a sandbox.
+
+It depends on core internals in four ways. It calls `register_and_do_post_meta_boxes()` from `wp-admin/includes/meta-boxes.php` with a `WP_Post` that is never saved. It swaps the `$wp_meta_boxes`, `$current_screen`, `$post`, `$typenow`, `$pagenow` and `$hook_suffix` globals for the call, as `post-new.php` sets them, and puts them back after, along with the script and style queues and the admin footer hooks, so nothing a plugin's box adds reaches the editor's page. It applies `filter_block_editor_meta_boxes` as `the_block_editor_meta_boxes()` does. And it reads core's `__back_compat_meta_box` argument, which marks the boxes the block editor replaces.
+
+It doesn't fire `current_screen` or `load-post.php`, as plugins hooked there would change the editor's own page, so boxes added only from those hooks aren't found. Nor are boxes from a plugin that adds its hooks on `admin_init` after the editor's page has rendered, which it does in its own `admin_init` callback at the default priority. The `create-not-learn-editor_use_core_editor` filter covers them.
+
+Remove this once core can report a post type's meta boxes without rendering its edit screen.

@@ -7,6 +7,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/*
+ * Post types the editor always edits itself, whatever their edit screen in
+ * wp-admin would have.
+ */
+const CNL_EDITOR_OWN_EDITOR_POST_TYPES = array( 'wp_block', 'wp_navigation', 'wp_template', 'wp_template_part' );
+
 /**
  * Register content type hooks.
  */
@@ -114,18 +120,23 @@ function cnl_editor_get_post_type_data( $post_type ) {
 	$rest_base = $post_type->rest_base ? $post_type->rest_base : $post_type->name;
 
 	return array(
-		'name'       => $post_type->name,
-		'restBase'   => $rest_base,
-		'label'      => $post_type->label,
-		'menuName'   => $post_type->labels->menu_name ? $post_type->labels->menu_name : $post_type->label,
-		'singular'   => $post_type->labels->singular_name,
-		'canCreate'  => current_user_can( $post_type->cap->create_posts ),
-		'canEdit'     => current_user_can( $post_type->cap->edit_posts ),
-		'blockEditor' => function_exists( 'use_block_editor_for_post_type' ) &&
-			use_block_editor_for_post_type( $post_type->name ),
-		'menuIcon'    => cnl_editor_get_content_post_type_icon( $post_type ),
-		'archiveUrl'  => $post_type->has_archive ? get_post_type_archive_link( $post_type->name ) : null,
-		'newUrl'      => add_query_arg( 'post_type', $post_type->name, admin_url( 'post-new.php' ) ),
+		'name'         => $post_type->name,
+		'restBase'     => $rest_base,
+		'label'        => $post_type->label,
+		'menuName'     => $post_type->labels->menu_name ? $post_type->labels->menu_name : $post_type->label,
+		'singular'     => $post_type->labels->singular_name,
+		'canCreate'    => current_user_can( $post_type->cap->create_posts ),
+		'canEdit'      => current_user_can( $post_type->cap->edit_posts ),
+		'blockEditor'  => cnl_editor_post_type_uses_block_editor( $post_type->name ),
+		// Meta boxes only core's editor shows, so its posts open there, as
+		// they do when it uses the classic editor. See
+		// `includes/core-editor.php`.
+		'hasMetaBoxes' => ! in_array( $post_type->name, CNL_EDITOR_OWN_EDITOR_POST_TYPES, true ) &&
+			cnl_editor_post_type_has_meta_boxes( $post_type->name ),
+		'coreEditor'   => cnl_editor_get_post_type_core_editor_reason( $post_type->name ),
+		'menuIcon'     => cnl_editor_get_content_post_type_icon( $post_type ),
+		'archiveUrl'   => $post_type->has_archive ? get_post_type_archive_link( $post_type->name ) : null,
+		'newUrl'       => add_query_arg( 'post_type', $post_type->name, admin_url( 'post-new.php' ) ),
 	);
 }
 

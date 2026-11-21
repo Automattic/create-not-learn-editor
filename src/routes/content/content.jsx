@@ -511,7 +511,9 @@ function Stage() {
 				return;
 			}
 
-			if ( type.blockEditor ) {
+			// A classic post type's posts open in core's editor, through the
+			// edit route (`src/core-editor.js`).
+			if ( type.blockEditor || type.coreEditor ) {
 				openEditor( item.id );
 			} else {
 				selectPost( item.id );

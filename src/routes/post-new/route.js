@@ -6,13 +6,41 @@ import { notFound, redirect } from '@wordpress/route';
 import { getPostType, namespace } from '../../settings';
 import { cnlEditorStore } from '../../records';
 import { startPostFromKind } from '../../post-kinds';
-import { __, dispatch, sprintf } from '../../wordpress-packages';
+import {
+	getCoreEditorNewUrl,
+	hasUnsavedChanges,
+	openCoreEditor,
+} from '../../core-editor';
+import { __, dispatch, noticesStore, sprintf } from '../../wordpress-packages';
 
 export const route = {
 	beforeLoad: async ( { params, search } ) => {
 		const type = getPostType( params.type );
 
-		if ( ! type || ! type.blockEditor || ! type.canCreate ) {
+		if ( ! type || ! type.canCreate ) {
+			throw notFound();
+		}
+
+		// A post type with meta boxes, or the classic editor, starts its
+		// posts in core's editor.
+		const coreEditorUrl = getCoreEditorNewUrl( type.name );
+		if ( coreEditorUrl ) {
+			// Leaving would lose them, so stay, on the list.
+			if ( hasUnsavedChanges() ) {
+				dispatch( noticesStore ).createWarningNotice(
+					__(
+						'Save or discard your changes first. This opens in the full editor, which has its extra settings.'
+					),
+					{ id: 'cnl-core-editor-unsaved', type: 'snackbar' }
+				);
+				throw redirect( { to: `/types/${ type.name }` } );
+			}
+
+			openCoreEditor( coreEditorUrl, { replace: true } );
+			await new Promise( () => {} );
+		}
+
+		if ( ! type.blockEditor ) {
 			throw notFound();
 		}
 
