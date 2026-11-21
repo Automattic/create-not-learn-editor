@@ -83,3 +83,8 @@ Both of those rules repeat the base rule's `:not()` chain. Without it the base r
 Core's `ListViewSidebar` hard-codes its List View tab, with no slot or filter for another list. The site canvas shows a list of the page's sections there instead (`src/site-canvas/section-modes/canvas-overview.jsx`), portalled into the tab's `.editor-list-view-sidebar__list-view-panel-content` panel, which `src/site-canvas/section-modes/_canvas-overview.scss` uses to hide core's list view beside it. Core's list still mounts, and its focus on opening lands on nothing, so ours moves focus into itself as it opens.
 
 This depends on that class name, on the panel being unmounted while Outline is shown, and on core's `isListViewOpened` selector. Remove it once the editor lets the List View tab's content be replaced.
+## Registering core's block bindings sources
+
+The lazy editor doesn't register what reads and writes core's block bindings sources in the editor, so `src/editor-extensions/block-bindings.js` calls the editor's `registerCoreBlockBindingsSources()` whenever a core source is there without it. Up to Gutenberg 24.4 that function is one of `@wordpress/editor`'s private APIs, unlocked through `src/lock-unlock.js`. Gutenberg's trunk exports it publicly instead and drops it from the private APIs, so the editor uses the public export when there is one and the private one otherwise. Without it, every screen throws on Gutenberg's trunk.
+
+Remove this once the lazy editor registers the sources itself, or drop the private fallback once the minimum Gutenberg exports the function.

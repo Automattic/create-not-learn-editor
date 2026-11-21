@@ -28,7 +28,9 @@ import {
 	store as blocksStore,
 } from '@wordpress/blocks';
 import { subscribe } from '@wordpress/data';
-import { privateApis as editorPrivateApis } from '@wordpress/editor';
+// Read as a namespace, as `registerCoreBlockBindingsSources` moved from the
+// private APIs to a public export after Gutenberg 24.0.
+import * as editor from '@wordpress/editor';
 
 /**
  * Internal dependencies
@@ -44,6 +46,14 @@ const CORE_SOURCES = [
 ];
 
 let isScheduled = false;
+
+function registerCoreSources() {
+	const register =
+		editor.registerCoreBlockBindingsSources ??
+		unlock( editor.privateApis ).registerCoreBlockBindingsSources;
+
+	register?.();
+}
 
 function isMissing() {
 	const sources = getBlockBindingsSources();
@@ -64,7 +74,7 @@ function registerWhenMissing() {
 		isScheduled = false;
 
 		if ( isMissing() ) {
-			unlock( editorPrivateApis ).registerCoreBlockBindingsSources();
+			registerCoreSources();
 		}
 	} );
 }
