@@ -3,7 +3,18 @@
  */
 import { store as coreDataStore } from '@wordpress/core-data';
 import { useDispatch, useSelect } from '@wordpress/data';
-import { memo, useEffect, useMemo, useRef } from '@wordpress/element';
+import {
+	memo,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+} from '@wordpress/element';
+
+/**
+ * Internal dependencies
+ */
+import { registerClassicBlock } from './classic-block';
 
 const upstreamModuleUrl =
 	window.createNotLearnEditor?.lazyEditorModuleUrl || '';
@@ -15,6 +26,47 @@ if ( ! upstreamModuleUrl ) {
 const upstream = await import( /* webpackIgnore: true */ upstreamModuleUrl );
 
 const UpstreamEditor = upstream.Editor;
+
+let editorAssetsPromise;
+
+/**
+ * Load the editor's assets, as lazy-editor does, then the blocks they leave
+ * out. One promise, shared with lazy-editor's own, so whatever waits on
+ * either finds the blocks registered.
+ *
+ * @return {Promise<void>} Resolves once the assets have loaded.
+ */
+export function loadEditorAssets() {
+	if ( ! editorAssetsPromise ) {
+		editorAssetsPromise = upstream
+			.loadEditorAssets()
+			.then( registerClassicBlock );
+	}
+
+	return editorAssetsPromise;
+}
+
+/*
+ * Waits on the assets before lazy-editor's own hook does, so the blocks are
+ * registered by the time it reports them ready. The hook asks for them from
+ * its first render, so this starts nothing sooner. Errors are lazy-editor's
+ * to report.
+ */
+function useClassicBlock() {
+	useLayoutEffect( () => {
+		loadEditorAssets().catch( () => {} );
+	}, [] );
+}
+
+/**
+ * Lazy-editor's hook, with the blocks its assets leave out.
+ *
+ * @return {Object} Whether the assets are ready.
+ */
+export function useEditorAssets() {
+	useClassicBlock();
+	return upstream.useEditorAssets();
+}
 
 /**
  * Preserve lazy-editor's resolved theme and global styles when boot supplies
@@ -106,6 +158,11 @@ function CompatibleEditor( {
 		[ postId, postType ]
 	);
 	const { editEntityRecord } = useDispatch( coreDataStore );
+
+	// The editor parses the post once its assets are ready, which must find
+	// the Classic block already registered.
+	useClassicBlock();
+
 	const compatibleSettings = useMemo( () => {
 		if ( ! settings || ! Object.hasOwn( settings, 'styles' ) ) {
 			return settings;
@@ -196,6 +253,4 @@ function CompatibleEditor( {
 export const Editor = memo( CompatibleEditor );
 
 export const Preview = upstream.Preview;
-export const loadEditorAssets = upstream.loadEditorAssets;
-export const useEditorAssets = upstream.useEditorAssets;
 export const useEditorSettings = upstream.useEditorSettings;

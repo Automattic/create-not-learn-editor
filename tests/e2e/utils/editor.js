@@ -268,6 +268,38 @@ async function pickCanvasMode( page, mode ) {
 }
 
 /**
+ * Open a post on the Home screen's site canvas, in Browse, by following the
+ * preview to it, as a visitor's link would. Posts have no list with a canvas
+ * of their own.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {Object}                          post The post, from
+ *                                               `rest.createPost()`.
+ */
+async function openPostOnSiteCanvas( page, post ) {
+	const title = page.locator( '.cnl-editor-homepage-document__title' );
+
+	await visitEditor( page );
+	await pickCanvasMode( page, 'Browse' );
+	await expect( getSitePreview( page ) ).toBeVisible( { timeout: 15000 } );
+	await expect(
+		page.locator( '.cnl-editor-preview-canvas__spinner' )
+	).toHaveCount( 0, { timeout: 15000 } );
+
+	const preview = await (
+		await getSitePreview( page ).elementHandle()
+	).contentFrame();
+
+	await preview.evaluate( ( link ) => {
+		const url = new URL( window.location.href );
+
+		url.pathname = new URL( link ).pathname;
+		window.location.href = url.toString();
+	}, post.link );
+	await expect( title ).toHaveText( post.title, { timeout: 15000 } );
+}
+
+/**
  * The block editor inside the site canvas.
  *
  * @param {import('@playwright/test').Page} page
@@ -605,6 +637,7 @@ module.exports = {
 	getStage,
 	openAddPage,
 	openPageLayouts,
+	openPostOnSiteCanvas,
 	openReviewChanges,
 	openSidebarLink,
 	closeViewMenu,
