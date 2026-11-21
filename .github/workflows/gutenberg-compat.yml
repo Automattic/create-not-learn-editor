@@ -18,10 +18,17 @@ name: Gutenberg compatibility
 # <version>" ("trunk" for trunk's builds), which later failures comment on.
 # Issues are only filed from trunk, by the daily run or a manual run with
 # "file_issues" on. Anywhere else the issue is printed instead.
+#
+# A pull request that changes this workflow or its report runs it too, since
+# GitHub only lets a workflow be run by hand once it is on trunk.
 
 on:
   schedule:
     - cron: '23 4 * * *'
+  pull_request:
+    paths:
+      - .github/workflows/gutenberg-compat.yml
+      - scripts/gutenberg-compat-report.mjs
   workflow_dispatch:
     inputs:
       versions:
