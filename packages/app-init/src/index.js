@@ -33,6 +33,7 @@ import { registerSectionMenu } from '../../../src/editor-extensions/section-menu
 import { registerSectionPatterns } from '../../../src/editor-extensions/section-patterns';
 import { registerTemplatePartEditing } from '../../../src/editor-extensions/template-part-editing';
 import { mountEditorLayer } from '../../../src/editor-layer';
+import { registerPluginUi } from '../../../src/plugin-ui';
 import { registerLayoutWireframes } from '../../../src/layouts';
 import { mountSaveControls } from '../../../src/top-bar';
 import { mountWorkspaces } from '../../../src/workspaces';
@@ -54,6 +55,9 @@ export async function init() {
 	registerTemplatePartEditing();
 	registerLayoutWireframes();
 	mountEditorLayer();
+	// Before the site's plugins register, so the Plugins button leads core's
+	// pinned items.
+	registerPluginUi();
 
 	// PHP can only hand boot dashicon strings; swap in @wordpress/icons SVGs
 	// here, as WordPress 7.2 is doing for its own admin menu.

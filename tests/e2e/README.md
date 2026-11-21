@@ -7,6 +7,7 @@ Playwright tests that drive the editor in a real browser against the `wp-env` te
 - `smoke.spec.js` is one quick pass through every main screen. It fails if a screen doesn't load or the page throws an error. Run it first when something looks broken.
 - `views/` checks what each screen shows when it opens, one file per area.
 - `interactions/` checks what happens when you do something, such as adding a page, customising a menu or discarding a change. Again, one file per area.
+- `plugins/` holds test plugins. `cnl-plugin-ui-fixture` registers editor UI in every slot a plugin can fill; it is mapped into wp-env but inactive, so a test activates it.
 - `utils/` holds the shared `test` fixture and helpers. Import `test` and `expect` from `./utils` rather than from `@playwright/test`.
 
 The areas are `home`, `pages`, `add-page`, `menus`, `design`, `advanced` (Layouts, All site parts and Sections) and `block-editor`, plus `site-canvas` for the Preview and Edit canvas shared by Home, Pages and Design.

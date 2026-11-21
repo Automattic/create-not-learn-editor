@@ -9,6 +9,7 @@
 /**
  * WordPress dependencies
  */
+import { Slot } from '@wordpress/components';
 import { store as keyboardShortcutsStore } from '@wordpress/keyboard-shortcuts';
 
 /**
@@ -16,6 +17,7 @@ import { store as keyboardShortcutsStore } from '@wordpress/keyboard-shortcuts';
  */
 import { unlock } from '../lock-unlock';
 import { openRoute } from '../open-route';
+import { readActionItems } from '../plugin-ui/action-items';
 import {
 	__,
 	Button,
@@ -295,8 +297,57 @@ export function ViewMenu( {
 						</Menu.Item>
 					) }
 				</Menu.Group>
+				<PluginPreviewItems />
 			</Menu.Popup>
 		</Menu.Root>
+	);
+}
+
+/**
+ * What plugins add to the preview menu, as core's editor has them in its
+ * own, after the canvas's ways to view the page. See `src/plugin-ui`.
+ *
+ * @return {?Element} The items.
+ */
+function PluginPreviewItems() {
+	return (
+		<Slot name="core/plugin-preview-menu">
+			{ ( fills ) => (
+				<PreviewItems
+					items={ readActionItems( fills.flat( Infinity ) ) }
+				/>
+			) }
+		</Slot>
+	);
+}
+
+function PreviewItems( { items } ) {
+	if ( ! items.length ) {
+		return null;
+	}
+
+	return (
+		<>
+			<Menu.Separator />
+			<Menu.Group>
+				{ items.map( ( item ) => (
+					<Menu.Item
+						key={ item.label }
+						onClick={ ( event ) =>
+							item.href
+								? window.open(
+										item.href,
+										'_blank',
+										'noreferrer'
+									)
+								: item.onClick?.( event )
+						}
+					>
+						<Menu.ItemLabel>{ item.label }</Menu.ItemLabel>
+					</Menu.Item>
+				) ) }
+			</Menu.Group>
+		</>
 	);
 }
 

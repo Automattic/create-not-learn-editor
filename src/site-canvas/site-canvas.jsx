@@ -207,6 +207,11 @@ export function SiteCanvas( {
 					{ document }
 				</div>
 				<div className="cnl-editor-homepage-toolbar__right">
+					{ /* The Plugins button, from `src/plugin-ui`, while the
+					editor is on show. */ }
+					{ ! isPreviewing && editorEntity && (
+						<div className="cnl-site-canvas__plugins" />
+					) }
 					<ViewMenu
 						device={ device }
 						isComposing={ isComposing }
