@@ -14,6 +14,8 @@ The mode is shared by every canvas, so it carries over from page to page and scr
 
 Moving to Browse with unsaved changes asks to save or discard them, because the preview only shows what is saved. Moving between Edit and Compose never asks: they are the same editor.
 
+In Edit and Compose, a post or page is autosaved and locked, as in core's post editor, and moving to Browse lets go of its lock. A post someone else has open shows core's lock dialog, whose Exit editor goes back to Browse. See "Autosaves and post locks" in `docs/architecture.md`.
+
 ## Files
 
 | File | What it does |
