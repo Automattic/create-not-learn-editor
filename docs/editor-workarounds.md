@@ -83,3 +83,40 @@ Both of those rules repeat the base rule's `:not()` chain. Without it the base r
 Core's `ListViewSidebar` hard-codes its List View tab, with no slot or filter for another list. The site canvas shows a list of the page's sections there instead (`src/site-canvas/section-modes/canvas-overview.jsx`), portalled into the tab's `.editor-list-view-sidebar__list-view-panel-content` panel, which `src/site-canvas/section-modes/_canvas-overview.scss` uses to hide core's list view beside it. Core's list still mounts, and its focus on opening lands on nothing, so ours moves focus into itself as it opens.
 
 This depends on that class name, on the panel being unmounted while Outline is shown, and on core's `isListViewOpened` selector. Remove it once the editor lets the List View tab's content be replaced.
+
+## Plugin UI: one home for what plugins add (spike)
+
+`src/plugin-ui/` gathers what plugins register in the editor behind one Plugins button. Core has no API to list what each plugin adds, so it leans on several internals. Each is a candidate for a Gutenberg API; the spike's pull request has a draft issue for each.
+
+### Reading a slot's fills with a probe slot
+
+Gutenberg 24's `__experimentalUseSlotFills()` only says how many fills a slot has, not what they are, and the slot registry (`SlotFillContext`) isn't exported. `SlotProbe` (`use-plugin-inventory.jsx`) renders a `Slot` of the same name with a render-prop child, which hands over the fills' elements without rendering them. Fills only render in the slot registered last, so the probe takes the slot over. It is used for two slots only:
+
+- `core/plugin-more-menu`, which CnL takes over on purpose: plugin More menu items move to the Plugins menu, in both surfaces, and core's ⋮ menu loses its plugin group. When core's ⋮ menu opens, its slot takes the items back; the probe registers again 300ms after the fills stop reaching it, so the items show in core's menu for a moment.
+- `EnablePluginDocumentSettingPanelOption`, read for each document panel's `panelName`, which says whose it is. Core only mounts that slot in Preferences > Panels, which loses its plugin options while the probe holds the slot.
+
+The probe depends on the order fills render in, on `ActionItem` passing `aria-controls` for a sidebar's More menu item, and on the panel option element carrying `panelName`. It goes away with a public "what has each plugin registered" API.
+
+### Tying a fill back to its plugin
+
+Fills carry no plugin name. A sidebar's More menu item carries `aria-controls`, `<plugin>:<sidebar>`. A document panel option carries `panelName`, `<plugin>/<panel>`. Anything else is matched by the plugin's icon, which core's components fall back to when a fill has none of its own, and only when exactly one plugin uses that icon. Plugin names come from `getPlugins()` and the `plugins.pluginRegistered` hook.
+
+### Showing core's sidebar in the site canvas for a plugin's panel
+
+The site canvas hides core's `interface-interface-skeleton__sidebar` (`src/site-canvas/_style.scss`). While the active complementary area in the `core` scope is a plugin's (any identifier not starting `edit-post/`, `edit-site/`, `core/` or `editor/`), `src/plugin-ui/index.jsx` sets `data-cnl-plugin-sidebar` on the body and `src/plugin-ui/_style.scss` shows the sidebar again. That is what lets a plugin opening its own sidebar, with `enableComplementaryArea()` or `core/edit-post`'s `openGeneralSidebar()`, land beside the canvas. The interface store is read by name, `core/interface`, because `@wordpress/interface` is bundled inside the editor script rather than shipped as a package of its own.
+
+### Hiding core's pin star and pinned plugin icons
+
+Core pins every plugin sidebar to its header by default, through `pinnedItems` in the shared `core` preferences, which WordPress's other editors read too. CnL keeps its own list (`create-not-learn-editor` / `pinnedPluginSidebars`, two at most), hides core's star (`.interface-complementary-area__pin-unpin-item`) and every pinned header button whose `aria-controls` isn't core's own, and puts its own pin into the open panel's header (`.interface-complementary-area-header`), before the close button.
+
+### The Plugins button in core's header
+
+In the full-screen editor the button is a `PinnedItems/core` fill from CnL's own registered plugin, so it sits where core's pinned plugin icons were. It registers before the site's plugins, so it comes first, which also keeps it the one pinned item core shows on a phone.
+
+### Publish panels outside core's publish flow
+
+The review dialog (`src/top-bar/review-changes.jsx`) is its own React root, outside boot's slots, so it offers an element (`publish-host.js`) and the plugin UI root renders `PluginPrePublishPanel.Slot` into it with a portal. After the site canvas publishes the open post, the root shows `PluginPostPublishPanel.Slot` in a dialog of its own. Both rely on the panels reading the post from `core/editor`, which the site canvas's editor sets.
+
+### Turning on the publish step for plugins' checks
+
+Workspaces that skip core's publish step (`publishStep: false`) leave plugins' pre-publish panels with nowhere to show in the full-screen editor. `src/workspaces/index.js` now sets core's `isPublishSidebarEnabled` default to on whenever a plugin has a pre-publish panel. It is still only a default, so the person's own choice on the step wins.

@@ -12,7 +12,7 @@ The README is for people trying the editor and explains the ideas behind it. The
 - [docs/demo-site-and-playground.md](docs/demo-site-and-playground.md) covers the Mainstay theme, the demo seed, the shop and the Playground demos, how to cut a release, and the rules for changing them. Read it before touching `themes/`, `scripts/demo-site/`, `demos/` or the Playground workflows.
 - [docs/editor-workarounds.md](docs/editor-workarounds.md) lists every reliance on private APIs or core internals. Add an entry there whenever you add one.
 - [docs/vendored-list-view.md](docs/vendored-list-view.md) covers the vendored ListView bridge.
-- Folders such as `src/editor-layer/`, `src/block-toolbar/` and `src/site-canvas/` have their own README. Read it when you work in that folder.
+- Folders such as `src/editor-layer/`, `src/block-toolbar/`, `src/site-canvas/` and `src/plugin-ui/` have their own README. Read it when you work in that folder.
 
 Keep those files current when behaviour they describe changes. Keep the README to what the editor is, why it exists and how to try it.
 

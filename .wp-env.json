@@ -4,12 +4,17 @@
 		"./.wp-env/sources/plugins/gutenberg",
 		"."
 	],
-	"themes": [ "./themes/mainstay" ],
+	"themes": [
+		"./themes/mainstay"
+	],
 	"config": {
 		"WP_DEBUG": true,
 		"SCRIPT_DEBUG": true
 	},
 	"lifecycleScripts": {
 		"afterStart": "node scripts/setup-demo-site.mjs"
+	},
+	"mappings": {
+		"wp-content/plugins/cnl-plugin-ui-fixture": "./tests/e2e/plugins/cnl-plugin-ui-fixture"
 	}
 }

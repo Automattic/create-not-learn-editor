@@ -100,6 +100,10 @@ The Site parts screen (`/site-parts`, in the sidebar's Site section and on Home)
 
 A menu row switches menus only through a deliberate Change step, since a menu can be used in more than one place. Gutenberg's version also offers the navigation overlay; that is left out until we've worked out how it should show. It follows the same idea as Gutenberg's [Site parts experiment](https://github.com/WordPress/gutenberg/pull/87071). The code is in `src/routes/site-part/`.
 
+## Plugins' editor UI
+
+Plugins mount through boot's `PluginArea`, so their fills render in both the site canvas and the full-screen editor. Rather than core's header, where pinned plugin icons pile up, everything a plugin adds is reached from one **Plugins** button in the canvas toolbar and in the full-screen header (`src/plugin-ui/`). A plugin's sidebar docks beside the page, as core's own complementary area, so programmatic opening keeps working. Document panels gather in one Settings from plugins panel, pre-publish panels show in Review changes, and post-publish panels after the canvas publishes. See [`src/plugin-ui/README.md`](../src/plugin-ui/README.md); this is a spike.
+
 ## Visual theme
 
 The editor uses the WordPress Design System as it ships. Its own surfaces take their colours, corners, spacing and shadows from WPDS tokens and core's elevation scale, so they sit alongside core's components rather than near them. The black sidebar's section titles, like Content and Design, are the one exception: they are set in EB Garamond, the heading face on [WordPress.org](https://wordpress.org/). The font lives in `assets/fonts/eb-garamond/` under the SIL Open Font License and loads from the plugin, not a third-party CDN.
