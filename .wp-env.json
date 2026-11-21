@@ -11,5 +11,12 @@
 	},
 	"lifecycleScripts": {
 		"afterStart": "node scripts/setup-demo-site.mjs"
+	},
+	"env": {
+		"tests": {
+			"mappings": {
+				"wp-content/plugins/cnl-e2e-meta-box": "./tests/e2e/plugins/meta-box"
+			}
+		}
 	}
 }

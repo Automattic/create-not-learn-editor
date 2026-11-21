@@ -47,6 +47,7 @@ function cnl_editor_bootstrap() {
 	}
 
 	require_once CNL_EDITOR_PATH . 'includes/content-types.php';
+	require_once CNL_EDITOR_PATH . 'includes/core-editor.php';
 	require_once CNL_EDITOR_PATH . 'includes/sections.php';
 	require_once CNL_EDITOR_PATH . 'includes/block-templates.php';
 	require_once CNL_EDITOR_PATH . 'includes/setup-defaults.php';
@@ -70,6 +71,7 @@ function cnl_editor_bootstrap() {
 	require_once CNL_EDITOR_PATH . 'includes/page-list.php';
 
 	cnl_editor_register_content_type_hooks();
+	cnl_editor_register_core_editor_hooks();
 	cnl_editor_register_sections_hooks();
 	cnl_editor_register_shop_hooks();
 	cnl_editor_register_preview_frame_hooks();

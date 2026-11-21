@@ -100,6 +100,52 @@ The Site parts screen (`/site-parts`, in the sidebar's Site section and on Home)
 
 A menu row switches menus only through a deliberate Change step, since a menu can be used in more than one place. Gutenberg's version also offers the navigation overlay; that is left out until we've worked out how it should show. It follows the same idea as Gutenberg's [Site parts experiment](https://github.com/WordPress/gutenberg/pull/87071). The code is in `src/routes/site-part/`.
 
+## Falling back to core's editor
+
+The editor doesn't render PHP meta boxes, so a plugin's fields, like SEO settings, custom fields or event details, would be missing from it. A post whose edit screen has them opens in core's editor instead, at `post.php?post=ID&action=edit`, in the same tab. So does a post of a type that uses the classic editor, since this editor is a block editor. A new post of either kind starts at `post-new.php?post_type=...`.
+
+### Deciding
+
+`includes/core-editor.php` decides on the server.
+
+- `cnl_editor_post_type_has_meta_boxes()` builds each content type's edit screen in a sandbox. It sets up a `WP_Screen` for the post type and a post that is never saved, runs `register_and_do_post_meta_boxes()` (core's boxes, then `add_meta_boxes`, `add_meta_boxes_{$post_type}` and `do_meta_boxes`) and `filter_block_editor_meta_boxes`, then puts back every global it touched, and anything a box's hooks enqueued or added to the admin footer. The answer is cached for the request. See "Finding a post type's meta boxes" in [editor-workarounds.md](editor-workarounds.md).
+- `cnl_editor_has_plugin_meta_boxes()` reads the screen's boxes. Core's own don't count: anything flagged `__back_compat_meta_box`, which core sets on the boxes the block editor replaces, and the IDs in `CNL_EDITOR_CORE_META_BOX_IDS`, which include Custom Fields even when someone has turned it on.
+- `cnl_editor_should_use_core_editor()` is the pure decision. A classic post type always opens in core's editor. Otherwise a post's own answer wins, and without one the post type's does.
+
+The editor's post type settings (`includes/content-types.php`) carry `blockEditor`, `hasMetaBoxes` and `coreEditor`, which is `meta-boxes`, `classic` or `null`. Templates, template parts, menus and patterns always open in this editor.
+
+A post type the editor edits in full in its own way can stay here through the `create-not-learn-editor_post_type_uses_core_editor` filter, which gets the post type's answer and returns `false` to keep its posts. The shop does this for WooCommerce's products (`includes/shop.php`), which use the classic editor and have WooCommerce's meta boxes, because the Shop screens edit a product's price, stock and description themselves.
+
+### Per post
+
+A plugin that adds its boxes to some posts only, or only once core's edit screen loads (on `load-post.php` or `current_screen`, as ACF does), isn't seen by the sandbox. It can answer for each post through a filter. Return `true` to open the post in core's editor, `false` to keep it here, or `null` to follow its post type.
+
+```php
+add_filter(
+	'create-not-learn-editor_use_core_editor',
+	function ( $use_core_editor, $post ) {
+		return has_term( 'event', 'category', $post ) ? true : $use_core_editor;
+	},
+	10,
+	2
+);
+```
+
+The filter's answer is on each post's REST record, in `edit` context, as `cnl_use_core_editor`. Only the filter's answer is there, not the post type's: plugins often add their boxes in wp-admin only, so the post type's answer comes with the editor's settings, which are built in wp-admin.
+
+### Opening
+
+`src/core-editor.js` combines the two answers and builds core's address. Two places act on it, so every way into editing is covered.
+
+- The edit routes. `/types/$type/edit/$id` (`src/routes/post-edit/route.js`) checks the post before it loads and replaces itself in the history with core's editor, so Back doesn't land on a route that only sends the person on again. The Content list, the Pages screen's Edit page and Open in advanced editor all go through it. `/types/$type/new` (`src/routes/post-new/route.js`) does the same for new posts, without making a draft first.
+- The site canvas (`src/site-canvas/use-site-canvas.js`). Whenever it is in Edit or Compose on a post that falls back, however it got there (the Edit button, the page finder, Home's Manage homepage, or the mode carrying over from another page), it goes back to Browse and opens core's editor. Browse still shows the post, as it only reads. The canvas switching itself to Edit to show a change made beside it, as on Colors, doesn't count, as nobody asked to edit.
+
+Leaving would lose unsaved changes, so with any, neither place leaves. The route goes back to the list and the canvas back to Browse, each with a snackbar asking to save or discard them first.
+
+The WebMCP tools that change a page's sections refuse a page that falls back, rather than switch the canvas to Edit and send the tab away mid-call (`src/webmcp/canvas.js`).
+
+Core's editor says why it opened. The address carries `cnl-editor-opened=meta-boxes` or `cnl-editor-opened=classic`, and the server shows one line from it, as a block editor notice or a classic admin notice: "This page has extra settings from your plugins, so it opens in the full editor."
+
 ## Visual theme
 
 The editor uses the WordPress Design System as it ships. Its own surfaces take their colours, corners, spacing and shadows from WPDS tokens and core's elevation scale, so they sit alongside core's components rather than near them. The black sidebar's section titles, like Content and Design, are the one exception: they are set in EB Garamond, the heading face on [WordPress.org](https://wordpress.org/). The font lives in `assets/fonts/eb-garamond/` under the SIL Open Font License and loads from the plugin, not a third-party CDN.

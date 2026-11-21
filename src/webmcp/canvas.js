@@ -19,6 +19,7 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
+import { selectCoreEditorUrl } from '../core-editor';
 import { unlock } from '../lock-unlock';
 import { getColorChoices, getColorOffer } from '../pickers/section-design';
 import { getSectionWidth } from '../pickers/section-width';
@@ -34,6 +35,9 @@ import { getWritingSections } from '../site-canvas/writing-mode';
 
 export const NO_PAGE_OPEN =
 	"No page is open in the editor's canvas. Open one with cnl-open-page first.";
+
+export const OPENS_IN_CORE_EDITOR =
+	"This page has extra settings from plugins, so it is edited in WordPress's full editor, not here. Its sections can't be changed with these tools.";
 
 const WAIT_MS = 15000;
 
@@ -66,6 +70,11 @@ export function requireCanvas() {
 
 	if ( ! canvas ) {
 		throw new Error( NO_PAGE_OPEN );
+	}
+
+	// Edit would send the tab to core's editor, ending the agent's session.
+	if ( selectCoreEditorUrl( select, canvas.postType, canvas.postId ) ) {
+		throw new Error( OPENS_IN_CORE_EDITOR );
 	}
 
 	setCanvasMode( MODE_EDIT );

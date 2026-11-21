@@ -35,6 +35,7 @@ function cnl_editor_has_shop() {
  */
 function cnl_editor_register_shop_hooks() {
 	add_action( 'init', 'cnl_editor_set_product_default_rendering_mode', 20 );
+	add_filter( CNL_EDITOR_SLUG . '_post_type_uses_core_editor', 'cnl_editor_keep_products_in_editor', 10, 2 );
 	add_filter( 'block_editor_settings_all', 'cnl_editor_add_product_canvas_style' );
 	add_filter( CNL_EDITOR_SLUG . '_has_sections', 'cnl_editor_shop_pages_have_no_sections', 10, 2 );
 }
@@ -101,6 +102,24 @@ function cnl_editor_set_product_default_rendering_mode() {
 	if ( cnl_editor_has_shop() && post_type_exists( 'product' ) ) {
 		add_post_type_support( 'product', 'editor', array( 'default-mode' => 'template-locked' ) );
 	}
+}
+
+/**
+ * Keep products in the editor, which edits them in full in their layout,
+ * price and stock included (`src/routes/shop/`), rather than sending them to
+ * WooCommerce's product screen for its classic editor and meta boxes. See
+ * "Falling back to core's editor" in `docs/architecture.md`.
+ *
+ * @param bool   $use_core_editor Whether the post type's posts open in core's editor.
+ * @param string $post_type       Post type name.
+ * @return bool Whether they do.
+ */
+function cnl_editor_keep_products_in_editor( $use_core_editor, $post_type ) {
+	if ( 'product' === $post_type && cnl_editor_has_shop() ) {
+		return false;
+	}
+
+	return $use_core_editor;
 }
 
 /**
