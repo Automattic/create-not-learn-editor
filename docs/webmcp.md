@@ -49,6 +49,8 @@ The AI plugin's other features, and the AI the site uses itself, need an AI prov
 | `cnl-set-site-style` | Applies a look, palette or font pairing to the whole site |
 | `cnl-set-site-title` | Changes the site title and tagline |
 
+An agent can only do what the person it works for could. The page tools are only offered to people who can open the Pages screen, `cnl-set-site-style` to those who can change the site's look and `cnl-set-site-title` to those who can change its settings (`isToolOffered()` in `src/webmcp/declarations.js`). The section tools refuse a layout or site part on the canvas for anyone who can't change those.
+
 The tools make each change with the same functions as the editor's own controls, and number sections as the canvas shows them, with a run of plain text counting as one Text section. Only their names and descriptions load with the page, and only in a browser with WebMCP. The rest loads the first time a tool is called.
 
 ## The AI plugin's tools

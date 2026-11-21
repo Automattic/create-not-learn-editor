@@ -183,9 +183,9 @@ function cnl_editor_get_shop_settings() {
 			'decimalSeparator'  => wc_get_price_decimal_separator(),
 			'thousandSeparator' => wc_get_price_thousand_separator(),
 		),
-		// What this user may do. Opening the editor takes
-		// `edit_theme_options`, which WooCommerce's Shop manager role lacks,
-		// so these are only ever checked for people who can.
+		// What this user may do. The shop's routes and sidebar item need
+		// these too (`cnl_editor_get_capability_map()`), so someone who can
+		// write posts but not run the shop doesn't see them.
 		'can'            => array(
 			'editProducts' => current_user_can( 'edit_products' ),
 			'editOrders'   => current_user_can( 'edit_shop_orders' ),
@@ -229,16 +229,20 @@ function cnl_editor_get_shop_routes() {
 	return array(
 		array(
 			'path'           => '/shop',
+			'capability'     => 'shop',
 			'route_module'   => 'create-not-learn-editor/routes/shop/route',
 			'content_module' => 'create-not-learn-editor/routes/shop/content',
 		),
 		array(
 			'path'           => '/shop/products',
+			'capability'     => 'edit_products',
 			'route_module'   => 'create-not-learn-editor/routes/shop-products/route',
 			'content_module' => 'create-not-learn-editor/routes/shop-products/content',
 		),
 		array(
 			'path'           => '/shop/pages',
+			// It changes the shop's templates.
+			'capability'     => 'site',
 			'route_module'   => 'create-not-learn-editor/routes/shop-pages/route',
 			'content_module' => 'create-not-learn-editor/routes/shop-pages/content',
 		),
@@ -272,11 +276,12 @@ function cnl_editor_get_shop_extension_menu_items() {
 
 	return array(
 		array(
-			'id'      => 'woocommerce',
-			'icon'    => $icon,
-			'label'   => __( 'WooCommerce', 'create-not-learn-editor' ),
-			'to'      => '/shop',
-			'section' => 'plugins',
+			'id'         => 'woocommerce',
+			'icon'       => $icon,
+			'label'      => __( 'WooCommerce', 'create-not-learn-editor' ),
+			'to'         => '/shop',
+			'section'    => 'plugins',
+			'capability' => 'shop',
 		),
 	);
 }

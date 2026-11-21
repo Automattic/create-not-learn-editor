@@ -114,18 +114,20 @@ function cnl_editor_get_post_type_data( $post_type ) {
 	$rest_base = $post_type->rest_base ? $post_type->rest_base : $post_type->name;
 
 	return array(
-		'name'       => $post_type->name,
-		'restBase'   => $rest_base,
-		'label'      => $post_type->label,
-		'menuName'   => $post_type->labels->menu_name ? $post_type->labels->menu_name : $post_type->label,
-		'singular'   => $post_type->labels->singular_name,
-		'canCreate'  => current_user_can( $post_type->cap->create_posts ),
-		'canEdit'     => current_user_can( $post_type->cap->edit_posts ),
-		'blockEditor' => function_exists( 'use_block_editor_for_post_type' ) &&
+		'name'          => $post_type->name,
+		'restBase'      => $rest_base,
+		'label'         => $post_type->label,
+		'menuName'      => $post_type->labels->menu_name ? $post_type->labels->menu_name : $post_type->label,
+		'singular'      => $post_type->labels->singular_name,
+		'canCreate'     => current_user_can( $post_type->cap->create_posts ),
+		'canEdit'       => current_user_can( $post_type->cap->edit_posts ),
+		'canPublish'    => current_user_can( $post_type->cap->publish_posts ),
+		'canEditOthers' => current_user_can( $post_type->cap->edit_others_posts ),
+		'blockEditor'   => function_exists( 'use_block_editor_for_post_type' ) &&
 			use_block_editor_for_post_type( $post_type->name ),
-		'menuIcon'    => cnl_editor_get_content_post_type_icon( $post_type ),
-		'archiveUrl'  => $post_type->has_archive ? get_post_type_archive_link( $post_type->name ) : null,
-		'newUrl'      => add_query_arg( 'post_type', $post_type->name, admin_url( 'post-new.php' ) ),
+		'menuIcon'   => cnl_editor_get_content_post_type_icon( $post_type ),
+		'archiveUrl' => $post_type->has_archive ? get_post_type_archive_link( $post_type->name ) : null,
+		'newUrl'     => add_query_arg( 'post_type', $post_type->name, admin_url( 'post-new.php' ) ),
 	);
 }
 
@@ -141,7 +143,8 @@ function cnl_editor_get_editable_post_type_data() {
 	if (
 		$navigation_post_type &&
 		! empty( $navigation_post_type->show_in_rest ) &&
-		! empty( $navigation_post_type->show_ui )
+		! empty( $navigation_post_type->show_ui ) &&
+		current_user_can( $navigation_post_type->cap->edit_posts )
 	) {
 		$post_types[ $navigation_post_type->name ] = $navigation_post_type;
 	}

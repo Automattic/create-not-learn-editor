@@ -67,6 +67,11 @@ class CNL_Editor_REST_API_Test extends WP_UnitTestCase {
 			'setup-defaults admin'        => array( 'POST', '/setup-defaults', array(), 'admin', 200 ),
 			'auto-draft subscriber'       => array( 'POST', '/auto-drafts', array( 'type' => 'page' ), 'subscriber', 403 ),
 			'auto-draft unknown type'     => array( 'POST', '/auto-drafts', array( 'type' => 'nope' ), 'admin', 404 ),
+			// What each screen offers, the REST route allows, and no more.
+			'site-overview contributor'   => array( 'GET', '/site-overview', array(), 'contributor', 403 ),
+			'setup-defaults contributor'  => array( 'POST', '/setup-defaults', array(), 'contributor', 403 ),
+			'auto-draft contributor post' => array( 'POST', '/auto-drafts', array( 'type' => 'post' ), 'contributor', 200 ),
+			'auto-draft contributor page' => array( 'POST', '/auto-drafts', array( 'type' => 'page' ), 'contributor', 403 ),
 		);
 	}
 

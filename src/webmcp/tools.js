@@ -65,7 +65,9 @@ import {
 	requireCanvas,
 	waitFor,
 } from './canvas';
+import { userCan } from '../capabilities';
 import { markConnected, recordChange, startTask } from './connection';
+import { isToolOffered } from './declarations';
 import { showChange } from './flash';
 import { findByName } from './match';
 import { describeSiteStyle, setSiteStyle } from './site-style';
@@ -679,6 +681,21 @@ export async function runWebMcpTool( name, input ) {
 
 	if ( ! run ) {
 		throw new Error( `There is no tool called ${ name }.` );
+	}
+
+	if ( ! isToolOffered( name ) ) {
+		throw new Error( `${ name } isn't available to this user.` );
+	}
+
+	// A layout or a site part, on the canvas, is the whole site's.
+	if (
+		name.endsWith( '-section' ) &&
+		! userCan( 'site' ) &&
+		[ 'wp_template', 'wp_template_part' ].includes( getCanvas()?.postType )
+	) {
+		throw new Error(
+			'The canvas shows a layout every page shares, which this user can’t change.'
+		);
 	}
 
 	return run( input );

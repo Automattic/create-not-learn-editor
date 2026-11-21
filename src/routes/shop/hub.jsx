@@ -10,6 +10,7 @@
 /**
  * Internal dependencies
  */
+import { canOpen } from '../../capabilities';
 import ScreenLinks from '../../screen-links';
 import SitePreviewCanvas from '../static/site-preview';
 import { ShopPage } from './heading';
@@ -80,7 +81,8 @@ export function ShopStage() {
 							title: __( 'Products' ),
 							to: PRODUCTS_PATH,
 						},
-						{
+						// They change the shop's layouts.
+						canOpen( SHOP_PAGES_PATH ) && {
 							description: __(
 								'How your shop, product, cart and checkout pages look.'
 							),

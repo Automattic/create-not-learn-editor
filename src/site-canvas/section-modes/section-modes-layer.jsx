@@ -52,6 +52,7 @@ import { createPortal, Fragment } from '@wordpress/element';
 /**
  * Internal dependencies
  */
+import { userCan } from '../../capabilities';
 import { GlobalScope } from '../../global-scope';
 import { openSectionPicker } from '../../editor-layer/section-picker';
 import { unlock } from '../../lock-unlock';
@@ -151,7 +152,10 @@ export function SectionModesLayer( {
 	const layerRef = useRef();
 	const host = useContentHost( editorRef );
 	const structure = useComposeStructure( { hasSections } );
-	const { layoutItems, parts, rootClientId } = structure;
+	const { layoutItems, rootClientId } = structure;
+	// The header and footer are every page's, so only for people who can
+	// change the whole site. For anyone else they are just part of the view.
+	const parts = userCan( 'site' ) ? structure.parts : EMPTY_ARRAY;
 	/*
 	 * Without sections, only the template parts are the layer's: a click
 	 * anywhere else reaches the blocks, and what core selects there stays

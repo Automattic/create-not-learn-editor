@@ -28,6 +28,8 @@ The editor appears in the WordPress admin menu at:
 Appearance > Create Not Learn
 ```
 
+for people who can change the site's look. Everyone else who can open it, Authors and Contributors say, has no Appearance menu, so it has a **Create Not Learn** item of its own under Dashboard. See [Who can use what](#who-can-use-what).
+
 The shell mirrors Gutenberg's `site-editor-v2` experiment setup:
 
 - It registers a hidden admin page.
@@ -114,6 +116,33 @@ npm run wp-env run cli wp config delete CNL_EDITOR_UI_THEME
 ```
 
 The `create-not-learn-editor_ui_theme` filter can override it too. The theme's settings live in `src/theme/`.
+
+## Who can use what
+
+Anyone who can write posts (`edit_posts`) can open the editor, so Authors, Contributors and Editors use it for their content as administrators do. The capability is filterable with `create-not-learn-editor_access_capability`.
+
+Inside, every screen, sidebar item and Home item is something the person can actually do. Nothing is shown and then refused. `includes/capabilities.php` holds the map of what each area needs, filterable with `create-not-learn-editor_capability_map`:
+
+| Area | Needs | Covers |
+| --- | --- | --- |
+| `access` | `edit_posts` | Opening the editor |
+| `site` | `edit_theme_options` | Design, Colors, Fonts, Styles, the font library, Templates and Layouts, Site parts, Header, Footer, Menus, Patterns, All site parts, Site overview, Shop pages, the header and footer on the canvas |
+| `identity` | `manage_options` | Name & logo, as `/wp/v2/settings` needs |
+| `homepage` | `edit_theme_options` and `manage_options` | Homepage setup, as `POST /setup-defaults` needs |
+| `editHomepage` | `edit_post` on the homepage, or `edit_theme_options` when it lists posts | Manage homepage, Page options and Your homepage on Home |
+| `media` | `upload_files` | Media |
+| `shop` | WooCommerce's `edit_products`, `edit_shop_orders` or `manage_woocommerce` | The Shop screens |
+
+Content follows each post type's own capabilities. A type is listed, and its screens open, with `edit_posts` for that type. Adding needs `create_posts`. Each post's Edit and trash actions follow `edit_post` and `delete_post`, which the list reads from the posts' links when the person can't change everyone's (`canEditOthers`). Someone without `publish_posts`, a Contributor, has a publish sent for review instead (`canPublish`), by Save as by core's Publish button.
+
+How it is applied:
+
+- `cnl_editor_register_route()` and `cnl_editor_register_menu_item()` take a capability, either an area of the map, a capability, a list of capabilities that are all needed, or a closure. A menu item the person can't use isn't registered. A route they can't use is registered with the "Not available" screen (`src/routes/not-available/`) in place of its own modules, so a link to it explains itself with a way back to Home, and its own code isn't loaded.
+- `window.createNotLearnEditor` has `can`, the map's areas for this person, and `routes`, the paths they can open. `src/capabilities.js` reads them with `userCan( area )` and `canOpen( path )`. Home's places, the commands, the WebMCP tools, the workspaces and the links between screens ask these before offering anything.
+- With nothing on Home's checklist left for them, Home lists their recent posts and Write a post instead.
+- The workspaces whose screens they can't reach, Builder and Selling, aren't offered.
+- Writing a post never changes the site. The default menu is only made on load for people who can edit menus.
+- Each REST route asks for what the screen that uses it needs (`includes/rest-api.php`).
 
 ## Site changes are explicit
 

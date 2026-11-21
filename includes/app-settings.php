@@ -55,6 +55,11 @@ function cnl_editor_get_app_settings() {
 		'themeName'          => $theme->get( 'Name' ),
 		'showOnFront'        => get_option( 'show_on_front' ),
 		'pageOnFront'        => (int) get_option( 'page_on_front' ),
+		// What this person can use, by area of `cnl_editor_get_capability_map()`.
+		'can'                => cnl_editor_get_user_capabilities(),
+		// The paths of the screens they can open. The rest open the
+		// "Not available" screen.
+		'routes'             => cnl_editor_get_available_route_paths(),
 		'postTypes'          => cnl_editor_get_content_post_type_data(),
 		'editablePostTypes'  => cnl_editor_get_editable_post_type_data(),
 		'shop'               => cnl_editor_get_shop_settings(),

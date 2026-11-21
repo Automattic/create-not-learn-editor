@@ -101,7 +101,7 @@ function cnl_editor_register_media_editor_route() {
 		$modules[ $name ] = $id;
 	}
 
-	cnl_editor_register_route( '/media-editor/$id', $modules['content'], $modules['route'] );
+	cnl_editor_register_route( '/media-editor/$id', $modules['content'], $modules['route'], 'media' );
 }
 
 /**

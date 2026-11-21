@@ -34,14 +34,20 @@ import {
  *                               editor in a new tab, in place of `to`. A link
  *                               with `onOpen` and no `to` opens something in
  *                               place, like a picker, rather than a screen.
+ *                               `id` tells links with the same title apart.
  *                               `isAction` marks a link that does something
  *                               straight away, like starting a post, rather
  *                               than leading to a screen: it ends in a plus
  *                               rather than a chevron.
- * @return {Element} The links.
+ * @return {?Element} The links, or nothing when there are none.
  */
 export default function ScreenLinks( { label, links } ) {
 	const navigate = useNavigate();
+
+	// Someone who can't use any of them is offered none.
+	if ( ! links.length ) {
+		return null;
+	}
 
 	return (
 		<nav aria-label={ label } className="cnl-screen-links">
@@ -50,6 +56,7 @@ export default function ScreenLinks( { label, links } ) {
 					description,
 					href,
 					icon,
+					id,
 					isAction,
 					onOpen,
 					onSelect,
@@ -63,7 +70,7 @@ export default function ScreenLinks( { label, links } ) {
 								? 'cnl-screen-links__link is-action'
 								: 'cnl-screen-links__link'
 						}
-						key={ title }
+						key={ id || title }
 						{ ...( href
 							? {
 									href,

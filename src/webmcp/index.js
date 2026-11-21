@@ -17,7 +17,7 @@ import { __ } from '@wordpress/i18n';
  */
 import { loadDeferred } from '../app-init-deferred';
 import { markConnected, noteToolCall, recordChange } from './connection';
-import { TOOLS } from './declarations';
+import { TOOLS, isToolOffered } from './declarations';
 
 /*
  * Asked for with a block's `clientId` in `detail`, to show it changed, and
@@ -67,19 +67,26 @@ export function registerWebMcpTools() {
 		markConnected();
 	}
 
-	const tools = TOOLS.map( ( tool ) => ( {
-		...tool,
-		execute: async ( input ) => {
-			noteToolCall();
+	const tools = TOOLS.filter( ( tool ) => isToolOffered( tool.name ) ).map(
+		( tool ) => ( {
+			...tool,
+			execute: async ( input ) => {
+				noteToolCall();
 
-			const { runWebMcpTool } = await loadDeferred();
-			const result = await runWebMcpTool( tool.name, readInput( input ) );
+				const { runWebMcpTool } = await loadDeferred();
+				const result = await runWebMcpTool(
+					tool.name,
+					readInput( input )
+				);
 
-			return {
-				content: [ { type: 'text', text: JSON.stringify( result ) } ],
-			};
-		},
-	} ) );
+				return {
+					content: [
+						{ type: 'text', text: JSON.stringify( result ) },
+					],
+				};
+			},
+		} )
+	);
 
 	document.addEventListener( SHOW_CHANGE_EVENT, ( event ) => {
 		const { clientId, tool } = event.detail || {};
