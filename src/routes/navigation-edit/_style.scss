@@ -19,9 +19,11 @@
 		flex: 0 0 auto;
 	}
 
-	nav[aria-label="Breadcrumbs"],
-	nav[aria-label="Breadcrumbs"] ul,
-	nav[aria-label="Breadcrumbs"] li:last-child {
+	// The breadcrumbs, the header lockup's nav: it has no class, and its
+	// label is translated.
+	[class*="__header-lockup"] > nav,
+	[class*="__header-lockup"] > nav ul,
+	[class*="__header-lockup"] > nav li:last-child {
 		min-width: 0;
 	}
 }

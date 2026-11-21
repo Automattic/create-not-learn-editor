@@ -37,6 +37,7 @@ import { trash } from '@wordpress/icons';
 /**
  * Internal dependencies
  */
+import { registerLabelStyles } from './core-labels';
 import { CoreMenuItemsHost, useCoreMenuItems } from './core-menu-items';
 import { ContainerControls, isContainerBlock } from './layout-menu';
 import { registerNameMenu, useNameMenu } from './name-menu';
@@ -155,6 +156,7 @@ function withBlockToolbar( BlockEdit ) {
  */
 export function registerBlockToolbar() {
 	document.documentElement.classList.add( 'cnl-has-block-toolbar' );
+	registerLabelStyles();
 	registerToolbarKeyboard();
 	registerNameMenu();
 

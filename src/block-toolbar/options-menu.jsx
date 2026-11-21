@@ -78,6 +78,7 @@ import {
 	pasteStyles,
 } from './block-actions';
 import { ColorPickerPopover, ColorSubmenu, useBlockColors } from './colors';
+import { attributeIs, getCoreItemLabels } from './core-labels';
 import { readToolbarTools } from './core-menu-items';
 import {
 	Flyout,
@@ -90,27 +91,39 @@ import { ToolbarMenu, useLeaveFocus } from './toolbar-menu';
 
 /**
  * Core's items that sit with Group rather than in More, as the design has
- * them, matched by core's words for them.
+ * them, matched by core's words for them in the site's language.
+ *
+ * @return {Set<string>} Their labels.
  */
-const TOP_LEVEL_CORE_ITEMS = new Set( [
-	__( 'Group' ),
-	__( 'Ungroup' ),
-	__( 'Create pattern' ),
-] );
+function getTopLevelCoreItems() {
+	const {
+		group: groupLabel,
+		ungroup: ungroupLabel,
+		createPattern,
+	} = getCoreItemLabels();
+
+	return new Set( [ groupLabel, ungroupLabel, createPattern ] );
+}
 
 /**
  * Icons for core's items, by their words, as the design draws them.
+ *
+ * @return {Object} Icons, by label.
  */
-const CORE_ITEM_ICONS = {
-	[ __( 'Group' ) ]: group,
-	[ __( 'Ungroup' ) ]: ungroup,
-	[ __( 'Create pattern' ) ]: symbol,
-	[ __( 'Lock' ) ]: lock,
-	[ __( 'Unlock' ) ]: unlock,
-	[ __( 'Rename' ) ]: pencil,
-	[ __( 'Hide' ) ]: unseen,
-	[ __( 'Show' ) ]: seen,
-};
+function getCoreItemIcons() {
+	const labels = getCoreItemLabels();
+
+	return {
+		[ labels.group ]: group,
+		[ labels.ungroup ]: ungroup,
+		[ labels.createPattern ]: symbol,
+		[ labels.lock ]: lock,
+		[ labels.unlock ]: unlock,
+		[ labels.rename ]: pencil,
+		[ labels.hide ]: unseen,
+		[ labels.show ]: seen,
+	};
+}
 
 /**
  * A flyout of choices, showing the one in use beside its name.
@@ -221,6 +234,7 @@ function Submenu( { label, children } ) {
 function CoreItems( { items } ) {
 	const leaveFocus = useLeaveFocus();
 	const searchLabel = useSearchLabel();
+	const icons = getCoreItemIcons();
 
 	return items.map( ( item ) => (
 		<Menu.Item
@@ -232,8 +246,8 @@ function CoreItems( { items } ) {
 				item.click();
 			} }
 			prefix={
-				CORE_ITEM_ICONS[ item.label ] && (
-					<Menu.PrefixIcon icon={ CORE_ITEM_ICONS[ item.label ] } />
+				icons[ item.label ] && (
+					<Menu.PrefixIcon icon={ icons[ item.label ] } />
 				)
 			}
 			suffix={ item.shortcut }
@@ -299,7 +313,9 @@ function FormatItems( { toolbarRef } ) {
 		window.setTimeout( () =>
 			toolbarRef.current
 				?.closest( '.block-editor-block-toolbar' )
-				?.querySelector( `button[aria-label="${ label }"]` )
+				?.querySelector(
+					`button${ attributeIs( 'aria-label', label ) }`
+				)
 				?.click()
 		);
 	};
@@ -760,11 +776,12 @@ export function OptionsMenu( {
 	);
 	const { duplicateBlocks } = useDispatch( blockEditorStore );
 
+	const topLevelLabels = getTopLevelCoreItems();
 	const topLevelCoreItems = coreItems.controls.filter( ( item ) =>
-		TOP_LEVEL_CORE_ITEMS.has( item.label )
+		topLevelLabels.has( item.label )
 	);
 	const moreCoreItems = coreItems.controls.filter(
-		( item ) => ! TOP_LEVEL_CORE_ITEMS.has( item.label )
+		( item ) => ! topLevelLabels.has( item.label )
 	);
 
 	const styleChoices = useStyleChoices( name, lookEditingMode );
