@@ -228,7 +228,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          TITLE: ${{ steps.gutenberg.outputs.title || format( 'Gutenberg compatibility: {0}', matrix.request || matrix.label ) }}
+          TITLE: "${{ steps.gutenberg.outputs.title || format( 'Gutenberg compatibility: {0}', matrix.request || matrix.label ) }}"
           GUTENBERG_NAME: ${{ steps.gutenberg.outputs.name }}
           GUTENBERG_VERSION: ${{ steps.gutenberg.outputs.version || matrix.request || matrix.label }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
