@@ -18,12 +18,9 @@ import { useSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 
 /**
- * Core's buttons that mark the format group, by their labels. Core's markup
- * gives the group nothing else to find it by.
+ * Internal dependencies
  */
-const FORMAT_BUTTONS = [ 'Bold', 'Italic', 'More' ]
-	.map( ( label ) => `[aria-label="${ label }"]` )
-	.join( ', ' );
+import { getFormatButtonLabels, labelSelector } from './core-labels';
 
 const GAP = 8;
 
@@ -36,11 +33,14 @@ function findFormatGroup() {
 	const toolbar = document.querySelector(
 		'.block-editor-block-contextual-toolbar .block-editor-block-toolbar'
 	);
+	// Core's markup gives the group nothing but its buttons' labels to find
+	// it by.
+	const formatButtons = labelSelector( getFormatButtonLabels() );
 	const group = [
 		...( toolbar?.querySelectorAll(
 			':scope > .components-toolbar-group'
 		) ?? [] ),
-	].find( ( element ) => element.querySelector( FORMAT_BUTTONS ) );
+	].find( ( element ) => element.querySelector( formatButtons ) );
 
 	return { toolbar, group };
 }

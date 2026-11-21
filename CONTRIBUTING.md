@@ -28,9 +28,21 @@ Always run wp-env through `npm run wp-env ...`, not the `wp-env` binary. `npm ru
 
 - Every checkout gets its own wp-env work directory, so letting wp-env download for itself means WordPress, Gutenberg and two PHPUnit clones per checkout. That is enough traffic to get throttled by wordpress.org and GitHub. Don't point `.wp-env.json` back at download URLs.
 - On `start`, the script fills the cache (`~/.cache/create-not-learn-editor/wp-env`, or `CNL_WP_ENV_CACHE`) with anything missing, then sets up `.wp-env/sources/`, which `.wp-env.json` points at and git ignores. Gutenberg is a symlink into the cache. WordPress is copied into the checkout, because wp-env writes `wp-config.php` and uploads into it.
-- Versions live in `scripts/wp-env.mjs`, not `.wp-env.json`. Each version downloads once. To change one, update its `key` with its URL, and keep the blueprints' Gutenberg version in step.
+- Versions live in `scripts/wp-env.mjs`, not `.wp-env.json`. Each version downloads once. To change WordPress, update its `key` with its URL. To change the Gutenberg every checkout runs, the minimum the editor supports, change `GUTENBERG_PIN`, and keep the blueprints' Gutenberg version in step.
 - wp-env always runs `git fetch` in its PHPUnit clones. The script points them at a cached wordpress-develop clone, so that fetch stays local.
 - Keep the environment to what the editor needs, which is WordPress, Gutenberg, this plugin and the Mainstay theme. Optional plugins belong in a local `.wp-env.override.json`, as below, not in `.wp-env.json`.
+
+### Trying another Gutenberg
+
+Set `CNL_GUTENBERG_VERSION` when starting wp-env to run another Gutenberg than the pin: a release such as `24.4.2`, a release candidate such as `24.5.0-rc.1`, `latest` for the newest release, or `trunk` for the newest build of Gutenberg's trunk.
+
+```sh
+CNL_GUTENBERG_VERSION=latest npm run wp-env start
+```
+
+Each resolves to a version with a key of its own in the shared cache, so it downloads once and leaves the pin's in place. Trunk's builds are GitHub Actions artifacts, so `trunk` needs `GITHUB_TOKEN` or `GH_TOKEN`, or `gh` signed in, and is keyed by its commit. `trunk-<commit>` runs one build again. Start without the variable to go back to the pin. When the Gutenberg changes, the script stops wp-env before starting it, as Docker only follows the link into the cache when it makes the containers. The sites keep their data. `node scripts/wp-env.mjs --resolve-gutenberg` prints what a value resolves to without starting anything.
+
+The [Gutenberg compatibility workflow](.github/workflows/gutenberg-compat.yml) runs the build, PHPUnit, the smoke test and the block toolbar's German test each week against the minimum, the latest release, trunk and the Gutenberg WordPress.com runs, from `.github/wpcom-gutenberg-version`. A version that fails gets an issue titled "Gutenberg compatibility: <version>". Pull requests still run the pin only.
 
 ### Trying another plugin alongside the editor
 

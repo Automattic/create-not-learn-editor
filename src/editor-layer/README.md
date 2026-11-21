@@ -69,7 +69,7 @@ The value is re-applied whenever the editor pushes its own settings over it, is 
 
 Add the string to `SECTION_WORDING` in `section-wording.js`, or follow its pattern for a new vocabulary. Core's strings are swapped through `@wordpress/i18n`'s gettext filters, whole strings at a time, and only while the layer turns the filter on. A string with a context is keyed as context, `\u0004`, then text.
 
-Core's strings aren't APIs either. If core rewords one, the swap stops silently and core's wording shows through.
+Core's strings aren't APIs either. If core rewords one, the swap stops silently and core's wording shows through. The filters key on core's source strings, so they work in any language, but the replacements are the editor's own strings, which read in English where the editor has no translation.
 
 ## Drift canaries
 
@@ -80,4 +80,5 @@ These are core's rendered markup, not APIs, so an upstream change can break them
 - The "Edit original" rule relies on the block toolbar's group structure.
 - `drag-from-anywhere.js` relies on core's drag of the selected block by its body; see [Editor workarounds](../../docs/editor-workarounds.md#dragging-a-block-from-anywhere-on-it).
 - `start-patterns.js` finds core's "Choose a pattern" modal by its `editor-start-page-options__modal` class, and closes it with the only button in its header.
+- `section-wording.js` keys on core's English source strings, through the gettext filters, rather than on what the site shows, so it holds in any language.
 - The rule hiding a section's "Detach" relies on core rendering it as the menu item right before its "Manage patterns" link, and finds that link by its URL.
