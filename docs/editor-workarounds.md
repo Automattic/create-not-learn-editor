@@ -98,3 +98,15 @@ Remove the first once core has a public way to say patterns aren't locked, move 
 ## Layers' nested rows
 
 Layers for a page built from sections (`src/site-canvas/section-modes/canvas-overview.jsx`) draws its own rows with core's list view class names (`block-editor-list-view-leaf`, `block-editor-list-view-block-contents`, `block-editor-list-view__expander` and the rest), so core's list view styles draw them, and reads the blocks inside each section from the private `getListViewClientIdsTree` selector, so it lists what core's list view would. A change to either in Gutenberg can change how the rows look or what they list. Remove this once core's ListView can be given its own top-level rows.
+
+## Autosaves and post locks outside edit-post
+
+Boot and the lazy editor mount none of core's `AutosaveMonitor`, `LocalAutosaveMonitor` or `PostLockedModal`, and the CnL page loads no heartbeat, so `PostSafety` (`src/editor-layer/post-safety.jsx`, mounted from `packages/lazy-editor-compat`) mounts them, and `includes/post-safety.php` mirrors `wp-admin/edit-form-blocks.php`. See "Autosaves and post locks" in `docs/architecture.md`. It leans on these:
+
+- **The `postLock` editor setting.** The editor provider dispatches `updatePostLock( settings.postLock )` on mount, and the lock selectors throw on the `undefined` the block editor settings endpoint leaves. The compat wrapper gives every editor `{ isLocked: false }`, and `PostSafety` dispatches the real lock once the server answers.
+- **The heartbeat's settings.** `heartbeat.js` reads its URL and screen from the `ajaxurl` and `pagenow` globals that `admin-header.php` prints, which this page doesn't, and never beats without a URL. `includes/admin-page.php` passes them in `heartbeatSettings` instead. `PostSafety` sets the interval with `wp.heartbeat.interval()`.
+- **Core's local backup key.** Discarding removes `wp-autosave-block-editor-post-<id>` (and `-auto-draft` for an auto-draft) from session storage, the key `@wordpress/editor`'s `store/local-autosave.js` uses, which isn't exported. If it changes, a discarded post's backup is offered back once, and core's own check clears it when it matches the post.
+- **The lock dialog's links.** Its Exit editor is an `edit.php` link, caught with a click listener on `.editor-post-locked-modal` while the dialog is open, so it leaves editing instead. Its Take over is a `post.php?get-post-lock=1` link, and `post.php` redirects to `get_edit_post_link()`, which `cnl_editor_return_after_post_lock_takeover()` filters for that one request when the referrer is this editor.
+- **The autosave notice.** Core shows "There is an autosave of this post that is more recent" from the provider's `settings.autosave`, read only on mount, so an editor boot has already mounted never sees it. `PostSafety` shows the notice itself, with the same ID and words. It also sets `settings.autosave`, which `LocalAutosaveMonitor` reads to defer to it.
+
+Remove these once boot or the lazy editor mounts core's monitors and lock dialog for post types, and its settings include the lock. The Gutenberg issue drafted in the pull request that added this asks for that.

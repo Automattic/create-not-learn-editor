@@ -23,6 +23,7 @@ import {
 	Fragment,
 	Notice,
 	Spinner,
+	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
@@ -33,7 +34,7 @@ import { useComposeZoom } from './compose/use-compose-zoom';
 import { EDITOR_DEVICES } from './constants';
 import { EditHint } from './edit-hint';
 import { useEditSectionControls } from './edit-section-controls';
-import { MODE_COMPOSE, MODE_EDIT } from './mode';
+import { MODE_BROWSE, MODE_COMPOSE, MODE_EDIT, setCanvasMode } from './mode';
 import { expandCanvas, useCanvasExpansion } from './expansion';
 import { DocumentPanel } from './document-panel/document-panel';
 import { DocumentRail } from './document-panel/rail';
@@ -112,6 +113,10 @@ export function SiteCanvas( {
 		[ editorEntity?.postType, editorEntity?.postId ]
 	);
 	const canCompose = canComposeSections && hasSections;
+	// The lock dialog's Exit editor shows the page, which someone else is
+	// editing, rather than leaving for wp-admin. Nothing of it was changed
+	// here, so there is nothing to ask about.
+	const exitLocked = useCallback( () => setCanvasMode( MODE_BROWSE ), [] );
 	const isPreviewing = canvas.isPreviewing;
 	const isEditing = mode === MODE_EDIT;
 	const isExpanded = useCanvasExpansion();
@@ -283,7 +288,11 @@ export function SiteCanvas( {
 					{ editorEntity && (
 						<LazyEditor
 							initialViewport={ EDITOR_DEVICES[ editorDevice ] }
+							// Autosaves and the post's lock, only while it is
+							// edited (`src/editor-layer/post-safety.jsx`).
+							isEditing={ isEditing || isComposing }
 							key={ `${ editorEntity.postType }:${ editorEntity.postId }` }
+							onExitLocked={ exitLocked }
 							postId={ editorEntity.postId }
 							postType={ editorEntity.postType }
 							settings={ ownEditorSettings || undefined }
