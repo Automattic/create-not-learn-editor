@@ -6,12 +6,15 @@ import { describe, expect, it } from 'vitest';
 /**
  * WordPress dependencies
  */
-import { __, _x } from '@wordpress/i18n';
+import { __, _x, resetLocaleData, setLocaleData } from '@wordpress/i18n';
 
 /**
  * Internal dependencies
  */
 import { enableSectionWording, getSectionWording } from '../section-wording';
+
+/* eslint-disable @wordpress/i18n-text-domain -- core's strings, which the
+   swap is for, and another plugin's. */
 
 describe( 'getSectionWording', () => {
 	it( 'says sections for patterns', () => {
@@ -56,5 +59,18 @@ describe( 'enableSectionWording', () => {
 		expect( __( 'Patterns', 'some-plugin' ) ).toBe( 'Patterns' );
 
 		stop();
+	} );
+
+	it( "says the replacement in the editor's own language pack", () => {
+		setLocaleData(
+			{ Sections: [ 'Abschnitte' ] },
+			'create-not-learn-editor'
+		);
+		const stop = enableSectionWording();
+
+		expect( __( 'Patterns' ) ).toBe( 'Abschnitte' );
+
+		stop();
+		resetLocaleData( undefined, 'create-not-learn-editor' );
 	} );
 } );

@@ -189,7 +189,9 @@ function SidebarToggle() {
 		'aria-expanded': isExpanded,
 		className: 'cnl-sidebar-toggle__button',
 		icon: drawerLeft,
-		label: isExpanded ? __( 'Collapse sidebar' ) : __( 'Expand sidebar' ),
+		label: isExpanded
+			? __( 'Collapse sidebar', 'create-not-learn-editor' )
+			: __( 'Expand sidebar', 'create-not-learn-editor' ),
 		onClick: () => expansion.set( ! isExpanded ),
 		showTooltip: true,
 		tooltipPosition: 'middle right',
@@ -311,7 +313,7 @@ function WorkspaceSwitcher() {
 					// The visible text is only the workspace's name.
 					'aria-label': sprintf(
 						/* translators: %s: The active workspace's name. */
-						__( 'Workspace: %s' ),
+						__( 'Workspace: %s', 'create-not-learn-editor' ),
 						workspace.label
 					),
 				},
@@ -326,7 +328,10 @@ function WorkspaceSwitcher() {
 		renderContent: ( { onClose } ) => [
 			el(
 				MenuGroup,
-				{ key: 'workspaces', label: __( 'Workspace' ) },
+				{
+					key: 'workspaces',
+					label: __( 'Workspace', 'create-not-learn-editor' ),
+				},
 				getAvailableWorkspaces().map( ( { id, label, icon } ) =>
 					el(
 						MenuItem,
@@ -364,7 +369,7 @@ function WorkspaceSwitcher() {
 							openPreferences();
 						},
 					},
-					__( 'Preferences' )
+					__( 'Preferences', 'create-not-learn-editor' )
 				)
 			),
 		],

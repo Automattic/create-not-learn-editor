@@ -52,7 +52,10 @@ function DeferredSectionPicker() {
 		if ( error ) {
 			closeSectionPicker();
 			dispatch( noticesStore ).createErrorNotice(
-				__( 'The sections didn’t load. Try again.' ),
+				__(
+					'The sections didn’t load. Try again.',
+					'create-not-learn-editor'
+				),
 				{ id: 'cnl-editor-section-picker-error', type: 'snackbar' }
 			);
 		}

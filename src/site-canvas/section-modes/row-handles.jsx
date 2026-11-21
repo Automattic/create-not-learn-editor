@@ -212,7 +212,7 @@ export function RowHandles( {
 							aria-hidden
 							className="cnl-section-modes__row-tag"
 						>
-							{ __( 'Cards' ) }
+							{ __( 'Cards', 'create-not-learn-editor' ) }
 						</span>
 					</div>
 				)
@@ -239,7 +239,7 @@ export function RowHandles( {
 					style={ rowBox }
 				>
 					<span aria-hidden className="cnl-section-modes__row-tag">
-						{ __( 'Cards' ) }
+						{ __( 'Cards', 'create-not-learn-editor' ) }
 					</span>
 				</div>
 				{ row.canAdd && gap && (
@@ -251,7 +251,7 @@ export function RowHandles( {
 						type="button"
 					>
 						<span className="cnl-section-modes__row-cell-label">
-							{ __( 'Add card' ) }
+							{ __( 'Add card', 'create-not-learn-editor' ) }
 						</span>
 					</button>
 				) }
@@ -259,7 +259,10 @@ export function RowHandles( {
 					<Button
 						className="cnl-section-modes__row-add"
 						icon={ plusIcon }
-						label={ __( 'Add another card' ) }
+						label={ __(
+							'Add another card',
+							'create-not-learn-editor'
+						) }
 						onClick={ () =>
 							onAdd( row.clientId, undefined, {
 								grow: isOneLine,
@@ -275,7 +278,10 @@ export function RowHandles( {
 					<Button
 						className="cnl-section-modes__row-remove"
 						icon={ removeIcon }
-						label={ __( 'Remove this item' ) }
+						label={ __(
+							'Remove this item',
+							'create-not-learn-editor'
+						) }
 						onClick={ () => {
 							setPointed( null );
 							onRemove( row.clientId, pointedIndex );
@@ -305,7 +311,10 @@ export function RowHandles( {
 					/>
 				) }
 				<div
-					aria-label={ __( 'Items per row' ) }
+					aria-label={ __(
+						'Items per row',
+						'create-not-learn-editor'
+					) }
 					className="cnl-section-modes__per-row"
 					onPointerEnter={ () => setPointed( null ) }
 					role="group"
@@ -318,7 +327,7 @@ export function RowHandles( {
 						aria-hidden
 						className="cnl-section-modes__per-row-label"
 					>
-						{ __( 'Per row' ) }
+						{ __( 'Per row', 'create-not-learn-editor' ) }
 					</span>
 					{ row.perRowOptions.map( ( count ) => (
 						<Button
@@ -327,7 +336,7 @@ export function RowHandles( {
 							key={ count }
 							label={ sprintf(
 								/* translators: %d: how many items sit side by side. */
-								__( '%d per row' ),
+								__( '%d per row', 'create-not-learn-editor' ),
 								count
 							) }
 							onClick={ () =>

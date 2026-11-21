@@ -16,8 +16,9 @@ import { __, coreDataStore, useSelect } from '../../wordpress-packages';
 const EDITOR_STORE = 'core/editor';
 
 const ITEM_TITLES = {
-	'core/post-featured-image': () => __( 'Featured image' ),
-	'core/post-title': () => __( 'Title' ),
+	'core/post-featured-image': () =>
+		__( 'Featured image', 'create-not-learn-editor' ),
+	'core/post-title': () => __( 'Title', 'create-not-learn-editor' ),
 };
 
 /**
@@ -29,7 +30,9 @@ const ITEM_TITLES = {
  */
 export function getLayoutItemTitle( name, getBlockType ) {
 	return (
-		ITEM_TITLES[ name ]?.() || getBlockType( name )?.title || __( 'Block' )
+		ITEM_TITLES[ name ]?.() ||
+		getBlockType( name )?.title ||
+		__( 'Block', 'create-not-learn-editor' )
 	);
 }
 
@@ -62,10 +65,13 @@ export function useLayoutName( isOn ) {
 				! editor?.getEditedPostAttribute( 'template' ) &&
 				template?.slug !== 'front-page'
 			) {
-				return __( 'Standard' );
+				return __( 'Standard', 'create-not-learn-editor' );
 			}
 
-			return getTemplateDisplayTitle( template ) || __( 'Standard' );
+			return (
+				getTemplateDisplayTitle( template ) ||
+				__( 'Standard', 'create-not-learn-editor' )
+			);
 		},
 		[ isOn ]
 	);

@@ -67,7 +67,7 @@ The value is re-applied whenever the editor pushes its own settings over it, is 
 
 ### Change core's wording
 
-Add the string to `SECTION_WORDING` in `section-wording.js`, or follow its pattern for a new vocabulary. Core's strings are swapped through `@wordpress/i18n`'s gettext filters, whole strings at a time, and only while the layer turns the filter on. A string with a context is keyed as context, `\u0004`, then text.
+Add the string to `SECTION_WORDING` in `section-wording.js`, or follow its pattern for a new vocabulary. Core's strings are swapped through `@wordpress/i18n`'s gettext filters, whole strings at a time, and only while the layer turns the filter on. A string with a context is keyed as context, `\u0004`, then text. The replacements are the editor's own strings, in its `create-not-learn-editor` text domain, so they are translated with the rest of the editor and aren't filtered again.
 
 Core's strings aren't APIs either. If core rewords one, the swap stops silently and core's wording shows through.
 

@@ -15,7 +15,7 @@ export const route = {
 			throw notFound();
 		}
 	},
-	title: () => __( 'Edit template part' ),
+	title: () => __( 'Edit template part', 'create-not-learn-editor' ),
 	async canvas( { search } ) {
 		return {
 			postId: search.postId,

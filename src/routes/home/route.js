@@ -4,7 +4,7 @@
 import { __ } from '../../wordpress-packages';
 
 export const route = {
-	title: () => __( 'Home' ),
+	title: () => __( 'Home', 'create-not-learn-editor' ),
 	async canvas() {
 		return null;
 	},

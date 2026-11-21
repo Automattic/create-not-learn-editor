@@ -43,13 +43,18 @@ export function getTimeAgo( time, now ) {
 	const minutes = Math.floor( ( now - time ) / 60000 );
 
 	if ( minutes < 1 ) {
-		return __( 'just now' );
+		return __( 'just now', 'create-not-learn-editor' );
 	}
 
 	if ( minutes < 60 ) {
 		return sprintf(
 			/* translators: %d: A number of minutes. */
-			_n( '%d min ago', '%d mins ago', minutes ),
+			_n(
+				'%d min ago',
+				'%d mins ago',
+				minutes,
+				'create-not-learn-editor'
+			),
 			minutes
 		);
 	}
@@ -58,7 +63,7 @@ export function getTimeAgo( time, now ) {
 
 	return sprintf(
 		/* translators: %d: A number of hours. */
-		_n( '%d hour ago', '%d hours ago', hours ),
+		_n( '%d hour ago', '%d hours ago', hours, 'create-not-learn-editor' ),
 		hours
 	);
 }
@@ -78,7 +83,12 @@ function useNow() {
 function getBatchCount( batch ) {
 	return sprintf(
 		/* translators: %d: A number of changes. */
-		_n( '%d change', '%d changes', batch.changes.length ),
+		_n(
+			'%d change',
+			'%d changes',
+			batch.changes.length,
+			'create-not-learn-editor'
+		),
 		batch.changes.length
 	);
 }
@@ -104,16 +114,22 @@ function BatchList( { batches, isActive, name, now, onClose } ) {
 					name
 						? sprintf(
 								/* translators: %s: The name of an AI agent, like Claude. */
-								__( 'Changes by %s' ),
+								__(
+									'Changes by %s',
+									'create-not-learn-editor'
+								),
 								name
 							)
-						: __( 'Changes by the agent' )
+						: __(
+								'Changes by the agent',
+								'create-not-learn-editor'
+							)
 				}
 			>
 				{ batches.map( ( batch, index ) => {
 					let info = sprintf(
 						/* translators: 1: A number of changes, like 3 changes. 2: How long ago, like 2 mins ago. */
-						__( '%1$s · %2$s' ),
+						__( '%1$s · %2$s', 'create-not-learn-editor' ),
 						getBatchCount( batch ),
 						getTimeAgo( batch.updatedAt, now )
 					);
@@ -121,8 +137,11 @@ function BatchList( { batches, isActive, name, now, onClose } ) {
 					if ( ! batch.changes.length ) {
 						info =
 							index === 0 && isActive
-								? __( 'Working on it' )
-								: __( 'No changes' );
+								? __(
+										'Working on it',
+										'create-not-learn-editor'
+									)
+								: __( 'No changes', 'create-not-learn-editor' );
 					}
 
 					return (
@@ -149,12 +168,15 @@ function BatchList( { batches, isActive, name, now, onClose } ) {
 				} ) }
 				{ ! batches.length && (
 					<p className="cnl-agent-status__empty">
-						{ __( 'No changes yet.' ) }
+						{ __( 'No changes yet.', 'create-not-learn-editor' ) }
 					</p>
 				) }
 			</MenuGroup>
 			<p className="cnl-agent-status__note">
-				{ __( 'Nothing goes live until you save.' ) }
+				{ __(
+					'Nothing goes live until you save.',
+					'create-not-learn-editor'
+				) }
 			</p>
 		</>
 	);
@@ -184,7 +206,9 @@ function AgentStatusMenu( { batches, lastCallAt, name } ) {
 							isActive ? ' is-active' : ''
 						}` }
 					/>
-					<span role="status">{ __( 'Agent: connected' ) }</span>
+					<span role="status">
+						{ __( 'Agent: connected', 'create-not-learn-editor' ) }
+					</span>
 				</Button>
 			) }
 			renderContent={ ( { onClose } ) => (

@@ -15,15 +15,15 @@ import { formatPrice } from './product-entity';
 import { getShop } from './shop';
 
 export const STATUS_LABELS = {
-	draft: __( 'Draft' ),
-	future: __( 'Scheduled' ),
-	pending: __( 'Waiting for review' ),
-	private: __( 'Private' ),
+	draft: __( 'Draft', 'create-not-learn-editor' ),
+	future: __( 'Scheduled', 'create-not-learn-editor' ),
+	pending: __( 'Waiting for review', 'create-not-learn-editor' ),
+	private: __( 'Private', 'create-not-learn-editor' ),
 };
 
 export const STOCK_LABELS = {
-	onbackorder: __( 'Taking orders' ),
-	outofstock: __( 'Sold out' ),
+	onbackorder: __( 'Taking orders', 'create-not-learn-editor' ),
+	outofstock: __( 'Sold out', 'create-not-learn-editor' ),
 };
 
 // Products whose price and stock belong to something else.
@@ -46,13 +46,16 @@ export function getProductEditUrl( id ) {
 export function getPriceLabel( product ) {
 	if ( HAS_OPTIONS.includes( product.type ) ) {
 		return product.price
-			? /* translators: %s: The lowest price. */
-				sprintf( __( 'From %s' ), formatPrice( product.price ) )
-			: __( 'Priced by option' );
+			? sprintf(
+					/* translators: %s: The lowest price. */
+					__( 'From %s', 'create-not-learn-editor' ),
+					formatPrice( product.price )
+				)
+			: __( 'Priced by option', 'create-not-learn-editor' );
 	}
 
 	return (
 		formatPrice( product.sale_price || product.regular_price ) ||
-		__( 'No price yet' )
+		__( 'No price yet', 'create-not-learn-editor' )
 	);
 }

@@ -43,16 +43,25 @@ function getDropLabel( drop, nodesById ) {
 
 	switch ( drop?.position ) {
 		case 'top':
-			return __( 'Move to the top level' );
+			return __( 'Move to the top level', 'create-not-learn-editor' );
 		case 'under':
-			/* translators: %s: Page title. */
-			return sprintf( __( 'Put under “%s”' ), title );
+			return sprintf(
+				/* translators: %s: Page title. */
+				__( 'Put under “%s”', 'create-not-learn-editor' ),
+				title
+			);
 		case 'before':
-			/* translators: %s: Page title. */
-			return sprintf( __( 'Move before “%s”' ), title );
+			return sprintf(
+				/* translators: %s: Page title. */
+				__( 'Move before “%s”', 'create-not-learn-editor' ),
+				title
+			);
 		case 'after':
-			/* translators: %s: Page title. */
-			return sprintf( __( 'Move after “%s”' ), title );
+			return sprintf(
+				/* translators: %s: Page title. */
+				__( 'Move after “%s”', 'create-not-learn-editor' ),
+				title
+			);
 		default:
 			return '';
 	}
@@ -210,7 +219,9 @@ export default function usePageMoves( { siteOverview, onDragEnd } ) {
 							current.tree,
 							Number( node.postId ),
 							target,
-							{ frontPageId: current.frontPageId }
+							{
+								frontPageId: current.frontPageId,
+							}
 						)
 					);
 				}

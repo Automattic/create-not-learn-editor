@@ -110,13 +110,13 @@ export function getSectionActions( {
 		registry.dispatch( noticesStore ).createSuccessNotice(
 			sprintf(
 				/* translators: %s: section name. */
-				__( '“%s” deleted.' ),
+				__( '“%s” deleted.', 'create-not-learn-editor' ),
 				title
 			),
 			{
 				actions: [
 					{
-						label: __( 'Undo' ),
+						label: __( 'Undo', 'create-not-learn-editor' ),
 						onClick: () =>
 							registry.dispatch( coreDataStore ).undo(),
 					},

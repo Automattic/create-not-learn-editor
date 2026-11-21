@@ -11,7 +11,10 @@ export const NAVIGATION_POST_TYPE = 'wp_navigation';
 export const EMPTY_ARRAY = [];
 
 export function getMenuTitle( menu ) {
-	return getTitleText( menu?.title ) || __( 'Untitled menu' );
+	return (
+		getTitleText( menu?.title ) ||
+		__( 'Untitled menu', 'create-not-learn-editor' )
+	);
 }
 
 export function getMenuContent( menu ) {
@@ -57,12 +60,14 @@ export function getMenuLocationsDescription( count ) {
 				_n(
 					'This menu is shown in %d location on your site.',
 					'This menu is shown in %d locations on your site.',
-					count
+					count,
+					'create-not-learn-editor'
 				),
 				count
 			)
 		: __(
-				'Choose where this menu should appear, such as your header or footer.'
+				'Choose where this menu should appear, such as your header or footer.',
+				'create-not-learn-editor'
 			);
 }
 
@@ -93,16 +98,16 @@ export function getMenuRowDescription( menu, locations, isResolvingLocations ) {
 	const itemCount = getNavigationMenuItemCount( menu );
 	const itemsText = sprintf(
 		/* translators: %d: Number of navigation blocks in the menu. */
-		_n( '%d item', '%d items', itemCount ),
+		_n( '%d item', '%d items', itemCount, 'create-not-learn-editor' ),
 		itemCount
 	);
 	const usageText = isResolvingLocations
-		? __( 'Checking usage…' )
+		? __( 'Checking usage…', 'create-not-learn-editor' )
 		: getLocationsSummary( locations );
 
 	return sprintf(
 		/* translators: 1: Item count, e.g. "3 items". 2: Where the menu is shown, e.g. "2 locations". */
-		__( '%1$s · %2$s' ),
+		__( '%1$s · %2$s', 'create-not-learn-editor' ),
 		itemsText,
 		usageText
 	);

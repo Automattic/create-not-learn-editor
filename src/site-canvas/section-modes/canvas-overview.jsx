@@ -174,7 +174,10 @@ function OverviewRow( { row, isCurrent, index, count, onPick, layoutNoteId } ) {
 									<BlockIcon icon={ lockSmallIcon } />
 								</Tooltip.Trigger>
 								<Tooltip.Popup>
-									{ __( 'Part of the layout' ) }
+									{ __(
+										'Part of the layout',
+										'create-not-learn-editor'
+									) }
 								</Tooltip.Popup>
 							</Tooltip.Root>
 						) }
@@ -317,18 +320,18 @@ function OverviewList( {
 	return (
 		<div className="cnl-canvas-overview" ref={ ref }>
 			<VisuallyHidden id={ layoutNoteId }>
-				{ __( 'Part of the layout' ) }
+				{ __( 'Part of the layout', 'create-not-learn-editor' ) }
 			</VisuallyHidden>
 			{ header.length > 0 && (
 				<OverviewGroup
 					{ ...groupProps }
-					label={ __( 'Header' ) }
+					label={ __( 'Header', 'create-not-learn-editor' ) }
 					rows={ header }
 				/>
 			) }
 			<OverviewGroup
 				{ ...groupProps }
-				label={ __( 'Content' ) }
+				label={ __( 'Content', 'create-not-learn-editor' ) }
 				rows={ content }
 			>
 				<Button
@@ -338,13 +341,13 @@ function OverviewList( {
 					size="compact"
 					variant="tertiary"
 				>
-					{ __( 'Add section' ) }
+					{ __( 'Add section', 'create-not-learn-editor' ) }
 				</Button>
 			</OverviewGroup>
 			{ footer.length > 0 && (
 				<OverviewGroup
 					{ ...groupProps }
-					label={ __( 'Footer' ) }
+					label={ __( 'Footer', 'create-not-learn-editor' ) }
 					rows={ footer }
 				/>
 			) }

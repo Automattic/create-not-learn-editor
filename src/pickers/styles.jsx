@@ -121,7 +121,7 @@ function getBodyFontName( variation, fontFamilies ) {
 		resolveFontName(
 			variation?.styles?.typography?.fontFamily,
 			fontFamilies
-		) || __( 'Body' )
+		) || __( 'Body', 'create-not-learn-editor' )
 	);
 }
 
@@ -295,9 +295,7 @@ function PaletteOption( {
 		<Button
 			aria-expanded={ isExpanded }
 			aria-pressed={ isSelected }
-			className={ `routes-styles__palette${
-				isSelected ? ' is-selected' : ''
-			}` }
+			className={ `routes-styles__palette${ isSelected ? ' is-selected' : '' }` }
 			label={ title }
 			// Picking what is already in use changes nothing, but a toggle,
 			// like Custom, always toggles.
@@ -317,7 +315,7 @@ function PaletteOption( {
 			) }
 			{ ! children && ! colors.length && (
 				<span aria-hidden className="routes-styles__palette-default">
-					{ __( 'Theme' ) }
+					{ __( 'Theme', 'create-not-learn-editor' ) }
 				</span>
 			) }
 			{ isSelected && <SelectedCheck /> }
@@ -378,12 +376,12 @@ const THEME_DEFAULT_LOOK = {};
 
 function getLookTitle( look, index ) {
 	return look === THEME_DEFAULT_LOOK
-		? __( 'Theme default' )
+		? __( 'Theme default', 'create-not-learn-editor' )
 		: getVariationTitle(
 				look,
 				sprintf(
 					/* translators: %d: Style number. */
-					__( 'Look %d' ),
+					__( 'Look %d', 'create-not-learn-editor' ),
 					index
 				)
 			);
@@ -432,7 +430,7 @@ export function LookPicker( { onPick } ) {
 
 	return (
 		<section
-			aria-label={ __( 'Site look' ) }
+			aria-label={ __( 'Site look', 'create-not-learn-editor' ) }
 			className="routes-styles__section"
 		>
 			<div className="routes-styles__looks">
@@ -461,7 +459,10 @@ export function LookPicker( { onPick } ) {
 			</div>
 			{ ! groups.looks.length && (
 				<EmptyNote>
-					{ __( 'Your theme only offers its default look.' ) }
+					{ __(
+						'Your theme only offers its default look.',
+						'create-not-learn-editor'
+					) }
 				</EmptyNote>
 			) }
 		</section>
@@ -523,8 +524,13 @@ export function PalettePicker( { allowCustom = false, onPick } ) {
 				<PaletteOption
 					colors={ getSwatches( basePalette ) }
 					isSelected={ ! activeColors && ! isCustom }
-					onSelect={ () => pick( null, __( 'Theme colors' ) ) }
-					title={ __( 'Theme colors' ) }
+					onSelect={ () =>
+						pick(
+							null,
+							__( 'Theme colors', 'create-not-learn-editor' )
+						)
+					}
+					title={ __( 'Theme colors', 'create-not-learn-editor' ) }
 				/>
 				{ groups.colors.map( ( preset ) => (
 					<PaletteOption
@@ -543,7 +549,7 @@ export function PalettePicker( { allowCustom = false, onPick } ) {
 						isSelected={ isCustom }
 						isTitleShown={ ! isCustom }
 						onSelect={ () => setIsCustomOpen( ! isCustomOpen ) }
-						title={ __( 'Custom' ) }
+						title={ __( 'Custom', 'create-not-learn-editor' ) }
 					>
 						<span
 							aria-hidden
@@ -563,7 +569,10 @@ export function PalettePicker( { allowCustom = false, onPick } ) {
 								<>
 									<span className="routes-styles__palette-wheel" />
 									<span className="routes-styles__palette-custom-label">
-										{ __( 'Custom' ) }
+										{ __(
+											'Custom',
+											'create-not-learn-editor'
+										) }
 									</span>
 								</>
 							) }
@@ -573,7 +582,10 @@ export function PalettePicker( { allowCustom = false, onPick } ) {
 			</div>
 			{ ! groups.colors.length && ! allowCustom && (
 				<EmptyNote>
-					{ __( 'Your theme only offers its own palette.' ) }
+					{ __(
+						'Your theme only offers its own palette.',
+						'create-not-learn-editor'
+					) }
 				</EmptyNote>
 			) }
 			{ allowCustom && isCustomOpen && (
@@ -639,21 +651,25 @@ function CustomColors( { baseStyles, setConfig, userConfig } ) {
 	);
 	const textNote =
 		! canRead( resolved.text, resolved.background ) &&
-		__( 'Text may be hard to read on this background.' );
+		__(
+			'Text may be hard to read on this background.',
+			'create-not-learn-editor'
+		);
 	const labels = {
-		background: __( 'Background' ),
-		button: __( 'Buttons' ),
-		text: __( 'Text' ),
+		background: __( 'Background', 'create-not-learn-editor' ),
+		button: __( 'Buttons', 'create-not-learn-editor' ),
+		text: __( 'Text', 'create-not-learn-editor' ),
 	};
 
 	return (
 		<section
-			aria-label={ __( 'Custom colors' ) }
+			aria-label={ __( 'Custom colors', 'create-not-learn-editor' ) }
 			className="routes-styles__custom-colors"
 		>
 			<Text className="routes-styles__muted" variant="body-sm">
 				{ __(
-					'Change the three colors your site is built on. Everything that uses them follows.'
+					'Change the three colors your site is built on. Everything that uses them follows.',
+					'create-not-learn-editor'
 				) }
 			</Text>
 			<div className="routes-styles__color-rows">
@@ -738,8 +754,13 @@ export function FontPicker( { onPick } ) {
 						baseFontFamilies
 					) }
 					isSelected={ ! activeFonts }
-					onSelect={ () => pick( null, __( 'Theme fonts' ) ) }
-					title={ __( 'Theme fonts' ) }
+					onSelect={ () =>
+						pick(
+							null,
+							__( 'Theme fonts', 'create-not-learn-editor' )
+						)
+					}
+					title={ __( 'Theme fonts', 'create-not-learn-editor' ) }
 				/>
 				{ groups.fonts.map( ( preset ) => {
 					const fontFamilies = getVariationFontFamilies( preset )
@@ -777,7 +798,10 @@ export function FontPicker( { onPick } ) {
 			</div>
 			{ ! groups.fonts.length && (
 				<EmptyNote>
-					{ __( 'Your theme only offers its own fonts.' ) }
+					{ __(
+						'Your theme only offers its own fonts.',
+						'create-not-learn-editor'
+					) }
 				</EmptyNote>
 			) }
 		</>

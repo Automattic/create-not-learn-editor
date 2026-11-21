@@ -40,7 +40,10 @@ const WORDS_PER_MINUTE = 189;
 
 const WRITING_WORDING = {
 	'Type / to choose a block': () =>
-		__( 'Start writing, or type / for images and more' ),
+		__(
+			'Start writing, or type / for images and more',
+			'create-not-learn-editor'
+		),
 };
 
 function filterGettext( translation, text ) {
@@ -50,7 +53,9 @@ function filterGettext( translation, text ) {
 }
 
 function filterUntitledGettext( translation, text ) {
-	return text === 'Add title' ? __( 'Title (optional)' ) : translation;
+	return text === 'Add title'
+		? __( 'Title (optional)', 'create-not-learn-editor' )
+		: translation;
 }
 
 /**
@@ -172,12 +177,22 @@ export function WritingStatus() {
 			{ [
 				sprintf(
 					/* translators: %s: Number of words. */
-					_n( '%s word', '%s words', words ),
+					_n(
+						'%s word',
+						'%s words',
+						words,
+						'create-not-learn-editor'
+					),
 					words.toLocaleString()
 				),
 				sprintf(
 					/* translators: %d: Minutes it takes to read the post. */
-					_n( '%d min read', '%d min read', minutes ),
+					_n(
+						'%d min read',
+						'%d min read',
+						minutes,
+						'create-not-learn-editor'
+					),
 					minutes
 				),
 			].join( ' · ' ) }

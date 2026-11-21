@@ -48,12 +48,27 @@ const { isHashLink, isRelativePath, LinkPicker, useRemoteUrlData } = unlock(
 const LINK_BLOCKS = [ 'core/navigation-link', 'core/navigation-submenu' ];
 const TEXT_ONLY_BLOCKS = [ 'core/home-link' ];
 const STATUS_BADGES = {
-	publish: { label: __( 'Published' ), intent: 'success' },
-	future: { label: __( 'Scheduled' ), intent: 'warning' },
-	draft: { label: __( 'Draft' ), intent: 'warning' },
-	pending: { label: __( 'Pending' ), intent: 'warning' },
-	private: { label: __( 'Private' ), intent: 'default' },
-	trash: { label: __( 'Trash' ), intent: 'error' },
+	publish: {
+		label: __( 'Published', 'create-not-learn-editor' ),
+		intent: 'success',
+	},
+	future: {
+		label: __( 'Scheduled', 'create-not-learn-editor' ),
+		intent: 'warning',
+	},
+	draft: {
+		label: __( 'Draft', 'create-not-learn-editor' ),
+		intent: 'warning',
+	},
+	pending: {
+		label: __( 'Pending', 'create-not-learn-editor' ),
+		intent: 'warning',
+	},
+	private: {
+		label: __( 'Private', 'create-not-learn-editor' ),
+		intent: 'default',
+	},
+	trash: { label: __( 'Trash', 'create-not-learn-editor' ), intent: 'error' },
 };
 
 function getPlainText( value = '' ) {
@@ -69,7 +84,10 @@ function getEntityTitle( record ) {
 	}
 
 	if ( title && 'rendered' in title ) {
-		return decodeEntities( title.rendered ) || __( '(no title)' );
+		return (
+			decodeEntities( title.rendered ) ||
+			__( '(no title)', 'create-not-learn-editor' )
+		);
 	}
 
 	return record?.name;
@@ -80,26 +98,26 @@ function getEntityTypeName( type, kind ) {
 	if ( kind === 'post-type' ) {
 		switch ( type ) {
 			case 'post':
-				return __( 'post' );
+				return __( 'post', 'create-not-learn-editor' );
 			case 'page':
-				return __( 'page' );
+				return __( 'page', 'create-not-learn-editor' );
 			default:
-				return type || __( 'post' );
+				return type || __( 'post', 'create-not-learn-editor' );
 		}
 	}
 
 	if ( kind === 'taxonomy' ) {
 		switch ( type ) {
 			case 'category':
-				return __( 'category' );
+				return __( 'category', 'create-not-learn-editor' );
 			case 'tag':
-				return __( 'tag' );
+				return __( 'tag', 'create-not-learn-editor' );
 			default:
-				return type || __( 'term' );
+				return type || __( 'term', 'create-not-learn-editor' );
 		}
 	}
 
-	return type || __( 'item' );
+	return type || __( 'item', 'create-not-learn-editor' );
 }
 
 // After core's `isHomepage` in `use-link-preview.js`, except that an address
@@ -170,18 +188,30 @@ function getBadges( {
 
 	if ( url ) {
 		if ( isExternal ) {
-			badges.push( { label: __( 'External link' ), intent: 'default' } );
+			badges.push( {
+				label: __( 'External link', 'create-not-learn-editor' ),
+				intent: 'default',
+			} );
 		} else if ( isHashLink( url ) ) {
-			badges.push( { label: __( 'Internal link' ), intent: 'default' } );
+			badges.push( {
+				label: __( 'Internal link', 'create-not-learn-editor' ),
+				intent: 'default',
+			} );
 		} else if ( isHomepage( url, homeUrl ) ) {
-			badges.push( { label: __( 'Homepage' ), intent: 'default' } );
+			badges.push( {
+				label: __( 'Homepage', 'create-not-learn-editor' ),
+				intent: 'default',
+			} );
 		} else if ( type && type !== 'custom' ) {
 			badges.push( {
 				label: type.charAt( 0 ).toUpperCase() + type.slice( 1 ),
 				intent: 'default',
 			} );
 		} else {
-			badges.push( { label: __( 'Page' ), intent: 'default' } );
+			badges.push( {
+				label: __( 'Page', 'create-not-learn-editor' ),
+				intent: 'default',
+			} );
 		}
 	}
 
@@ -189,13 +219,16 @@ function getBadges( {
 		badges.push( {
 			label: sprintf(
 				/* translators: %s is the entity type (e.g., "page", "post", "category") */
-				__( 'Missing %s' ),
+				__( 'Missing %s', 'create-not-learn-editor' ),
 				type
 			),
 			intent: 'error',
 		} );
 	} else if ( ! url ) {
-		badges.push( { label: __( 'No link selected' ), intent: 'error' } );
+		badges.push( {
+			label: __( 'No link selected', 'create-not-learn-editor' ),
+			intent: 'error',
+		} );
 	} else if ( STATUS_BADGES[ entityStatus ] ) {
 		badges.push( STATUS_BADGES[ entityStatus ] );
 	}
@@ -336,7 +369,7 @@ function useLinkPreview( { link, type } ) {
 		image,
 		title: url
 			? title || richData?.title || safeDecodeURI( url )
-			: __( 'Add link' ),
+			: __( 'Add link', 'create-not-learn-editor' ),
 		url: displayUrl,
 	};
 }
@@ -379,14 +412,16 @@ function MenuItemLinkFields( { attributes, clientId, onUpdate } ) {
 	let help;
 	if ( link.isInvalid ) {
 		help = __(
-			'This link is invalid and will not appear on your site. Please update the link.'
+			'This link is invalid and will not appear on your site. Please update the link.',
+			'create-not-learn-editor'
 		);
 	} else if ( link.isDraft ) {
 		const entityType = getEntityTypeName( type, kind );
 		help = sprintf(
 			/* translators: %1$s is the entity type (e.g., "page", "post", "category") */
 			__(
-				'This link is to a draft %1$s and will not appear on your site until the %1$s is published.'
+				'This link is to a draft %1$s and will not appear on your site until the %1$s is published.',
+				'create-not-learn-editor'
 			),
 			entityType
 		);
@@ -460,14 +495,14 @@ function MenuItemLinkFields( { attributes, clientId, onUpdate } ) {
 		<>
 			<LinkPicker
 				help={ help }
-				label={ __( 'Link to' ) }
+				label={ __( 'Link to', 'create-not-learn-editor' ) }
 				onSelect={ onSelect }
 				preview={ preview }
 				suggestionsQuery={ getSuggestionsQuery( type, kind ) }
 			/>
 			<CheckboxControl
 				checked={ !! opensInNewTab }
-				label={ __( 'Open in new tab' ) }
+				label={ __( 'Open in new tab', 'create-not-learn-editor' ) }
 				onChange={ ( value ) => onUpdate( { opensInNewTab: value } ) }
 			/>
 		</>
@@ -526,11 +561,12 @@ export default function NavigationListViewItemPopover( {
 					render={ <h2 /> }
 					variant="heading-md"
 				>
-					{ text.trim() || __( 'Menu item' ) }
+					{ text.trim() ||
+						__( 'Menu item', 'create-not-learn-editor' ) }
 				</Text>
 				<InputControl
 					autoComplete="off"
-					label={ __( 'Text' ) }
+					label={ __( 'Text', 'create-not-learn-editor' ) }
 					onValueChange={ ( value ) => onUpdate( { label: value } ) }
 					value={ text }
 				/>

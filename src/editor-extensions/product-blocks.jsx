@@ -64,9 +64,15 @@ const PRICE_BLOCK = 'woocommerce/product-price';
 const GALLERY_BLOCK = 'woocommerce/product-image-gallery';
 // WooCommerce's tabs. Only the description is changed here.
 const TABS = [
-	{ id: 'description', label: __( 'Description' ) },
-	{ id: 'additional_information', label: __( 'Additional Information' ) },
-	{ id: 'reviews', label: __( 'Reviews' ) },
+	{
+		id: 'description',
+		label: __( 'Description', 'create-not-learn-editor' ),
+	},
+	{
+		id: 'additional_information',
+		label: __( 'Additional Information', 'create-not-learn-editor' ),
+	},
+	{ id: 'reviews', label: __( 'Reviews', 'create-not-learn-editor' ) },
 ];
 const DESCRIPTION_BLOCKS = [
 	'woocommerce/product-details',
@@ -205,7 +211,7 @@ function PriceToolbar( { product, update } ) {
 							aria-expanded={ isOpen }
 							onClick={ onToggle }
 						>
-							{ __( 'Change price' ) }
+							{ __( 'Change price', 'create-not-learn-editor' ) }
 						</ToolbarButton>
 					) }
 				/>
@@ -300,7 +306,7 @@ function ProductPhoto( { blockEdit, productId } ) {
 							justifyContent: 'center',
 						} }
 					>
-						{ __( 'No photo yet' ) }
+						{ __( 'No photo yet', 'create-not-learn-editor' ) }
 					</div>
 				) }
 			</div>
@@ -326,8 +332,14 @@ function ProductPhoto( { blockEdit, productId } ) {
 							render={ ( { open } ) => (
 								<ToolbarButton onClick={ open }>
 									{ src
-										? __( 'Replace photo' )
-										: __( 'Add a photo' ) }
+										? __(
+												'Replace photo',
+												'create-not-learn-editor'
+											)
+										: __(
+												'Add a photo',
+												'create-not-learn-editor'
+											) }
 								</ToolbarButton>
 							) }
 							value={ images[ 0 ]?.id }
@@ -420,9 +432,7 @@ function ProductDescription( { blockEdit, productId } ) {
 			<ul className="wc-tabs tabs" role="presentation">
 				{ TABS.map( ( { id, label } ) => (
 					<li
-						className={ `${ id }_tab${
-							id === 'description' ? ' active' : ''
-						}` }
+						className={ `${ id }_tab${ id === 'description' ? ' active' : '' }` }
 						key={ id }
 					>
 						{ /* Links, as WooCommerce's tabs are styled as. */ }
@@ -437,7 +447,7 @@ function ProductDescription( { blockEdit, productId } ) {
 				) ) }
 			</ul>
 			<div className="description_tab">
-				<h2>{ __( 'Description' ) }</h2>
+				<h2>{ __( 'Description', 'create-not-learn-editor' ) }</h2>
 				<div { ...innerBlocksProps } />
 			</div>
 		</div>

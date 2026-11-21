@@ -31,19 +31,19 @@ export const POST_STATUS_ICONS = {
 export function getStatusLabel( status ) {
 	switch ( status ) {
 		case 'publish':
-			return __( 'Published' );
+			return __( 'Published', 'create-not-learn-editor' );
 		case 'draft':
 		case 'auto-draft':
-			return __( 'Draft' );
+			return __( 'Draft', 'create-not-learn-editor' );
 		case 'future':
-			return __( 'Scheduled' );
+			return __( 'Scheduled', 'create-not-learn-editor' );
 		case 'pending':
-			return __( 'Pending review' );
+			return __( 'Pending review', 'create-not-learn-editor' );
 		case 'private':
-			return __( 'Private' );
+			return __( 'Private', 'create-not-learn-editor' );
 		case 'trash':
-			return __( 'Trash' );
+			return __( 'Trash', 'create-not-learn-editor' );
 		default:
-			return status || __( 'Unknown' );
+			return status || __( 'Unknown', 'create-not-learn-editor' );
 	}
 }

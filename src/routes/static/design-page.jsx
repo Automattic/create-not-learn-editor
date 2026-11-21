@@ -19,7 +19,10 @@ export function DesignPage( { children, description, isTopLevel, title } ) {
 	const breadcrumbs = isTopLevel ? undefined : (
 		<Breadcrumbs
 			items={ [
-				{ label: __( 'Design' ), to: '/design' },
+				{
+					label: __( 'Design', 'create-not-learn-editor' ),
+					to: '/design',
+				},
 				{ label: title },
 			] }
 		/>

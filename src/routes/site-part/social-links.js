@@ -137,7 +137,10 @@ export function getService( services, name ) {
 
 	return {
 		icon: service?.icon,
-		title: service?.title || name || __( 'Social icon' ),
+		title:
+			service?.title ||
+			name ||
+			__( 'Social icon', 'create-not-learn-editor' ),
 	};
 }
 
@@ -151,7 +154,7 @@ export function getService( services, name ) {
  */
 export function getSocialLinksDescription( links, services ) {
 	if ( ! links.length ) {
-		return __( 'None yet' );
+		return __( 'None yet', 'create-not-learn-editor' );
 	}
 
 	const missing = links.filter( ( link ) =>
@@ -161,7 +164,12 @@ export function getSocialLinksDescription( links, services ) {
 	if ( missing ) {
 		return sprintf(
 			/* translators: %d: Number of social links without an address. */
-			_n( '%d needs an address', '%d need an address', missing ),
+			_n(
+				'%d needs an address',
+				'%d need an address',
+				missing,
+				'create-not-learn-editor'
+			),
 			missing
 		);
 	}

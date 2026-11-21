@@ -29,7 +29,10 @@ import { MODE_EDIT, setCanvasMode } from '../../site-canvas/mode';
  */
 export function getDoneMessage( { plan, homepage, postsPage } ) {
 	if ( plan.to === 'posts' ) {
-		return __( 'Your homepage now lists your latest posts.' );
+		return __(
+			'Your homepage now lists your latest posts.',
+			'create-not-learn-editor'
+		);
 	}
 
 	const homeTitle = homepage?.title?.raw || plan.homepage.newTitle;
@@ -37,7 +40,10 @@ export function getDoneMessage( { plan, homepage, postsPage } ) {
 	if ( postsPage ) {
 		return sprintf(
 			/* translators: 1: homepage title. 2: posts page title. */
-			__( 'Your homepage is now “%1$s”. Your posts are on “%2$s”.' ),
+			__(
+				'Your homepage is now “%1$s”. Your posts are on “%2$s”.',
+				'create-not-learn-editor'
+			),
 			homeTitle,
 			postsPage.title?.raw || plan.posts.newTitle
 		);
@@ -45,7 +51,7 @@ export function getDoneMessage( { plan, homepage, postsPage } ) {
 
 	return sprintf(
 		/* translators: %s: homepage title. */
-		__( 'Your homepage is now “%s”.' ),
+		__( 'Your homepage is now “%s”.', 'create-not-learn-editor' ),
 		homeTitle
 	);
 }
@@ -64,7 +70,9 @@ export default function useOnHomepageSetupDone( onClose ) {
 		onClose?.();
 		dispatch( noticesStore ).createSuccessNotice(
 			getDoneMessage( result ),
-			{ type: 'snackbar' }
+			{
+				type: 'snackbar',
+			}
 		);
 
 		if ( result.plan.to !== 'page' ) {

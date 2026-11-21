@@ -20,11 +20,11 @@ const THUMBNAIL_SCALE = CARD_WIDTH / THUMBNAIL_VIEWPORT_WIDTH;
 
 function getPlaceholderText( node ) {
 	if ( node.kind === 'single' && ! node.count ) {
-		return __( 'Nothing to show yet' );
+		return __( 'Nothing to show yet', 'create-not-learn-editor' );
 	}
 
 	if ( ! node.previewUrl ) {
-		return __( 'Not on your site yet' );
+		return __( 'Not on your site yet', 'create-not-learn-editor' );
 	}
 
 	return '';

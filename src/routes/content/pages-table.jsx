@@ -81,7 +81,7 @@ export default function PagesTable( { mainMenu, listPath } ) {
 				callback: ( [ item ] ) => item && openPage( item ),
 				id: 'edit',
 				isPrimary: true,
-				label: __( 'Edit' ),
+				label: __( 'Edit', 'create-not-learn-editor' ),
 				supportsBulk: false,
 			},
 			{
@@ -90,7 +90,7 @@ export default function PagesTable( { mainMenu, listPath } ) {
 					window.open( item.link, '_blank', 'noopener,noreferrer' ),
 				id: 'open-preview',
 				isEligible: ( item ) => !! item.link,
-				label: __( 'Open preview' ),
+				label: __( 'Open preview', 'create-not-learn-editor' ),
 				supportsBulk: false,
 			},
 		],

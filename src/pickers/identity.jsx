@@ -218,11 +218,19 @@ export function SiteMediaSetting( {
 				render={ ( { open } ) =>
 					value || isUploading ? (
 						<div className="cnl-editor-media-field__item">
-							<Tooltip text={ __( 'Replace' ) }>
+							<Tooltip
+								text={ __(
+									'Replace',
+									'create-not-learn-editor'
+								) }
+							>
 								<MediaPickerButton
 									hasMedia
 									isUploading={ isUploading }
-									label={ __( 'Replace' ) }
+									label={ __(
+										'Replace',
+										'create-not-learn-editor'
+									) }
 									onFilesDrop={ onFilesDrop }
 									open={ open }
 								>
@@ -248,7 +256,10 @@ export function SiteMediaSetting( {
 								<Button
 									className="cnl-editor-media-field__remove"
 									icon={ closeSmall }
-									label={ __( 'Remove' ) }
+									label={ __(
+										'Remove',
+										'create-not-learn-editor'
+									) }
 									onClick={ () => onChange( 0 ) }
 									size="small"
 								/>
@@ -322,9 +333,10 @@ export function SiteIdentityFields( {
 				{ shows( 'title' ) && (
 					<InputControl
 						description={ __(
-							'Usually your business or project name.'
+							'Usually your business or project name.',
+							'create-not-learn-editor'
 						) }
-						label={ __( 'Site name' ) }
+						label={ __( 'Site name', 'create-not-learn-editor' ) }
 						onValueChange={ ( value ) =>
 							update( { title: value } )
 						}
@@ -334,34 +346,49 @@ export function SiteIdentityFields( {
 				{ shows( 'tagline' ) && (
 					<InputControl
 						description={ __(
-							'A few words about what you do, like “Pottery classes in Hackney”.'
+							'A few words about what you do, like “Pottery classes in Hackney”.',
+							'create-not-learn-editor'
 						) }
-						label={ __( 'Tagline' ) }
+						label={ __( 'Tagline', 'create-not-learn-editor' ) }
 						onValueChange={ ( value ) =>
 							update( { description: value } )
 						}
-						placeholder={ __( 'What does your site offer?' ) }
+						placeholder={ __(
+							'What does your site offer?',
+							'create-not-learn-editor'
+						) }
 						value={ site.description || '' }
 					/>
 				) }
 				{ shows( 'logo' ) && (
 					<SiteMediaSetting
-						chooseLabel={ __( 'Choose logo' ) }
-						description={ __(
-							'Shown in your header. Wide or square images both work.'
+						chooseLabel={ __(
+							'Choose logo',
+							'create-not-learn-editor'
 						) }
-						label={ __( 'Logo' ) }
+						description={ __(
+							'Shown in your header. Wide or square images both work.',
+							'create-not-learn-editor'
+						) }
+						label={ __( 'Logo', 'create-not-learn-editor' ) }
 						onChange={ ( id ) => update( { site_logo: id } ) }
 						value={ logoId }
 					/>
 				) }
 				{ shows( 'icon' ) && (
 					<SiteMediaSetting
-						chooseLabel={ __( 'Choose icon' ) }
-						description={ __(
-							'The small picture in browser tabs and bookmarks. Use a square image.'
+						chooseLabel={ __(
+							'Choose icon',
+							'create-not-learn-editor'
 						) }
-						label={ __( 'Browser icon' ) }
+						description={ __(
+							'The small picture in browser tabs and bookmarks. Use a square image.',
+							'create-not-learn-editor'
+						) }
+						label={ __(
+							'Browser icon',
+							'create-not-learn-editor'
+						) }
 						onChange={ ( id ) => update( { site_icon: id } ) }
 						value={ site.site_icon || 0 }
 					/>
@@ -373,7 +400,10 @@ export function SiteIdentityFields( {
 							onClick={ () => update( { site_icon: logoId } ) }
 							variant="link"
 						>
-							{ __( 'Use my logo as the browser icon' ) }
+							{ __(
+								'Use my logo as the browser icon',
+								'create-not-learn-editor'
+							) }
 						</Button>
 					) }
 			</div>
@@ -381,7 +411,8 @@ export function SiteIdentityFields( {
 				<div className="routes-styles__save">
 					<Text className="routes-styles__muted" variant="body-sm">
 						{ __(
-							'You are previewing changes. Visitors see them once you save.'
+							'You are previewing changes. Visitors see them once you save.',
+							'create-not-learn-editor'
 						) }
 					</Text>
 					<Stack gap="sm">
@@ -391,7 +422,10 @@ export function SiteIdentityFields( {
 							onClick={ discard }
 							variant="tertiary"
 						>
-							{ __( 'Discard changes' ) }
+							{ __(
+								'Discard changes',
+								'create-not-learn-editor'
+							) }
 						</Button>
 					</Stack>
 				</div>

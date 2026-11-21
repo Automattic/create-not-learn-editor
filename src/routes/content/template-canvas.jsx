@@ -50,14 +50,20 @@ function TemplateDocument( { isSystemPage, template } ) {
 	return (
 		<div className="cnl-editor-homepage-document">
 			<PageSwitcher
-				meta={ systemPage ? __( 'System page' ) : __( 'Layout' ) }
+				meta={
+					systemPage
+						? __( 'System page', 'create-not-learn-editor' )
+						: __( 'Layout', 'create-not-learn-editor' )
+				}
 				shared={
 					systemPage
 						? __(
-								'Your site makes this page. Changes show wherever it does.'
+								'Your site makes this page. Changes show wherever it does.',
+								'create-not-learn-editor'
 							)
 						: __(
-								'Changes show on every page that uses this layout.'
+								'Changes show on every page that uses this layout.',
+								'create-not-learn-editor'
 							)
 				}
 				title={ systemPage?.title || getTemplateTitle( template ) }

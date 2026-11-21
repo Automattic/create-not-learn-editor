@@ -101,7 +101,10 @@ export function isTemplateTab( activeTab ) {
 export { getStatusLabel } from '../../post-status';
 
 export function getTemplateTitle( template ) {
-	return getTemplateDisplayTitle( template ) || __( 'Untitled template' );
+	return (
+		getTemplateDisplayTitle( template ) ||
+		__( 'Untitled template', 'create-not-learn-editor' )
+	);
 }
 
 export function getTemplateIcon( template ) {

@@ -205,7 +205,10 @@ export function ParentSelector( { clientId } ) {
 					buttonProps={ {
 						className: 'cnl-block-parent__lineage',
 						icon: moreHorizontal,
-						label: __( 'Select a block further up' ),
+						label: __(
+							'Select a block further up',
+							'create-not-learn-editor'
+						),
 					} }
 					popupClassName="cnl-block-lineage"
 					side="top"
@@ -224,7 +227,7 @@ export function ParentSelector( { clientId } ) {
 				icon={ selectParent }
 				label={ sprintf(
 					/* translators: %s: the parent block's name, like Group. */
-					__( 'Select parent block: %s' ),
+					__( 'Select parent block: %s', 'create-not-learn-editor' ),
 					label
 				) }
 				onClick={ () => selectBlock( parentId ) }

@@ -32,8 +32,8 @@ const STYLE_ID = 'cnl-edit-section-controls';
  */
 function getWording() {
 	return {
-		'Edit pattern': __( 'Edit' ),
-		'Exit pattern': __( 'Done' ),
+		'Edit pattern': __( 'Edit', 'create-not-learn-editor' ),
+		'Exit pattern': __( 'Done', 'create-not-learn-editor' ),
 	};
 }
 
@@ -75,6 +75,8 @@ function useHiddenShuffle( isActive ) {
 			return undefined;
 		}
 
+		// Core's own label, so core's translation.
+		// eslint-disable-next-line @wordpress/i18n-text-domain
 		const label = __( 'Shuffle styles' ).replace( /["\\]/g, '\\$&' );
 		const style = document.createElement( 'style' );
 

@@ -36,7 +36,7 @@ const { usePostFields } = unlock( editorPrivateApis );
 // The page's status, and what goes with it, as the editor groups them.
 const STATUS_GROUP = {
 	id: 'status',
-	label: __( 'Status' ),
+	label: __( 'Status', 'create-not-learn-editor' ),
 	children: [
 		{
 			id: 'status',
@@ -79,8 +79,8 @@ const DETAILS_FORM = {
 
 // Plain words for the editor's labels.
 const LABELS = {
-	parent: __( 'Parent page' ),
-	slug: __( 'Address' ),
+	parent: __( 'Parent page', 'create-not-learn-editor' ),
+	slug: __( 'Address', 'create-not-learn-editor' ),
 };
 
 /**
@@ -172,13 +172,13 @@ function usePageFields( layoutName, onOpenLayouts ) {
 			// themselves, not the page, so nothing goes through `onChange`.
 			{
 				id: 'cnl_menus',
-				label: __( 'Menus' ),
+				label: __( 'Menus', 'create-not-learn-editor' ),
 				Edit: PageMenusEdit,
 				render: PageMenusView,
 			},
 			{
 				id: 'cnl_layout',
-				label: __( 'Layout' ),
+				label: __( 'Layout', 'create-not-learn-editor' ),
 				readOnly: true,
 				render: () =>
 					layoutName ? (
@@ -298,7 +298,7 @@ export function PageSummary( { pageId } ) {
 	return (
 		<PageDetailsForm
 			form={ SUMMARY_FORM }
-			label={ __( 'About this page' ) }
+			label={ __( 'About this page', 'create-not-learn-editor' ) }
 			pageId={ pageId }
 		/>
 	);
@@ -319,7 +319,7 @@ export function PageDetails( { layoutName, onOpenLayouts, pageId } ) {
 		<PageDetailsForm
 			form={ DETAILS_FORM }
 			isPlain
-			label={ __( 'Details' ) }
+			label={ __( 'Details', 'create-not-learn-editor' ) }
 			layoutName={ layoutName }
 			onOpenLayouts={ onOpenLayouts }
 			pageId={ pageId }

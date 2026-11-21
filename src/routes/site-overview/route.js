@@ -4,5 +4,5 @@
 import { __ } from '../../wordpress-packages';
 
 export const route = {
-	title: () => __( 'Site overview' ),
+	title: () => __( 'Site overview', 'create-not-learn-editor' ),
 };

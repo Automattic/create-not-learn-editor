@@ -165,48 +165,48 @@ export function getSectionKind(
 ) {
 	switch ( block?.name ) {
 		case 'core/cover':
-			return __( 'Banner' );
+			return __( 'Banner', 'create-not-learn-editor' );
 		case 'core/media-text':
-			return __( 'Image and text' );
+			return __( 'Image and text', 'create-not-learn-editor' );
 		case 'core/gallery':
-			return __( 'Gallery' );
+			return __( 'Gallery', 'create-not-learn-editor' );
 		case 'core/query':
-			return __( 'Latest posts' );
+			return __( 'Latest posts', 'create-not-learn-editor' );
 		case 'core/image':
-			return __( 'Image' );
+			return __( 'Image', 'create-not-learn-editor' );
 		case 'core/heading':
-			return __( 'Heading' );
+			return __( 'Heading', 'create-not-learn-editor' );
 		case 'core/paragraph':
 		case 'core/list':
-			return __( 'Text' );
+			return __( 'Text', 'create-not-learn-editor' );
 		case 'core/buttons':
-			return __( 'Buttons' );
+			return __( 'Buttons', 'create-not-learn-editor' );
 		case 'core/separator':
-			return __( 'Divider' );
+			return __( 'Divider', 'create-not-learn-editor' );
 		case 'core/spacer':
-			return __( 'Space' );
+			return __( 'Space', 'create-not-learn-editor' );
 		case 'core/quote':
 		case 'core/pullquote':
-			return __( 'Quote' );
+			return __( 'Quote', 'create-not-learn-editor' );
 	}
 
 	if ( contents.columns > 1 ) {
 		return sprintf(
 			/* translators: %d: number of columns. */
-			__( '%d columns' ),
+			__( '%d columns', 'create-not-learn-editor' ),
 			contents.columns
 		);
 	}
 
 	if ( contents.images >= 3 ) {
-		return __( 'Gallery' );
+		return __( 'Gallery', 'create-not-learn-editor' );
 	}
 
 	if ( contents.buttons && contents.headings ) {
-		return __( 'Call to action' );
+		return __( 'Call to action', 'create-not-learn-editor' );
 	}
 
-	return __( 'Section' );
+	return __( 'Section', 'create-not-learn-editor' );
 }
 
 /**
@@ -253,7 +253,12 @@ export function getSectionSummary( block ) {
 		facts.push(
 			sprintf(
 				/* translators: %d: number of images. */
-				_n( '%d image', '%d images', contents.images ),
+				_n(
+					'%d image',
+					'%d images',
+					contents.images,
+					'create-not-learn-editor'
+				),
 				contents.images
 			)
 		);
@@ -263,7 +268,12 @@ export function getSectionSummary( block ) {
 		facts.push(
 			sprintf(
 				/* translators: %d: number of buttons. */
-				_n( '%d button', '%d buttons', contents.buttons ),
+				_n(
+					'%d button',
+					'%d buttons',
+					contents.buttons,
+					'create-not-learn-editor'
+				),
 				contents.buttons
 			)
 		);

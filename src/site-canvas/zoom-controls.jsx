@@ -37,7 +37,7 @@ const GESTURE_END_MS = 250;
 export function ZoomControls( { isComposing, onZoomIn, onZoomOut } ) {
 	return (
 		<div
-			aria-label={ __( 'Zoom' ) }
+			aria-label={ __( 'Zoom', 'create-not-learn-editor' ) }
 			className="cnl-site-canvas__zoom-controls"
 			role="group"
 		>
@@ -45,7 +45,7 @@ export function ZoomControls( { isComposing, onZoomIn, onZoomOut } ) {
 				accessibleWhenDisabled
 				disabled={ ! isComposing }
 				icon={ plusIcon }
-				label={ __( 'Zoom in' ) }
+				label={ __( 'Zoom in', 'create-not-learn-editor' ) }
 				onClick={ onZoomIn }
 				showTooltip
 				tooltipPosition="middle left"
@@ -54,7 +54,10 @@ export function ZoomControls( { isComposing, onZoomIn, onZoomOut } ) {
 				accessibleWhenDisabled
 				disabled={ isComposing }
 				icon={ minusIcon }
-				label={ __( 'Zoom out to arrange sections' ) }
+				label={ __(
+					'Zoom out to arrange sections',
+					'create-not-learn-editor'
+				) }
 				onClick={ onZoomOut }
 				showTooltip
 				tooltipPosition="middle left"

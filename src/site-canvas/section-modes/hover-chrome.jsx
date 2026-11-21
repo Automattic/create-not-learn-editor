@@ -165,7 +165,10 @@ export function HoverChrome( {
 								} }
 								variant="primary"
 							>
-								{ __( 'Add section' ) }
+								{ __(
+									'Add section',
+									'create-not-learn-editor'
+								) }
 							</Button>
 						) ) }
 					{ showsBar && (
