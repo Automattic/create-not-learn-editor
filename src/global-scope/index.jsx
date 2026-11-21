@@ -1,7 +1,7 @@
 /**
  * What changes more than the page on show, like the header and footer, which
- * every page shares, is marked out in purple with a globe. What changes only
- * the page on show isn't marked at all.
+ * every page shares, is marked out in purple with a filled symbol. What changes
+ * only the page on show isn't marked at all.
  *
  * The purple is core's own colour for synced blocks and template parts
  * (`--wp-block-synced-color`), so ours matches the outlines core draws on them

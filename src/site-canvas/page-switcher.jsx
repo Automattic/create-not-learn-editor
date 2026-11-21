@@ -13,8 +13,8 @@
  *
  * Layouts and template parts use the same bar. What sets them apart is that
  * changing one changes every page that uses it, so in place of a status they
- * get a purple globe, the mark Review changes gives site-wide changes, with
- * a tooltip saying where changes show, and their name in the same purple.
+ * get a purple filled symbol, the mark Review changes gives site-wide changes,
+ * with a tooltip saying where changes show, and their name in the same purple.
  * A template part's bar doesn't open the finder: while one is open, going
  * to a page isn't what the screen is for.
  */
@@ -22,7 +22,7 @@
 /**
  * WordPress dependencies
  */
-import { globe as globeIcon } from '@wordpress/icons';
+import { symbolFilled as symbolFilledIcon } from '@wordpress/icons';
 import { Icon } from '@wordpress/ui';
 
 /**
@@ -87,7 +87,7 @@ export function PageSwitcher( {
 	const [ isFinding, setIsFinding ] = useState( false );
 	const toggleRef = useRef();
 	const shouldRefocus = useRef( false );
-	const statusIcon = shared ? globeIcon : POST_STATUS_ICONS[ status ];
+	const statusIcon = shared ? symbolFilledIcon : POST_STATUS_ICONS[ status ];
 	const statusLabel =
 		shared || ( statusIcon ? getStatusLabel( status ) : '' );
 	const openFinder = canSwitch ? () => setIsFinding( true ) : undefined;

@@ -20,7 +20,7 @@ import { useRegistry, useSelect } from '@wordpress/data';
 import { useEffect, useRef } from '@wordpress/element';
 import { addFilter } from '@wordpress/hooks';
 import { __ } from '@wordpress/i18n';
-import { globe as globeIcon } from '@wordpress/icons';
+import { symbolFilled as symbolFilledIcon } from '@wordpress/icons';
 
 /**
  * Internal dependencies
@@ -372,8 +372,8 @@ function useTemplatePartEditState( clientId, attributes ) {
  *
  * It replaces core's "Edit original", which the editor layer's stylesheet
  * hides whenever a template part is selected. See src/editor-layer/style.scss.
- * A part shows on more than this page, so the button has the globe and the
- * purple of everything else that does. See `src/global-scope`.
+ * A part shows on more than this page, so the button has the filled symbol and
+ * the purple of everything else that does. See `src/global-scope`.
  *
  * @param {Object}  props            Component props.
  * @param {Object}  props.attributes Template part block attributes.
@@ -406,7 +406,7 @@ function TemplatePartEditButton( { attributes, clientId, isSelected } ) {
 					description={ __(
 						'Changes show on every page that uses it.'
 					) }
-					icon={ globeIcon }
+					icon={ symbolFilledIcon }
 					label={ label }
 					onClick={ () =>
 						unlock(
