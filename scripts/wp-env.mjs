@@ -362,8 +362,17 @@ async function ensureZip( source ) {
 	} );
 }
 
+/**
+ * Points a source's link at its cached copy.
+ *
+ * @param {string} link   Where the link goes under `.wp-env/sources/`.
+ * @param {string} target The cached copy.
+ * @return {Promise<boolean>} Whether a link that was there now points
+ *                            somewhere else.
+ */
 async function linkSource( link, target ) {
 	const linkPath = path.join( sourcesDir, link );
+	let moved = false;
 	await fs.mkdir( path.dirname( linkPath ), { recursive: true } );
 
 	try {
@@ -374,15 +383,17 @@ async function linkSource( link, target ) {
 			);
 		}
 		if ( ( await fs.readlink( linkPath ) ) === target ) {
-			return;
+			return false;
 		}
 		await fs.unlink( linkPath );
+		moved = true;
 	} catch ( error ) {
 		if ( error.code !== 'ENOENT' ) {
 			throw error;
 		}
 	}
 	await fs.symlink( target, linkPath, 'dir' );
+	return moved;
 }
 
 /**
@@ -513,17 +524,39 @@ async function prepareSources() {
 	}
 
 	const wordpress = await copyWordPress( await ensureZip( WORDPRESS ) );
-	await linkSource( gutenberg.link, await ensureZip( gutenberg ) );
+	const moved = await linkSource(
+		gutenberg.link,
+		await ensureZip( gutenberg )
+	);
 	await preparePHPUnit( await readWordPressVersion( wordpress ) );
+
+	return { gutenbergMoved: moved };
 }
 
-function runWpEnv( args ) {
-	const bin = path.join(
+/**
+ * Runs wp-env and waits for it.
+ *
+ * @param {string[]} args wp-env's arguments.
+ * @return {Promise<number>} Its exit code.
+ */
+function runWpEnvAndWait( args ) {
+	return new Promise( ( resolve ) => {
+		spawn( process.execPath, [ getWpEnvBin(), ...args ], {
+			stdio: 'inherit',
+		} ).on( 'exit', ( code ) => resolve( code ?? 1 ) );
+	} );
+}
+
+function getWpEnvBin() {
+	return path.join(
 		path.dirname( require.resolve( '@wordpress/env/package.json' ) ),
 		'bin',
 		'wp-env'
 	);
-	const child = spawn( process.execPath, [ bin, ...args ], {
+}
+
+function runWpEnv( args ) {
+	const child = spawn( process.execPath, [ getWpEnvBin(), ...args ], {
 		stdio: 'inherit',
 	} );
 	child.on( 'exit', ( code, signal ) => {
@@ -542,7 +575,14 @@ async function main() {
 		return;
 	}
 	if ( args[ 0 ] === 'start' ) {
-		await prepareSources();
+		const { gutenbergMoved } = await prepareSources();
+		// Docker follows the Gutenberg link when it makes the containers, so
+		// they keep the old one until they are made again, which stopping
+		// does. The sites' data stays.
+		if ( gutenbergMoved ) {
+			console.log( 'Gutenberg changed, so stopping wp-env first...' );
+			await runWpEnvAndWait( [ 'stop' ] );
+		}
 	}
 	runWpEnv( args );
 }

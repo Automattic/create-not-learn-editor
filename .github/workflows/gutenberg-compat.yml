@@ -185,18 +185,20 @@ jobs:
           path: ${{ runner.temp }}/wp-env-cache
           key: wp-env-compat-${{ hashFiles('scripts/wp-env.mjs') }}-${{ steps.gutenberg.outputs.key }}
 
-      # PHPUnit and the e2e tests each run whatever the other's result.
-      - name: Run PHPUnit
-        id: php
-        if: ${{ !cancelled() && steps.start.outcome == 'success' }}
-        run: npm run test:php
-
+      # The e2e tests and PHPUnit each run whatever the other's result. The
+      # e2e tests go first: PHPUnit installs WordPress afresh in the tests
+      # site's database, which leaves the editor's plugins inactive there.
       - name: Run e2e tests
         id: e2e
         if: ${{ !cancelled() && steps.start.outcome == 'success' }}
         env:
           PLAYWRIGHT_JSON_OUTPUT_NAME: compat-results.json
         run: npx playwright test tests/e2e/smoke.spec.js tests/e2e/interactions/block-toolbar-locale.spec.js --reporter=list,json
+
+      - name: Run PHPUnit
+        id: php
+        if: ${{ !cancelled() && steps.start.outcome == 'success' }}
+        run: npm run test:php
 
       - name: Upload failure traces
         if: failure()
