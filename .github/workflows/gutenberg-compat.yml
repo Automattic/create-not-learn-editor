@@ -4,7 +4,7 @@ name: Gutenberg compatibility
 # before WordPress.com deploys a new one whether the editor still works with
 # it. Pull request CI (ci.yml) runs the minimum only, to stay fast.
 #
-# Each day, and on demand, it builds the plugin and runs PHPUnit, the smoke
+# Each week, and on demand, it builds the plugin and runs PHPUnit, the smoke
 # test and the block toolbar's German locale test against:
 #
 # - the minimum Gutenberg, the pin in scripts/wp-env.mjs,
@@ -16,7 +16,7 @@ name: Gutenberg compatibility
 #
 # A version that fails gets one open issue titled "Gutenberg compatibility:
 # <version>" ("trunk" for trunk's builds), which later failures comment on.
-# Issues are only filed from trunk, by the daily run or a manual run with
+# Issues are only filed from trunk, by the weekly run or a manual run with
 # "file_issues" on. Anywhere else the issue is printed instead.
 #
 # A pull request that changes this workflow or its report runs it too, since
@@ -24,7 +24,8 @@ name: Gutenberg compatibility
 
 on:
   schedule:
-    - cron: '23 4 * * *'
+    # Mondays, early in the morning UTC.
+    - cron: '23 4 * * 1'
   pull_request:
     paths:
       - .github/workflows/gutenberg-compat.yml
@@ -176,7 +177,7 @@ jobs:
           done
           exit 1
 
-      # Trunk's builds change every day, so only releases are kept.
+      # Trunk's builds change with every push, so only releases are kept.
       - name: Save wp-env sources
         if: steps.wp-env-cache.outputs.cache-hit != 'true' && !startsWith( steps.gutenberg.outputs.version, 'trunk-' )
         uses: actions/cache/save@v6
@@ -238,7 +239,7 @@ jobs:
           STEP_START: ${{ steps.start.outcome }}
           STEP_PHP: ${{ steps.php.outcome }}
           STEP_E2E: ${{ steps.e2e.outcome }}
-          # Only trunk files issues: the daily run, or a manual one asking to.
+          # Only trunk files issues: the weekly run, or a manual one asking to.
           DRY_RUN: ${{ !( github.ref == 'refs/heads/trunk' && ( github.event_name == 'schedule' || inputs.file_issues ) ) }}
         run: |
           node scripts/gutenberg-compat-report.mjs compat-results.json > "$RUNNER_TEMP/issue.md"
