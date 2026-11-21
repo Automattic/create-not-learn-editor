@@ -103,6 +103,27 @@ function cnl_editor_render_full_page() {
 		wp_dequeue_style( $style );
 	}
 
+	// Post locks are kept and checked over the heartbeat, as in core's post
+	// editor (`wp-admin/edit-form-blocks.php`). The editor turns its interval
+	// up while it has a post open. See `includes/post-safety.php`.
+	wp_enqueue_script( 'heartbeat' );
+	// In wp-admin, the heartbeat finds its URL and screen in the `ajaxurl`
+	// and `pagenow` globals `admin-header.php` prints, which this page
+	// doesn't. Without a URL it never beats.
+	wp_add_inline_script(
+		'heartbeat',
+		sprintf(
+			'window.heartbeatSettings = Object.assign( window.heartbeatSettings || {}, %s );',
+			wp_json_encode(
+				array(
+					'ajaxurl'  => admin_url( 'admin-ajax.php', 'relative' ),
+					'screenId' => CNL_EDITOR_SLUG,
+				)
+			)
+		),
+		'before'
+	);
+
 	$has_admin_bar = cnl_editor_enable_admin_bar();
 
 	cnl_editor_reset_editor_registry();

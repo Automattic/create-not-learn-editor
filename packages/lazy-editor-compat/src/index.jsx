@@ -5,6 +5,12 @@ import { store as coreDataStore } from '@wordpress/core-data';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { memo, useEffect, useMemo, useRef } from '@wordpress/element';
 
+/**
+ * Internal dependencies
+ */
+import { PostSafety } from '../../../src/editor-layer/post-safety';
+import { openRoute } from '../../../src/open-route';
+
 const upstreamModuleUrl =
 	window.createNotLearnEditor?.lazyEditorModuleUrl || '';
 
@@ -16,6 +22,13 @@ const upstream = await import( /* webpackIgnore: true */ upstreamModuleUrl );
 
 const UpstreamEditor = upstream.Editor;
 
+/*
+ * The editor sets its post's lock from its settings when it mounts, and its
+ * lock selectors fail without one. The block editor settings endpoint has
+ * none, so every post starts unlocked, until `PostSafety` locks it.
+ */
+const UNLOCKED = { isLocked: false };
+
 /**
  * Preserve lazy-editor's resolved theme and global styles when boot supplies
  * route-specific editor settings.
@@ -24,13 +37,25 @@ const UpstreamEditor = upstream.Editor;
  * Released Gutenberg 23.5.1 replaces the resolved styles instead, so remove
  * boot's style override until the upstream fix is available in the dependency.
  *
- * @param {Object} props          Editor props, passed on to the lazy editor.
- * @param {number} props.postId   ID of the post being edited.
- * @param {string} props.postType Type of the post being edited.
- * @param {Object} props.settings Route-specific editor settings.
+ * Every editor opened for editing, rather than as a preview, is also given
+ * core's autosaves and post lock (`PostSafety`), which boot's own editor
+ * doesn't mount. Boot's full-screen editor always edits. The site canvas
+ * keeps its editor mounted while it shows the live page, so it says when it is
+ * editing, and how to leave editing from the lock dialog.
+ *
+ * @param {Object}   props              Editor props, passed on to the lazy editor.
+ * @param {boolean}  props.isEditing    Whether the post is open for editing,
+ *                                      rather than only on show.
+ * @param {Function} props.onExitLocked Leaves editing, from the lock dialog.
+ *                                      By default, to the post type's list.
+ * @param {number}   props.postId       ID of the post being edited.
+ * @param {string}   props.postType     Type of the post being edited.
+ * @param {Object}   props.settings     Route-specific editor settings.
  * @return {Element} The released lazy editor with compatible settings.
  */
 function CompatibleEditor( {
+	isEditing = true,
+	onExitLocked,
 	postId: givenPostId,
 	postType: givenPostType,
 	settings,
@@ -107,12 +132,9 @@ function CompatibleEditor( {
 	);
 	const { editEntityRecord } = useDispatch( coreDataStore );
 	const compatibleSettings = useMemo( () => {
-		if ( ! settings || ! Object.hasOwn( settings, 'styles' ) ) {
-			return settings;
-		}
+		const { styles: _routeStyles, ...restSettings } = settings || {};
 
-		const { styles: _routeStyles, ...restSettings } = settings;
-		return restSettings;
+		return { postLock: UNLOCKED, ...restSettings };
 	}, [ settings ] );
 
 	useEffect( () => {
@@ -178,13 +200,26 @@ function CompatibleEditor( {
 	}
 
 	return (
-		<UpstreamEditor
-			{ ...props }
-			key={ entityKey }
-			postId={ postId }
-			postType={ postType }
-			settings={ compatibleSettings }
-		/>
+		<>
+			<UpstreamEditor
+				{ ...props }
+				key={ entityKey }
+				postId={ postId }
+				postType={ postType }
+				settings={ compatibleSettings }
+			/>
+			{ isEditing && ! settings?.isPreviewMode && postId && (
+				<PostSafety
+					key={ `safety:${ entityKey }` }
+					onExit={
+						onExitLocked ||
+						( () => openRoute( `/types/${ postType }` ) )
+					}
+					postId={ postId }
+					postType={ postType }
+				/>
+			) }
+		</>
 	);
 }
 
