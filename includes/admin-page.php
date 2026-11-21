@@ -77,9 +77,10 @@ function cnl_editor_render_full_page() {
 		wp_die( esc_html__( 'Sorry, you are not allowed to access this page.', 'create-not-learn-editor' ) );
 	}
 
-	// Every site editable here needs a menu to edit. `cnl_editor_has_navigation_menu()`
-	// makes this a cheap no-op once one exists, so it is safe to check on every visit
-	// rather than only behind the explicit setup action, which is for the homepage.
+	// Every site editable here needs a menu to edit, so one is made on the
+	// server, through WordPress's own fallback, rather than left to the
+	// Navigation block to make in the browser. It is a cheap no-op once one
+	// exists. See "Site changes" in docs/architecture.md.
 	cnl_editor_ensure_default_navigation_menu();
 
 	// Core sends these from `admin_init` too, but adds them after this
