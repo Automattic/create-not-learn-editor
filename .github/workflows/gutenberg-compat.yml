@@ -1,0 +1,258 @@
+name: Gutenberg compatibility
+
+# Checks the editor against more Gutenbergs than pull requests do, so we know
+# before WordPress.com deploys a new one whether the editor still works with
+# it. Pull request CI (ci.yml) runs the minimum only, to stay fast.
+#
+# Each day, and on demand, it builds the plugin and runs PHPUnit, the smoke
+# test and the block toolbar's German locale test against:
+#
+# - the minimum Gutenberg, the pin in scripts/wp-env.mjs,
+# - the latest Gutenberg release,
+# - the newest build of Gutenberg's trunk,
+# - the Gutenberg WordPress.com runs, from .github/wpcom-gutenberg-version,
+#   once someone fills it in,
+# - and any other versions given when it is run by hand.
+#
+# A version that fails gets one open issue titled "Gutenberg compatibility:
+# <version>" ("trunk" for trunk's builds), which later failures comment on.
+# Issues are only filed from trunk, by the daily run or a manual run with
+# "file_issues" on. Anywhere else the issue is printed instead.
+
+on:
+  schedule:
+    - cron: '23 4 * * *'
+  workflow_dispatch:
+    inputs:
+      versions:
+        description: Other Gutenberg versions to test, comma separated (a release, an RC such as 24.5.0-rc.1, latest or trunk)
+        required: false
+        default: ''
+      wpcom_version:
+        description: The WordPress.com Gutenberg version, in place of .github/wpcom-gutenberg-version for this run
+        required: false
+        default: ''
+      file_issues:
+        description: Open or update issues for failing versions (on trunk only; elsewhere they are printed)
+        type: boolean
+        required: false
+        default: false
+
+concurrency:
+  group: gutenberg-compat-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  versions:
+    name: Choose versions
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: List the versions to test
+        id: matrix
+        env:
+          EXTRA: ${{ inputs.versions }}
+          WPCOM_INPUT: ${{ inputs.wpcom_version }}
+        run: |
+          wpcom="$WPCOM_INPUT"
+          if [ -z "$wpcom" ]; then
+            wpcom=$(grep -v '^\s*#' .github/wpcom-gutenberg-version | grep -v '^\s*$' | head -n1 | tr -d '[:space:]' || true)
+          fi
+          matrix=$(
+            {
+              echo 'minimum|'
+              echo 'latest|latest'
+              echo 'trunk|trunk'
+              [ -n "$wpcom" ] && echo "wpcom|$wpcom"
+              echo "$EXTRA" | tr ',' '\n' | tr -d '[:space:]' | grep -v '^$' | sed 's/.*/extra|&/'
+            } | jq -R -s -c 'split("\n") | map(select(length > 0) | split("|") | { label: .[0], request: .[1] })'
+          )
+          echo "$matrix" | jq .
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  compat:
+    name: Gutenberg ${{ matrix.label }} ${{ matrix.request }}
+    needs: versions
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      issues: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON( needs.versions.outputs.matrix ) }}
+    env:
+      WP_BASE_URL: http://localhost:8889
+      # Reads Gutenberg's trunk builds, which are GitHub Actions artifacts.
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Point wp-env at the cached downloads
+        run: echo "CNL_WP_ENV_CACHE=$RUNNER_TEMP/wp-env-cache" >> "$GITHUB_ENV"
+
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      # Resolved once, so every step runs the same build, even of trunk.
+      - name: Resolve the Gutenberg version
+        id: gutenberg
+        env:
+          CNL_GUTENBERG_VERSION: ${{ matrix.request }}
+        run: |
+          resolved=$(node scripts/wp-env.mjs --resolve-gutenberg)
+          echo "$resolved"
+          version=$(echo "$resolved" | jq -r .version)
+          {
+            echo "name=$(echo "$resolved" | jq -r .name)"
+            echo "version=$version"
+            echo "key=$(echo "$resolved" | jq -r .key)"
+            if [ "${{ matrix.label }}" = "trunk" ] || [[ "$version" == trunk-* ]]; then
+              echo "title=Gutenberg compatibility: trunk"
+            else
+              echo "title=Gutenberg compatibility: $version"
+            fi
+          } >> "$GITHUB_OUTPUT"
+          echo "CNL_GUTENBERG_VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        id: build
+        run: npm run build
+
+      - name: Restore wp-env sources
+        id: wp-env-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ runner.temp }}/wp-env-cache
+          key: wp-env-compat-${{ hashFiles('scripts/wp-env.mjs') }}-${{ steps.gutenberg.outputs.key }}
+          restore-keys: |
+            wp-env-compat-${{ hashFiles('scripts/wp-env.mjs') }}-
+            wp-env-${{ hashFiles('scripts/wp-env.mjs') }}
+
+      - name: Cache Playwright's browser
+        id: playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright's browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --only-shell chromium
+
+      - name: Start wp-env
+        id: start
+        run: |
+          for attempt in 1 2 3; do
+            npm run wp-env start && exit 0
+            echo "::warning::wp-env start failed (attempt $attempt), retrying"
+            sleep 10
+          done
+          exit 1
+
+      # Trunk's builds change every day, so only releases are kept.
+      - name: Save wp-env sources
+        if: steps.wp-env-cache.outputs.cache-hit != 'true' && !startsWith( steps.gutenberg.outputs.version, 'trunk-' )
+        uses: actions/cache/save@v6
+        continue-on-error: true
+        with:
+          path: ${{ runner.temp }}/wp-env-cache
+          key: wp-env-compat-${{ hashFiles('scripts/wp-env.mjs') }}-${{ steps.gutenberg.outputs.key }}
+
+      # PHPUnit and the e2e tests each run whatever the other's result.
+      - name: Run PHPUnit
+        id: php
+        if: ${{ !cancelled() && steps.start.outcome == 'success' }}
+        run: npm run test:php
+
+      - name: Run e2e tests
+        id: e2e
+        if: ${{ !cancelled() && steps.start.outcome == 'success' }}
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: compat-results.json
+        run: npx playwright test tests/e2e/smoke.spec.js tests/e2e/interactions/block-toolbar-locale.spec.js --reporter=list,json
+
+      - name: Upload failure traces
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gutenberg-compat-${{ steps.gutenberg.outputs.key || matrix.label }}
+          path: test-results/
+          retention-days: 7
+
+      - name: Summarise
+        if: always()
+        env:
+          NAME: ${{ steps.gutenberg.outputs.name }}
+          BUILD: ${{ steps.build.outcome }}
+          START: ${{ steps.start.outcome }}
+          PHP: ${{ steps.php.outcome }}
+          E2E: ${{ steps.e2e.outcome }}
+        run: |
+          {
+            echo "### ${NAME:-Gutenberg ${{ matrix.label }}}"
+            echo ""
+            echo "| Build | Start wp-env | PHPUnit | E2E |"
+            echo "| --- | --- | --- | --- |"
+            echo "| $BUILD | $START | $PHP | $E2E |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update the issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TITLE: ${{ steps.gutenberg.outputs.title || format( 'Gutenberg compatibility: {0}', matrix.request || matrix.label ) }}
+          GUTENBERG_NAME: ${{ steps.gutenberg.outputs.name }}
+          GUTENBERG_VERSION: ${{ steps.gutenberg.outputs.version || matrix.request || matrix.label }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          STEP_BUILD: ${{ steps.build.outcome }}
+          STEP_START: ${{ steps.start.outcome }}
+          STEP_PHP: ${{ steps.php.outcome }}
+          STEP_E2E: ${{ steps.e2e.outcome }}
+          # Only trunk files issues: the daily run, or a manual one asking to.
+          DRY_RUN: ${{ !( github.ref == 'refs/heads/trunk' && ( github.event_name == 'schedule' || inputs.file_issues ) ) }}
+        run: |
+          node scripts/gutenberg-compat-report.mjs compat-results.json > "$RUNNER_TEMP/issue.md"
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "::notice::Dry run: would open or update \"$TITLE\"."
+            echo "----- $TITLE -----"
+            cat "$RUNNER_TEMP/issue.md"
+            {
+              echo "### Dry run: \"$TITLE\""
+              echo ""
+              echo "The issue this run would open or comment on:"
+              echo ""
+              cat "$RUNNER_TEMP/issue.md"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          number=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,title \
+            --jq "map(select(.title == \"$TITLE\")) | .[0].number // empty")
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body-file "$RUNNER_TEMP/issue.md"
+            echo "Commented on #$number."
+          else
+            gh issue create --title "$TITLE" --body-file "$RUNNER_TEMP/issue.md"
+          fi
