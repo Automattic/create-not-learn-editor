@@ -101,3 +101,9 @@ The gettext filters (`section-wording.js`, `writing-aids.jsx` and `edit-section-
 `tests/e2e/interactions/block-toolbar-locale.spec.js` runs the toolbar in German, and fails if any of these show core's controls through. It also runs in the Gutenberg compatibility workflow.
 
 These would go away if core gave its toolbar controls, its format group and its menu items a class or data attribute to find them by. The draft of that request is in the pull request that added this entry.
+
+## Registering core's block bindings sources
+
+The lazy editor doesn't register what reads and writes core's block bindings sources in the editor, so `src/editor-extensions/block-bindings.js` calls the editor's `registerCoreBlockBindingsSources()` whenever a core source is there without it. Up to Gutenberg 24.4 that function is one of `@wordpress/editor`'s private APIs, unlocked through `src/lock-unlock.js`. Gutenberg's trunk exports it publicly instead and drops it from the private APIs, so the editor uses the public export when there is one and the private one otherwise. The Gutenberg compatibility workflow found the move, as every screen threw on trunk.
+
+Remove this once the lazy editor registers the sources itself, or drop the private fallback once the minimum Gutenberg exports the function.
