@@ -26,6 +26,7 @@
 		"sync:list-view": "node scripts/sync-gutenberg-list-view.mjs",
 		"check:list-view": "node scripts/sync-gutenberg-list-view.mjs --check",
 		"lint:js": "wp-scripts lint-js src routes packages scripts playwright.config.js vitest.config.mjs tests/e2e tests/unit",
+		"lint:php-i18n": "php scripts/check-php-text-domain.php",
 		"lint:css": "wp-scripts lint-style 'src/**/*.scss' 'packages/*/src/**/*.scss'",
 		"plugin-zip": "wp-scripts plugin-zip",
 		"wp-env": "node scripts/wp-env.mjs",

@@ -94,6 +94,7 @@ Generated `build/` assets and plugin zips are intentionally ignored by git. The 
 - `npm run check:list-view` verifies the committed ListView bridge is current.
 - `npm run lint:js` runs JavaScript linting.
 - `npm run lint:css` runs stylesheet linting.
+- `npm run lint:php-i18n` checks every PHP translation call uses the editor's text domain.
 - `npm run test:unit` runs the unit tests with Vitest. Its settings live in `vitest.config.mjs`.
 - `npm run test:php` runs the PHPUnit tests in `tests/phpunit/` inside wp-env's tests container, with WordPress and Gutenberg loaded. Start wp-env first. The first run installs Composer's dev packages into `vendor/`. Arguments go to PHPUnit, e.g. `npm run test:php -- --filter Setup_Defaults`. Test the PHP here, not through the browser, whenever an e2e test would only be checking what the server returns. PHPUnit can't set the query string the editor reads with `filter_input()`, so code that asks whether a request is a canvas preview or the full-page editor can be switched on with the `create-not-learn-editor_is_preview_frame_request` and `create-not-learn-editor_is_full_page_request` filters instead, as `tests/phpunit/request-detection-test.php` does.
 - `npm run perf:budget` checks the build against the performance budget. Run `npm run build` first. See [the performance budget](docs/performance-budget.md).
@@ -127,6 +128,12 @@ http://localhost:<dev-port>/wp-admin/admin.php?page=create-not-learn-editor
 ## Translations
 
 Every string the editor adds is in the `create-not-learn-editor` text domain. In JavaScript that means passing it to `__()`, `_x()`, `_n()` and `_nx()`, which the `@wordpress/i18n-text-domain` lint rule checks for `src/`, `routes/` and `packages/*/src/`. `npm run lint:js -- --fix` adds a missing domain.
+
+Lint stops strings slipping through untranslated:
+
+- `@wordpress/i18n-text-domain` fails any JavaScript call without the domain.
+- `react/jsx-no-literals` fails words written straight into JSX, such as `<p>Hello</p>`. Symbols like `-` are allowed in `eslint.config.cjs`.
+- `npm run lint:php-i18n` (`scripts/check-php-text-domain.php`) fails any PHP translation call without the domain. CI runs it with the other lints. A PHP string that has to be core's is marked `// phpcs:ignore WordPress.WP.I18n…` on its line.
 
 A few strings are deliberately core's, in the default domain, because the editor finds one of core's controls by its words, such as the format buttons in `src/block-toolbar/`. They turn the rule off where they are, saying why. Section wording (`src/editor-layer/section-wording.js`) swaps core's strings through the default domain's gettext filters, and says its replacements in the editor's own domain.
 

@@ -38,6 +38,16 @@ module.exports = [
 				'error',
 				{ allowedTextDomain: 'create-not-learn-editor' },
 			],
+			// Words written straight into JSX skip translation altogether.
+			// Symbols that aren't words are allowed.
+			'react/jsx-no-literals': [
+				'error',
+				{
+					noStrings: false,
+					ignoreProps: true,
+					allowedStrings: [ 'Aa', '-', '.', '·', '×', '/', '|' ],
+				},
+			],
 		},
 	},
 ];
