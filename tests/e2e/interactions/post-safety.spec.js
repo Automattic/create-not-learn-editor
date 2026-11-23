@@ -210,6 +210,56 @@ test.describe( 'Autosaves', () => {
 	} );
 } );
 
+test.describe( 'Browse with unsaved changes', () => {
+	test( 'a page keeps its lock while Browse shows its unsaved changes', async ( {
+		page,
+		rest,
+	} ) => {
+		const testPage = await rest.createPage( { body: 'Browsed words' } );
+
+		await visitEditor(
+			page,
+			`/types/page/list/all?previewId=${ testPage.id }`
+		);
+		await setCanvasMode( page, 'Edit' );
+		await setAutosaveIntervals( page, { autosave: 3600, local: 3600 } );
+
+		const getLock = () =>
+			page.evaluate( () =>
+				window.wp.data.select( 'core/editor' ).getActivePostLock()
+			);
+
+		await expect.poll( getLock ).toBeTruthy();
+
+		await clickIntoSection(
+			page,
+			getCanvasEditor( page ).contentFrame().getByText( 'Browsed words' )
+		);
+		await page.keyboard.press( 'End' );
+		await page.keyboard.type( ' unsaved' );
+
+		// Moved to Browse as the canvas's own controls ask to, keeping the
+		// changes for the preview to show.
+		await page.evaluate( () =>
+			window.wp.data
+				.dispatch( 'create-not-learn-editor/canvas-mode' )
+				.setModeRequest( 'browse' )
+		);
+		await expectCanvasMode( page, 'Browse' );
+
+		expect(
+			await page.evaluate(
+				( id ) =>
+					window.wp.data
+						.select( 'core' )
+						.hasEditsForEntityRecord( 'postType', 'page', id ),
+				testPage.id
+			)
+		).toBe( true );
+		expect( await getLock() ).toBeTruthy();
+	} );
+} );
+
 test.describe( 'Recovering an autosave', () => {
 	test( 'a newer autosave, as a closed tab leaves, is offered and put back as unsaved changes', async ( {
 		page,

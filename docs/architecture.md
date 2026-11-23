@@ -148,7 +148,9 @@ Core's post editor gets this from edit-post's layout, which mounts `AutosaveMoni
 Every lazy editor goes through `packages/lazy-editor-compat`, which mounts `PostSafety` (`src/editor-layer/post-safety.jsx`) beside each editor that is open for editing:
 
 - Boot's full-screen editor, always.
-- The site canvas, in Edit and Compose only. It keeps its editor mounted under Browse too, so it says when it is editing with the editor's `isEditing` prop. Moving to Browse lets go of the post's lock.
+- The site canvas, in Edit and Compose, and in Browse while the post has unsaved changes, which Browse keeps and shows in the preview. It keeps its editor mounted under Browse, so it says when to watch over the post with the editor's `isEditing` prop. Browse with nothing unsaved lets go of the post's lock.
+
+Only the post open in an editor is watched over. Unsaved changes left on another post, by moving to a screen that shows a different one, aren't autosaved or locked until that post is open again, as core's editor only watches over its current post.
 - Never an editor opened as a preview (`isPreviewMode`), like the Menus screen's site preview.
 
 The server says which posts get it: those core's post editor opens, the post types whose edit link is `post.php`. Templates, template parts and menus don't, as core's site editor doesn't autosave or lock them either. The `create-not-learn-editor_has_post_safety` filter changes the answer per post.
@@ -175,7 +177,7 @@ A heartbeat keeps the lock and checks it every 10 seconds while a post is held, 
 
 It isn't WordPress's `heartbeat.js`, which depends on jQuery and polls on every page it loads on. `src/editor-layer/post-heartbeat.js` sends the same request with `fetch`, to `admin-ajax.php?action=heartbeat` with a `heartbeat-nonce` nonce from the lock route, so the server's side is core's own (`wp_refresh_post_lock()` on `heartbeat_received`). It fires the same `heartbeat.send` and `heartbeat.tick` hooks from `@wordpress/hooks`, which is all `PostLockedModal` listens to. A nonce that expires, after a day open, is fetched again from the lock route. Plugins that use the heartbeat for anything else, like core's login check, don't run on this page.
 
-- Opening a post someone else has open shows core's "This post is already being edited". **Exit editor** leaves editing rather than going to wp-admin's list: the site canvas goes back to Browse, and the full-screen editor goes to the post type's list.
+- Opening a post someone else has open shows core's "This post is already being edited". **Exit editor** leaves editing rather than going to wp-admin's list: the site canvas goes back to Browse, and the full-screen editor goes to the post type's list. On the site canvas, it also drops this person's unsaved changes to the post. Taken over, core autosaved them first and offers them back next time.
 - **Take over** is core's link to `post.php`, which locks the post and redirects to the post's edit link. Taken over from here, it comes back to the page it was taken over from, which then opens with the post locked for the new person.
 - The person taken over from sees "Someone else has taken over this post" on their next heartbeat, after core autosaves their changes.
 

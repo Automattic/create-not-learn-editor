@@ -20,6 +20,8 @@ import { getErrorMessage } from '../records';
 import {
 	__,
 	blockEditorStore,
+	coreDataStore,
+	dispatch,
 	Fragment,
 	Notice,
 	Spinner,
@@ -113,10 +115,32 @@ export function SiteCanvas( {
 		[ editorEntity?.postType, editorEntity?.postId ]
 	);
 	const canCompose = canComposeSections && hasSections;
+	// Browse keeps unsaved changes, and shows them, so a post with any stays
+	// autosaved and locked there too.
+	const hasUnsavedEdits = useSelect(
+		( select ) =>
+			!! editorEntity?.postId &&
+			select( coreDataStore ).hasEditsForEntityRecord(
+				'postType',
+				editorEntity?.postType,
+				editorEntity?.postId
+			),
+		[ editorEntity?.postType, editorEntity?.postId ]
+	);
 	// The lock dialog's Exit editor shows the page, which someone else is
-	// editing, rather than leaving for wp-admin. Nothing of it was changed
-	// here, so there is nothing to ask about.
-	const exitLocked = useCallback( () => setCanvasMode( MODE_BROWSE ), [] );
+	// editing, rather than leaving for wp-admin. Any changes of this person's
+	// go: taken over, core has autosaved them first, and offers them back
+	// next time, and otherwise there were none to make.
+	const exitLocked = useCallback( () => {
+		if ( editorEntity ) {
+			dispatch( coreDataStore ).clearEntityRecordEdits(
+				'postType',
+				editorEntity.postType,
+				editorEntity.postId
+			);
+		}
+		setCanvasMode( MODE_BROWSE );
+	}, [ editorEntity ] );
 	const isPreviewing = canvas.isPreviewing;
 	const isEditing = mode === MODE_EDIT;
 	const isExpanded = useCanvasExpansion();
@@ -288,9 +312,12 @@ export function SiteCanvas( {
 					{ editorEntity && (
 						<LazyEditor
 							initialViewport={ EDITOR_DEVICES[ editorDevice ] }
-							// Autosaves and the post's lock, only while it is
-							// edited (`src/editor-layer/post-safety.jsx`).
-							isEditing={ isEditing || isComposing }
+							// Autosaves and the post's lock, while it is edited
+							// or has unsaved changes
+							// (`src/editor-layer/post-safety.jsx`).
+							isEditing={
+								isEditing || isComposing || hasUnsavedEdits
+							}
 							key={ `${ editorEntity.postType }:${ editorEntity.postId }` }
 							onExitLocked={ exitLocked }
 							postId={ editorEntity.postId }
