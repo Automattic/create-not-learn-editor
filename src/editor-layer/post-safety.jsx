@@ -24,10 +24,7 @@ import { store as noticesStore } from '@wordpress/notices';
  */
 import { namespace } from '../settings';
 import { isPostId } from './post-backups';
-
-// Core's post editor turns the heartbeat up to this while a post is open, so
-// a takeover reaches the person taken over from quickly.
-const HEARTBEAT_INTERVAL = 10;
+import { usePostHeartbeat } from './post-heartbeat';
 
 const AUTOSAVE_NOTICE_ID = 'autosave-exists';
 
@@ -221,20 +218,28 @@ function WatchedPost( { onExit, postId, postType } ) {
 		};
 	}, [ postId, postType, registry, updateEditorSettings, updatePostLock ] );
 
-	// Faster heartbeats while the post is held, as in core's post editor.
+	// Keeps the lock, and hears of a takeover, while the post is held.
 	const isHeld = !! safety && ! isLocked;
-	useEffect( () => {
-		const heartbeat = window.wp?.heartbeat;
-
-		if ( ! isHeld || ! heartbeat ) {
-			return;
-		}
-
-		const previous = heartbeat.interval();
-		heartbeat.interval( HEARTBEAT_INTERVAL );
-
-		return () => heartbeat.interval( previous );
-	}, [ isHeld ] );
+	usePostHeartbeat(
+		isHeld
+			? {
+					ajaxUrl: safety.postLockUtils.ajaxUrl,
+					nonce: safety.heartbeatNonce,
+					onNonceExpired: () =>
+						apiFetch( {
+							method: 'POST',
+							path: `/${ namespace }/post-lock/${ postId }`,
+						} )
+							.then( ( response ) =>
+								setSafety( ( current ) => ( {
+									...current,
+									heartbeatNonce: response.heartbeatNonce,
+								} ) )
+							)
+							.catch( () => {} ),
+				}
+			: null
+	);
 
 	// Moving to another post, or out of editing, lets go of this one.
 	useEffect( () => {
@@ -278,7 +283,7 @@ function WatchedPost( { onExit, postId, postType } ) {
  * mounts them: `AutosaveMonitor` saving an autosave on the server, and
  * `LocalAutosaveMonitor` a backup in the browser, at the intervals in the
  * editor's settings, and `PostLockedModal` keeping the post's lock over the
- * heartbeat, saying when someone else has it, and offering to take it over.
+ * heartbeat (`post-heartbeat.js`), saying when someone else has it, and offering to take it over.
  *
  * The server says which posts get them (`includes/post-safety.php`): those
  * core's post editor opens, not templates, template parts or menus.

@@ -171,7 +171,9 @@ Discarding a post's changes, with Exit, Discard in the unsaved changes dialog, o
 
 ### Post locks
 
-The page loads the heartbeat, which keeps the lock and checks it every 10 seconds while a post is open, as in core's post editor.
+A heartbeat keeps the lock and checks it every 10 seconds while a post is held, as in core's post editor, or every minute while the tab is hidden, beating at once when it shows again. It stops when the post closes, so the editor's other screens make no requests.
+
+It isn't WordPress's `heartbeat.js`, which depends on jQuery and polls on every page it loads on. `src/editor-layer/post-heartbeat.js` sends the same request with `fetch`, to `admin-ajax.php?action=heartbeat` with a `heartbeat-nonce` nonce from the lock route, so the server's side is core's own (`wp_refresh_post_lock()` on `heartbeat_received`). It fires the same `heartbeat.send` and `heartbeat.tick` hooks from `@wordpress/hooks`, which is all `PostLockedModal` listens to. A nonce that expires, after a day open, is fetched again from the lock route. Plugins that use the heartbeat for anything else, like core's login check, don't run on this page.
 
 - Opening a post someone else has open shows core's "This post is already being edited". **Exit editor** leaves editing rather than going to wp-admin's list: the site canvas goes back to Browse, and the full-screen editor goes to the post type's list.
 - **Take over** is core's link to `post.php`, which locks the post and redirects to the post's edit link. Taken over from here, it comes back to the page it was taken over from, which then opens with the post locked for the new person.

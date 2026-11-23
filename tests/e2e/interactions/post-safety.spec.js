@@ -271,6 +271,11 @@ test.describe( 'Post locks', () => {
 			)
 			.toBeTruthy();
 
+		// Kept with the editor's own heartbeat, not `heartbeat.js`.
+		expect( await page.evaluate( () => typeof window.wp.heartbeat ) ).toBe(
+			'undefined'
+		);
+
 		const second = await logInSecondUser(
 			browser,
 			rest,
@@ -301,10 +306,9 @@ test.describe( 'Post locks', () => {
 		).toBeVisible( { timeout: 15000 } );
 		await expect( lockedDialog ).toBeHidden();
 
-		// And the first user hears of it on their next heartbeat, which a
-		// page in the background waits longer for.
+		// And the first user hears of it on their next heartbeat, within
+		// 10 seconds while their tab is showing.
 		await page.bringToFront();
-		await page.evaluate( () => window.wp.heartbeat.connectNow() );
 		await expect(
 			page.getByRole( 'dialog', {
 				name: 'Someone else has taken over this post',

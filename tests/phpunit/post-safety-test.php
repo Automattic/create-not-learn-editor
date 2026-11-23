@@ -67,6 +67,7 @@ class CNL_Editor_Post_Safety_Test extends WP_UnitTestCase {
 		$this->assertSame( admin_url( 'admin-ajax.php' ), $data['postLockUtils']['ajaxUrl'] );
 		$this->assertSame( 1, wp_verify_nonce( $data['postLockUtils']['nonce'], 'lock-post_' . $post_id ) );
 		$this->assertSame( 1, wp_verify_nonce( $data['postLockUtils']['unlockNonce'], 'update-post_' . $post_id ) );
+		$this->assertSame( 1, wp_verify_nonce( $data['heartbeatNonce'], 'heartbeat-nonce' ) );
 
 		// Someone else opening it now finds it locked.
 		wp_set_current_user( self::$other_admin_id );

@@ -168,8 +168,9 @@ function cnl_editor_get_newer_autosave( $post ) {
  * safe.
  *
  * @param WP_REST_Request $request The request.
- * @return WP_REST_Response The post's lock, the lock's nonces, any newer
- *                          autosave and the autosave interval.
+ * @return WP_REST_Response The post's lock, the lock's nonces, a heartbeat
+ *                          nonce, any newer autosave and the autosave
+ *                          interval.
  */
 function cnl_editor_rest_open_post( $request ) {
 	$post = get_post( (int) $request['id'] );
@@ -183,6 +184,9 @@ function cnl_editor_rest_open_post( $request ) {
 			'supported'        => true,
 			'autosave'         => cnl_editor_get_newer_autosave( $post ),
 			'autosaveInterval' => AUTOSAVE_INTERVAL,
+			// For the editor's own heartbeat, which keeps the lock without
+			// loading `heartbeat.js` (`src/editor-layer/post-heartbeat.js`).
+			'heartbeatNonce'   => wp_create_nonce( 'heartbeat-nonce' ),
 			'postLock'         => cnl_editor_lock_post( $post ),
 			'postLockUtils'    => array(
 				'nonce'       => wp_create_nonce( 'lock-post_' . $post->ID ),

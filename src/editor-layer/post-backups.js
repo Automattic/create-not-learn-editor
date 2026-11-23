@@ -60,17 +60,25 @@ export function discardPostBackups( { postType, postId, status } ) {
 		return;
 	}
 
-	try {
-		window.sessionStorage.removeItem( getLocalBackupKey( postId ) );
+	const removeLocalBackup = () => {
+		try {
+			window.sessionStorage.removeItem( getLocalBackupKey( postId ) );
 
-		if ( status === 'auto-draft' ) {
-			window.sessionStorage.removeItem(
-				getLocalBackupKey( postId, true )
-			);
+			if ( status === 'auto-draft' ) {
+				window.sessionStorage.removeItem(
+					getLocalBackupKey( postId, true )
+				);
+			}
+		} catch {
+			// No storage, so no backup.
 		}
-	} catch {
-		// No storage, so no backup.
-	}
+	};
+
+	removeLocalBackup();
+	// Core queues each backup with `requestIdleCallback`, so one queued just
+	// before the discard is written after it. Idle callbacks run in the order
+	// they were asked for, so this one runs after it, and removes it again.
+	( window.requestIdleCallback || window.setTimeout )( removeLocalBackup );
 
 	if ( status === 'draft' || status === 'auto-draft' ) {
 		return;
