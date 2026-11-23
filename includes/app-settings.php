@@ -45,6 +45,8 @@ function cnl_editor_get_app_settings() {
 		'nonce'              => wp_create_nonce( 'wp_rest' ),
 		'adminUrl'           => admin_url(),
 		'homeUrl'            => home_url( '/' ),
+		// Names this editor's unsaved changes for the canvas preview.
+		'previewSession'     => wp_generate_uuid4(),
 		'lazyEditorModuleUrl' => add_query_arg(
 			'ver',
 			$lazy_editor_version,

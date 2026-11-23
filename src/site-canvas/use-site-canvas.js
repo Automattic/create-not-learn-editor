@@ -6,12 +6,15 @@
  * is where the site can be browsed. Edit and Compose show the editor, zoomed
  * out in Compose. Both surfaces stay mounted, and the editor quietly follows
  * the page the preview is on, so leaving Browse is instant. The mode is shared
- * by every canvas, see `mode.js`. Because the preview only shows what is
- * saved:
+ * by every canvas, see `mode.js`. The preview shows the unsaved changes the
+ * site can put in place, sent to it as they are made (`preview-changes.js`),
+ * but only those:
  *
- * - Moving to Browse with unsaved changes asks to save or discard them.
- *   A change the caller shows in the preview anyway, such as a page's
- *   layout passed along in its URL, doesn't count.
+ * - Moving to Browse with unsaved changes the preview can't show asks to
+ *   save or discard them. A change the caller shows in the preview anyway,
+ *   such as a page's layout passed along in its URL, doesn't count.
+ * - Moving to Browse with changes it can show sends them first, and holds
+ *   the editor until the preview has loaded with them.
  * - Moving to Browse after saving, or from a page the preview isn't on,
  *   holds the editor until the preview has loaded the page, so it never shows
  *   an out-of-date page.
@@ -58,6 +61,12 @@ import {
 	useCanvasMode,
 } from './mode';
 import { getEditRoute, getLiveUrl, isSameLocation } from './urls';
+import {
+	isShownByPreviewChanges,
+	SEND_CHANGED,
+	SEND_FAILED,
+	usePreviewChanges,
+} from './preview-changes';
 import { usePreviewFrame } from './use-preview-frame';
 import { SITE_CHANGED_EVENT } from './site-changed';
 
@@ -285,14 +294,27 @@ export function useSiteCanvas( {
 	 * Counted in a selector so that it follows a record's own edits: a page
 	 * already changed is the same one change whatever else is edited on it.
 	 */
-	const unseenChangeCount = useSelect(
-		( registrySelect ) =>
-			changes.filter(
+	const { unseenChangeCount, unsentChangeCount } = useSelect(
+		( registrySelect ) => {
+			const unseen = changes.filter(
 				( change ) => ! isShownInPreview( change, registrySelect )
-			).length,
+			);
+
+			return {
+				// Not in the preview as it is: they need the editor to show
+				// as they are made.
+				unseenChangeCount: unseen.length,
+				// Not in the preview even once it has loaded again with the
+				// changes sent to the site.
+				unsentChangeCount: unseen.filter(
+					( change ) =>
+						! isShownByPreviewChanges( change, registrySelect )
+				).length,
+			};
+		},
 		[ changes, isShownInPreview ]
 	);
-	const isDirty = unseenChangeCount > 0;
+	const isDirty = unsentChangeCount > 0;
 
 	// Every save that finishes leaves the preview showing an older site.
 	const wasSavingRef = useRef( isSaving );
@@ -324,6 +346,25 @@ export function useSiteCanvas( {
 
 		return () =>
 			window.removeEventListener( SITE_CHANGED_EVENT, onSiteChanged );
+	}, [] );
+
+	/*
+	 * The site has been sent unsaved changes the preview hasn't loaded, so it
+	 * is out of date as after a save. While browsing, it loads again.
+	 */
+	const flushPreviewChanges = usePreviewChanges( {
+		isActive: isPreviewing,
+		onChange: () => {
+			savedVersionRef.current += 1;
+			setSavedVersion( savedVersionRef.current );
+		},
+	} );
+
+	// Changes made on another screen, in the editor, haven't been sent.
+	useEffect( () => {
+		flushPreviewChanges();
+		// Once, as the canvas opens.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [] );
 
 	const frame = usePreviewFrame( {
@@ -518,7 +559,7 @@ export function useSiteCanvas( {
 		} );
 	};
 
-	const showPreview = () => {
+	const showPreview = async () => {
 		// Asked again while waiting: show it now.
 		if ( isAwaitingPreview ) {
 			cancelWait();
@@ -526,11 +567,34 @@ export function useSiteCanvas( {
 			return;
 		}
 
+		const wait = ( waitRef.current += 1 );
+
+		setIsAwaitingPreview( true );
+
+		const sent = await flushPreviewChanges();
+
+		if ( waitRef.current !== wait ) {
+			return;
+		}
+
+		// The site doesn't have them, so the preview can't show them. Ask,
+		// as for changes it never could.
+		if ( sent === SEND_FAILED && changes.length ) {
+			setIsAwaitingPreview( false );
+			setIsDialogOpen( true );
+			return;
+		}
+
 		const destination = getEditorDestination();
 
-		if ( destination || isPreviewStale ) {
+		if (
+			destination ||
+			sent === SEND_CHANGED ||
+			frame.loadedVersion !== savedVersionRef.current
+		) {
 			showPreviewWhenLoaded( destination );
 		} else {
+			setIsAwaitingPreview( false );
 			setCanvasMode( MODE_BROWSE );
 		}
 	};
@@ -595,16 +659,26 @@ export function useSiteCanvas( {
 		showPreviewWhenLoaded( getEditorDestination() );
 	};
 
-	const discardAndShowPreview = () => {
+	const discardAndShowPreview = async () => {
 		const destination = getEditorDestination();
 
 		discardAll();
 		setIsDialogOpen( false );
 		cancelWait();
 
+		/*
+		 * The site forgets the discarded changes before the preview loads
+		 * again. Waited for outside Browse, so the reload a change of version
+		 * makes while browsing doesn't race the one here.
+		 */
+		const sent = await flushPreviewChanges();
+
 		if ( destination ) {
 			frame.navigate( destination );
-		} else if ( isPreviewStale ) {
+		} else if (
+			sent === SEND_CHANGED ||
+			frame.loadedVersion !== savedVersionRef.current
+		) {
 			frame.reload();
 		}
 

@@ -127,6 +127,14 @@ POST /wp-json/create-not-learn-editor/v1/setup-defaults
 
 That action creates or reuses a Home page, sets it as the static homepage, and ensures a basic Navigation menu exists. It is intended to be idempotent.
 
+## Unsaved changes in the preview
+
+Browse shows the real front end in an iframe. To show it as it would be once saved, the canvas sends the editor's unsaved changes to `POST /wp-json/create-not-learn-editor/v1/preview-changes` before the preview loads (`src/site-canvas/preview-changes.js`). Each editor page load is its own session (`previewSession` in `window.createNotLearnEditor`), and the preview's addresses carry it as `cnl-editor-changes`.
+
+On a preview request that names a session of the current user, `includes/preview-changes.php` puts the changes in place of what is saved. It covers posts' titles, content and page layout, layouts and site parts, synced sections and menus, the site's look, and the site settings the editor changes. The changes are kept in a user option for an hour after they were last sent, and pages drawn with them are never cached. Visitors, other users and other sessions see the saved site.
+
+Changes the layer doesn't cover, like a page's parent or order, still ask to be saved or discarded on the way to Browse.
+
 ## Requirements and the Gutenberg check
 
 - WordPress 7.0 or newer.

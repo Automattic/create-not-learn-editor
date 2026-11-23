@@ -292,6 +292,12 @@ function cnl_editor_output_preview_navigation_script() {
 	<script id="cnl-editor-preview-navigation">
 		( function () {
 			var previewParam = 'cnl-editor-preview';
+			// The editor session whose unsaved changes the preview shows,
+			// carried from page to page. See `includes/preview-changes.php`.
+			var changesParam = 'cnl-editor-changes';
+			var changesSession = new URL( window.location.href ).searchParams.get(
+				changesParam
+			);
 			var externalLinkOriginalAttributes = new WeakMap();
 
 			function getUrl( value ) {
@@ -322,6 +328,10 @@ function cnl_editor_output_preview_navigation_script() {
 				}
 
 				nextUrl.searchParams.set( previewParam, '1' );
+
+				if ( changesSession ) {
+					nextUrl.searchParams.set( changesParam, changesSession );
+				}
 
 				return nextUrl.toString();
 			}
