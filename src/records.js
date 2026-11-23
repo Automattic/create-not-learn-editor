@@ -50,7 +50,7 @@ function configureApiFetch() {
 	didConfigureApiFetch = true;
 }
 
-function request( options ) {
+export function request( options ) {
 	configureApiFetch();
 
 	return apiFetch( options );
