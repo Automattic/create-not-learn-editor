@@ -27,6 +27,11 @@ import {
 } from './viewport';
 import { prefersReducedMotion, useElementSize } from './hooks';
 import { MemoizedSiteOverviewCard } from './card';
+import { clearSnapshots } from './snapshots';
+import {
+	SEND_CHANGED,
+	usePreviewChanges,
+} from '../../site-canvas/preview-changes';
 import {
 	LaneLabel,
 	MemoizedEdges,
@@ -85,10 +90,24 @@ export default function Canvas() {
 	const [ view, setRawView ] = useState( { k: 1, x: 0, y: 0 } );
 	const [ isAnimating, setIsAnimating ] = useState( false );
 	const [ isPanning, setIsPanning ] = useState( false );
+	// Thumbnails wait until the site has the editor's unsaved changes, so they
+	// show the site as it will be.
+	const [ isThumbnailReady, setIsThumbnailReady ] = useState( false );
+	const flushPreviewChanges = usePreviewChanges( { isActive: false } );
 	// Whether the person has moved the canvas yet, after which the hint on
 	// how to move it is no longer needed.
 	const [ hasMoved, setHasMoved ] = useState( false );
 	const viewportRef = useRef();
+
+	useEffect( () => {
+		flushPreviewChanges().then( ( result ) => {
+			// Copies taken before these changes no longer show the site.
+			if ( result === SEND_CHANGED ) {
+				clearSnapshots();
+			}
+			setIsThumbnailReady( true );
+		} );
+	}, [ flushPreviewChanges ] );
 	const size = useElementSize( viewportRef );
 	const viewRef = useRef( view );
 	const sizeRef = useRef( size );
@@ -603,6 +622,7 @@ export default function Canvas() {
 									}
 									isRelated={ relatedIds.has( node.id ) }
 									isSelected={ node.id === selectedId }
+									isThumbnailReady={ isThumbnailReady }
 									key={ node.id }
 									node={ node }
 									onDragStart={ pageMoves.onCardPointerDown }

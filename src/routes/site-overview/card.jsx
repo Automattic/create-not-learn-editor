@@ -13,8 +13,21 @@ import {
 	THUMBNAIL_VIEWPORT_HEIGHT,
 	THUMBNAIL_VIEWPORT_WIDTH,
 } from './layout';
-import { useHasBeenVisible, useThumbnailTurn } from './hooks';
-import { Icon, __, memo, useRef, useState } from '../../wordpress-packages';
+import { useIsNear, useThumbnailTurn } from './hooks';
+import {
+	freezeThumbnail,
+	getSnapshot,
+	subscribeToSnapshots,
+} from './snapshots';
+import { getPreviewFrameUrl } from '../../site-canvas/urls';
+import {
+	Icon,
+	__,
+	memo,
+	useEffect,
+	useRef,
+	useState,
+} from '../../wordpress-packages';
 
 const THUMBNAIL_SCALE = CARD_WIDTH / THUMBNAIL_VIEWPORT_WIDTH;
 
@@ -31,31 +44,94 @@ function getPlaceholderText( node ) {
 }
 
 /**
- * A small, live picture of the page: the real front end, scaled down.
+ * A small picture of the page: the real front end, unsaved changes and all,
+ * scaled down.
  *
- * It only loads once it comes near the screen, so a big site doesn't load
- * every page at once, and it can't be clicked or focused.
+ * It loads once it comes near the screen, a few at a time, and is then
+ * frozen: the running page is swapped for a copy without its scripts
+ * (`snapshots.js`). Far from the screen it shows nothing at all.
  *
- * @param {Object} props         Component props.
- * @param {Object} props.node    Site Overview node.
- * @param {Object} props.rootRef The canvas's viewport.
+ * @param {Object}  props         Component props.
+ * @param {boolean} props.isReady Whether the site has the unsaved changes.
+ * @param {Object}  props.node    Site Overview node.
+ * @param {Object}  props.rootRef The canvas's viewport.
  * @return {Element} Thumbnail.
  */
-function Thumbnail( { node, rootRef } ) {
+function Thumbnail( { isReady, node, rootRef } ) {
 	const ref = useRef();
-	const hasBeenVisible = useHasBeenVisible( ref, rootRef );
-	const [ isLoaded, setIsLoaded ] = useState( false );
+	const src = node.previewUrl ? getPreviewFrameUrl( node.previewUrl ) : '';
+	const isNear = useIsNear( ref, rootRef );
+	const [ snapshot, setSnapshot ] = useState( () =>
+		getSnapshot( node.id, src )
+	);
+	const [ isLoaded, setIsLoaded ] = useState( Boolean( snapshot ) );
 	const hasTurn = useThumbnailTurn(
-		Boolean( node.previewUrl ) && hasBeenVisible,
+		Boolean( src ) && isReady && isNear && ! snapshot,
 		isLoaded
 	);
 	const placeholderText = getPlaceholderText( node );
+
+	useEffect(
+		() =>
+			subscribeToSnapshots( () => {
+				setSnapshot( getSnapshot( node.id, src ) );
+				setIsLoaded( false );
+			} ),
+		[ node.id, src ]
+	);
+
+	async function onLiveLoad( event ) {
+		const iframe = event.currentTarget;
+
+		// Web fonts may still be on their way once the page has loaded.
+		try {
+			await iframe.contentDocument?.fonts?.ready;
+		} catch {}
+
+		setSnapshot( freezeThumbnail( node.id, src, iframe ) );
+		setIsLoaded( true );
+	}
+
+	const frameStyle = {
+		height: THUMBNAIL_VIEWPORT_HEIGHT,
+		transform: `scale(${ THUMBNAIL_SCALE })`,
+		width: THUMBNAIL_VIEWPORT_WIDTH,
+	};
+
+	let frame = null;
+
+	if ( isNear && snapshot ) {
+		frame = (
+			<iframe
+				className="cnl-site-overview-card__frame"
+				data-tier="snapshot"
+				// No scripts: it is only a picture.
+				sandbox="allow-same-origin"
+				srcDoc={ snapshot }
+				style={ frameStyle }
+				tabIndex={ -1 }
+				title={ node.title }
+			/>
+		);
+	} else if ( isNear && src && hasTurn ) {
+		frame = (
+			<iframe
+				className="cnl-site-overview-card__frame"
+				data-tier="live"
+				onLoad={ onLiveLoad }
+				src={ src }
+				style={ frameStyle }
+				tabIndex={ -1 }
+				title={ node.title }
+			/>
+		);
+	}
 
 	return (
 		<div
 			aria-hidden
 			className={ `cnl-site-overview-card__thumbnail${
-				isLoaded ? ' is-loaded' : ''
+				isLoaded && frame ? ' is-loaded' : ''
 			}` }
 			ref={ ref }
 		>
@@ -67,20 +143,7 @@ function Thumbnail( { node, rootRef } ) {
 					</span>
 				) }
 			</div>
-			{ node.previewUrl && hasTurn && (
-				<iframe
-					className="cnl-site-overview-card__frame"
-					onLoad={ () => setIsLoaded( true ) }
-					src={ node.previewUrl }
-					style={ {
-						height: THUMBNAIL_VIEWPORT_HEIGHT,
-						transform: `scale(${ THUMBNAIL_SCALE })`,
-						width: THUMBNAIL_VIEWPORT_WIDTH,
-					} }
-					tabIndex={ -1 }
-					title={ node.title }
-				/>
-			) }
+			{ frame }
 		</div>
 	);
 }
@@ -92,6 +155,7 @@ function SiteOverviewCard( {
 	isDragged,
 	isRelated,
 	isSelected,
+	isThumbnailReady,
 	node,
 	onDragStart,
 	onFocusCard,
@@ -131,7 +195,11 @@ function SiteOverviewCard( {
 				width: node.width,
 			} }
 		>
-			<Thumbnail node={ node } rootRef={ rootRef } />
+			<Thumbnail
+				isReady={ isThumbnailReady }
+				node={ node }
+				rootRef={ rootRef }
+			/>
 			<div className="cnl-site-overview-card__caption">
 				<button
 					aria-current={ isSelected ? 'true' : undefined }

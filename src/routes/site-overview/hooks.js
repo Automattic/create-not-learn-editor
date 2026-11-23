@@ -46,40 +46,38 @@ export function useElementSize( ref ) {
 }
 
 /**
- * Whether an element has come near the screen yet. Stays true once it has,
- * so a thumbnail is loaded once and kept.
+ * Whether an element is within a screen's width or height of being on
+ * screen. Cards further off than that drop their thumbnail, so only the part
+ * of the map near the screen costs anything.
  *
  * @param {Object} ref     Element.
  * @param {Object} rootRef Scrolling ancestor to watch within.
- * @return {boolean} Whether it has been near the screen.
+ * @return {boolean} Whether it is near the screen.
  */
-export function useHasBeenVisible( ref, rootRef ) {
-	const [ hasBeenVisible, setHasBeenVisible ] = useState( false );
+export function useIsNear( ref, rootRef ) {
+	const [ isNear, setIsNear ] = useState( false );
 
 	useEffect( () => {
-		if ( hasBeenVisible || ! ref.current ) {
+		if ( ! ref.current ) {
 			return;
 		}
 
 		if ( ! window.IntersectionObserver ) {
-			setHasBeenVisible( true );
+			setIsNear( true );
 			return;
 		}
 
 		const observer = new window.IntersectionObserver(
-			( entries ) => {
-				if ( entries.some( ( entry ) => entry.isIntersecting ) ) {
-					setHasBeenVisible( true );
-				}
-			},
-			{ root: rootRef.current, rootMargin: '200px' }
+			( entries ) =>
+				setIsNear( entries[ entries.length - 1 ].isIntersecting ),
+			{ root: rootRef.current, rootMargin: '100%' }
 		);
 		observer.observe( ref.current );
 
 		return () => observer.disconnect();
-	}, [ hasBeenVisible, ref, rootRef ] );
+	}, [ ref, rootRef ] );
 
-	return hasBeenVisible;
+	return isNear;
 }
 
 /*
