@@ -10,6 +10,7 @@ The README is for people trying the editor and explains the ideas behind it. The
 - [docs/architecture.md](docs/architecture.md) covers the editor shell and routes, what is edited as sections and what as blocks, the visual theme, explicit site changes, the Gutenberg version check and opening in a workspace.
 - [docs/webmcp.md](docs/webmcp.md) covers the editor's WebMCP tools, the official AI plugin's tools alongside them, and how an agent connects.
 - [docs/demo-site-and-playground.md](docs/demo-site-and-playground.md) covers the Mainstay theme, the demo seed, the shop and the Playground demos, how to cut a release, and the rules for changing them. Read it before touching `themes/`, `scripts/demo-site/`, `demos/` or the Playground workflows.
+- [docs/performance-budget.md](docs/performance-budget.md) covers the performance budget CI checks the build against, and when to raise a number.
 - [docs/editor-workarounds.md](docs/editor-workarounds.md) lists every reliance on private APIs or core internals. Add an entry there whenever you add one.
 - [docs/vendored-list-view.md](docs/vendored-list-view.md) covers the vendored ListView bridge.
 - Folders such as `src/editor-layer/`, `src/block-toolbar/` and `src/site-canvas/` have their own README. Read it when you work in that folder.
@@ -77,7 +78,7 @@ CI (`.github/workflows/ci.yml`) runs the build, lints, ListView check, PHP lint,
 
 Before handing off code changes:
 
-1. Run the quick checks locally: `npm run build`, `npm run lint:js` and `npm run lint:css`, plus `npm run test:php` when PHP changed. Cover new PHP logic with a PHPUnit test in `tests/phpunit/` rather than an e2e test.
+1. Run the quick checks locally: `npm run build`, `npm run lint:js`, `npm run lint:css` and `npm run perf:budget`, plus `npm run test:php` when PHP changed. Cover new PHP logic with a PHPUnit test in `tests/phpunit/` rather than an e2e test.
 2. Run only the e2e specs that cover what you changed, against the `wp-env` tests site, e.g. `WP_BASE_URL=http://localhost:<tests-port> npx playwright test tests/e2e/interactions/compose.spec.js`.
 3. Once the branch is pushed, wait with `gh pr checks --watch` and, if something fails, read just `gh run view <run-id> --log-failed`. Fix and push again until the checks pass.
 
