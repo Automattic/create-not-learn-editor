@@ -119,9 +119,15 @@ test.describe( 'An Author', () => {
 		await expect(
 			places.getByRole( 'button', { name: /^Posts/ } )
 		).toBeVisible();
+		// The site's own pages and settings aren't theirs to change.
 		await expect(
-			authorPage.getByRole( 'button', { name: 'Page options' } )
+			authorPage.getByRole( 'button', { name: /^Run your blog|^Set up/ } )
 		).toHaveCount( 0 );
+		for ( const name of [ 'Page options', 'Edit', /^Page settings/ ] ) {
+			await expect(
+				authorPage.getByRole( 'button', { name, exact: true } )
+			).toHaveCount( 0 );
+		}
 
 		await expect(
 			authorPage.getByRole( 'link', { name: 'Posts', exact: true } )
