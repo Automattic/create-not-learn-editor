@@ -137,6 +137,14 @@ How they load:
 - The full-page editor prints them itself, before the modules run, since it doesn't fire `admin_print_footer_scripts`, where core prints them.
 - A string with no translation in the editor's domain falls back to core's translation of the same words, so strings like "Save" stay translated while a language pack is missing or behind.
 
+#### The core translation fallback
+
+`cnl_editor_get_core_translation_fallback_script()` in `includes/translations.php` adds a 1 KB inline script after `wp-i18n`. It uses only `@wordpress/i18n`'s public API: the `i18n.gettext_create-not-learn-editor` filter (with its context and plural versions), plus `hasTranslation()` to check whether the editor's own pack has the string. It changes nothing for other domains, and the editor's own translation always wins.
+
+It costs about a microsecond for each string the editor's pack doesn't translate. Looking up all of the editor's 1,420 strings took 2.4 ms with it and 0.7 ms without. A screen draws far fewer than that.
+
+Remove it once the editor's language packs cover its strings. Delete the function and the `wp_add_inline_script( 'wp-i18n', … )` call in `includes/editor-assets.php`, and the second test in `tests/e2e/views/translations.spec.js`.
+
 To make the files, build, then run WP-CLI over the built plugin. `npm run i18n` does both steps with the right options, and runs WP-CLI with enough memory to parse the modules:
 
 ```sh
