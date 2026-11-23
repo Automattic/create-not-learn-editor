@@ -47,7 +47,11 @@ const CORE_SOURCES = [
 
 let isScheduled = false;
 
-function registerCoreSources() {
+/**
+ * Register what reads and writes core's sources, through the editor's public
+ * export where it has one, as Gutenberg 24.5 does, and its private APIs before.
+ */
+export function registerCoreSources() {
 	const register =
 		editor.registerCoreBlockBindingsSources ??
 		unlock( editor.privateApis ).registerCoreBlockBindingsSources;
