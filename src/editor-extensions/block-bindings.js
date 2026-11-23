@@ -13,7 +13,8 @@
  * one, each replacing what was registered. So whenever a source is there
  * without it, it is registered once that batch is done: at app init, and
  * again after each such reload. A Gutenberg that registers it itself is
- * left to.
+ * left to, as 24.5 does (WordPress/gutenberg#86896), so this can go once the
+ * minimum is 24.5.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
  * for the same reason as `template-part-editing.jsx`: this is registered from

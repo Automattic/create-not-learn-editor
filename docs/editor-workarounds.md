@@ -86,6 +86,8 @@ This depends on that class name, on the panel being unmounted while Outline is s
 
 ## Registering core's block bindings sources
 
-The lazy editor doesn't register what reads and writes core's block bindings sources in the editor, so `src/editor-extensions/block-bindings.js` calls the editor's `registerCoreBlockBindingsSources()` whenever a core source is there without it. Up to Gutenberg 24.4 that function is one of `@wordpress/editor`'s private APIs, unlocked through `src/lock-unlock.js`. Gutenberg's trunk exports it publicly instead and drops it from the private APIs, so the editor uses the public export when there is one and the private one otherwise. Without it, every screen throws on Gutenberg's trunk.
+Up to Gutenberg 24.4, the lazy editor doesn't register what reads and writes core's block bindings sources in the editor, so `src/editor-extensions/block-bindings.js` calls the editor's `registerCoreBlockBindingsSources()` whenever a core source is there without it. In those versions the function is one of `@wordpress/editor`'s private APIs, unlocked through `src/lock-unlock.js`.
 
-Remove this once the lazy editor registers the sources itself, or drop the private fallback once the minimum Gutenberg exports the function.
+Gutenberg 24.5 fixes this in core ([#86896](https://github.com/WordPress/gutenberg/pull/86896), part of the Extensible Site Editor work tracked in [#79895](https://github.com/WordPress/gutenberg/issues/79895)). The editor assets endpoint the lazy editor loads from now registers the sources itself, and the function becomes a public export, gone from the private APIs. The editor can still ask for it before those assets load, so it uses the public export when there is one and the private one otherwise. Without that, every screen throws on 24.5.
+
+Remove `block-bindings.js` once the minimum Gutenberg is 24.5 or newer.
