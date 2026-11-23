@@ -159,4 +159,98 @@ class CNL_Editor_Preview_Changes_Test extends WP_UnitTestCase {
 
 		$this->assertNotSame( 'Unsaved name', get_option( 'blogname' ) );
 	}
+
+	public function test_site_settings_are_only_for_those_who_could_save_them() {
+		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+		get_userdata( $user_id )->add_cap( 'edit_theme_options' );
+		wp_set_current_user( $user_id );
+
+		$changes = cnl_editor_clean_preview_changes(
+			array(
+				'site' => array(
+					'title'         => 'Unsaved name',
+					'page_on_front' => 5,
+				),
+			)
+		);
+
+		$this->assertSame( array(), $changes['site'] );
+	}
+
+	public function test_posts_per_page_is_capped() {
+		$changes = cnl_editor_clean_preview_changes( array( 'site' => array( 'posts_per_page' => 100000 ) ) );
+		$this->assertSame( CNL_EDITOR_PREVIEW_MAX_POSTS_PER_PAGE, $changes['site']['posts_per_page'] );
+
+		$changes = cnl_editor_clean_preview_changes( array( 'site' => array( 'posts_per_page' => 0 ) ) );
+		$this->assertArrayNotHasKey( 'posts_per_page', $changes['site'] );
+	}
+
+	public function test_only_the_latest_sessions_are_kept() {
+		for ( $index = 0; $index <= CNL_EDITOR_PREVIEW_CHANGES_MAX_SESSIONS; $index++ ) {
+			$this->send(
+				array(
+					'session' => 'session-' . $index,
+					'site'    => array( 'title' => 'Unsaved name' ),
+				)
+			);
+		}
+
+		$records = cnl_editor_get_kept_preview_changes( self::$admin_id );
+
+		$this->assertCount( CNL_EDITOR_PREVIEW_CHANGES_MAX_SESSIONS, $records );
+		$this->assertArrayNotHasKey( 'session-0', $records );
+		$this->assertArrayHasKey( 'session-' . CNL_EDITOR_PREVIEW_CHANGES_MAX_SESSIONS, $records );
+	}
+
+	public function test_changes_too_large_to_keep_are_refused() {
+		$this->send( array( 'site' => array( 'title' => 'Unsaved name' ) ) );
+
+		$post_id  = self::factory()->post->create();
+		$response = $this->send(
+			array(
+				'posts' => array(
+					$post_id => array( 'content' => str_repeat( 'a', CNL_EDITOR_PREVIEW_CHANGES_MAX_BYTES ) ),
+				),
+			)
+		);
+
+		$this->assertSame( 413, $response->get_status() );
+		// What was kept before still is.
+		$records = cnl_editor_get_kept_preview_changes( self::$admin_id );
+		$this->assertSame( 'Unsaved name', $records[ self::SESSION ]['changes']['site']['title'] );
+	}
+
+	public function test_expired_changes_are_forgotten_when_the_editor_opens() {
+		$expired = array(
+			'time'    => time() - CNL_EDITOR_PREVIEW_CHANGES_LIFETIME - 1,
+			'changes' => array(),
+		);
+		$current = array(
+			'time'    => time(),
+			'changes' => array(),
+		);
+
+		update_user_option(
+			self::$admin_id,
+			CNL_EDITOR_PREVIEW_CHANGES_OPTION,
+			array(
+				'old' => $expired,
+				'new' => $current,
+			)
+		);
+		cnl_editor_forget_expired_preview_changes();
+		$this->assertSame( array( 'new' => $current ), get_user_option( CNL_EDITOR_PREVIEW_CHANGES_OPTION, self::$admin_id ) );
+
+		update_user_option( self::$admin_id, CNL_EDITOR_PREVIEW_CHANGES_OPTION, array( 'old' => $expired ) );
+		cnl_editor_forget_expired_preview_changes();
+		$this->assertFalse( get_user_option( CNL_EDITOR_PREVIEW_CHANGES_OPTION, self::$admin_id ) );
+	}
+
+	public function test_changes_are_forgotten_on_logout() {
+		$this->send( array( 'site' => array( 'title' => 'Unsaved name' ) ) );
+
+		do_action( 'wp_logout', self::$admin_id );
+
+		$this->assertFalse( get_user_option( CNL_EDITOR_PREVIEW_CHANGES_OPTION, self::$admin_id ) );
+	}
 }

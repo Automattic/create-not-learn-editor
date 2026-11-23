@@ -14,6 +14,12 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * The most posts a preview lists at once, however many it is asked for, as
+ * the REST API caps a page of posts.
+ */
+const CNL_EDITOR_PREVIEW_MAX_POSTS_PER_PAGE = 100;
+
+/**
  * Register preview frame hooks.
  */
 function cnl_editor_register_preview_frame_hooks() {
@@ -29,6 +35,18 @@ function cnl_editor_register_preview_frame_hooks() {
 	add_filter( 'pre_option_page_on_front', 'cnl_editor_preview_page_on_front' );
 	add_filter( 'pre_option_posts_per_page', 'cnl_editor_preview_posts_per_page' );
 	add_filter( 'show_admin_bar', 'cnl_editor_hide_admin_bar_in_preview', PHP_INT_MAX );
+	add_action( 'send_headers', 'cnl_editor_keep_preview_out_of_page_caches' );
+}
+
+/**
+ * Ask page caches not to keep a preview drawn for someone logged in, which
+ * may show what isn't saved. WordPress already sends them no-cache headers;
+ * `DONOTCACHEPAGE` is what caching plugins look for.
+ */
+function cnl_editor_keep_preview_out_of_page_caches() {
+	if ( cnl_editor_is_preview_frame_request() && is_user_logged_in() && ! defined( 'DONOTCACHEPAGE' ) ) {
+		define( 'DONOTCACHEPAGE', true );
+	}
 }
 
 /**
@@ -244,7 +262,7 @@ function cnl_editor_preview_posts_per_page( $value ) {
 		return $value;
 	}
 
-	return $per_page;
+	return min( $per_page, CNL_EDITOR_PREVIEW_MAX_POSTS_PER_PAGE );
 }
 
 /**
