@@ -264,6 +264,15 @@ test.describe( 'Compose', () => {
 			.click();
 		await pickSectionTemplate( page, 'Image left, text right' );
 
+		// The pointer is left where the template was, which may now be over
+		// the footer, so the bar would be the footer's.
+		await pointAtSection(
+			page,
+			getCanvasEditor( page )
+				.contentFrame()
+				.locator( '.wp-block-post-content .wp-block-columns' )
+				.first()
+		);
 		await page
 			.locator( '.cnl-section-modes__bar' )
 			.getByRole( 'button', { name: 'Edit design' } )
