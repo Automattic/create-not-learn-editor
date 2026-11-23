@@ -115,17 +115,43 @@ npm run wp-env run cli wp config delete CNL_EDITOR_UI_THEME
 
 The `create-not-learn-editor_ui_theme` filter can override it too. The theme's settings live in `src/theme/`.
 
-## Site changes are explicit
+## Site changes
 
-The editor does not automatically create pages, navigation, or homepage settings, when it loads or when the plugin is activated. A new site keeps WordPress's own default of latest posts on the homepage. Home then offers to set the homepage up the way the workspace expects, step by step, and nothing changes until the person finishes.
+The editor changes a site by itself in one way only. Every site needs a menu to edit, so the editor makes sure there is one. Everything else waits for the person to ask.
 
-The setup behavior is behind an explicit action:
+### The menu, on every visit
+
+Each time the full-page editor loads, `cnl_editor_ensure_default_navigation_menu()` (`includes/setup-defaults.php`) checks for a `wp_navigation` post, published or draft. Once one exists, the check is the whole cost.
+
+On a site with none, it asks WordPress's own fallback, `WP_Navigation_Fallback::get_fallback()`. That is what the Navigation block uses, from its REST fallback endpoint in the editor and when it renders on the front end. So the editor and the block always settle on the same menu, in the same order:
+
+1. the most recently published `wp_navigation` menu,
+2. a classic menu converted to blocks, the one at the `primary` location first, then one with the `primary` slug, then the newest,
+3. a new menu listing the pages.
+
+The editor names that last one "Main menu" rather than core's "Navigation", which reads as the block's name. A menu converted from a classic menu keeps its name.
+
+This is deliberate. Without it, the first menu a site gets is made in the browser by whichever Navigation block renders first. The editor's menu screens, the header's checklist and the menu WebMCP tools would all have to handle a site with no menu at all. Making it on the server means a menu is a real thing before any screen asks for one.
+
+It runs only for people who can create `wp_navigation` posts, the same check core's fallback endpoint makes. Anyone else opening the editor changes nothing. A site that turns core's fallback off with `wp_navigation_should_create_fallback` turns this off too.
+
+#### No duplicate menus
+
+Core's fallback looks for a menu and then makes one, with nothing to stop two requests doing both at once. Two first visits to the editor, or a visit racing the block's fallback, could each find nothing and each make a menu.
+
+The plugin closes that gap on core's own `wp_navigation_should_create_fallback` filter, for every caller and not just the editor. The first request to get there takes a lock, an option row named `cnl_editor_navigation_fallback_lock`, inserted with `INSERT IGNORE` as `WP_Upgrader::create_lock()` does. A second request waits, up to 5 seconds by default (the `create-not-learn-editor_navigation_lock_wait` filter), until the menu appears, and then uses it instead of making another. The lock is deleted once the menu is made, or at the end of the request. One left by a request that died is taken over after 30 seconds.
+
+### Everything else is explicit
+
+The editor does not create pages or change homepage settings when it loads or when the plugin is activated. A new site keeps WordPress's own default of latest posts on the homepage. Home then offers to set the homepage up the way the workspace expects, step by step, and nothing changes until the person finishes.
+
+That setup is behind an explicit action:
 
 ```text
 POST /wp-json/create-not-learn-editor/v1/setup-defaults
 ```
 
-That action creates or reuses a Home page, sets it as the static homepage, and ensures a basic Navigation menu exists. It is intended to be idempotent.
+It creates or reuses a Home page, publishes it, sets it as the static homepage and makes sure there's a menu, in the same way as above. Running it again changes nothing.
 
 ## Unsaved changes in the preview
 
