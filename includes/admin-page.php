@@ -103,10 +103,9 @@ function cnl_editor_render_full_page() {
 	// Every site editable here needs a menu to edit. `cnl_editor_has_navigation_menu()`
 	// makes this a cheap no-op once one exists, so it is safe to check on every visit
 	// rather than only behind the explicit setup action, which is for the homepage.
-	// Only for people who can edit menus, so writing a post never changes the site.
-	if ( cnl_editor_user_can( 'site' ) ) {
-		cnl_editor_ensure_default_navigation_menu();
-	}
+	// For everyone who opens the editor, as core's Navigation block makes one
+	// for any visitor on the front end.
+	cnl_editor_ensure_default_navigation_menu();
 
 	// Core sends these from `admin_init` too, but adds them after this
 	// plugin's hook, so the page exits before they run. Without them another

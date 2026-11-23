@@ -36,6 +36,7 @@ import {
 	findWorkspace,
 	getActiveWorkspace,
 	getAvailableWorkspaces,
+	getDefaultWorkspace,
 	getWorkspace,
 } from './presets';
 
@@ -107,7 +108,7 @@ function switchToWorkspaceInUrl() {
  */
 export function mountWorkspaces() {
 	dispatch( preferencesStore ).setDefaults( PREFERENCES_SCOPE, {
-		[ PREFERENCE_NAME ]: DEFAULT_WORKSPACE.id,
+		[ PREFERENCE_NAME ]: getDefaultWorkspace().id,
 	} );
 	switchToWorkspaceInUrl();
 

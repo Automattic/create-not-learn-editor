@@ -217,6 +217,21 @@ export const WORKSPACES = PRESETS.map( ( preset ) => ( {
 export const DEFAULT_WORKSPACE = WORKSPACES[ 0 ];
 
 /**
+ * The workspace someone starts in before they pick one. People who can't
+ * change the site's look, Authors say, came to write, so they start in
+ * Writing.
+ *
+ * @return {Object} Workspace preset.
+ */
+export function getDefaultWorkspace() {
+	if ( ! userCan( 'site' ) ) {
+		return findWorkspace( 'writing' ) || DEFAULT_WORKSPACE;
+	}
+
+	return DEFAULT_WORKSPACE;
+}
+
+/**
  * The workspaces this site can use.
  *
  * @return {Object[]} Workspace presets.
@@ -247,7 +262,7 @@ export function findWorkspace( id ) {
  * @return {Object} Workspace preset.
  */
 export function getWorkspace( id ) {
-	return findWorkspace( id ) || DEFAULT_WORKSPACE;
+	return findWorkspace( id ) || getDefaultWorkspace();
 }
 
 /**

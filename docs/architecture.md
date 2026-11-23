@@ -140,8 +140,8 @@ How it is applied:
 - `cnl_editor_register_route()` and `cnl_editor_register_menu_item()` take a capability, either an area of the map, a capability, a list of capabilities that are all needed, or a closure. A menu item the person can't use isn't registered. A route they can't use is registered with the "Not available" screen (`src/routes/not-available/`) in place of its own modules, so a link to it explains itself with a way back to Home, and its own code isn't loaded.
 - `window.createNotLearnEditor` has `can`, the map's areas for this person, and `routes`, the paths they can open. `src/capabilities.js` reads them with `userCan( area )` and `canOpen( path )`. Home's places, the commands, the WebMCP tools, the workspaces and the links between screens ask these before offering anything.
 - With nothing on Home's checklist left for them, Home lists their recent posts and Write a post instead.
-- The workspaces whose screens they can't reach, Builder and Selling, aren't offered.
-- Writing a post never changes the site. The default menu is only made on load for people who can edit menus.
+- The workspaces whose screens they can't reach, Builder and Selling, aren't offered. People who can't change the site's look start in Writing.
+- The default menu is still made on load for anyone who opens the editor, as core's Navigation block makes one for any visitor on the front end.
 - Each REST route asks for what the screen that uses it needs (`includes/rest-api.php`).
 
 ## Site changes are explicit

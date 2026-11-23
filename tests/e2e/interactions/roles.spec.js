@@ -101,23 +101,24 @@ test.describe( 'An Author', () => {
 		).toBeVisible();
 	} );
 
-	test( 'gets a Home about their writing, and only their content in the sidebar', async () => {
+	test( 'starts in Writing, offered only what they can do, with only their content in the sidebar', async () => {
 		await authorPage.goto( editorUrl() );
 
-		const writing = authorPage.getByRole( 'navigation', {
-			name: 'Your writing',
+		await expect(
+			authorPage.getByRole( 'button', { name: 'Workspace: Writing' } )
+		).toBeVisible();
+		const places = authorPage.getByRole( 'navigation', {
+			name: 'Start working on your site',
 		} );
+		// Writing also offers Design and the homepage, which an Author can't
+		// change.
+		await expect( places.getByRole( 'button' ) ).toHaveCount( 2 );
 		await expect(
-			writing.getByRole( 'button', { name: /^Write a post/ } )
+			places.getByRole( 'button', { name: /^Write a post/ } )
 		).toBeVisible();
 		await expect(
-			writing.getByRole( 'button', { name: /^All posts/ } )
+			places.getByRole( 'button', { name: /^Posts/ } )
 		).toBeVisible();
-		await expect(
-			authorPage.getByRole( 'navigation', {
-				name: 'Start working on your site',
-			} )
-		).toHaveCount( 0 );
 		await expect(
 			authorPage.getByRole( 'button', { name: 'Page options' } )
 		).toHaveCount( 0 );
@@ -155,7 +156,9 @@ test.describe( 'An Author', () => {
 
 		await authorPage.getByRole( 'button', { name: 'Go to Home' } ).click();
 		await expect(
-			authorPage.getByRole( 'navigation', { name: 'Your writing' } )
+			authorPage.getByRole( 'navigation', {
+				name: 'Start working on your site',
+			} )
 		).toBeVisible();
 
 		expect( errors ).toEqual( [] );
