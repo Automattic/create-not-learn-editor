@@ -45,10 +45,44 @@ export function useElementSize( ref ) {
 	return size;
 }
 
+/*
+ * Whether the canvas is being panned or zoomed. Cards wait for it to stop
+ * before loading or dropping a thumbnail, as building or tearing down a page
+ * mid-gesture is what makes it stutter.
+ */
+const SETTLE_DELAY_MS = 200;
+let isCanvasMoving = false;
+let settleTimer;
+const settleListeners = new Set();
+
 /**
- * Whether an element is within a screen's width or height of being on
- * screen. Cards further off than that drop their thumbnail, so only the part
- * of the map near the screen costs anything.
+ * Say the canvas has just moved. It counts as moving until it has been still
+ * for a moment.
+ */
+export function markCanvasMoving() {
+	isCanvasMoving = true;
+	window.clearTimeout( settleTimer );
+	settleTimer = window.setTimeout( () => {
+		isCanvasMoving = false;
+		settleListeners.forEach( ( listener ) => listener() );
+	}, SETTLE_DELAY_MS );
+}
+
+/**
+ * @param {Function} listener Called when the canvas stops moving.
+ * @return {Function} Stops listening.
+ */
+export function subscribeToCanvasSettle( listener ) {
+	settleListeners.add( listener );
+
+	return () => settleListeners.delete( listener );
+}
+
+/**
+ * Whether an element is near the screen: it comes near within half a
+ * screen's width or height of it, and only goes away again beyond a whole
+ * one, so a card on the edge doesn't flick in and out. Only changes once the
+ * canvas is still.
  *
  * @param {Object} ref     Element.
  * @param {Object} rootRef Scrolling ancestor to watch within.
@@ -58,7 +92,9 @@ export function useIsNear( ref, rootRef ) {
 	const [ isNear, setIsNear ] = useState( false );
 
 	useEffect( () => {
-		if ( ! ref.current ) {
+		const element = ref.current;
+
+		if ( ! element ) {
 			return;
 		}
 
@@ -67,14 +103,36 @@ export function useIsNear( ref, rootRef ) {
 			return;
 		}
 
-		const observer = new window.IntersectionObserver(
-			( entries ) =>
-				setIsNear( entries[ entries.length - 1 ].isIntersecting ),
-			{ root: rootRef.current, rootMargin: '100%' }
-		);
-		observer.observe( ref.current );
+		let isInside = false;
+		let isWithin = false;
+		const apply = () => {
+			if ( isCanvasMoving ) {
+				return;
+			}
 
-		return () => observer.disconnect();
+			setIsNear( ( wasNear ) => ( wasNear ? isWithin : isInside ) );
+		};
+		const watch = ( margin, onChange ) => {
+			const observer = new window.IntersectionObserver(
+				( entries ) => {
+					onChange( entries[ entries.length - 1 ].isIntersecting );
+					apply();
+				},
+				{ root: rootRef.current, rootMargin: margin }
+			);
+			observer.observe( element );
+
+			return observer;
+		};
+		const inner = watch( '50%', ( value ) => ( isInside = value ) );
+		const outer = watch( '100%', ( value ) => ( isWithin = value ) );
+		const unsubscribe = subscribeToCanvasSettle( apply );
+
+		return () => {
+			inner.disconnect();
+			outer.disconnect();
+			unsubscribe();
+		};
 	}, [ ref, rootRef ] );
 
 	return isNear;
@@ -113,13 +171,15 @@ function releaseThumbnailTurn( turn ) {
 
 /**
  * Whether a thumbnail may start loading: thumbnails take turns, a few at a
- * time, in the order they ask. Once it may, it keeps its picture.
+ * time, in the order they ask unless one goes first. Once it may, it keeps
+ * its picture.
  *
  * @param {boolean} isWanted Whether the thumbnail wants to load.
  * @param {boolean} isLoaded Whether it has finished loading.
+ * @param {boolean} isFirst  Whether it goes ahead of the others waiting.
  * @return {boolean} Whether to load it.
  */
-export function useThumbnailTurn( isWanted, isLoaded ) {
+export function useThumbnailTurn( isWanted, isLoaded, isFirst = false ) {
 	const [ hasTurn, setHasTurn ] = useState( false );
 	// Given up once loaded, gone, or taking too long, and only once.
 	const turnRef = useRef( { isGranted: false, isReleased: false } );
@@ -139,7 +199,11 @@ export function useThumbnailTurn( isWanted, isLoaded ) {
 			setHasTurn( true );
 		};
 
-		waitingThumbnails.push( start );
+		if ( isFirst ) {
+			waitingThumbnails.unshift( start );
+		} else {
+			waitingThumbnails.push( start );
+		}
 		startNextThumbnail();
 
 		return () => {
@@ -149,7 +213,7 @@ export function useThumbnailTurn( isWanted, isLoaded ) {
 				waitingThumbnails.splice( index, 1 );
 			}
 		};
-	}, [ hasTurn, isWanted ] );
+	}, [ hasTurn, isFirst, isWanted ] );
 
 	useEffect( () => {
 		if ( isLoaded ) {

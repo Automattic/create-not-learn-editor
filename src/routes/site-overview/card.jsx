@@ -19,6 +19,7 @@ import {
 	getSnapshot,
 	subscribeToSnapshots,
 } from './snapshots';
+import { ThumbnailSkeleton } from './skeleton';
 import { getPreviewFrameUrl } from '../../site-canvas/urls';
 import {
 	Icon,
@@ -53,21 +54,27 @@ function getPlaceholderText( node ) {
  *
  * @param {Object}  props         Component props.
  * @param {boolean} props.isReady Whether the site has the unsaved changes.
+ * @param {boolean} props.isShown Whether the card is big enough to show it.
  * @param {Object}  props.node    Site Overview node.
  * @param {Object}  props.rootRef The canvas's viewport.
  * @return {Element} Thumbnail.
  */
-function Thumbnail( { isReady, node, rootRef } ) {
+function Thumbnail( { isReady, isShown, node, rootRef } ) {
 	const ref = useRef();
 	const src = node.previewUrl ? getPreviewFrameUrl( node.previewUrl ) : '';
-	const isNear = useIsNear( ref, rootRef );
+	const isNearScreen = useIsNear( ref, rootRef );
+	// The homepage is the page people most want to see, so it loads first and
+	// shows wherever it is and however far out the map is.
+	const isHomepage = node.kind === 'home';
+	const isNear = isHomepage || ( isNearScreen && isShown );
 	const [ snapshot, setSnapshot ] = useState( () =>
 		getSnapshot( node.id, src )
 	);
 	const [ isLoaded, setIsLoaded ] = useState( Boolean( snapshot ) );
 	const hasTurn = useThumbnailTurn(
 		Boolean( src ) && isReady && isNear && ! snapshot,
-		isLoaded
+		isLoaded,
+		isHomepage
 	);
 	const placeholderText = getPlaceholderText( node );
 
@@ -99,6 +106,9 @@ function Thumbnail( { isReady, node, rootRef } ) {
 	};
 
 	let frame = null;
+	// Whether the page is on its way, loading or waiting its turn, so the
+	// card shows it is working on it rather than looking stuck.
+	const isLoading = Boolean( src ) && isReady && isNear && ! snapshot;
 
 	if ( isNear && snapshot ) {
 		frame = (
@@ -135,14 +145,18 @@ function Thumbnail( { isReady, node, rootRef } ) {
 			}` }
 			ref={ ref }
 		>
-			<div className="cnl-site-overview-card__placeholder">
-				<Icon icon={ getNodeIcon( node ) } size={ 32 } />
-				{ placeholderText && (
-					<span className="cnl-site-overview-card__placeholder-text">
-						{ placeholderText }
-					</span>
-				) }
-			</div>
+			{ isLoading ? (
+				<ThumbnailSkeleton />
+			) : (
+				<div className="cnl-site-overview-card__placeholder">
+					<Icon icon={ getNodeIcon( node ) } size={ 32 } />
+					{ placeholderText && (
+						<span className="cnl-site-overview-card__placeholder-text">
+							{ placeholderText }
+						</span>
+					) }
+				</div>
+			) }
 			{ frame }
 		</div>
 	);
@@ -156,6 +170,7 @@ function SiteOverviewCard( {
 	isRelated,
 	isSelected,
 	isThumbnailReady,
+	isThumbnailShown,
 	node,
 	onDragStart,
 	onFocusCard,
@@ -197,6 +212,7 @@ function SiteOverviewCard( {
 		>
 			<Thumbnail
 				isReady={ isThumbnailReady }
+				isShown={ isThumbnailShown }
 				node={ node }
 				rootRef={ rootRef }
 			/>

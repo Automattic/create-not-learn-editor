@@ -75,9 +75,9 @@ export function freezeThumbnail( id, src, iframe ) {
 
 	const html = doc.documentElement.cloneNode( true );
 
-	html.querySelectorAll( 'script, noscript' ).forEach( ( node ) =>
-		node.remove()
-	);
+	html.querySelectorAll(
+		'script, noscript, link[rel="modulepreload"]'
+	).forEach( ( node ) => node.remove() );
 	// Inline handlers have run already: a stylesheet's `onload` that swaps its
 	// `media`, say, has left the swapped value behind to copy.
 	html.querySelectorAll( '*' ).forEach( ( node ) => {

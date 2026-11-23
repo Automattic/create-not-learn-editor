@@ -15,7 +15,7 @@ import {
 	useSelectedNode,
 	useSiteOverview,
 } from './data';
-import { layoutSiteOverview } from './layout';
+import { CARD_WIDTH, layoutSiteOverview } from './layout';
 import {
 	centerOn,
 	constrainView,
@@ -25,7 +25,12 @@ import {
 	isRectInView,
 	zoomAt,
 } from './viewport';
-import { prefersReducedMotion, useElementSize } from './hooks';
+import {
+	markCanvasMoving,
+	prefersReducedMotion,
+	subscribeToCanvasSettle,
+	useElementSize,
+} from './hooks';
 import { MemoizedSiteOverviewCard } from './card';
 import { clearSnapshots } from './snapshots';
 import {
@@ -63,6 +68,9 @@ const ANIMATION_MS = 280;
 // Space to keep between a page brought into view and the screen's edges.
 const VIEW_MARGIN = 32;
 
+// How wide on screen, in pixels, a card is before it shows its page.
+const MIN_THUMBNAIL_WIDTH = 80;
+
 function getSummary( nodes ) {
 	const dynamicCount = nodes.filter( isDynamicNode ).length;
 	const pageCount = nodes.length - dynamicCount;
@@ -98,6 +106,13 @@ export default function Canvas() {
 	// how to move it is no longer needed.
 	const [ hasMoved, setHasMoved ] = useState( false );
 	const viewportRef = useRef();
+	// The scale lines are drawn for, so they keep their width on screen. Only
+	// updated once the canvas is still: changing it redraws every card.
+	const [ lineScale, setLineScale ] = useState( 1 );
+	// Pictures of pages only once cards are big enough on screen to make them
+	// out. Zoomed out on a big site there are hundreds of tiny cards, and
+	// drawing a page in each makes zooming stutter.
+	const showThumbnails = lineScale * CARD_WIDTH >= MIN_THUMBNAIL_WIDTH;
 
 	useEffect( () => {
 		flushPreviewChanges().then( ( result ) => {
@@ -128,11 +143,18 @@ export default function Canvas() {
 	viewRef.current = view;
 	sizeRef.current = size;
 
+	useEffect(
+		() =>
+			subscribeToCanvasSettle( () => setLineScale( viewRef.current.k ) ),
+		[]
+	);
+
 	/*
 	 * Every change of view is kept within the site: no further out than
 	 * fitting all of it on screen, and never moved off it.
 	 */
 	const setView = useCallback( ( next ) => {
+		markCanvasMoving();
 		setRawView( ( current ) => {
 			const nextView =
 				typeof next === 'function' ? next( current ) : next;
@@ -329,6 +351,26 @@ export default function Canvas() {
 			return;
 		}
 
+		// Wheel events come faster than frames: their moves are added up and
+		// drawn once a frame.
+		let pending = [];
+		let frame = 0;
+		// Read once a gesture, as reading it mid-gesture forces a layout.
+		let rect = null;
+		let rectTimer;
+		const flush = () => {
+			frame = 0;
+			const updates = pending;
+			pending = [];
+			setView( ( current ) =>
+				updates.reduce( ( next, update ) => update( next ), current )
+			);
+		};
+		const queue = ( update ) => {
+			pending.push( update );
+			frame ||= window.requestAnimationFrame( flush );
+		};
+
 		const onWheel = ( event ) => {
 			event.preventDefault();
 			setIsAnimating( false );
@@ -339,7 +381,9 @@ export default function Canvas() {
 			const deltaY = event.deltaY * lineHeight;
 
 			if ( event.ctrlKey || event.metaKey ) {
-				const rect = viewport.getBoundingClientRect();
+				rect ||= viewport.getBoundingClientRect();
+				window.clearTimeout( rectTimer );
+				rectTimer = window.setTimeout( () => ( rect = null ), 300 );
 				const point = {
 					x: event.clientX - rect.left,
 					y: event.clientY - rect.top,
@@ -348,7 +392,7 @@ export default function Canvas() {
 				// Capped, so one notch of a mouse wheel isn't a huge jump.
 				const step = Math.max( -50, Math.min( 50, deltaY ) );
 
-				setView( ( current ) =>
+				queue( ( current ) =>
 					zoomAt(
 						current,
 						current.k * Math.exp( -step * 0.01 ),
@@ -358,7 +402,7 @@ export default function Canvas() {
 				return;
 			}
 
-			setView( ( current ) => ( {
+			queue( ( current ) => ( {
 				...current,
 				x: current.x - deltaX,
 				y: current.y - deltaY,
@@ -376,6 +420,8 @@ export default function Canvas() {
 		viewport.addEventListener( 'scroll', onScroll );
 
 		return () => {
+			window.cancelAnimationFrame( frame );
+			window.clearTimeout( rectTimer );
 			viewport.removeEventListener( 'wheel', onWheel );
 			viewport.removeEventListener( 'scroll', onScroll );
 		};
@@ -585,7 +631,7 @@ export default function Canvas() {
 								.filter( Boolean )
 								.join( ' ' ) }
 							style={ {
-								'--cnl-site-overview-scale': view.k,
+								'--cnl-site-overview-scale': lineScale,
 								height: layout.bounds.height,
 								transform: `translate(${ view.x }px, ${ view.y }px) scale(${ view.k })`,
 								width: layout.bounds.width,
@@ -623,6 +669,7 @@ export default function Canvas() {
 									isRelated={ relatedIds.has( node.id ) }
 									isSelected={ node.id === selectedId }
 									isThumbnailReady={ isThumbnailReady }
+									isThumbnailShown={ showThumbnails }
 									key={ node.id }
 									node={ node }
 									onDragStart={ pageMoves.onCardPointerDown }

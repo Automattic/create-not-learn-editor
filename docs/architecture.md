@@ -135,6 +135,8 @@ On a preview request that names a session of the current user, `includes/preview
 
 Changes the layer doesn't cover, like a page's parent or order, still ask to be saved or discarded on the way to Browse.
 
+The Site overview's pictures of pages use the same session, so they show the unsaved changes too. Each picture loads the page once, then is swapped for a copy of it without its scripts, kept until the editor sends new changes (`src/routes/site-overview/snapshots.js`). Cards load a few at a time, the homepage first, and only once the map is still: cards far from the screen, or too small on it to make out, show no page at all. This keeps a site with hundreds of pages smooth to pan and zoom.
+
 ## Requirements and the Gutenberg check
 
 - WordPress 7.0 or newer.

@@ -336,6 +336,27 @@ $cnl-site-overview-canvas: #e9eef2;
 	fill: currentcolor;
 }
 
+.cnl-site-overview-card__skeleton {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	background: var(--wpds-color-background-surface-neutral-weak);
+	fill: var(--wpds-color-stroke-surface-neutral);
+	animation: cnl-site-overview-skeleton-pulse 1.4s ease-in-out infinite;
+
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
+}
+
+@keyframes cnl-site-overview-skeleton-pulse {
+
+	50% {
+		opacity: 0.45;
+	}
+}
+
 .cnl-site-overview-card__frame {
 	position: absolute;
 	top: 0;
