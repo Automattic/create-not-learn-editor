@@ -1,4 +1,11 @@
-const { expect, test, visitEditor } = require( '../utils' );
+const {
+	expect,
+	getSaveControls,
+	getStage,
+	openSidebarLink,
+	test,
+	visitEditor,
+} = require( '../utils' );
 
 // The Site overview has no save bar of its own: changes waiting to be saved
 // are counted on the sidebar's Save button.
@@ -73,5 +80,52 @@ test.describe( 'Site overview interactions', () => {
 			new RegExp( `node%3Dpage-${ testPage.id }` )
 		);
 		await expect( getReviewButton( page ) ).toHaveCount( 0 );
+	} );
+
+	test( 'pictures of pages show unsaved changes, frozen without scripts', async ( {
+		page,
+		rest,
+	} ) => {
+		const original = await rest.fetch( '/wp/v2/settings', {
+			params: { _fields: 'title' },
+		} );
+		rest.onCleanup( () =>
+			rest.fetch( '/wp/v2/settings', { data: original, method: 'POST' } )
+		);
+
+		const title = `Overview unsaved ${ Date.now() }`;
+
+		await visitEditor( page, '/design/identity' );
+		await getStage( page ).getByLabel( 'Site name' ).fill( title );
+		await expect( getSaveControls( page ) ).toContainText(
+			'1 unsaved change'
+		);
+
+		await openSidebarLink( page, 'Site overview' );
+
+		// The homepage always loads, and is swapped for a copy of itself
+		// that can't run scripts once it has.
+		const homepage = page.locator(
+			'[data-node-id="home"] .cnl-site-overview-card__frame'
+		);
+		await expect( homepage ).toHaveAttribute( 'data-tier', 'snapshot', {
+			timeout: 15000,
+		} );
+		await expect( homepage ).toHaveAttribute(
+			'sandbox',
+			'allow-same-origin'
+		);
+		expect( await homepage.getAttribute( 'srcdoc' ) ).not.toMatch(
+			/<script/i
+		);
+		await expect(
+			homepage.contentFrame().getByText( title ).first()
+		).toBeVisible();
+
+		// Nothing was saved.
+		const saved = await rest.fetch( '/wp/v2/settings', {
+			params: { _fields: 'title' },
+		} );
+		expect( saved.title ).toBe( original.title );
 	} );
 } );
