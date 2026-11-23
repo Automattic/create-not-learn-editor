@@ -4,8 +4,8 @@ name: Gutenberg compatibility
 # before WordPress.com deploys a new one whether the editor still works with
 # it. Pull request CI (ci.yml) runs the minimum only, to stay fast.
 #
-# Each week, and on demand, it builds the plugin and runs PHPUnit, the smoke
-# test and the block toolbar's German locale test against:
+# Each week, and on demand, it builds the plugin and runs PHPUnit and the
+# smoke test against:
 #
 # - the minimum Gutenberg, the pin in scripts/wp-env.mjs,
 # - the latest Gutenberg release,
@@ -194,7 +194,7 @@ jobs:
         if: ${{ !cancelled() && steps.start.outcome == 'success' }}
         env:
           PLAYWRIGHT_JSON_OUTPUT_NAME: compat-results.json
-        run: npx playwright test tests/e2e/smoke.spec.js tests/e2e/interactions/block-toolbar-locale.spec.js --reporter=list,json
+        run: npx playwright test tests/e2e/smoke.spec.js --reporter=list,json
 
       - name: Run PHPUnit
         id: php

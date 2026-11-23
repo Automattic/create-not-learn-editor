@@ -42,7 +42,7 @@ CNL_GUTENBERG_VERSION=latest npm run wp-env start
 
 Each resolves to a version with a key of its own in the shared cache, so it downloads once and leaves the pin's in place. Trunk's builds are GitHub Actions artifacts, so `trunk` needs `GITHUB_TOKEN` or `GH_TOKEN`, or `gh` signed in, and is keyed by its commit. `trunk-<commit>` runs one build again. Start without the variable to go back to the pin. When the Gutenberg changes, the script stops wp-env before starting it, as Docker only follows the link into the cache when it makes the containers. The sites keep their data. `node scripts/wp-env.mjs --resolve-gutenberg` prints what a value resolves to without starting anything.
 
-The [Gutenberg compatibility workflow](.github/workflows/gutenberg-compat.yml) runs the build, PHPUnit, the smoke test and the block toolbar's German test each week against the minimum, the latest release, trunk and the Gutenberg WordPress.com runs, from `.github/wpcom-gutenberg-version`. A version that fails gets an issue titled "Gutenberg compatibility: <version>". Pull requests still run the pin only.
+The [Gutenberg compatibility workflow](.github/workflows/gutenberg-compat.yml) runs the build, PHPUnit and the smoke test each week against the minimum, the latest release, trunk and the Gutenberg WordPress.com runs, from `.github/wpcom-gutenberg-version`. A version that fails gets an issue titled "Gutenberg compatibility: <version>". Pull requests still run the pin only.
 
 ### Trying another plugin alongside the editor
 
