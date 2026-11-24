@@ -16,6 +16,17 @@ The preview shows unsaved changes too. Before it loads, the canvas sends the edi
 
 A change made from the sidebar while browsing still brings the editor up to show it, as the editor shows it at once, where the preview would have to load again.
 
+## Pointing to Edit
+
+People looking at the page who want to change it often move over the site, rather than to the toolbar. So in Browse, moving a mouse or pen over the site points to Edit (`edit-hint.jsx`). Touch has no hover, so on a touch screen nothing happens.
+
+- **Until someone has used Edit**, a notice is drawn around the real Edit button: a card with even room round the button, reaching left over the toolbar, with "Trying to change something on this page?" and a × at its left end. It fades in on the first movement over the site, so a pointer already there when the page loads has to move first. It goes a second after the pointer leaves the site, the card itself counting as the site, and stays while keyboard focus is on its ×. Edit isn't copied: the button stays where it is, on top of the card, so pressing it is pressing Edit. The card lets the pointer through to the toolbar under it, View, Page options and the page bar, all but its ×, which sits at its left end to keep off the controls beside Edit, and over part of the page bar at most widths. Opening anything from under it, a menu, a popover, a dialog or the page finder, puts it away, and it doesn't show while one is open or in Edit. It is announced once in each spell in Browse, politely, and takes no focus. The × puts it away until the next time the page is on view after Edit, or the editor is reloaded; it doesn't count as using Edit. Its state is kept in the canvas's store (`setEditHint()` in `mode.js`), so it holds from screen to screen.
+- **Once someone has pressed the Edit button**, ever (saved as a preference for the user, `editButtonUsed` in the editor's `create-not-learn-editor` scope; other ways into editing don't count), the notice is never shown again. Instead Edit pulses, three rings in the admin colour, as the pointer comes onto the site, and not again until it has been off the site for a second and come back. With reduced motion it holds a ring instead, for as long.
+
+The notice and the pulse take the purple of what every page shares when Edit does, on a layout.
+
+The site is in a same-origin iframe, whose events don't reach the editor's document, so the hint listens to the page in it as well, moving to each page as it comes, and to the editor's document for the area round it and the card.
+
 ## Files
 
 | File | What it does |
@@ -23,10 +34,11 @@ A change made from the sidebar while browsing still brings the editor up to show
 | `site-canvas.js` | `SiteCanvas`: the toolbar, the editor, the preview laid over it, Edit's section layer and the Compose layer. |
 | `use-site-canvas.js` | `useSiteCanvas()`: the canvas's state and the rules for moving between modes. |
 | `preview-changes.js` | `usePreviewChanges()`: sends the editor's unsaved changes to the site for the preview, and says which changes the preview can show. |
-| `mode.js` | The shared mode: `useCanvasMode()`, `getCanvasMode()`, `setCanvasMode()`. |
+| `mode.js` | The shared mode: `useCanvasMode()`, `getCanvasMode()`, `setCanvasMode()`, and how far the hint pointing to Edit has got in this spell in Browse. |
 | `writing-mode.js` | Which blocks are containers, and how a page's runs of text between them are grouped into sections. |
 | `page-switcher.jsx` | The page's name in the middle of the toolbar, which turns into the page finder, and the page's status at its end. Layouts and template parts use the same bar, with their name in purple and a purple filled symbol in place of the status, and a template part's bar doesn't open the finder. |
 | `page-settings.jsx` | A page's status as a button that opens its settings in a popover, every detail the Pages screen has for it, where core's editor has them in its sidebar's Page tab. Changes are unsaved edits to the page, saved with Save. Only Layout leads on, to the layouts in the sidebar. |
+| `edit-hint.jsx` | Pointing to Edit in Browse: the notice around Edit until it has been used, and Edit's pulse after. See "Pointing to Edit" above. |
 | `toolbar.jsx` | Edit while viewing and Exit while editing, undo and redo, Document Overview, the preview's history, the View menu (the device, the live page in a new tab and the full-screen editor), and Zoom out (Compose). |
 | `zoom-controls.jsx` | Compose from the canvas itself: a zoom in and zoom out pair in its corner, as on a map, and a pinch on a trackpad, or Ctrl or ⌘ with the scroll wheel. One gesture moves one step. |
 | `use-section-lock.js` | In Edit, every section made of other blocks, in whatever is built from sections, starts content-only, with core's own lock, kept in the editor's settings rather than the page. A section whose own block says its blocks are free isn't locked, with core's `templateLock: false`: a blank section, or a Text page's text, which have no design to keep. |

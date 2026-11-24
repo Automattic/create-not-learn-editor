@@ -30,6 +30,7 @@ import {
 import { hasSections as hasSectionsFor } from '../sections';
 import { useComposeZoom } from './compose/use-compose-zoom';
 import { EDITOR_DEVICES } from './constants';
+import { EditHintNotice, useEditHintState } from './edit-hint';
 import { useEditSectionControls } from './edit-section-controls';
 import { MODE_COMPOSE, MODE_EDIT } from './mode';
 import { expandCanvas, useCanvasExpansion } from './expansion';
@@ -87,6 +88,8 @@ export function SiteCanvas( {
 } ) {
 	const ownEditorRef = useRef();
 	const bodyRef = useRef();
+	const toolbarRef = useRef();
+	const previewRef = useRef();
 	const editorRef = givenEditorRef || ownEditorRef;
 	const { device, editorDevice, editorEntity, frame, mode } = canvas;
 	// Only what the site says is built from sections, like a page, has
@@ -173,13 +176,25 @@ export function SiteCanvas( {
 		[ isPreviewing ]
 	);
 
+	// While the page is on view, moving over the site points to Edit.
+	const editHint = useEditHintState( {
+		isActive: isPreviewing && Boolean( canvas.canEdit ),
+		previewRef,
+		toolbarRef,
+	} );
+
 	return (
 		<section
 			className={ `cnl-site-canvas cnl-editor-canvas cnl-editor-preview-canvas is-${ mode } ${
 				isPreviewing ? 'is-previewing ' : ''
 			}${ hasSections ? 'has-sections ' : '' }${ className }` }
 		>
-			<header className="cnl-editor-canvas__toolbar cnl-editor-homepage-toolbar">
+			<header
+				className={ `cnl-editor-canvas__toolbar cnl-editor-homepage-toolbar${
+					editHint.notice ? ' has-edit-hint' : ''
+				}` }
+				ref={ toolbarRef }
+			>
 				<div className="cnl-editor-homepage-toolbar__left">
 					{ ! isPreviewing && <EditHistory /> }
 					{ ! isPreviewing && editorEntity && (
@@ -227,12 +242,18 @@ export function SiteCanvas( {
 					{ isPreviewing && canvas.canEdit && (
 						<EditScope>
 							<EditButton
+								isPulsing={ editHint.isPulsing }
 								onEdit={ () => canvas.requestMode( MODE_EDIT ) }
 							/>
 						</EditScope>
 					) }
 					{ ! isPreviewing && <ExitButton onExit={ canvas.exit } /> }
 				</div>
+				{ editHint.notice && (
+					<EditScope>
+						<EditHintNotice { ...editHint.notice } />
+					</EditScope>
+				) }
 			</header>
 			<div className="cnl-site-canvas__body" ref={ bodyRef }>
 				<div
@@ -279,6 +300,7 @@ export function SiteCanvas( {
 				<div
 					aria-hidden={ ! isPreviewing }
 					className={ `cnl-site-canvas__preview is-${ device }` }
+					ref={ previewRef }
 				>
 					{ canvas.previewContextError && (
 						<Notice

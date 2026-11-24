@@ -15,6 +15,7 @@ import { store as keyboardShortcutsStore } from '@wordpress/keyboard-shortcuts';
  * Internal dependencies
  */
 import { unlock } from '../lock-unlock';
+import { rememberEditUsed } from './edit-hint';
 import { openRoute } from '../open-route';
 import {
 	__,
@@ -70,19 +71,26 @@ function getDeviceOptions() {
 /**
  * Edit, at the end of the toolbar while the page is only on view. It opens
  * the page to change, filling the editor, where Save and Exit take its place.
+ * Using it is remembered, for the hint pointing to it (`edit-hint.jsx`).
  *
  * @param {Object}   props
- * @param {Function} props.onEdit Starts editing.
+ * @param {boolean}  props.isPulsing Whether it pulses, to be noticed.
+ * @param {Function} props.onEdit    Starts editing.
  * @return {Element} The button.
  */
-export function EditButton( { onEdit } ) {
+export function EditButton( { isPulsing = false, onEdit } ) {
 	return (
 		<Button
 			__next40pxDefaultSize
-			className="cnl-site-canvas__edit"
+			className={ `cnl-site-canvas__edit${
+				isPulsing ? ' is-pulsing' : ''
+			}` }
 			description={ __( 'Change this page' ) }
 			icon={ pencilIcon }
-			onClick={ onEdit }
+			onClick={ () => {
+				rememberEditUsed();
+				onEdit();
+			} }
 			variant="primary"
 		>
 			{ __( 'Edit' ) }

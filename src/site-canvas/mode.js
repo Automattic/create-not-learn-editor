@@ -77,12 +77,21 @@ if ( ! select( STORE_NAME ) ) {
 					pickedSection: null,
 					postsTrip: null,
 					editableSection: null,
+					editHint: null,
 				},
 				action
 			) {
 				switch ( action.type ) {
 					case 'SET_CANVAS_MODE':
-						return { ...state, mode: action.mode };
+						// The Edit hint's state lasts one spell in Browse.
+						return {
+							...state,
+							mode: action.mode,
+							editHint:
+								action.mode === MODE_BROWSE
+									? state.editHint
+									: null,
+						};
 					case 'SET_MODE_REQUEST':
 						return { ...state, modeRequest: action.mode };
 					case 'SET_CANVAS_DEVICE':
@@ -102,6 +111,8 @@ if ( ! select( STORE_NAME ) ) {
 						return { ...state, partRequest: action.area };
 					case 'SET_POSTS_TRIP':
 						return { ...state, postsTrip: action.trip };
+					case 'SET_EDIT_HINT':
+						return { ...state, editHint: action.editHint };
 					case 'SET_EDITABLE_SECTION':
 						return {
 							...state,
@@ -148,6 +159,10 @@ if ( ! select( STORE_NAME ) ) {
 					trip,
 					type: 'SET_POSTS_TRIP',
 				} ),
+				setEditHint: ( editHint ) => ( {
+					editHint,
+					type: 'SET_EDIT_HINT',
+				} ),
 				setEditableSection: ( editableSection ) => ( {
 					editableSection,
 					type: 'SET_EDITABLE_SECTION',
@@ -164,6 +179,7 @@ if ( ! select( STORE_NAME ) ) {
 				getPartRequest: ( state ) => state.partRequest,
 				getPostsTrip: ( state ) => state.postsTrip,
 				getEditableSection: ( state ) => state.editableSection,
+				getEditHint: ( state ) => state.editHint,
 			},
 		} )
 	);
@@ -399,4 +415,35 @@ export function setEditableSection( editableSection ) {
  */
 export function getEditableSection() {
 	return select( STORE_NAME ).getEditableSection();
+}
+
+/**
+ * Note how far the hint around Edit has got in this spell in Browse (see
+ * `edit-hint.jsx`): `shown`, once it has been shown and announced, or
+ * `dismissed`, once its × was pressed. Going into Edit starts it again.
+ *
+ * @param {?string} editHint `shown`, `dismissed` or null.
+ */
+export function setEditHint( editHint ) {
+	if ( editHint !== select( STORE_NAME ).getEditHint() ) {
+		dispatch( STORE_NAME ).setEditHint( editHint );
+	}
+}
+
+/**
+ * @return {?string} How far the hint around Edit has got, as `setEditHint`
+ *                   takes it.
+ */
+export function getEditHint() {
+	return select( STORE_NAME ).getEditHint();
+}
+
+/**
+ * @return {?string} The same, kept up to date.
+ */
+export function useEditHint() {
+	return useSelect(
+		( selectStore ) => selectStore( STORE_NAME ).getEditHint(),
+		[]
+	);
 }
