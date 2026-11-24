@@ -6,6 +6,7 @@ import { Button } from '@wordpress/components';
 import { createContext, useContext } from '@wordpress/element';
 import { __, isRTL } from '@wordpress/i18n';
 import { chevronLeft, chevronRight } from '@wordpress/icons';
+import { applyFilters } from '@wordpress/hooks';
 import { useNavigate } from '@wordpress/route';
 
 /**
@@ -13,7 +14,6 @@ import { useNavigate } from '@wordpress/route';
  */
 import { isOnHomeTrip } from './home-trip';
 import { openSidebarHome } from './open-sidebar-home';
-import { Publish } from './top-bar/publish';
 
 /**
  * The screen above this one: the last of its breadcrumbs that links
@@ -75,6 +75,13 @@ function StageBack( { parent } ) {
 
 const IsInPage = createContext( false );
 
+/*
+ * Publish comes from app init (`src/top-bar/index.jsx`) through this filter
+ * rather than an import: every route bundles this file, and importing
+ * Publish would bundle the changes list and `@wordpress/editor` with it.
+ */
+export const STAGE_PUBLISH_FILTER = 'createNotLearnEditor.stagePublish';
+
 /**
  * Admin UI's page, with Back at the start of its header, and Publish at its
  * foot, for every change on the site (`src/top-bar/publish.jsx`). Every
@@ -90,6 +97,7 @@ export function Page( { isRoot = false, children, ...props } ) {
 	const { breadcrumbs } = props;
 	// A screen can show another inside it; Publish is the outermost's.
 	const isNested = useContext( IsInPage );
+	const Publish = applyFilters( STAGE_PUBLISH_FILTER, null );
 
 	return (
 		<AdminPage
@@ -104,7 +112,7 @@ export function Page( { isRoot = false, children, ...props } ) {
 			}
 		>
 			<IsInPage.Provider value>{ children }</IsInPage.Provider>
-			{ ! isNested && (
+			{ ! isNested && Publish && (
 				<div className="cnl-stage-publish">
 					<Publish />
 				</div>

@@ -19,11 +19,14 @@
  * WordPress dependencies
  */
 import { createRoot } from '@wordpress/element';
+import { addFilter } from '@wordpress/hooks';
 
 /**
  * Internal dependencies
  */
+import { STAGE_PUBLISH_FILTER } from '../stage-page';
 import { AgentStatus } from './agent-status';
+import { Publish } from './publish';
 import { SaveControls } from './save-controls';
 
 const HAS_CANVAS_SAVE_CLASS = 'cnl-has-canvas-save';
@@ -48,6 +51,13 @@ function CanvasSave() {
  * toolbar is on show, whenever the page changes.
  */
 export function mountSaveControls() {
+	// Publish at the foot of each screen (`src/stage-page.jsx`).
+	addFilter(
+		STAGE_PUBLISH_FILTER,
+		'create-not-learn-editor/publish',
+		() => Publish
+	);
+
 	const container = document.createElement( 'div' );
 	container.className = 'cnl-canvas-save-host';
 	createRoot( container ).render( <CanvasSave /> );
