@@ -7,6 +7,10 @@
 
 /**
  * WordPress dependencies
+ *
+ * Imported here rather than through `src/wordpress-packages.js`, as other
+ * features importing preferences do: added there, they become a dependency of
+ * every route, over the performance budget.
  */
 import { speak } from '@wordpress/a11y';
 import { store as preferencesStore } from '@wordpress/preferences';
@@ -37,6 +41,9 @@ const LEAVE_MS = 1000;
 const PULSE_MS = 1800;
 // Room around Edit inside the notice.
 const PAD = 8;
+
+// Only one canvas, so one notice, is on the page at a time.
+const TEXT_ID = 'cnl-edit-hint-text';
 
 const NOTICE_TEXT = () => __( 'Trying to change something on this page?' );
 
@@ -199,15 +206,21 @@ export function useEditHintState( { isActive, previewRef, toolbarRef } ) {
 			const isNewVisit = ! visitRef.current;
 			visitRef.current = true;
 
-			if ( ! isOverSite || event.buttons || isSomethingOpen() ) {
+			if ( ! isOverSite || event.buttons ) {
 				return;
 			}
 
+			// What is open is looked for only when about to act, not on every
+			// movement.
 			if ( hasUsedEdit ) {
-				if ( isNewVisit ) {
+				if ( isNewVisit && ! isSomethingOpen() ) {
 					pulse();
 				}
-			} else if ( canShowNotice && ! isShownRef.current ) {
+			} else if (
+				canShowNotice &&
+				! isShownRef.current &&
+				! isSomethingOpen()
+			) {
 				show( true );
 
 				if ( ! getEditHint() ) {
@@ -266,10 +279,6 @@ export function useEditHintState( { isActive, previewRef, toolbarRef } ) {
 				onInside( event, false );
 			} else {
 				onOutside();
-			}
-
-			if ( isShownRef.current && isSomethingOpen() ) {
-				show( false );
 			}
 		};
 		const onOut = ( event ) => {
@@ -455,8 +464,10 @@ export function EditHintNotice( { noticeRef, onDismiss, toolbarRef } ) {
 
 	return (
 		<div
+			aria-labelledby={ TEXT_ID }
 			className="cnl-edit-hint"
 			ref={ noticeRef }
+			role="note"
 			style={ {
 				height: place.height,
 				maxWidth: place.maxWidth,
@@ -465,14 +476,16 @@ export function EditHintNotice( { noticeRef, onDismiss, toolbarRef } ) {
 				top: place.top,
 			} }
 		>
-			<p className="cnl-edit-hint__text">{ NOTICE_TEXT() }</p>
+			<p className="cnl-edit-hint__text" id={ TEXT_ID }>
+				{ NOTICE_TEXT() }
+			</p>
 			{ /* Shown at the card's left end, so it doesn't cover the
 			controls beside Edit, like View. After the words in the
 			source, so they are read first. */ }
 			<Button
 				className="cnl-edit-hint__close"
 				icon={ closeSmallIcon }
-				label={ __( 'Close' ) }
+				label={ __( 'Close the tip about Edit' ) }
 				onClick={ onDismiss }
 				size="compact"
 			/>
