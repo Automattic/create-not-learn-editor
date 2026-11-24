@@ -1,0 +1,95 @@
+// Pointing at Edit from Browse (`edit-hint.jsx`).
+
+// Over everything in the editor, the admin bar included, but under core's
+// popovers, so the hint's own popover shows above it.
+.cnl-edit-hint {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	pointer-events: none;
+	animation: cnl-edit-hint-in 0.2s ease-out;
+}
+
+// Catches clicks everywhere but the gap round Edit, cut out by `clip-path`.
+.cnl-edit-hint__backdrop {
+	position: absolute;
+	inset: 0;
+	pointer-events: auto;
+}
+
+// The light round Edit: everything outside it is darkened by its shadow.
+.cnl-edit-hint__ring {
+	position: absolute;
+	border-radius: var(--wpds-border-radius-md);
+	box-shadow:
+		0 0 0 2px var(--wp-admin-theme-color),
+		0 0 0 100vmax rgba(0, 0, 0, 0.6);
+}
+
+.cnl-edit-hint__popover .components-popover__content {
+	width: 280px;
+}
+
+.cnl-edit-hint__content {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--wpds-dimension-gap-sm);
+	padding: var(--wpds-dimension-padding-lg);
+}
+
+.cnl-edit-hint__title {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.cnl-edit-hint__text {
+	margin: 0 0 var(--wpds-dimension-gap-sm);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+// Each later reach to change the page, a ring that swells out from Edit.
+.cnl-site-canvas__edit.components-button.is-pulsing {
+	animation: cnl-edit-hint-pulse 0.9s ease-out 2;
+}
+
+@keyframes cnl-edit-hint-in {
+
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes cnl-edit-hint-pulse {
+
+	0% {
+		box-shadow: 0 0 0 0 rgba(var(--wp-admin-theme-color--rgb), 0.7);
+	}
+
+	100% {
+		box-shadow: 0 0 0 12px rgba(var(--wp-admin-theme-color--rgb), 0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.cnl-edit-hint {
+		animation: none;
+	}
+
+	// A ring held still for a moment rather than one that moves.
+	.cnl-site-canvas__edit.components-button.is-pulsing {
+		animation: cnl-edit-hint-flash 1.2s steps(1) 1;
+	}
+
+	@keyframes cnl-edit-hint-flash {
+
+		0%,
+		99% {
+			box-shadow: 0 0 0 3px var(--wp-admin-theme-color-darker-20);
+		}
+	}
+}

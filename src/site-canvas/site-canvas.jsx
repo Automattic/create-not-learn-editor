@@ -30,6 +30,7 @@ import {
 import { hasSections as hasSectionsFor } from '../sections';
 import { useComposeZoom } from './compose/use-compose-zoom';
 import { EDITOR_DEVICES } from './constants';
+import { EditHint } from './edit-hint';
 import { useEditSectionControls } from './edit-section-controls';
 import { MODE_COMPOSE, MODE_EDIT } from './mode';
 import { expandCanvas, useCanvasExpansion } from './expansion';
@@ -87,6 +88,7 @@ export function SiteCanvas( {
 } ) {
 	const ownEditorRef = useRef();
 	const bodyRef = useRef();
+	const editButtonRef = useRef();
 	const editorRef = givenEditorRef || ownEditorRef;
 	const { device, editorDevice, editorEntity, frame, mode } = canvas;
 	// Only what the site says is built from sections, like a page, has
@@ -227,6 +229,7 @@ export function SiteCanvas( {
 					{ isPreviewing && canvas.canEdit && (
 						<EditScope>
 							<EditButton
+								buttonRef={ editButtonRef }
 								onEdit={ () => canvas.requestMode( MODE_EDIT ) }
 							/>
 						</EditScope>
@@ -305,6 +308,11 @@ export function SiteCanvas( {
 					) }
 				</div>
 			</div>
+			<EditHint
+				anchorRef={ editButtonRef }
+				frameDocument={ frame.frameDocument }
+				isActive={ isPreviewing && canvas.canEdit && ! frame.isLoading }
+			/>
 			{ canvas.dialog.isOpen && (
 				<UnsavedChangesDialog { ...canvas.dialog } />
 			) }

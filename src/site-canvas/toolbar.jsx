@@ -72,14 +72,16 @@ function getDeviceOptions() {
  * the page to change, filling the editor, where Save and Exit take its place.
  *
  * @param {Object}   props
- * @param {Function} props.onEdit Starts editing.
+ * @param {Function} props.onEdit    Starts editing.
+ * @param {?Object}  props.buttonRef Ref to the button, for pointing at it.
  * @return {Element} The button.
  */
-export function EditButton( { onEdit } ) {
+export function EditButton( { onEdit, buttonRef } ) {
 	return (
 		<Button
 			__next40pxDefaultSize
 			className="cnl-site-canvas__edit"
+			ref={ buttonRef }
 			description={ __( 'Change this page' ) }
 			icon={ pencilIcon }
 			onClick={ onEdit }
