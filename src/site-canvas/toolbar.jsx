@@ -16,6 +16,7 @@ import { store as keyboardShortcutsStore } from '@wordpress/keyboard-shortcuts';
  */
 import { unlock } from '../lock-unlock';
 import { documentInfoIcon } from './icons';
+import { getToggleVariant, toggleDocumentPanel } from './document-panel/state';
 import { openRoute } from '../open-route';
 import {
 	__,
@@ -26,6 +27,7 @@ import {
 	desktopIcon,
 	dispatch,
 	displayShortcut,
+	drawerLeftIcon,
 	isRTL,
 	Menu,
 	mobileIcon,
@@ -186,6 +188,8 @@ export function closeDocumentOverview() {
  * @return {Element} The button.
  */
 export function DocumentOverviewToggle() {
+	const variant = getToggleVariant();
+
 	const { isOpen, shortcut, toggleRef, typeName } = useSelect( ( select ) => {
 		const editor = select( EDITOR_STORE );
 		const postType = editor?.getCurrentPostType?.();
@@ -211,22 +215,30 @@ export function DocumentOverviewToggle() {
 			)
 		: __( 'Details and layers' );
 
+	// The status chip and the rail open the panel from elsewhere, but core
+	// still needs a toggle to hand focus back to.
+	if ( variant === 'status' || variant === 'rail' ) {
+		return null;
+	}
+
+	const isAbout = variant === 'about';
+
 	return (
 		<Button
 			__next40pxDefaultSize
 			aria-expanded={ isOpen }
-			className="cnl-site-canvas__document-overview-toggle"
-			icon={ documentInfoIcon }
+			className={ `cnl-site-canvas__document-overview-toggle is-${ variant }` }
+			icon={ isAbout ? drawerLeftIcon : documentInfoIcon }
 			isPressed={ isOpen }
-			label={ label }
-			onClick={ () =>
-				dispatch( EDITOR_STORE )?.setIsListViewOpened?.( ! isOpen )
-			}
+			// The name read out has to match the words on the button.
+			label={ isAbout ? label : __( 'Document info' ) }
+			onClick={ () => toggleDocumentPanel() }
 			ref={ toggleRef }
 			shortcut={ shortcut }
 			showTooltip
+			variant={ isAbout ? 'secondary' : undefined }
 		>
-			{ __( 'Details' ) }
+			{ isAbout ? __( 'About this page' ) : __( 'Document info' ) }
 		</Button>
 	);
 }

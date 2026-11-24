@@ -17,6 +17,7 @@ import { Icon } from '@wordpress/ui';
  * Internal dependencies
  */
 import { observeHost } from '../../editor-layer/portal-host';
+import { hasSections } from '../../sections';
 import { usePageSections } from '../../routes/content/pages/data';
 import { PageDetails } from '../../routes/content/pages/page-details';
 import {
@@ -27,6 +28,12 @@ import { groupSections } from '../../routes/content/pages/page-sections';
 import { useHomepageState } from '../../routes/content/pages/homepage';
 import { closeDocumentOverview } from '../toolbar';
 import { documentInfoIcon, layersIcon } from '../icons';
+import {
+	DETAILS_TAB,
+	LAYERS_TAB,
+	setDocumentTab,
+	useDocumentTab,
+} from './state';
 import {
 	__,
 	Button,
@@ -46,8 +53,6 @@ import {
 const EDITOR_STORE = 'core/editor';
 const SIDEBAR = '.editor-list-view-sidebar';
 const HOST_CLASS = 'cnl-document-panel-host';
-export const DETAILS_TAB = 'details';
-export const LAYERS_TAB = 'layers';
 
 /**
  * The layouts a page can use, in place of its details, with a way back.
@@ -96,7 +101,8 @@ function ChangeLayout( { page, isFrontPage, onBack } ) {
 
 /**
  * How long the document is, as core's Outline tab said it, which Layers
- * replaces.
+ * replaces. Only for writing: a page built from sections isn't read by its
+ * length.
  *
  * @return {Element} The counts.
  */
@@ -118,22 +124,26 @@ function DocumentLength() {
 function DocumentDetails() {
 	const homepage = useHomepageState();
 	const [ isChangingLayout, setIsChangingLayout ] = useState( false );
-	const { page, postType, title, typeName } = useSelect( ( select ) => {
-		const editor = select( EDITOR_STORE );
-		const type = editor.getCurrentPostType();
-		const id = editor.getCurrentPostId();
-		const store = select( coreDataStore );
+	const { hasLength, page, postType, title, typeName } = useSelect(
+		( select ) => {
+			const editor = select( EDITOR_STORE );
+			const type = editor.getCurrentPostType();
+			const id = editor.getCurrentPostId();
+			const store = select( coreDataStore );
 
-		return {
-			page:
-				type === 'page'
-					? store.getEditedEntityRecord( 'postType', 'page', id )
-					: null,
-			postType: type,
-			title: editor.getEditedPostAttribute( 'title' ),
-			typeName: store.getPostType( type )?.labels?.singular_name,
-		};
-	}, [] );
+			return {
+				hasLength: ! hasSections( select, type, id ),
+				page:
+					type === 'page'
+						? store.getEditedEntityRecord( 'postType', 'page', id )
+						: null,
+				postType: type,
+				title: editor.getEditedPostAttribute( 'title' ),
+				typeName: store.getPostType( type )?.labels?.singular_name,
+			};
+		},
+		[]
+	);
 	const isFrontPage = Boolean( page ) && page.id === homepage.pageId;
 	const layoutName = usePageLayoutName( {
 		isFrontPage,
@@ -168,7 +178,7 @@ function DocumentDetails() {
 				>
 					{ title || __( '(no title)' ) }
 				</Text>
-				<DocumentLength />
+				{ hasLength && <DocumentLength /> }
 			</div>
 			{ page && (
 				<PageDetails
@@ -253,7 +263,7 @@ export function DocumentPanel( { editorRef } ) {
 		[]
 	);
 	const [ host, setHost ] = useState( null );
-	const [ tab, setTab ] = useState( DETAILS_TAB );
+	const tab = useDocumentTab();
 
 	useEffect( () => {
 		if ( ! isOpen || ! editorRef.current ) {
@@ -271,7 +281,10 @@ export function DocumentPanel( { editorRef } ) {
 
 	return host
 		? createPortal(
-				<DocumentPanelContent onChangeTab={ setTab } tab={ tab } />,
+				<DocumentPanelContent
+					onChangeTab={ setDocumentTab }
+					tab={ tab }
+				/>,
 				host
 			)
 		: null;

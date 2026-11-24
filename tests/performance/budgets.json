@@ -17,7 +17,7 @@
     "routes/header/route.dependencies": 27,
     "routes/header/route.js": 10000,
     "routes/home/content.dependencies": 34,
-    "routes/home/content.js": 241000,
+    "routes/home/content.js": 243000,
     "routes/home/route.dependencies": 27,
     "routes/home/route.js": 10000,
     "routes/navigation-edit/content.dependencies": 32,

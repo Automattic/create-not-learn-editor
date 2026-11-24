@@ -37,9 +37,7 @@ test.describe( 'Document Overview', () => {
 		await canvas
 			.getByRole( 'button', { name: 'Edit', exact: true } )
 			.click();
-		await canvas
-			.getByRole( 'button', { name: /details and layers/i } )
-			.click();
+		await canvas.getByRole( 'button', { name: 'Document info' } ).click();
 
 		// It opens on Details, about the page.
 		const panel = page.locator( '.cnl-document-panel' );

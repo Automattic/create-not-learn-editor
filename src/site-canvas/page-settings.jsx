@@ -17,7 +17,12 @@ import { Icon } from '@wordpress/ui';
  * Internal dependencies
  */
 import { openRoute } from '../open-route';
-import { expandCanvas } from './expansion';
+import { expandCanvas, useCanvasExpansion } from './expansion';
+import {
+	DETAILS_TAB,
+	getToggleVariant,
+	toggleDocumentPanel,
+} from './document-panel/state';
 import { PAGES_PATH } from '../page-finder/open-page';
 import { PageDetails } from '../routes/content/pages/page-details';
 import { useHomepageState } from '../routes/content/pages/homepage';
@@ -90,6 +95,46 @@ function PageSettingsContent( { pageId, onClose } ) {
  */
 export function PageSettings( { pageId, status, statusLabel, statusIcon } ) {
 	const [ isOpen, setIsOpen ] = useState( false );
+	const isExpanded = useCanvasExpansion();
+	const isPanelOpen = useSelect(
+		( select ) => Boolean( select( 'core/editor' )?.isListViewOpened?.() ),
+		[]
+	);
+
+	// Spike: while editing, the status opens Details and Layers instead.
+	if ( isExpanded && getToggleVariant() === 'status' ) {
+		return (
+			<Tooltip.Root>
+				<Tooltip.Trigger
+					aria-expanded={ isPanelOpen }
+					aria-label={ sprintf(
+						/* translators: %s: The page's status, like Published. */
+						__( 'Page details and layers. %s' ),
+						statusLabel
+					) }
+					className={ `cnl-page-switcher__status is-${ status } is-details-chip${
+						isPanelOpen ? ' is-pressed' : ''
+					}` }
+					onClick={ () => toggleDocumentPanel( DETAILS_TAB ) }
+					render={ <button type="button" /> }
+				>
+					<Icon icon={ statusIcon } size={ 20 } />
+					<span className="cnl-page-switcher__details-label">
+						{ __( 'Details' ) }
+					</span>
+				</Tooltip.Trigger>
+				<Tooltip.Popup
+					positioner={ <Tooltip.Positioner side="bottom" /> }
+				>
+					{ sprintf(
+						/* translators: %s: The page's status, like Published. */
+						__( '%s · Page details and layers' ),
+						statusLabel
+					) }
+				</Tooltip.Popup>
+			</Tooltip.Root>
+		);
+	}
 
 	return (
 		<Dropdown

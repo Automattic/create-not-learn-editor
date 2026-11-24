@@ -108,3 +108,97 @@
 		margin: 0;
 	}
 }
+
+/*
+ * Spike: the toggle designs being tried. See `state.js`.
+ */
+
+// "About this page": an outlined button, so it reads as something to press.
+.cnl-site-canvas__document-overview-toggle.components-button.is-about.has-text {
+	padding-inline: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-md);
+	box-shadow: inset 0 0 0 1px var(--wpds-color-stroke-interactive-neutral);
+	color: var(--wpds-color-foreground-interactive-neutral);
+
+	&.is-pressed {
+		box-shadow: inset 0 0 0 1px var(--wpds-color-stroke-interactive-brand);
+	}
+}
+
+// The page bar's status, labelled, as the way into the page's details.
+.cnl-page-switcher .cnl-page-switcher__status.is-details-chip {
+	align-items: center;
+	gap: var(--wpds-dimension-gap-xs);
+	inset-inline-end: 4px;
+	height: 28px;
+	margin: 0;
+	padding: 0 var(--wpds-dimension-padding-sm) 0 var(--wpds-dimension-padding-xs);
+	border: 0;
+	border-radius: var(--wpds-border-radius-sm);
+	background: var(--wpds-color-background-surface-neutral);
+	box-shadow: inset 0 0 0 1px var(--wpds-color-stroke-surface-neutral);
+	color: var(--wpds-color-foreground-interactive-brand);
+	font: inherit;
+	font-size: var(--wpds-typography-font-size-sm);
+	font-weight: 500;
+
+	&:hover,
+	&.is-pressed {
+		background: var(--wpds-color-background-interactive-brand-strong);
+		color: var(--wpds-color-foreground-interactive-brand-strong);
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+	}
+}
+
+// The rail, down the canvas's left edge, with the editor beside it.
+.cnl-site-canvas__body.has-document-rail > .cnl-site-canvas__editor {
+	inset-inline-start: 64px;
+}
+
+.cnl-document-rail {
+	position: absolute;
+	inset-block: 0;
+	inset-inline-start: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+	box-sizing: border-box;
+	width: 64px;
+	padding: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-xs);
+	border-inline-end: 1px solid var(--wpds-color-stroke-surface-neutral);
+	background: var(--wpds-color-background-surface-neutral);
+}
+
+.cnl-document-rail__item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	padding: var(--wpds-dimension-padding-xs) 0;
+	border: 0;
+	border-radius: var(--wpds-border-radius-sm);
+	background: none;
+	color: var(--wpds-color-foreground-content-neutral);
+	font: inherit;
+	cursor: pointer;
+
+	&:hover {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+	}
+
+	&.is-current {
+		background: var(--wpds-color-background-interactive-brand-weak-active);
+		color: var(--wpds-color-foreground-interactive-brand);
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+	}
+}
+
+.cnl-document-rail__label {
+	font-size: 11px;
+	font-weight: 500;
+}
