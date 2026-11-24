@@ -146,12 +146,10 @@ function BlockToolbarFills( { clientId, name, attributes, setAttributes } ) {
 						setAttributes={ setAttributes }
 						isContainer={ isContainer }
 						title={ sectionTitle }
-						isSection={ Boolean( sectionViews ) }
 						readCoreItems={ read }
 						observeCoreItems={ observe }
 					/>
-					{ /* A section's Delete is in its options menu. */ }
-					{ ! sectionViews && <TrashButton clientId={ clientId } /> }
+					<TrashButton clientId={ clientId } />
 				</ToolbarGroup>
 			</BlockControls>
 			<CoreMenuItemsHost clientId={ clientId } hostRef={ hostRef } />

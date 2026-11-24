@@ -658,8 +658,6 @@ function getItemsKey( { first, controls, tools } ) {
  * @param {Function} props.setAttributes    Block attribute setter.
  * @param {boolean}  props.isContainer      Whether the block has a Layout menu.
  * @param {?string}  props.title            A name for the block other than its type's, like Section.
- * @param {boolean}  props.isSection        Whether it is a section of the page, whose toolbar has no
- *                                          Delete button: the menu has Delete instead.
  * @param {Function} props.readCoreItems    Reads core's menu items.
  * @param {Function} props.observeCoreItems Calls back when core's menu items may have changed.
  * @return {Element} The menu.
@@ -671,7 +669,6 @@ export function OptionsMenu( {
 	setAttributes,
 	isContainer,
 	title = null,
-	isSection = false,
 	readCoreItems,
 	observeCoreItems,
 } ) {
@@ -763,7 +760,7 @@ export function OptionsMenu( {
 		},
 		[ clientId, name ]
 	);
-	const { duplicateBlocks, removeBlocks } = useDispatch( blockEditorStore );
+	const { duplicateBlocks } = useDispatch( blockEditorStore );
 
 	const topLevelCoreItems = coreItems.controls.filter( ( item ) =>
 		TOP_LEVEL_CORE_ITEMS.has( item.label )
@@ -851,19 +848,6 @@ export function OptionsMenu( {
 						onClick={ () => duplicateBlocks( [ clientId ] ) }
 					>
 						<Menu.ItemLabel>{ __( 'Duplicate' ) }</Menu.ItemLabel>
-					</Menu.Item>
-				) }
-			</Menu.Group>
-		),
-		isSection && canRemove && (
-			<Menu.Group key="section">
-				{ canRemove && (
-					<Menu.Item
-						label={ __( 'Delete' ) }
-						shortcut={ shortcuts.remove }
-						onClick={ () => removeBlocks( [ clientId ], true ) }
-					>
-						<Menu.ItemLabel>{ __( 'Delete' ) }</Menu.ItemLabel>
 					</Menu.Item>
 				) }
 			</Menu.Group>
