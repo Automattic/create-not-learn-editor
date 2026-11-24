@@ -118,8 +118,8 @@ test.describe( 'Edit mode', () => {
 			canvas.getByText( 'Inside a section changed' )
 		).toBeVisible();
 
-		// The toolbar offers Delete for a block in the section, as for any
-		// block, and undo puts it back. Core hides its toolbar while typing, until the
+		// Core's toolbar offers Remove for a block in the section, and undo
+		// puts it back. Core hides its toolbar while typing, until the
 		// pointer moves over the page.
 		const typed = await canvas
 			.getByText( 'Inside a section changed' )
@@ -128,7 +128,7 @@ test.describe( 'Edit mode', () => {
 		await page.mouse.move( typed.x + 5, typed.y + 5 );
 		await page.mouse.move( typed.x + 15, typed.y + 8 );
 		await getBlockToolbar( page )
-			.getByRole( 'button', { name: 'Delete' } )
+			.getByRole( 'button', { name: 'Remove' } )
 			.click();
 		await expect(
 			canvas.getByText( 'Inside a section changed' )
@@ -346,8 +346,10 @@ test.describe( 'Edit mode', () => {
 			.locator( '.block-editor-inserter__quick-inserter' )
 			.getByRole( 'searchbox' )
 			.fill( 'Heading' );
+		// The block, not the pattern of the same name.
 		await page
 			.locator( '.block-editor-inserter__quick-inserter' )
+			.getByRole( 'listbox', { name: 'Blocks' } )
 			.getByRole( 'option', { name: 'Heading', exact: true } )
 			.click();
 
