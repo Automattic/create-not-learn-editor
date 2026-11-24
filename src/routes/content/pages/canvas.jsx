@@ -362,6 +362,7 @@ function PageDocument( { homepage, page } ) {
 		<div className="cnl-editor-homepage-document">
 			<PageSwitcher
 				meta={ meta }
+				pageId={ homepage ? homepage.page?.id : page?.id }
 				status={ status }
 				title={ heading }
 				url={ link }

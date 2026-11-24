@@ -55,7 +55,7 @@ test.describe( 'Header and footer interactions', () => {
 		test( `${ mode } keeps the footer in view while the page above it grows`, async ( {
 			page,
 		} ) => {
-			await visitEditor( page, '/design/footer' );
+			await visitEditor( page, '/site-parts/footer' );
 
 			await pickCanvasMode( page, mode );
 
@@ -77,7 +77,7 @@ test.describe( 'Header and footer interactions', () => {
 	test( 'scrolling the canvas stops it following the footer', async ( {
 		page,
 	} ) => {
-		await visitEditor( page, '/design/footer' );
+		await visitEditor( page, '/site-parts/footer' );
 		await pickCanvasMode( page, 'Browse' );
 
 		const frame = getSitePreview( page );

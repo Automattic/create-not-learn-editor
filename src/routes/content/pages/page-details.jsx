@@ -205,9 +205,18 @@ function usePageFields( layoutName, onOpenLayouts ) {
  * @param {string}   props.layoutName    The name of the page's layout.
  * @param {Function} props.onOpenLayouts Opens the layouts.
  * @param {number}   props.pageId        Page ID.
+ * @param {boolean}  [props.isPlain]     Without the card's border, when the
+ *                                       details are all there is.
  * @return {Element} The form.
  */
-function PageDetailsForm( { form, label, layoutName, onOpenLayouts, pageId } ) {
+function PageDetailsForm( {
+	form,
+	isPlain = false,
+	label,
+	layoutName,
+	onOpenLayouts,
+	pageId,
+} ) {
 	const dataviews = useDataViews();
 	const fields = usePageFields( layoutName, onOpenLayouts );
 	const page = useSelect(
@@ -225,9 +234,11 @@ function PageDetailsForm( { form, label, layoutName, onOpenLayouts, pageId } ) {
 	);
 	const { editEntityRecord } = useDispatch( coreDataStore );
 
+	const className = `cnl-page-details${ isPlain ? ' is-plain' : '' }`;
+
 	if ( ! dataviews || ! fields || ! page ) {
 		return (
-			<Card.Root aria-hidden className="cnl-page-details">
+			<Card.Root aria-hidden className={ className }>
 				<Card.Content className="cnl-page-details__content is-loading">
 					<Skeleton style={ { height: 20, width: '70%' } } />
 					<Skeleton style={ { height: 20, width: '55%' } } />
@@ -260,7 +271,7 @@ function PageDetailsForm( { form, label, layoutName, onOpenLayouts, pageId } ) {
 	return (
 		<Card.Root
 			aria-label={ label }
-			className="cnl-page-details"
+			className={ className }
 			render={ <section /> }
 		>
 			<Card.Content className="cnl-page-details__content">
@@ -307,7 +318,8 @@ export function PageDetails( { layoutName, onOpenLayouts, pageId } ) {
 	return (
 		<PageDetailsForm
 			form={ DETAILS_FORM }
-			label={ __( 'See all details' ) }
+			isPlain
+			label={ __( 'Details' ) }
 			layoutName={ layoutName }
 			onOpenLayouts={ onOpenLayouts }
 			pageId={ pageId }

@@ -20,6 +20,44 @@ async function openDesignLink( stage, name ) {
 		.click();
 }
 
+/**
+ * Pick the second of a design screen's choices, which the editor comes on to
+ * show beside the screen.
+ *
+ * @param {import('@playwright/test').Page} page     The page.
+ * @param {string}                          selector The choices' selector.
+ */
+async function pickSecondChoice( page, selector ) {
+	const choices = getStage( page ).locator( selector );
+
+	await expect( choices.first() ).toBeVisible( { timeout: 15000 } );
+	test.skip(
+		( await choices.count() ) < 2,
+		'The active theme has no other choices to pick.'
+	);
+
+	await choices.nth( 1 ).click();
+	await expect( choices.nth( 1 ) ).toHaveAttribute( 'aria-pressed', 'true' );
+	await expect( getSaveControls( page ) ).toContainText( '1 unsaved change' );
+}
+
+/**
+ * Go Back to Design and check the editor stayed beside it. The editor came
+ * on only to show a change, so it mustn't fill the editor on the way.
+ *
+ * @param {import('@playwright/test').Page} page The page.
+ */
+async function goBackToDesignBesideCanvas( page ) {
+	await getStage( page ).getByRole( 'button', { name: 'Back' } ).click();
+	await expect( page ).toHaveURL( /p=%2Fdesign$/ );
+	await expect(
+		page.getByRole( 'heading', { name: 'Design', exact: true } )
+	).toBeVisible();
+	await expect( page.locator( 'body' ) ).not.toHaveClass(
+		/cnl-canvas-is-expanded/
+	);
+}
+
 test.describe( 'Design interactions', () => {
 	test( 'links lead to each design screen, and breadcrumbs lead back', async ( {
 		page,
@@ -83,24 +121,46 @@ test.describe( 'Design interactions', () => {
 		await expect( getSaveControls( page ) ).not.toContainText( 'unsaved' );
 	} );
 
-	test( 'picking a color palette waits to be saved', async ( { page } ) => {
+	test( 'picking a color palette waits to be saved, and Back leaves the editor beside Design', async ( {
+		page,
+	} ) => {
 		await visitEditor( page, '/design/colors' );
+		await pickSecondChoice( page, '.routes-styles__palette' );
+		await goBackToDesignBesideCanvas( page );
+	} );
 
-		const palettes = getStage( page ).locator( '.routes-styles__palette' );
+	test( 'Back from a picked font pairing leaves the editor beside Design', async ( {
+		page,
+	} ) => {
+		await visitEditor( page, '/design/fonts' );
+		await pickSecondChoice( page, '.routes-styles__font' );
+		await goBackToDesignBesideCanvas( page );
+	} );
 
-		await expect( palettes.first() ).toBeVisible( { timeout: 15000 } );
-		test.skip(
-			( await palettes.count() ) < 2,
-			'The active theme has no other palettes to pick.'
-		);
+	test( 'opening a page after a change was shown still fills the editor', async ( {
+		page,
+		rest,
+	} ) => {
+		const target = await rest.createPage();
 
-		await palettes.nth( 1 ).click();
-		await expect( palettes.nth( 1 ) ).toHaveAttribute(
-			'aria-pressed',
-			'true'
-		);
-		await expect( getSaveControls( page ) ).toContainText(
-			'1 unsaved change'
+		await visitEditor( page, '/design/colors' );
+		await pickSecondChoice( page, '.routes-styles__palette' );
+		await goBackToDesignBesideCanvas( page );
+
+		// Picking a page means editing it, so the editor fills the screen.
+		await page
+			.getByRole( 'button', { name: /Go to another page$/ } )
+			.click();
+		await page
+			.getByRole( 'combobox', { name: 'Find or go to any page' } )
+			.fill( target.title );
+		await page.getByRole( 'option', { name: target.title } ).click();
+
+		await expect(
+			page.locator( '.cnl-editor-homepage-document__title' )
+		).toHaveText( target.title, { timeout: 15000 } );
+		await expect( page.locator( 'body' ) ).toHaveClass(
+			/cnl-canvas-is-expanded/
 		);
 	} );
 

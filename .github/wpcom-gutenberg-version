@@ -1,0 +1,9 @@
+# The Gutenberg version WordPress.com runs, for the Gutenberg compatibility
+# workflow (.github/workflows/gutenberg-compat.yml) to test alongside the
+# minimum, the latest release and trunk.
+#
+# Put it on the first line that isn't a comment: a release such as 24.4.2,
+# or a release candidate such as 24.5.0-rc.1. Leave it empty until someone
+# who knows the deployed version fills it in, and keep it current as
+# WordPress.com deploys new ones. An empty file tests no WordPress.com
+# version.

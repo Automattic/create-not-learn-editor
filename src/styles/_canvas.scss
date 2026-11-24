@@ -1,8 +1,6 @@
 // The canvas beside the stage: its toolbar, document title and the states it
 // shows before or instead of the site.
 
-@use "../colors" as *;
-
 // The toolbar wraps by the canvas's own width, which the stage beside it
 // narrows, rather than the window's.
 .cnl-editor-canvas {
@@ -206,20 +204,6 @@
 	color: var(--wpds-color-foreground-content-neutral-weak);
 	text-overflow: ellipsis;
 	white-space: nowrap;
-}
-
-// The header or footer's name and that every page has it, in the purple of
-// what every page shares. See `src/global-scope`.
-.cnl-editor-homepage-document.is-global {
-
-	.cnl-editor-homepage-document__icon {
-		fill: $cnl-global;
-	}
-
-	.cnl-editor-homepage-document__title,
-	.cnl-editor-homepage-document__meta {
-		color: $cnl-global;
-	}
 }
 
 .cnl-editor-homepage-options {

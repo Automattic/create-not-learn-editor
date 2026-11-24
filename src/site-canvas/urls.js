@@ -3,7 +3,13 @@
  * and the full-screen editor's route for what is being edited.
  */
 
+import { settings } from '../settings';
+
 export const PREVIEW_PARAM = 'cnl-editor-preview';
+
+// The editor session whose unsaved changes the preview shows. Read by the
+// preview's PHP, `includes/preview-changes.php`.
+export const CHANGES_PARAM = 'cnl-editor-changes';
 
 // A layout to show a page in before it is saved. Read by the preview's PHP.
 export const TEMPLATE_PARAM = 'cnl-editor-template';
@@ -26,6 +32,7 @@ export const POSTS_PER_PAGE_PARAM = 'cnl-editor-posts-per-page';
 // Query args that say how a page is being looked at, not which page it is.
 const VIEWING_PARAMS = [
 	PREVIEW_PARAM,
+	CHANGES_PARAM,
 	'cnl-editor-preview-refresh',
 	'preview',
 ];
@@ -59,6 +66,10 @@ export function getPreviewFrameUrl( url, base ) {
 
 	parsed.searchParams.set( PREVIEW_PARAM, '1' );
 
+	if ( settings.previewSession ) {
+		parsed.searchParams.set( CHANGES_PARAM, settings.previewSession );
+	}
+
 	return parsed.href;
 }
 
@@ -84,6 +95,7 @@ export function getLiveUrl( url ) {
 	}
 
 	parsed.searchParams.delete( PREVIEW_PARAM );
+	parsed.searchParams.delete( CHANGES_PARAM );
 	parsed.searchParams.delete( 'cnl-editor-preview-refresh' );
 	parsed.searchParams.delete( TEMPLATE_PARAM );
 	parsed.searchParams.delete( LAYOUT_PARAM );

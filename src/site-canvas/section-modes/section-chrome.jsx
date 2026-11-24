@@ -19,7 +19,6 @@ import {
 	arrowUp as arrowUpIcon,
 	button as buttonIcon,
 	copy as copyIcon,
-	globe as globeIcon,
 	heading as headingIcon,
 	image as imageIcon,
 	layout as layoutIcon,
@@ -27,6 +26,7 @@ import {
 	pencil as pencilIcon,
 	plus as plusIcon,
 	styles as designIcon,
+	symbolFilled as symbolFilledIcon,
 	trash as trashIcon,
 } from '@wordpress/icons';
 
@@ -214,7 +214,7 @@ export function SectionTab( {
 			}${ isBelow ? ' is-below' : '' }` }
 			style={ style }
 		>
-			{ isPart && <LegacyIcon icon={ globeIcon } size={ 14 } /> }
+			{ isPart && <LegacyIcon icon={ symbolFilledIcon } size={ 14 } /> }
 			{ layout && <LegacyIcon icon={ layoutIcon } size={ 14 } /> }
 			<span className="cnl-section-modes__tab-title">{ title }</span>
 			{ isPart && (

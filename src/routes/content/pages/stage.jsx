@@ -92,7 +92,7 @@ export function PageDetailStage( {
 		? []
 		: getPageAncestorTitles( pages, pageId, getPageTitle );
 	const viewTitles = {
-		[ DETAILS_VIEW ]: __( 'See all details' ),
+		[ DETAILS_VIEW ]: __( 'Details' ),
 		[ LAYOUT_VIEW ]: __( 'Change layout' ),
 	};
 	const view = viewTitles[ searchParams.view ] ? searchParams.view : null;

@@ -10,6 +10,7 @@ The README is for people trying the editor and explains the ideas behind it. The
 - [docs/architecture.md](docs/architecture.md) covers the editor shell and routes, what is edited as sections and what as blocks, the visual theme, explicit site changes, the Gutenberg version check and opening in a workspace.
 - [docs/webmcp.md](docs/webmcp.md) covers the editor's WebMCP tools, the official AI plugin's tools alongside them, and how an agent connects.
 - [docs/demo-site-and-playground.md](docs/demo-site-and-playground.md) covers the Mainstay theme, the demo seed, the shop and the Playground demos, how to cut a release, and the rules for changing them. Read it before touching `themes/`, `scripts/demo-site/`, `demos/` or the Playground workflows.
+- [docs/performance-budget.md](docs/performance-budget.md) covers the performance budget CI checks the build against, and when to raise a number.
 - [docs/editor-workarounds.md](docs/editor-workarounds.md) lists every reliance on private APIs or core internals. Add an entry there whenever you add one.
 - [docs/vendored-list-view.md](docs/vendored-list-view.md) covers the vendored ListView bridge.
 - Folders such as `src/editor-layer/`, `src/block-toolbar/` and `src/site-canvas/` have their own README. Read it when you work in that folder.
@@ -77,7 +78,7 @@ CI (`.github/workflows/ci.yml`) runs the build, lints, ListView check, PHP lint,
 
 Before handing off code changes:
 
-1. Run the quick checks locally: `npm run build`, `npm run lint:js` and `npm run lint:css`, plus `npm run test:php` when PHP changed. Cover new PHP logic with a PHPUnit test in `tests/phpunit/` rather than an e2e test.
+1. Run the quick checks locally: `npm run build`, `npm run lint:js`, `npm run lint:css` and `npm run perf:budget`, plus `npm run test:php` when PHP changed. Cover new PHP logic with a PHPUnit test in `tests/phpunit/` rather than an e2e test.
 2. Run only the e2e specs that cover what you changed, against the `wp-env` tests site, e.g. `WP_BASE_URL=http://localhost:<tests-port> npx playwright test tests/e2e/interactions/compose.spec.js`.
 3. Once the branch is pushed, wait with `gh pr checks --watch` and, if something fails, read just `gh run view <run-id> --log-failed`. Fix and push again until the checks pass.
 
@@ -111,7 +112,7 @@ Code comments explain why the code is as it is, briefly. The story of a feature'
 
 Root `routes/*` files should stay thin re-export wrappers around the source route modules. Do not put substantive route implementation in the wrappers unless the build tool requires it.
 
-`@wordpress/build` bundles each route module separately, with its own copy of everything it imports. So screens that share source share one module: `routes/static` serves Design, Colors, Fonts, Name & logo and the Advanced lists, `routes/site-part` serves Header, Footer and Header & footer, and `routes/content` serves both content paths. `cnl_editor_get_routes()` maps each path to its module, and the screen is picked by path. Add a screen to one of these rather than giving it a wrapper of its own that bundles the same code again.
+`@wordpress/build` bundles each route module separately, with its own copy of everything it imports. So screens that share source share one module: `routes/static` serves Design, Colors, Fonts, Name & logo and the Advanced lists, `routes/site-part` serves Site parts and its Header and Footer screens, and `routes/content` serves both content paths. `cnl_editor_get_routes()` maps each path to its module, and the screen is picked by path. Add a screen to one of these rather than giving it a wrapper of its own that bundles the same code again.
 
 DataViews is the biggest package the editor uses, so it lives in its own script module, `packages/dataviews`, which screens load with `useDataViews()` from `src/use-dataviews.js` the first time they show a list. Don't import `@wordpress/dataviews` anywhere else.
 

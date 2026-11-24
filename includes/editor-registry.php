@@ -219,17 +219,17 @@ function cnl_editor_get_routes() {
 			'content_module' => 'create-not-learn-editor/routes/static/content',
 		),
 		array(
-			'path'           => '/design/header-footer',
-			'route_module'   => 'create-not-learn-editor/routes/header-footer/route',
+			'path'           => '/site-parts',
+			'route_module'   => 'create-not-learn-editor/routes/site-parts/route',
 			'content_module' => 'create-not-learn-editor/routes/site-part/content',
 		),
 		array(
-			'path'           => '/design/header',
+			'path'           => '/site-parts/header',
 			'route_module'   => 'create-not-learn-editor/routes/header/route',
 			'content_module' => 'create-not-learn-editor/routes/site-part/content',
 		),
 		array(
-			'path'           => '/design/footer',
+			'path'           => '/site-parts/footer',
 			'route_module'   => 'create-not-learn-editor/routes/footer/route',
 			'content_module' => 'create-not-learn-editor/routes/site-part/content',
 		),
@@ -317,6 +317,15 @@ function cnl_editor_get_menu_items() {
 				'to'      => '/site-overview',
 				'section' => 'site',
 			),
+			// The parts every page shares, the main ones, each leading on to
+			// the rest in its area.
+			array(
+				'id'      => 'site-parts',
+				'icon'    => 'dashicons-layout',
+				'label'   => __( 'Site parts', 'create-not-learn-editor' ),
+				'to'      => '/site-parts',
+				'section' => 'site',
+			),
 			// The main menu is managed on the Pages screen; this is for the rest.
 			array(
 				'id'      => 'navigation',
@@ -373,7 +382,7 @@ function cnl_editor_get_menu_items() {
 			),
 			array(
 				'id'      => 'templateParts',
-				'label'   => __( 'Site parts', 'create-not-learn-editor' ),
+				'label'   => __( 'All site parts', 'create-not-learn-editor' ),
 				'to'      => '/template-parts',
 				'section' => 'advanced',
 			),

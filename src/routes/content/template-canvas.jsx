@@ -25,12 +25,12 @@
  */
 import { GLOBAL_CANVAS_CSS, GlobalScope } from '../../global-scope';
 import { settings } from '../../settings';
-import { DocumentTitle, SiteCanvas, useSiteCanvas } from '../../site-canvas';
+import { PageSwitcher, SiteCanvas, useSiteCanvas } from '../../site-canvas';
 import { useCanvasStyles } from '../../site-canvas/use-canvas-styles';
-import { getTemplateIcon, getTemplateTitle } from './helpers';
+import { getTemplateTitle } from './helpers';
 import { getSystemPage } from './pages/system-pages';
 import { getTemplatePreviewUrl } from './template-preview-url';
-import { __, Icon, useMemo, useRef } from '../../wordpress-packages';
+import { __, useMemo, useRef } from '../../wordpress-packages';
 
 const GLOBAL_STYLE_ID = 'cnl-template-canvas-global';
 
@@ -41,31 +41,27 @@ const EDITOR_SETTINGS = { disableContentOnlyForUnsyncedPatterns: true };
  * @param {boolean} props.isSystemPage Whether the layout makes one of the
  *                                     system pages, listed by Pages.
  * @param {Object}  props.template     Template record.
- * @return {Element} The layout's name, for the canvas toolbar.
+ * @return {Element} The layout's name, for the canvas toolbar, in the bar
+ *                   pages have, marked as shared.
  */
 function TemplateDocument( { isSystemPage, template } ) {
 	const systemPage = isSystemPage ? getSystemPage( template ) : null;
 
 	return (
-		<div className="cnl-editor-homepage-document is-global">
-			<div className="cnl-editor-homepage-document__text">
-				<div className="cnl-editor-homepage-document__heading">
-					<Icon
-						className="cnl-editor-homepage-document__icon"
-						icon={ systemPage?.icon || getTemplateIcon( template ) }
-					/>
-					<DocumentTitle
-						title={
-							systemPage?.title || getTemplateTitle( template )
-						}
-					/>
-				</div>
-				<p className="cnl-editor-homepage-document__meta">
-					{ systemPage
-						? __( 'System page · Your site makes this one' )
-						: __( 'Layout · Changes everywhere it is used' ) }
-				</p>
-			</div>
+		<div className="cnl-editor-homepage-document">
+			<PageSwitcher
+				meta={ systemPage ? __( 'System page' ) : __( 'Layout' ) }
+				shared={
+					systemPage
+						? __(
+								'Your site makes this page. Changes show wherever it does.'
+							)
+						: __(
+								'Changes show on every page that uses this layout.'
+							)
+				}
+				title={ systemPage?.title || getTemplateTitle( template ) }
+			/>
 		</div>
 	);
 }

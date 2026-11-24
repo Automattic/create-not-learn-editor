@@ -132,3 +132,48 @@
 	max-height: 280px;
 	overflow-y: auto;
 }
+
+// The menu a Navigation block shows, named above its links, with a quiet
+// way to show another.
+.cnl-site-part__menu-in-use {
+	display: flex;
+	gap: var(--wpds-dimension-gap-md);
+	align-items: flex-start;
+	justify-content: space-between;
+	padding: var(--wpds-dimension-padding-lg);
+	border: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neutral-weak);
+	border-radius: var(--wpds-border-radius-lg);
+	background: var(--wpds-color-background-surface-neutral-strong);
+}
+
+.cnl-site-part__menu-in-use-text {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+	min-width: 0;
+
+	p {
+		margin: 0;
+	}
+}
+
+// Quiet, so the menu's name leads and switching is a step taken on purpose.
+.cnl-site-part__menu-switch.is-link {
+	flex-shrink: 0;
+	color: var(--wpds-color-foreground-content-neutral-weak);
+	text-decoration: underline;
+
+	&:hover:not(:disabled) {
+		color: var(--wpds-color-foreground-content-neutral);
+	}
+}
+
+.cnl-site-part__switch-menu p {
+	margin: 0;
+}
+
+.cnl-site-part__switch-menu-actions {
+	display: flex;
+	gap: var(--wpds-dimension-gap-md);
+	justify-content: flex-end;
+}

@@ -94,6 +94,12 @@ The answer is on each post's REST record as `cnl_has_sections`. In JavaScript, a
 
 Template parts get the same treatment wherever they appear, on content with sections or without. Each is purple, locked until "Edit header", "Edit footer" or "Edit" and the part's name opens it in the spotlight with the Edit design bar. The editor finds them by block type, not by name, so a sidebar or a second header is treated like the header. See `src/site-canvas/README.md`.
 
+### Site parts
+
+The Site parts screen (`/site-parts`, in the sidebar's Site section and on Home) lists only the parts the homepage uses, so there is nothing to choose between. It shows the first header and the last footer. Each part's screen offers what is worth changing in it (layout, name and logo, a row for each menu, social links) and ends with a "See all" link to every part in its area, on the All site parts list (`/template-parts?area=…`).
+
+A menu row switches menus only through a deliberate Change step, since a menu can be used in more than one place. Gutenberg's version also offers the navigation overlay; that is left out until we've worked out how it should show. It follows the same idea as Gutenberg's [Site parts experiment](https://github.com/WordPress/gutenberg/pull/87071). The code is in `src/routes/site-part/`.
+
 ## Visual theme
 
 The editor uses the WordPress Design System as it ships. Its own surfaces take their colours, corners, spacing and shadows from WPDS tokens and core's elevation scale, so they sit alongside core's components rather than near them. The black sidebar's section titles, like Content and Design, are the one exception: they are set in EB Garamond, the heading face on [WordPress.org](https://wordpress.org/). The font lives in `assets/fonts/eb-garamond/` under the SIL Open Font License and loads from the plugin, not a third-party CDN.
@@ -119,7 +125,17 @@ The setup behavior is behind an explicit action:
 POST /wp-json/create-not-learn-editor/v1/setup-defaults
 ```
 
-That action creates or reuses a Home page, sets it as the static homepage, and ensures a basic Navigation menu exists. It is intended to be idempotent.
+That action reuses a published Home page or creates one, never publishing a draft or private page, sets it as the static homepage, and ensures a basic Navigation menu exists. It is intended to be idempotent.
+
+## Unsaved changes in the preview
+
+Browse shows the real front end in an iframe. To show it as it would be once saved, the canvas sends the editor's unsaved changes to `POST /wp-json/create-not-learn-editor/v1/preview-changes` before the preview loads (`src/site-canvas/preview-changes.js`). Each editor page load is its own session (`previewSession` in `window.createNotLearnEditor`), and the preview's addresses carry it as `cnl-editor-changes`.
+
+On a preview request that names a session of the current user, `includes/preview-changes.php` puts the changes in place of what is saved. It covers posts' titles, content and page layout, layouts and site parts, synced sections and menus, the site's look, and the site settings the editor changes. The changes are kept in a user option for an hour after they were last sent, for the user's five latest sessions and up to 2 MB each, and are forgotten when the user logs out. Site settings are only shown unsaved to those who could save them, and a preview lists at most 100 posts at once. Pages drawn with them are never cached. Visitors, other users and other sessions see the saved site.
+
+Changes the layer doesn't cover, like a page's parent or order, still ask to be saved or discarded on the way to Browse.
+
+The Site overview's pictures of pages use the same session, so they show the unsaved changes too. Each picture loads the page once, then is swapped for a copy of it without its scripts, kept until the editor sends new changes (`src/routes/site-overview/snapshots.js`). Cards load a few at a time, the homepage first, and only once the map is still: cards far from the screen, or too small on it to make out, show no page at all. This keeps a site with hundreds of pages smooth to pan and zoom.
 
 ## Requirements and the Gutenberg check
 
@@ -134,6 +150,8 @@ Requires Plugins: gutenberg
 ```
 
 WordPress plugin dependencies do not support minimum dependency versions, so the plugin also checks `GUTENBERG_VERSION >= 24.0.0` at runtime. If Gutenberg is missing or too old, the editor page is not registered and an admin notice is shown.
+
+Pull requests are tested against that minimum. Newer Gutenbergs, the latest release, trunk and the one WordPress.com runs, are tested each week by the Gutenberg compatibility workflow, which opens an issue for each version that fails. See [Trying another Gutenberg](../CONTRIBUTING.md#trying-another-gutenberg).
 
 ## Opening in a workspace
 

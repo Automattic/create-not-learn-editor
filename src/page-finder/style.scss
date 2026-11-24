@@ -5,6 +5,8 @@
  * canvas's light colours.
  */
 
+@use "../colors" as *;
+
 $field-height: 32px;
 $panel-gap: 4px;
 
@@ -436,7 +438,78 @@ $light-fill-strong: rgba(0, 0, 0, 0.08);
 	&.is-publish {
 		color: var(--wpds-color-foreground-content-neutral-weak);
 	}
+
+	// What every page shares, in its purple. See `src/global-scope`.
+	&.is-shared {
+		color: $cnl-global;
+	}
 }
+
+// A layout or template part's name and what it is, in the purple of what
+// every page shares. See `src/global-scope`.
+.cnl-page-switcher.is-shared .cnl-page-switcher__label > * {
+	color: $cnl-global;
+}
+
+// Names what is open without going anywhere, so it doesn't act like a field.
+.cnl-page-switcher.is-static {
+
+	.cnl-page-switcher__toggle,
+	.cnl-page-switcher__toggle:hover {
+		background: $light-fill;
+		cursor: default;
+	}
+
+	.cnl-page-switcher__status {
+		cursor: default;
+	}
+}
+
+/*
+ * A page's status opens its settings (`src/site-canvas/page-settings.jsx`),
+ * so it is a button, a little bigger than its icon to be easy to hit.
+ */
+.cnl-page-switcher__status.is-settings {
+	inset-inline-end: calc(var(--wpds-dimension-padding-sm) - 4px);
+}
+
+.cnl-page-switcher__settings-toggle {
+	display: flex;
+	margin: 0;
+	padding: 4px;
+	border: 0;
+	border-radius: var(--wpds-border-radius-sm);
+	background: none;
+	color: inherit;
+	cursor: pointer;
+
+	&:hover,
+	&[aria-expanded="true"] {
+		background: $light-fill-strong;
+		color: var(--wpds-color-foreground-content-neutral);
+	}
+
+	&:focus-visible {
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+	}
+}
+
+.cnl-page-settings__content {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-md);
+	box-sizing: border-box;
+	width: 320px;
+	max-width: 100%;
+	padding: var(--wpds-dimension-padding-lg);
+}
+
+.cnl-page-settings__heading {
+	margin: 0;
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: 600;
+}
+
 
 // The name, then what it is.
 .cnl-page-switcher__label {

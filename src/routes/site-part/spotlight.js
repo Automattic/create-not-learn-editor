@@ -38,7 +38,8 @@ import {
 /*
  * What each of the screen's views changes, as the blocks the editor has and
  * as they appear in the saved site. A menu is the part's first, the one the
- * screen edits; the name and logo, and the social links, are all there are.
+ * screen edits, picked by its place among the part's menus; the name and logo,
+ * and the social links, are all there are.
  */
 const FOCUS_TARGETS = {
 	identity: {
@@ -52,7 +53,7 @@ const FOCUS_TARGETS = {
 	},
 	menu: {
 		blockNames: [ 'core/navigation' ],
-		isFirstOnly: true,
+		isOneOf: true,
 		selector: '.wp-block-navigation',
 	},
 	// Every one, as the screen keeps them all the same.
@@ -82,9 +83,10 @@ const PREVIEW_SELECTORS = {
  *
  * @param {HTMLElement} part  The part.
  * @param {?string}     focus The screen's view.
+ * @param {number}      index Which one, for a view about one of several.
  * @return {HTMLElement[]} The nodes to outline.
  */
-function getPreviewFocusNodes( part, focus ) {
+function getPreviewFocusNodes( part, focus, index = 0 ) {
 	const target = FOCUS_TARGETS[ focus ];
 
 	if ( ! target ) {
@@ -93,7 +95,7 @@ function getPreviewFocusNodes( part, focus ) {
 
 	const nodes = [ ...part.querySelectorAll( target.selector ) ];
 
-	return target.isFirstOnly ? nodes.slice( 0, 1 ) : nodes;
+	return target.isOneOf ? nodes.slice( index, index + 1 ) : nodes;
 }
 
 /**
@@ -102,9 +104,10 @@ function getPreviewFocusNodes( part, focus ) {
  * @param {Object}  store    `blockEditorStore` selectors.
  * @param {string}  clientId The part's client ID.
  * @param {?string} focus    The screen's view.
+ * @param {number}  index    Which one, for a view about one of several.
  * @return {string[]} Client IDs of the blocks to outline.
  */
-function getFocusClientIds( store, clientId, focus ) {
+function getFocusClientIds( store, clientId, focus, index = 0 ) {
 	const target = FOCUS_TARGETS[ focus ];
 
 	if ( ! target || ! clientId ) {
@@ -117,7 +120,7 @@ function getFocusClientIds( store, clientId, focus ) {
 			target.blockNames.includes( store.getBlockName( id ) )
 		);
 
-	return target.isFirstOnly ? clientIds.slice( 0, 1 ) : clientIds;
+	return target.isOneOf ? clientIds.slice( index, index + 1 ) : clientIds;
 }
 
 /**
@@ -201,10 +204,17 @@ function followPart( frameDocument, getNode, area ) {
  * @param {Object}  options
  * @param {string}  options.area         `header` or `footer`.
  * @param {?string} options.focus        The screen's view.
+ * @param {number}  options.focusIndex   Which one the view is about.
  * @param {Object}  options.frame        The canvas's preview frame.
  * @param {boolean} options.isPreviewing Whether Browse is on.
  */
-function usePreviewSpotlight( { area, focus, frame, isPreviewing } ) {
+function usePreviewSpotlight( {
+	area,
+	focus,
+	focusIndex,
+	frame,
+	isPreviewing,
+} ) {
 	const iframeRef = frame.frameProps.ref;
 	const isLoading = frame.isLoading;
 
@@ -234,7 +244,10 @@ function usePreviewSpotlight( { area, focus, frame, isPreviewing } ) {
 
 		const style = addStyles( previewDocument, SPOTLIGHT_STYLES );
 		markSpotlight( node, area );
-		markFocus( previewDocument, getPreviewFocusNodes( node, focus ) );
+		markFocus(
+			previewDocument,
+			getPreviewFocusNodes( node, focus, focusIndex )
+		);
 
 		const stopFollowing = isPreviewing
 			? followPart( previewDocument, () => node, area )
@@ -245,7 +258,7 @@ function usePreviewSpotlight( { area, focus, frame, isPreviewing } ) {
 			style.remove();
 			clearSpotlight( previewDocument );
 		};
-	}, [ area, focus, iframeRef, isLoading, isPreviewing ] );
+	}, [ area, focus, focusIndex, iframeRef, isLoading, isPreviewing ] );
 }
 
 /**
@@ -257,6 +270,8 @@ function usePreviewSpotlight( { area, focus, frame, isPreviewing } ) {
  * @param {?string}   options.clientId       The part's client ID.
  * @param {?string}   options.focus          The screen's view, which picks
  *                                           what is outlined in the part.
+ * @param {number}    options.focusIndex     Which one the view is about, for
+ *                                           a part with several menus.
  * @param {Object}    options.frame          The canvas's preview frame.
  * @param {boolean}   options.isPreviewing   Whether Browse is on.
  */
@@ -265,10 +280,11 @@ export function useSitePartSpotlight( {
 	canvasDocument,
 	clientId,
 	focus,
+	focusIndex = 0,
 	frame,
 	isPreviewing,
 } ) {
-	usePreviewSpotlight( { area, focus, frame, isPreviewing } );
+	usePreviewSpotlight( { area, focus, focusIndex, frame, isPreviewing } );
 
 	// Joined, so the selector returns a value that only changes when they do.
 	const focusClientIds = useSelect(
@@ -276,9 +292,10 @@ export function useSitePartSpotlight( {
 			getFocusClientIds(
 				select( blockEditorStore ),
 				clientId,
-				focus
+				focus,
+				focusIndex
 			).join( ',' ),
-		[ clientId, focus ]
+		[ clientId, focus, focusIndex ]
 	);
 	const isActive = Boolean( clientId && canvasDocument && ! isPreviewing );
 

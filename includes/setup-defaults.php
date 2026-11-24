@@ -70,37 +70,34 @@ function cnl_editor_name_fallback_navigation_menu( $data, $postarr, $unsanitized
  * @return int Home page ID, or 0 if it could not be created.
  */
 function cnl_editor_get_or_create_home_page() {
-	$home_page = get_page_by_path( 'home', OBJECT, 'page' );
+	// Only a page visitors can already see is reused. A draft or private
+	// "Home" is left as it is, never published for its owner.
+	$found = array(
+		'fields'         => 'ids',
+		'order'          => 'ASC',
+		'orderby'        => 'ID',
+		'post_status'    => 'publish',
+		'post_type'      => 'page',
+		'posts_per_page' => 1,
+	);
 
-	if ( ! $home_page ) {
-		$home_pages = get_posts(
+	// The page at `/home`, or else the first one titled "Home".
+	$home_pages = get_posts(
+		array_merge(
+			$found,
 			array(
-				'fields'         => 'ids',
-				'order'          => 'ASC',
-				'orderby'        => 'ID',
-				'post_status'    => 'any',
-				'post_type'      => 'page',
-				'posts_per_page' => 1,
-				'title'          => 'Home',
+				'name'        => 'home',
+				'post_parent' => 0,
 			)
-		);
+		)
+	);
 
-		if ( ! empty( $home_pages ) ) {
-			$home_page = get_post( (int) $home_pages[0] );
-		}
+	if ( ! $home_pages ) {
+		$home_pages = get_posts( array_merge( $found, array( 'title' => 'Home' ) ) );
 	}
 
-	if ( $home_page ) {
-		if ( 'publish' !== $home_page->post_status ) {
-			wp_update_post(
-				array(
-					'ID'          => $home_page->ID,
-					'post_status' => 'publish',
-				)
-			);
-		}
-
-		return (int) $home_page->ID;
+	if ( $home_pages ) {
+		return (int) $home_pages[0];
 	}
 
 	$home_page_id = wp_insert_post(

@@ -28,7 +28,7 @@ import { __ } from '@wordpress/i18n';
 import { closeSmall } from '@wordpress/icons';
 import { uploadMedia } from '@wordpress/media-utils';
 import { store as noticesStore } from '@wordpress/notices';
-import { Fieldset, InputControl, Spinner, Stack, Text } from '@wordpress/ui';
+import { Fieldset, InputControl, Spinner, Stack } from '@wordpress/ui';
 
 const EMPTY_OBJECT = {};
 const ALL_FIELDS = [ 'title', 'tagline', 'logo', 'icon' ];
@@ -379,11 +379,6 @@ export function SiteIdentityFields( {
 			</div>
 			{ hasEdits && ! hideDiscard && (
 				<div className="routes-styles__save">
-					<Text className="routes-styles__muted" variant="body-sm">
-						{ __(
-							'You are previewing changes. Visitors see them once you save.'
-						) }
-					</Text>
 					<Stack gap="sm">
 						<Button
 							__next40pxDefaultSize

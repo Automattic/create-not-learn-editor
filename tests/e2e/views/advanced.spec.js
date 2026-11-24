@@ -38,14 +38,14 @@ test.describe( 'Advanced views', () => {
 		await expect( page.locator( '.boot-layout__canvas' ) ).toHaveCount( 0 );
 	} );
 
-	test( 'lists Site parts full width, by area', async ( { page } ) => {
-		await openSidebarLink( page, 'Site parts' );
+	test( 'lists All site parts full width, by area', async ( { page } ) => {
+		await openSidebarLink( page, 'All site parts' );
 		await expect( page ).toHaveURL( /p=%2Ftemplate-parts/ );
 
 		const stage = getStage( page );
 
 		await expect(
-			stage.getByRole( 'heading', { name: 'Site parts' } )
+			stage.getByRole( 'heading', { name: 'All site parts' } )
 		).toBeVisible();
 		await expect(
 			stage.getByRole( 'tab', { name: 'All', exact: true } )

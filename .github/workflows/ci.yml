@@ -6,6 +6,9 @@ name: CI
 # - `checks` builds, lints, checks the vendored ListView, lints PHP and runs the
 #   unit tests.
 # - `php` runs the PHPUnit suite against WordPress and Gutenberg in wp-env.
+# - `performance` checks the build against the budget in
+#   tests/performance/budgets.json and, on a pull request, compares it with
+#   the base branch's build in the job summary. See docs/performance-budget.md.
 # - `e2e` runs the Playwright suite over six shards, each with a wp-env of its
 #   own. Tests run one at a time on each site, as they share its data, so
 #   more shards is how to make the suite faster.
@@ -113,6 +116,52 @@ jobs:
       - name: Run PHPUnit
         run: npm run test:php
 
+  performance:
+    name: Performance budget
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # The budget and the script that checks it always come from head. Base
+      # is only built, to compare with.
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          path: head
+
+      - name: Checkout base
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: '*/package-lock.json'
+
+      - name: Build head
+        working-directory: head
+        run: npm ci --no-audit --no-fund && npm run build
+
+      # A base that fails to build only loses the comparison.
+      - name: Build base
+        if: github.event_name == 'pull_request'
+        working-directory: base
+        continue-on-error: true
+        run: npm ci --no-audit --no-fund && npm run build
+
+      - name: Check the budget
+        working-directory: head
+        run: |
+          base=()
+          [ -d ../base/build ] && base=( --base ../base/build )
+          node scripts/performance-budget.mjs "${base[@]}" | tee -a "$GITHUB_STEP_SUMMARY"
+
   # Starts from every file and leaves out what can't change an e2e result, so
   # a new folder is tested until someone decides otherwise.
   changes:
@@ -137,6 +186,7 @@ jobs:
               - '!demos/**'
               - '!tests/unit/**'
               - '!tests/phpunit/**'
+              - '!tests/performance/**'
               - '!phpunit.xml.dist'
               - '!**/test/**'
               - '!.github/!(workflows)/**'

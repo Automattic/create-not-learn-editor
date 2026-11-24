@@ -243,9 +243,9 @@ $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 	}
 }
 
-// Shows on every page, so the heading, its globe and the list's edge are in
-// the purple of what every page shares; `GlobalScope` turns the brand tokens
-// purple. The rows stay white. See `src/global-scope`.
+// Shows on every page, so the heading, its filled symbol and the list's edge
+// are in the purple of what every page shares; `GlobalScope` turns the brand
+// tokens purple. The rows stay white. See `src/global-scope`.
 .cnl-review-changes__group.is-site-wide {
 	border-color: var(--wpds-color-stroke-surface-brand);
 	background: var(--wpds-color-background-surface-brand);
