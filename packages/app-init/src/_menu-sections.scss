@@ -189,6 +189,11 @@ $menu-section-inset: 8px;
 	}
 }
 
+/* Items left out until they're wanted, like Menus. */
+#create-not-learn-editor-app [data-cnl-hidden] {
+	display: none;
+}
+
 /*
  * A folded section's items, all but the screen on show. Only while the
  * sidebar can show its titles: expanded, or as a drawer on narrow screens.

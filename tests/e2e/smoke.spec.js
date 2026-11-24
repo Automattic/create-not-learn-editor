@@ -39,8 +39,9 @@ test( 'every main screen loads without errors', async ( { page, rest } ) => {
 		} );
 	} );
 
+	// The sidebar leaves Menus out until a menu is set by hand.
 	await test.step( 'Menus', async () => {
-		await openSidebarLink( page, 'Menus' );
+		await visitEditor( page, '/navigation' );
 		await expect.poll( () => getRoute( page ) ).toMatch( /^\/navigation/ );
 		await expect(
 			// Exact, as "All menus" is a heading too.

@@ -36,6 +36,7 @@
  * WordPress dependencies
  */
 import { store as bootStore } from '@wordpress/boot';
+import { store as coreStore } from '@wordpress/core-data';
 import { dispatch, select, subscribe, useSelect } from '@wordpress/data';
 import { Button } from '@wordpress/components';
 import {
@@ -63,6 +64,15 @@ import {
 	recordUse,
 } from '../../../src/menu-use';
 import { PREFERENCES_SCOPE, getActiveWorkspace } from '../../../src/workspaces';
+import { areMenusShown } from '../../../src/menus-shown';
+
+/*
+ * Items left out of the sidebar until they're wanted, by id: what says
+ * whether they are. Menus wait for a menu set by hand (`src/menus-shown.js`).
+ */
+const HIDDEN_ITEMS = {
+	navigation: ( selectFn ) => ! areMenusShown( selectFn ),
+};
 
 /*
  * The sections, in no particular order: the menu items set it. An item
@@ -609,6 +619,13 @@ export function mountMenuSections() {
 					! child.classList.contains( MORE_CLASS ) &&
 					! child.classList.contains( STAND_IN_CLASS )
 			)
+			.filter( ( child ) => {
+				const item = itemByRoute.get( getLinkedRoute( child ) );
+				const isHidden = !! HIDDEN_ITEMS[ item?.id ]?.( select );
+
+				setData( child, 'cnlHidden', isHidden ? '' : undefined );
+				return ! isHidden;
+			} )
 			.map( ( child ) => {
 				const item = itemByRoute.get( getLinkedRoute( child ) );
 
@@ -783,6 +800,21 @@ export function mountMenuSections() {
 	} );
 	subscribe( schedule, preferencesStore );
 	subscribe( schedule, bootStore );
+
+	// Core data changes often, so only when it changes which items hide.
+	const getHidden = () =>
+		Object.keys( HIDDEN_ITEMS )
+			.filter( ( id ) => HIDDEN_ITEMS[ id ]( select ) )
+			.join();
+	let hidden = getHidden();
+	subscribe( () => {
+		const next = getHidden();
+
+		if ( next !== hidden ) {
+			hidden = next;
+			schedule();
+		}
+	}, coreStore );
 
 	place();
 }

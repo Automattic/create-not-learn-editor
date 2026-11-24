@@ -107,3 +107,51 @@ function cnl_editor_render_page_list( $render, $attributes, $content, $block ) {
 		remove_filter( 'get_pages', $filter );
 	}
 }
+
+/**
+ * Whether a menu's content is an auto menu: a lone Page List block, which
+ * updates itself as pages change. Anything else, even a Page List with a
+ * link beside it, is set by hand. The editor's side is `isAutoMenuBlocks()`
+ * in `src/routes/navigation-edit/auto-menu.js`, which must agree with this.
+ *
+ * @param string $content A `wp_navigation` post's content.
+ * @return bool Whether the menu updates itself.
+ */
+function cnl_editor_is_auto_menu_content( $content ) {
+	$blocks = array_values(
+		array_filter(
+			parse_blocks( (string) $content ),
+			static function ( $block ) {
+				return ! empty( $block['blockName'] ) || '' !== trim( (string) $block['innerHTML'] );
+			}
+		)
+	);
+
+	return 1 === count( $blocks ) && 'core/page-list' === $blocks[0]['blockName'];
+}
+
+/**
+ * Whether the site has a menu set by hand. Until it has, most workspaces
+ * leave menus out of the editor and let Pages stand for them, as people take
+ * their pages and their menu to be the same thing.
+ *
+ * @return bool Whether any menu isn't an auto menu.
+ */
+function cnl_editor_has_hand_set_menu() {
+	$menus = get_posts(
+		array(
+			'post_type'      => 'wp_navigation',
+			'post_status'    => array( 'publish', 'draft' ),
+			'posts_per_page' => -1,
+			'no_found_rows'  => true,
+		)
+	);
+
+	foreach ( $menus as $menu ) {
+		if ( ! cnl_editor_is_auto_menu_content( $menu->post_content ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}

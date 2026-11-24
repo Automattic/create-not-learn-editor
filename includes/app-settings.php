@@ -66,6 +66,7 @@ function cnl_editor_get_app_settings() {
 		'navigationRestBase' => $navigation_post_type && $navigation_post_type->rest_base
 			? $navigation_post_type->rest_base
 			: 'navigation',
+		'hasHandSetMenu'     => cnl_editor_has_hand_set_menu(),
 		'postKinds'          => cnl_editor_get_post_kind_settings(),
 		'mediaEditor'        => cnl_editor_has_media_editor(),
 		'maxUploadFileSize'  => wp_max_upload_size(),

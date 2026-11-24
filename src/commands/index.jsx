@@ -49,6 +49,7 @@ import {
 /**
  * Internal dependencies
  */
+import { useMenusShown } from '../menus-shown';
 import { openRoute } from '../open-route';
 import { openPage } from '../page-finder/open-page';
 import { openPreferences } from '../preferences';
@@ -259,22 +260,26 @@ function getScreenCommands() {
 }
 
 function useScreenCommands() {
+	const areMenusVisible = useMenusShown();
 	const commands = useMemo(
 		() =>
-			getScreenCommands().map( ( { callback, to, ...command } ) => ( {
-				...command,
-				category: 'view',
-				callback: ( { close } ) => {
-					close();
+			getScreenCommands()
+				// Menus wait for a menu set by hand, as in the sidebar.
+				.filter( ( { to } ) => areMenusVisible || to !== '/navigation' )
+				.map( ( { callback, to, ...command } ) => ( {
+					...command,
+					category: 'view',
+					callback: ( { close } ) => {
+						close();
 
-					if ( callback ) {
-						callback();
-					} else {
-						openRoute( to );
-					}
-				},
-			} ) ),
-		[]
+						if ( callback ) {
+							callback();
+						} else {
+							openRoute( to );
+						}
+					},
+				} ) ),
+		[ areMenusVisible ]
 	);
 
 	useCommands( commands );

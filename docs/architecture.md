@@ -100,6 +100,14 @@ The Site parts screen (`/site-parts`, in the sidebar's Site section and on Home)
 
 A menu row switches menus only through a deliberate Change step, since a menu can be used in more than one place. Gutenberg's version also offers the navigation overlay; that is left out until we've worked out how it should show. It follows the same idea as Gutenberg's [Site parts experiment](https://github.com/WordPress/gutenberg/pull/87071). The code is in `src/routes/site-part/`.
 
+## Pages stand for menus
+
+People take their pages and their menu to be the same thing, and while every menu is an auto menu (a lone Page List), they are. So in most workspaces the Menus screen stays out of sight: no Menus item in the sidebar, no Menus command in ⌘K and no "Manage all menus" link on Pages. Pages, with its "Show in menu" switches, is all there is.
+
+Menus show once any menu on the site is set by hand, saved or not. Picking "Link or something else" from Pages' Add page turns the main menu into links, and Menus shows in the sidebar from then on. A workspace sets `menusUntilSetByHand: false` to always show them, as Builder does.
+
+`src/menus-shown.js` decides, from `hasHandSetMenu` in the app settings (`cnl_editor_has_hand_set_menu()` in `includes/page-list.php`) and any unsaved menu. The Menus routes still work when hidden, so links straight to a menu, like the Pages notice's "Edit menu", keep working.
+
 ## Visual theme
 
 The editor uses the WordPress Design System as it ships. Its own surfaces take their colours, corners, spacing and shadows from WPDS tokens and core's elevation scale, so they sit alongside core's components rather than near them. The black sidebar's section titles, like Content and Design, are the one exception: they are set in EB Garamond, the heading face on [WordPress.org](https://wordpress.org/). The font lives in `assets/fonts/eb-garamond/` under the SIL Open Font License and loads from the plugin, not a third-party CDN.
