@@ -146,7 +146,7 @@ function BlockToolbarFills( { clientId, name, attributes, setAttributes } ) {
 						setAttributes={ setAttributes }
 						isContainer={ isContainer }
 						title={ sectionTitle }
-						isSection={ Boolean( sectionViews ) }
+						sectionViews={ sectionViews }
 						readCoreItems={ read }
 						observeCoreItems={ observe }
 					/>

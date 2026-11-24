@@ -33,6 +33,10 @@ const STAYS_OPEN_FOR =
 // The section's name on its toolbar, which Layers hangs from.
 const NAME =
 	'.block-editor-block-contextual-toolbar .block-editor-block-switcher .components-dropdown-menu__toggle';
+// The toolbar's options menu, which Width is in, and hangs from.
+const OPTIONS =
+	'.block-editor-block-contextual-toolbar .cnl-block-options__toggle';
+const ANCHORS = { [ LAYERS ]: NAME, width: OPTIONS };
 // How long a new layout has to take the old one's place and be selected.
 const REPLACE_GRACE = 500;
 
@@ -55,9 +59,7 @@ export function SectionToolPopover( { tool, onReplaced } ) {
 		() => ( {
 			getBoundingClientRect() {
 				const button = document.querySelector(
-					view === LAYERS
-						? NAME
-						: `[data-cnl-section-tool="${ view }"]`
+					ANCHORS[ view ] ?? `[data-cnl-section-tool="${ view }"]`
 				);
 
 				if ( button ) {
