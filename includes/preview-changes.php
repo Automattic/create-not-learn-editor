@@ -32,6 +32,19 @@ const CNL_EDITOR_PREVIEW_CHANGES_PARAM = 'cnl-editor-changes';
 const CNL_EDITOR_PREVIEW_CHANGES_LIFETIME = HOUR_IN_SECONDS;
 
 /**
+ * How many sessions' changes are kept for one user, the latest sent. Each
+ * editor tab is a session, and the changes are read with the user on every
+ * request they make.
+ */
+const CNL_EDITOR_PREVIEW_CHANGES_MAX_SESSIONS = 5;
+
+/**
+ * The most one session's changes may take up, as JSON. More than that is
+ * refused, and the editor asks for the changes to be saved first instead.
+ */
+const CNL_EDITOR_PREVIEW_CHANGES_MAX_BYTES = 2 * MB_IN_BYTES;
+
+/**
  * The site settings the preview can show unsaved.
  */
 const CNL_EDITOR_PREVIEW_SITE_SETTINGS = array(
@@ -53,6 +66,10 @@ function cnl_editor_register_preview_changes_hooks() {
 	// Once the request is known not to be for the REST API, and before the
 	// page is queried.
 	add_action( 'parse_request', 'cnl_editor_apply_preview_changes', 0 );
+	// Unsaved work isn't left in the database once it can't be shown: it is
+	// tidied when the editor opens, and gone when its user logs out.
+	add_action( CNL_EDITOR_SLUG . '_init', 'cnl_editor_forget_expired_preview_changes' );
+	add_action( 'wp_logout', 'cnl_editor_forget_preview_changes' );
 }
 
 /**
@@ -218,7 +235,8 @@ function cnl_editor_clean_preview_changes( $params ) {
 		);
 	}
 
-	$site = (array) ( $params['site'] ?? array() );
+	// The site's settings are only shown to those who could save them.
+	$site = current_user_can( 'manage_options' ) ? (array) ( $params['site'] ?? array() ) : array();
 
 	foreach ( array( 'title', 'description' ) as $field ) {
 		if ( isset( $site[ $field ] ) ) {
@@ -227,10 +245,14 @@ function cnl_editor_clean_preview_changes( $params ) {
 	}
 
 	// An image taken away is sent as null, and kept as 0, no image.
-	foreach ( array( 'site_logo', 'site_icon', 'page_on_front', 'page_for_posts', 'posts_per_page' ) as $field ) {
+	foreach ( array( 'site_logo', 'site_icon', 'page_on_front', 'page_for_posts' ) as $field ) {
 		if ( array_key_exists( $field, $site ) ) {
 			$changes['site'][ $field ] = absint( $site[ $field ] );
 		}
+	}
+
+	if ( isset( $site['posts_per_page'] ) && $site['posts_per_page'] >= 1 ) {
+		$changes['site']['posts_per_page'] = min( absint( $site['posts_per_page'] ), CNL_EDITOR_PREVIEW_MAX_POSTS_PER_PAGE );
 	}
 
 	if ( isset( $site['show_on_front'] ) ) {
@@ -278,11 +300,44 @@ function cnl_editor_get_kept_preview_changes( $user_id ) {
 }
 
 /**
+ * Forget the changes a user's sessions sent too long ago to be shown.
+ *
+ * @param int $user_id User ID. Defaults to the current user.
+ */
+function cnl_editor_forget_expired_preview_changes( $user_id = 0 ) {
+	$user_id = $user_id ? $user_id : get_current_user_id();
+	$saved   = get_user_option( CNL_EDITOR_PREVIEW_CHANGES_OPTION, $user_id );
+
+	if ( false === $saved ) {
+		return;
+	}
+
+	$records = cnl_editor_get_kept_preview_changes( $user_id );
+
+	if ( ! $records ) {
+		delete_user_option( $user_id, CNL_EDITOR_PREVIEW_CHANGES_OPTION );
+	} elseif ( ! is_array( $saved ) || count( $records ) < count( $saved ) ) {
+		update_user_option( $user_id, CNL_EDITOR_PREVIEW_CHANGES_OPTION, wp_slash( $records ) );
+	}
+}
+
+/**
+ * Forget every change kept for a user.
+ *
+ * @param int $user_id User ID.
+ */
+function cnl_editor_forget_preview_changes( $user_id ) {
+	delete_user_option( $user_id, CNL_EDITOR_PREVIEW_CHANGES_OPTION );
+}
+
+/**
  * Keep a session's unsaved changes for the current user, or forget them
  * when there are none.
  *
  * @param WP_REST_Request $request Request.
- * @return WP_REST_Response Whether any are kept, and whether they changed.
+ * @return WP_REST_Response|WP_Error Whether any are kept, and whether they
+ *                                   changed, or an error when there are too
+ *                                   many to keep.
  */
 function cnl_editor_rest_keep_preview_changes( $request ) {
 	$user_id = get_current_user_id();
@@ -292,13 +347,23 @@ function cnl_editor_rest_keep_preview_changes( $request ) {
 	$is_kept = ! cnl_editor_preview_changes_are_empty( $changes );
 	$before  = $records[ $session ]['changes'] ?? null;
 
+	if ( $is_kept && strlen( (string) wp_json_encode( $changes ) ) > CNL_EDITOR_PREVIEW_CHANGES_MAX_BYTES ) {
+		return new WP_Error(
+			'cnl_editor_preview_changes_too_large',
+			__( 'There are too many unsaved changes to preview. Save them first.', 'create-not-learn-editor' ),
+			array( 'status' => 413 )
+		);
+	}
+
 	unset( $records[ $session ] );
 
 	if ( $is_kept ) {
+		// Last, so it is the latest: the oldest sessions make way.
 		$records[ $session ] = array(
 			'time'    => time(),
 			'changes' => $changes,
 		);
+		$records             = array_slice( $records, -CNL_EDITOR_PREVIEW_CHANGES_MAX_SESSIONS, null, true );
 	}
 
 	if ( $records ) {
