@@ -7,13 +7,20 @@
  * Internal dependencies
  */
 import { openRoute } from '../open-route';
-import { MODE_EDIT, setCanvasMode } from '../site-canvas/mode';
+import {
+	isShowingChange,
+	MODE_BROWSE,
+	MODE_EDIT,
+	setCanvasMode,
+} from '../site-canvas/mode';
 
 export const PAGES_PATH = '/types/page/list/all';
 
 /**
  * Open a page on the Pages screen, in Edit unless told to keep the mode.
  * The page finder keeps it, so going to a page on view leaves it on view.
+ * An editor on show only for a change made beside it, as on Colors, wasn't
+ * asked for, so the next page opens on view.
  *
  * @param {number|string} pageId           Page ID, or `HOMEPAGE`.
  * @param {Object}        options
@@ -22,6 +29,8 @@ export const PAGES_PATH = '/types/page/list/all';
 export function openPage( pageId, { keepMode = false } = {} ) {
 	if ( ! keepMode ) {
 		setCanvasMode( MODE_EDIT );
+	} else if ( isShowingChange() ) {
+		setCanvasMode( MODE_BROWSE );
 	}
 
 	openRoute( PAGES_PATH, { postId: pageId, previewId: pageId } );

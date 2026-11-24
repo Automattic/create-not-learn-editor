@@ -1,5 +1,6 @@
 const {
 	expect,
+	expectCanvasMode,
 	getPublishButton,
 	getSaveControls,
 	getStage,
@@ -138,7 +139,7 @@ test.describe( 'Design interactions', () => {
 		await goBackToDesignBesideCanvas( page );
 	} );
 
-	test( 'opening a page after a change was shown still fills the editor', async ( {
+	test( 'going to a page after a change was shown opens it on view', async ( {
 		page,
 		rest,
 	} ) => {
@@ -148,7 +149,7 @@ test.describe( 'Design interactions', () => {
 		await pickSecondChoice( page, '.routes-styles__palette' );
 		await goBackToDesignBesideCanvas( page );
 
-		// Picking a page means editing it, so the editor fills the screen.
+		// The editor was only on show for the change, so the page is on view.
 		await page
 			.getByRole( 'button', { name: /Go to another page$/ } )
 			.click();
@@ -160,7 +161,8 @@ test.describe( 'Design interactions', () => {
 		await expect(
 			page.locator( '.cnl-editor-homepage-document__title' )
 		).toHaveText( target.title, { timeout: 15000 } );
-		await expect( page.locator( 'body' ) ).toHaveClass(
+		await expectCanvasMode( page, 'Browse' );
+		await expect( page.locator( 'body' ) ).not.toHaveClass(
 			/cnl-canvas-is-expanded/
 		);
 	} );
