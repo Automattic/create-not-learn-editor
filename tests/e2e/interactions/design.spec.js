@@ -1,8 +1,9 @@
 const {
 	expect,
+	getPublishButton,
 	getSaveControls,
 	getStage,
-	openReviewChanges,
+	openPublishChanges,
 	test,
 	visitEditor,
 } = require( '../utils' );
@@ -112,7 +113,7 @@ test.describe( 'Design interactions', () => {
 			'1 unsaved change'
 		);
 
-		const review = await openReviewChanges( page );
+		const review = await openPublishChanges( page );
 		await review
 			.getByRole( 'button', { name: 'Discard change to Site look' } )
 			.click();
@@ -196,11 +197,13 @@ test.describe( 'Design interactions', () => {
 		await expect( getSaveControls( page ) ).toContainText(
 			'2 unsaved changes'
 		);
-		const review = await openReviewChanges( page );
-		await review.getByRole( 'button', { name: 'Save 2 changes' } ).click();
+		const review = await openPublishChanges( page );
+		await review
+			.getByRole( 'button', { name: 'Publish 2 changes' } )
+			.click();
 
-		await expect( getSaveControls( page ) ).toContainText(
-			'All changes saved',
+		await expect( getPublishButton( page ) ).toHaveAccessibleDescription(
+			'Nothing to publish',
 			{ timeout: 15000 }
 		);
 		expect(
@@ -230,7 +233,7 @@ test.describe( 'Design interactions', () => {
 		await expect( saveControls ).toContainText( '2 unsaved changes' );
 
 		// One change, from the review.
-		const review = await openReviewChanges( page );
+		const review = await openPublishChanges( page );
 		await review
 			.getByRole( 'button', { name: 'Discard change to Site name' } )
 			.click();
@@ -248,7 +251,7 @@ test.describe( 'Design interactions', () => {
 		await expect( review ).toHaveCount( 0 );
 
 		// The rest, all at once.
-		await openReviewChanges( page );
+		await openPublishChanges( page );
 		await review.getByRole( 'button', { name: 'Discard all' } ).click();
 		await confirm
 			.getByRole( 'button', { name: 'Discard changes' } )
