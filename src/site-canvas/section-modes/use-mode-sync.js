@@ -40,11 +40,13 @@ export function useModeSync( {
 	isTextSection,
 	parts,
 	passesOtherClicks,
+	pickedRef,
 	registry,
 	selectedId,
 	setActive,
 	setPickedSection,
 	targets,
+	usesToolbar,
 } ) {
 	/*
 	 * The header or footer open in Edit content or Freeform, for the editor
@@ -126,10 +128,13 @@ export function useModeSync( {
 	}, [ active, activePart, editedSection, exitMode, setActive ] );
 
 	/*
-	 * Nothing outside the section being edited in place stays selected in
-	 * core. A section selected while no section is in a mode, as the
-	 * picker selects the one it adds, is picked instead, and brought into
-	 * view.
+	 * Nothing outside the section picked or being edited in place stays
+	 * selected in core. A section selected while no section is in a mode,
+	 * as the picker selects the one it adds, is picked, and brought into
+	 * view, and stays selected where it has core's toolbar. From a block in
+	 * it, selecting the section itself, as the toolbar's parent selector
+	 * does, steps back out to it, and selecting a block in the section
+	 * picked, as Layers does, goes into it.
 	 */
 	useEffect( () => {
 		if ( ! selectedId ) {
@@ -138,9 +143,9 @@ export function useModeSync( {
 
 		const target = findTarget( selectedId );
 
-		// A section's own block, when it holds others, is never selected in
-		// core, so core's toolbar for it never shows: its blocks are what is
-		// edited. A section that is a single block is that block.
+		// A section's own block, when it holds others, isn't selected in
+		// core while its blocks are worked on. A section that is a single
+		// block is that block.
 		const isSectionItself =
 			selectedId === target &&
 			! isTextSection( target ) &&
@@ -152,7 +157,13 @@ export function useModeSync( {
 		}
 
 		if ( isOpen( target ) ) {
-			registry.dispatch( blockEditorStore ).clearSelectedBlock();
+			// Back out to the section, which the layer then selects.
+			if ( usesToolbar( target ) ) {
+				exitMode();
+			} else {
+				registry.dispatch( blockEditorStore ).clearSelectedBlock();
+			}
+
 			return;
 		}
 
@@ -160,7 +171,18 @@ export function useModeSync( {
 			return;
 		}
 
-		registry.dispatch( blockEditorStore ).clearSelectedBlock();
+		if ( ! activeRef.current && usesToolbar( target ) ) {
+			if ( selectedId !== target ) {
+				setActive( { id: target, mode: MODE_CONTENT, view: null } );
+				return;
+			}
+
+			if ( pickedRef.current === target ) {
+				return;
+			}
+		} else {
+			registry.dispatch( blockEditorStore ).clearSelectedBlock();
+		}
 
 		if ( target && ! activeRef.current ) {
 			setPickedSection( target );

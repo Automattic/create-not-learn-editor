@@ -10,7 +10,8 @@
  * - The block's name beside its icon, as the way to transform it, or as a
  *   label when there is nothing to turn it into.
  * - Full-size movers.
- * - A Layout menu and "+" for containers, in the block group.
+ * - A Layout menu and "+" for containers, in the block group. A section of
+ *   the page has "+", its design choices and Layers instead.
  * - An options menu standing in for core's "⋮", with the style controls the
  *   toolbar used to show, and a trash button, at the end.
  * - Every block it sits in, beside core's select-parent button.
@@ -37,11 +38,13 @@ import { trash } from '@wordpress/icons';
 /**
  * Internal dependencies
  */
+import { useSectionTools } from '../site-canvas/mode';
 import { CoreMenuItemsHost, useCoreMenuItems } from './core-menu-items';
 import { ContainerControls, isContainerBlock } from './layout-menu';
 import { registerNameMenu, useNameMenu } from './name-menu';
 import { OptionsMenu } from './options-menu';
 import { ParentSelector } from './parent-selector';
+import { SectionControls } from './section-controls';
 import { useBlockShortcuts } from './shortcuts';
 import { registerToolbarKeyboard } from './toolbar-keyboard';
 import { useFloatingFormatToolbar } from './use-floating-format-toolbar';
@@ -93,17 +96,38 @@ function BlockToolbarFills( { clientId, name, attributes, setAttributes } ) {
 	const { hostRef, read, observe } = useCoreMenuItems();
 	const isDefaultEditingMode = useBlockEditingMode() === 'default';
 	const isContainer = isDefaultEditingMode && isContainerBlock( name );
+	// Its design choices, when it is the section the site canvas has picked.
+	const sectionViews = useSectionTools( clientId );
 
 	useFloatingFormatToolbar( clientId );
-	useNameMenu( clientId );
+	// A section is called that, unless it has been given a name.
+	const sectionTitle = sectionViews
+		? attributes?.metadata?.name || __( 'Section' )
+		: null;
+
+	useNameMenu( clientId, sectionTitle, isContainer );
 	useParentSelectorFit( clientId );
 
 	return (
 		<>
-			<BlockControls group="parent">
-				<ParentSelector clientId={ clientId } />
-			</BlockControls>
-			{ isContainer && (
+			{ /* A section is the outermost thing to pick, so has no parent
+			     to offer. */ }
+			{ ! sectionViews && (
+				<BlockControls group="parent">
+					<ParentSelector clientId={ clientId } />
+				</BlockControls>
+			) }
+			{ sectionViews && (
+				<BlockControls group="block">
+					<SectionControls
+						clientId={ clientId }
+						title={ sectionTitle }
+						views={ sectionViews }
+						isContainer={ isContainer }
+					/>
+				</BlockControls>
+			) }
+			{ isContainer && ! sectionViews && (
 				<BlockControls group="block">
 					<ContainerControls
 						clientId={ clientId }
@@ -121,6 +145,7 @@ function BlockToolbarFills( { clientId, name, attributes, setAttributes } ) {
 						attributes={ attributes }
 						setAttributes={ setAttributes }
 						isContainer={ isContainer }
+						title={ sectionTitle }
 						readCoreItems={ read }
 						observeCoreItems={ observe }
 					/>

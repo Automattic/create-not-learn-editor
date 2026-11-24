@@ -2,14 +2,14 @@
  * The full-screen block editor: core's "Choose a pattern" modal, which the
  * editor layer allows only for a new page in the full-screen editor and closes
  * anywhere else, and dragging a block from anywhere on it, in a post or in the
- * section of a page being edited with More control.
+ * section of a page being edited.
  */
 const {
 	expect,
 	expectBlockEditor,
 	getCanvasEditor,
 	getEditorCanvas,
-	pickSectionMode,
+	clickIntoSection,
 	setCanvasMode,
 	test,
 	visitEditor,
@@ -378,7 +378,7 @@ const PAGE_SECTIONS = [
 	.join( '' );
 
 test.describe( 'Drag from anywhere on a page', () => {
-	test( 'works only in the section opened with More control', async ( {
+	test( 'works only in the section being edited', async ( {
 		page,
 		rest,
 	} ) => {
@@ -401,14 +401,9 @@ test.describe( 'Drag from anywhere on a page', () => {
 		await alphaOne.hover( { force: true } );
 		await expect( alphaOne ).not.toHaveClass( /cnl-drag-from-anywhere/ );
 
-		await pickSectionMode( page, sections.first(), 'Edit design' );
-		await page
-			.locator( '.cnl-section-modes__design' )
-			.getByRole( 'button', { name: 'More control', exact: true } )
-			.click();
-		await expect(
-			page.locator( '.cnl-section-modes__mode-bar' )
-		).toHaveAttribute( 'aria-label', 'Freeform' );
+		// Clicked into, at Alpha two., so Alpha one. isn't the block being
+		// edited, whose text a drag selects instead.
+		await clickIntoSection( page, canvas.getByText( 'Alpha two.' ) );
 
 		await alphaOne.hover( { force: true } );
 		await expect( alphaOne ).toHaveClass( /cnl-drag-from-anywhere/ );

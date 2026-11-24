@@ -1,9 +1,11 @@
 /**
- * The controls Edit lays over a section: its name, the bar over it while it
- * is pointed at or picked, with Add, Edit design (or Edit content in
- * Compose, and Manage posts on a section listing posts) and its own moves,
- * or Edit header or Edit footer alone on a header or footer, and the small
- * bar on a section in Freeform. A layout item, like the page's title, is named
+ * The controls the layer puts over a section: its name, and the bar over it
+ * while it is pointed at or picked. In Edit a section has core's block
+ * toolbar for its tools, so its bar is Manage posts alone, on a section
+ * listing posts. A run of text, and any section in Compose, has Add, Edit
+ * design (or Edit content in Compose) and its own moves; a header or footer
+ * has Edit header or Edit footer alone, and the small bar while it is in
+ * Freeform. A layout item, like the page's title, is named
  * as part of its layout.
  */
 
@@ -339,6 +341,9 @@ function AddMenu( { onAdd, onToggle, title } ) {
  *
  * @param {Object}   props
  * @param {string}   props.title         The section's name.
+ * @param {boolean}  props.hasToolbar    Whether it has core's block toolbar
+ *                                       for its tools, which leaves the bar
+ *                                       Manage posts alone.
  * @param {boolean}  props.isPart        Whether it is the header or footer,
  *                                       which stay where they are.
  * @param {boolean}  props.isText        Whether it is a run of text in
@@ -370,6 +375,7 @@ function AddMenu( { onAdd, onToggle, title } ) {
  * @return {Element} The bar.
  */
 export function HoverBar( {
+	hasToolbar = false,
 	canMoveDown,
 	canMoveUp,
 	clientId,
@@ -390,7 +396,11 @@ export function HoverBar( {
 	style,
 	title,
 } ) {
-	const modes = getModes( isPart, title, isComposing, isText, isLayoutItem );
+	// With core's toolbar, the bar is left with Manage posts alone.
+	const modes = hasToolbar
+		? []
+		: getModes( isPart, title, isComposing, isText, isLayoutItem );
+	const hasOwnTools = ! isPart && ! isLayoutItem && ! hasToolbar;
 
 	return (
 		<div
@@ -400,7 +410,7 @@ export function HoverBar( {
 			style={ style }
 		>
 			<div className="cnl-section-modes__bar-start">
-				{ ! isPart && ! isLayoutItem && ! isComposing && (
+				{ hasOwnTools && ! isComposing && (
 					<AddMenu
 						onAdd={ onAdd }
 						onToggle={ onMenuToggle }
@@ -441,7 +451,7 @@ export function HoverBar( {
 				</div>
 			) }
 			<div className="cnl-section-modes__bar-end">
-				{ ! isPart && ! isLayoutItem && (
+				{ hasOwnTools && (
 					<div
 						aria-label={ __( 'Section' ) }
 						className="cnl-section-modes__group"

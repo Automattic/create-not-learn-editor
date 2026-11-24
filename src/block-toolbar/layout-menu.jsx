@@ -210,6 +210,58 @@ function ChoiceGroup( { label, options, value, onChange } ) {
 }
 
 /**
+ * The "+" on a container's toolbar, which adds a block as its last child.
+ *
+ * @param {Object}  props
+ * @param {string}  props.clientId Block client ID.
+ * @param {string}  props.title    The container's name, like Group.
+ * @param {?string} props.text     Words for the button, beside its icon.
+ * @return {Element} The button, and core's quick inserter.
+ */
+export function AddBlockButton( { clientId, title, text = null } ) {
+	return (
+		<Inserter
+			rootClientId={ clientId }
+			isAppender
+			__experimentalIsQuick
+			position="bottom center"
+			renderToggle={ ( { onToggle, disabled, isOpen } ) => (
+				<ToolbarButton
+					className="cnl-block-toolbar__keep"
+					icon={ plus }
+					label={ sprintf(
+						/* translators: %s: the container block's name, like Group. */
+						__( 'Add block to %s' ),
+						title
+					) }
+					onClick={ onToggle }
+					aria-expanded={ isOpen }
+					disabled={ disabled }
+				>
+					{ text }
+				</ToolbarButton>
+			) }
+		/>
+	);
+}
+
+/**
+ * A container's name: the one it was given, else its block's.
+ *
+ * @param {string} clientId Block client ID.
+ * @param {string} name     Block name.
+ * @return {string} The name.
+ */
+export function useContainerTitle( clientId, name ) {
+	return useSelect(
+		( select ) =>
+			select( blockEditorStore ).getBlockAttributes( clientId )?.metadata
+				?.name ?? getBlockType( name )?.title,
+		[ clientId, name ]
+	);
+}
+
+/**
  * The Layout menu and the add button, on a container's toolbar.
  *
  * @param {Object}   props
@@ -228,12 +280,7 @@ export function ContainerControls( {
 	const widths = useBlockWidths( clientId, name );
 	const layout = getLayout( name, attributes );
 	const contentGroups = getContentGroups( layout );
-	const title = useSelect(
-		( select ) =>
-			select( blockEditorStore ).getBlockAttributes( clientId )?.metadata
-				?.name ?? getBlockType( name )?.title,
-		[ clientId, name ]
-	);
+	const title = useContainerTitle( clientId, name );
 
 	const showWidths = widths.length > 1;
 
@@ -280,26 +327,7 @@ export function ContainerControls( {
 					) ) }
 				</ToolbarMenu>
 			) }
-			<Inserter
-				rootClientId={ clientId }
-				isAppender
-				__experimentalIsQuick
-				position="bottom center"
-				renderToggle={ ( { onToggle, disabled, isOpen } ) => (
-					<ToolbarButton
-						className="cnl-block-toolbar__keep"
-						icon={ plus }
-						label={ sprintf(
-							/* translators: %s: the container block's name, like Group. */
-							__( 'Add block to %s' ),
-							title
-						) }
-						onClick={ onToggle }
-						aria-expanded={ isOpen }
-						disabled={ disabled }
-					/>
-				) }
-			/>
+			<AddBlockButton clientId={ clientId } title={ title } />
 		</>
 	);
 }

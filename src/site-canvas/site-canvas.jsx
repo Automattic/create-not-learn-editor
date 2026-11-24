@@ -24,6 +24,7 @@ import {
 	Notice,
 	Spinner,
 	useEffect,
+	useMemo,
 	useRef,
 	useSelect,
 } from '../wordpress-packages';
@@ -46,8 +47,9 @@ import {
 } from './toolbar';
 import { UnsavedChangesDialog } from './unsaved-changes-dialog';
 import { useOwnEditorSettings } from './use-own-editor-settings';
-import { useSectionLock } from './use-section-lock';
 import { useZoomGestures, ZoomControls } from './zoom-controls';
+
+const SECTION_EDITOR_SETTINGS = { disableContentOnlyForUnsyncedPatterns: true };
 
 /**
  * @param {Object}  props
@@ -155,10 +157,20 @@ export function SiteCanvas( {
 		onZoomIn: zoomIn,
 		onZoomOut: zoomOut,
 	} );
-	// Only a page's sections are locked to their content, and say so.
-	useSectionLock( isEditing && hasSections );
 	useEditSectionControls( isEditing && hasSections );
-	useOwnEditorSettings( editorSettings );
+	/*
+	 * A section's blocks are changed directly, as anywhere in core's editor,
+	 * so core doesn't lock the ones patterns add to their content. A header
+	 * or footer stays locked until it is opened.
+	 */
+	const ownEditorSettings = useMemo(
+		() =>
+			hasSections
+				? { ...editorSettings, ...SECTION_EDITOR_SETTINGS }
+				: editorSettings,
+		[ editorSettings, hasSections ]
+	);
+	useOwnEditorSettings( ownEditorSettings );
 
 	// Published for the stylesheet, which hides core chrome by block.
 	const selectedBlockName = useSelect(
@@ -252,7 +264,7 @@ export function SiteCanvas( {
 							key={ `${ editorEntity.postType }:${ editorEntity.postId }` }
 							postId={ editorEntity.postId }
 							postType={ editorEntity.postType }
-							settings={ editorSettings || undefined }
+							settings={ ownEditorSettings || undefined }
 						/>
 					) }
 					{ isEditing && editorChildren }

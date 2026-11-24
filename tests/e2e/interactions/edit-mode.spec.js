@@ -1,10 +1,9 @@
 /**
  * The site canvas's Edit mode: a section is worked on a click at a time.
- * The first click picks it, a click on a row of cards opens the row, and
- * the next reaches a block, the caret in its text. A double click goes
- * straight to the text. Edit design drills into its layouts, colours and
- * width in the bar over it, and More control, which unlocks it with core's
- * own unlock.
+ * The first click picks it, with core's block toolbar for its tools, a click
+ * on a row of cards opens the row, and the next reaches a block, the caret
+ * in its text. A double click goes straight to the text. A section's blocks
+ * aren't locked, and its toolbar's Layout opens its layouts under it.
  */
 const {
 	clickIntoSection,
@@ -62,6 +61,26 @@ function getBlockToolbar( page ) {
 	return page.locator( '.block-editor-block-contextual-toolbar' );
 }
 
+/**
+ * Click a section until it is picked, its block selected in core.
+ *
+ * @param {import('@playwright/test').Page}    page
+ * @param {import('@playwright/test').Locator} target Something in it.
+ */
+async function pickSection( page, target ) {
+	const layer = page.locator( '.cnl-section-modes' );
+
+	await expect( async () => {
+		await target.click( START );
+		await expect( layer ).toHaveAttribute( 'data-level', 'section', {
+			timeout: 1000,
+		} );
+		await expect( getBlockToolbar( page ) ).toBeVisible( {
+			timeout: 1000,
+		} );
+	} ).toPass( { timeout: 15000 } );
+}
+
 test.describe( 'Edit mode', () => {
 	test( 'the first click picks a section, the next reaches its words', async ( {
 		page,
@@ -79,33 +98,25 @@ test.describe( 'Edit mode', () => {
 		const layer = page.locator( '.cnl-section-modes' );
 		const bar = page.locator( '.cnl-section-modes__bar' );
 
-		// The first click picks the section, and selects nothing.
-		await expect( async () => {
-			await inside.click( START );
-			await expect( layer ).toHaveAttribute( 'data-level', 'section', {
-				timeout: 1000,
-			} );
-		} ).toPass( { timeout: 15000 } );
-		await expect.poll( () => getSelection( page ) ).toBe( '' );
+		// The first click picks the section, its own block selected, so it
+		// has core's toolbar, with no bar of the layer's over it.
+		await pickSection( page, inside );
+		await expect
+			.poll( () => getSelection( page ) )
+			.toBe( 'core/group default' );
+		await expect( bar ).toHaveCount( 0 );
 
-		// The next reaches its words, which can be changed; its blocks can't.
+		// The next reaches its words, with all their tools: a section's
+		// blocks aren't locked.
 		await clickIntoSection( page, inside );
 		await expect
 			.poll( () => getSelection( page ) )
-			.toBe( 'core/paragraph contentOnly' );
+			.toBe( 'core/paragraph default' );
 		await page.keyboard.press( 'End' );
 		await page.keyboard.type( ' changed' );
 		await expect(
 			canvas.getByText( 'Inside a section changed' )
 		).toBeVisible();
-
-		// The section's bar stays, with Edit design and no Edit content.
-		await expect(
-			bar.getByRole( 'button', { name: 'Edit design' } )
-		).toBeVisible();
-		await expect(
-			bar.getByRole( 'button', { name: 'Edit content' } )
-		).toHaveCount( 0 );
 
 		// Core's toolbar offers Remove for a block in the section, and undo
 		// puts it back. Core hides its toolbar while typing, until the
@@ -233,7 +244,7 @@ test.describe( 'Edit mode', () => {
 		await expect( layer ).toHaveAttribute( 'data-level', 'blocks' );
 		await expect
 			.poll( () => getSelection( page ) )
-			.toBe( 'core/heading contentOnly' );
+			.toBe( 'core/heading default' );
 		await expect(
 			page.locator( '.cnl-section-modes__per-row' )
 		).toBeVisible();
@@ -288,7 +299,7 @@ test.describe( 'Edit mode', () => {
 			await page.mouse.move( 0, 0 );
 			await page.mouse.move( box.x + 10, box.y + box.height / 2 );
 			await expect(
-				page.locator( '.cnl-section-modes__bar' )
+				page.locator( '.cnl-section-modes__tint' )
 			).toBeVisible( { timeout: 1000 } );
 		} ).toPass( { timeout: 15000 } );
 
@@ -305,7 +316,7 @@ test.describe( 'Edit mode', () => {
 		);
 		await expect
 			.poll( () => getSelection( page ) )
-			.toBe( 'core/paragraph contentOnly' );
+			.toBe( 'core/paragraph default' );
 		await page.keyboard.press( 'End' );
 		await page.keyboard.type( ', then type' );
 		await expect(
@@ -313,7 +324,7 @@ test.describe( 'Edit mode', () => {
 		).toBeVisible();
 	} );
 
-	test( 'Add puts a block last in the section, ready to type in', async ( {
+	test( "the toolbar's Add puts a block last in the section, ready to type in", async ( {
 		page,
 		rest,
 	} ) => {
@@ -325,16 +336,22 @@ test.describe( 'Edit mode', () => {
 
 		const canvas = getCanvasEditor( page ).contentFrame();
 		const words = canvas.getByText( 'First words' );
-		const bar = page.locator( '.cnl-section-modes__bar' );
 
 		await expect( words ).toBeVisible( { timeout: 15000 } );
-		await expect( async () => {
-			await page.mouse.move( 0, 0 );
-			await words.hover( { force: true } );
-			await expect( bar ).toBeVisible( { timeout: 1000 } );
-		} ).toPass( { timeout: 15000 } );
-		await bar.getByRole( 'button', { name: 'Add', exact: true } ).click();
-		await page.getByRole( 'menuitem', { name: 'Heading' } ).click();
+		await pickSection( page, words );
+		await getBlockToolbar( page )
+			.getByRole( 'button', { name: 'Add block to Section' } )
+			.click();
+		await page
+			.locator( '.block-editor-inserter__quick-inserter' )
+			.getByRole( 'searchbox' )
+			.fill( 'Heading' );
+		// The block, not the pattern of the same name.
+		await page
+			.locator( '.block-editor-inserter__quick-inserter' )
+			.getByRole( 'listbox', { name: 'Blocks' } )
+			.getByRole( 'option', { name: 'Heading', exact: true } )
+			.click();
 
 		// Straight into the section's blocks, the caret in the new heading.
 		await expect( page.locator( '.cnl-section-modes' ) ).toHaveAttribute(
@@ -344,7 +361,7 @@ test.describe( 'Edit mode', () => {
 		await page.keyboard.type( 'Added last' );
 		await expect( canvas.getByText( 'Added last' ) ).toBeVisible();
 
-		// Last, inside the group that wraps the section's words.
+		// Last in the section's own block.
 		await expect
 			.poll( () =>
 				page.evaluate( () => {
@@ -353,12 +370,10 @@ test.describe( 'Edit mode', () => {
 						store.getBlocksByName( 'core/post-content' );
 					const [ section ] = store.getBlocks( root );
 
-					return section.innerBlocks[ 0 ].innerBlocks.map(
-						( block ) => block.name
-					);
+					return section.innerBlocks.map( ( block ) => block.name );
 				} )
 			)
-			.toEqual( [ 'core/paragraph', 'core/heading' ] );
+			.toEqual( [ 'core/group', 'core/heading' ] );
 	} );
 
 	test( 'a section added from the picker is picked', async ( {
@@ -386,18 +401,19 @@ test.describe( 'Edit mode', () => {
 
 		await pickSectionTemplate( page, 'Image left, text right' );
 
-		// Picked: outlined, named and with its bar, the pointer elsewhere.
+		// Picked: outlined, with core's toolbar, which names it in place of
+		// the layer's tab, the pointer elsewhere.
 		await page.mouse.move( 0, 0 );
-		await expect( page.locator( '.cnl-section-modes__tab' ) ).toHaveText(
-			'Image left, text right'
-		);
 		await expect( page.locator( '.cnl-section-modes__tint' ) ).toHaveClass(
 			/is-picked/
 		);
-		await expect( page.locator( '.cnl-section-modes__bar' ) ).toBeVisible();
+		await expect( getBlockToolbar( page ) ).toBeVisible();
+		await expect( page.locator( '.cnl-section-modes__tab' ) ).toHaveCount(
+			0
+		);
 	} );
 
-	test( 'Edit design drills into layouts, and More control', async ( {
+	test( "the toolbar's Layout opens the section's layouts under it", async ( {
 		page,
 		rest,
 	} ) => {
@@ -412,27 +428,23 @@ test.describe( 'Edit mode', () => {
 
 		await pickSectionTemplate( page, 'Image left, text right' );
 
-		const modeBar = page.locator( '.cnl-section-modes__mode-bar' );
-
 		const section = getCanvasEditor( page )
 			.contentFrame()
 			.locator( '.is-root-container .wp-block-post-content > *' )
 			.first();
+		const popover = page.locator( '.cnl-section-tool-popover' );
+		const options = popover.locator( '.cnl-section-modes__option' );
 
-		await pickSectionMode( page, section, 'Edit design' );
+		await pickSection( page, section );
 
-		const designBar = page.locator( '.cnl-section-modes__design' );
-		const options = designBar.locator( '.cnl-section-modes__option' );
-
-		await expect( designBar ).toBeVisible();
-
-		// Layout opens the layouts in a tray, and a pick goes in at once.
-		await designBar
+		// Layout opens the layouts under the toolbar, and a pick goes in at
+		// once, the toolbar staying.
+		await getBlockToolbar( page )
 			.getByRole( 'button', { name: 'Layout', exact: true } )
 			.click();
 		await expect( options.nth( 1 ) ).toBeVisible();
 
-		const other = designBar.locator(
+		const other = popover.locator(
 			'.cnl-section-modes__option[aria-pressed="false"]:not([inert])'
 		);
 		const otherName = await other.first().getAttribute( 'title' );
@@ -441,46 +453,21 @@ test.describe( 'Edit mode', () => {
 		await expect(
 			options.filter( { hasText: otherName } )
 		).toHaveAttribute( 'aria-pressed', 'true' );
+		await expect( getBlockToolbar( page ) ).toBeVisible();
 
-		// Escape steps back to the choices.
+		// Escape closes them.
 		await page.keyboard.press( 'Escape' );
-		await expect( options ).toHaveCount( 0 );
+		await expect( popover ).toHaveCount( 0 );
+
+		// There is no More control: the section's blocks have core's full
+		// tools once reached.
 		await expect(
-			designBar.getByRole( 'button', { name: 'Layout', exact: true } )
-		).toBeVisible();
-
-		// A click off the bar leaves Edit design, the layout kept.
-		await page.locator( '.cnl-editor-homepage-toolbar' ).click( {
-			position: { x: 4, y: 4 },
-		} );
-		await expect( designBar ).toHaveCount( 0 );
-
-		// More control is core's unlock, with none of its colour shuffle.
-		await pickSectionMode( page, section, 'Edit design' );
-		await designBar
-			.getByRole( 'button', { name: 'More control', exact: true } )
-			.click();
-		await expect( designBar ).toHaveCount( 0 );
-		await expect( modeBar ).toHaveAttribute( 'aria-label', 'Freeform' );
-
-		// Its blocks take core's full tools, not only their words.
-		await section.locator( 'p' ).first().click();
+			page.getByRole( 'button', { name: 'More control' } )
+		).toHaveCount( 0 );
+		await clickIntoSection( page, section.locator( 'p' ).first() );
 		await expect
 			.poll( () => getSelection( page ) )
 			.toBe( 'core/paragraph default' );
-		await expect(
-			getBlockToolbar( page ).getByRole( 'button', {
-				name: 'Shuffle styles',
-			} )
-		).toBeHidden();
-
-		// Done leaves it altogether: there is no way back to Edit design.
-		await expect(
-			modeBar.getByRole( 'button', { name: /^Back/ } )
-		).toHaveCount( 0 );
-		await modeBar.getByRole( 'button', { name: 'Done editing' } ).click();
-		await expect( modeBar ).toHaveCount( 0 );
-		await expect( designBar ).toHaveCount( 0 );
 	} );
 
 	test( 'Edit header unlocks the header, for its content and design', async ( {
@@ -683,7 +670,7 @@ test.describe( 'Edit mode', () => {
 		await expect( canvas.getByText( 'More words' ) ).toBeVisible();
 	} );
 
-	test( 'leaving Edit puts the sections back as they were', async ( {
+	test( "a section's blocks aren't locked, in Edit or out of it", async ( {
 		page,
 		rest,
 	} ) => {
@@ -699,20 +686,19 @@ test.describe( 'Edit mode', () => {
 
 				return store
 					.getBlockOrder( root )
-					.map(
-						( clientId ) =>
-							store.getBlockListSettings( clientId )
-								?.templateLock ?? null
+					.map( ( clientId ) =>
+						store.getBlockEditingMode( clientId )
 					);
 			} );
 
 		await setCanvasMode( page, 'Edit' );
-		await expect.poll( getLocks ).toEqual( [ 'contentOnly' ] );
+		await expect.poll( getLocks ).toEqual( [ 'default' ] );
 
 		await setCanvasMode( page, 'Compose' );
-		await expect.poll( getLocks ).not.toEqual( [ 'contentOnly' ] );
+		await setCanvasMode( page, 'Edit' );
+		await expect.poll( getLocks ).toEqual( [ 'default' ] );
 
-		// Locking never counts as a change to the page.
+		// Nothing here counts as a change to the page.
 		await expect( page.getByText( /unsaved change/ ) ).toHaveCount( 0 );
 	} );
 } );
