@@ -83,3 +83,21 @@ Both of those rules repeat the base rule's `:not()` chain. Without it the base r
 Core's `ListViewSidebar` hard-codes its List View tab, with no slot or filter for another list. The site canvas shows a list of the page's sections there instead (`src/site-canvas/section-modes/canvas-overview.jsx`), portalled into the tab's `.editor-list-view-sidebar__list-view-panel-content` panel, which `src/site-canvas/section-modes/_canvas-overview.scss` uses to hide core's list view beside it. Core's list still mounts, and its focus on opening lands on nothing, so ours moves focus into itself as it opens.
 
 This depends on that class name, on the panel being unmounted while Outline is shown, and on core's `isListViewOpened` selector. Remove it once the editor lets the List View tab's content be replaced.
+
+## Finding core's controls by their labels
+
+Some of core's controls have no class, data attribute or slot of their own, so the editor finds them by the words core gives them. Each one is matched in the site's language, by translating the same string, with the same context, that core translates, so a German site compares German with German. When core's own translation is missing, both sides fall back to the same English. A gettext filter that rewords core, like `section-wording.js`, rewords the editor's copy too, as both go through the same `@wordpress/i18n`.
+
+These are the matches left, and where each lives:
+
+- **Block toolbar** (`src/block-toolbar/core-labels.js`). The style controls the toolbar hides (Align text, Align block, Align, Font size, Change items justification, Align content vertically, Change vertical alignment, Apply duotone filter), the icons counted as well known (Link, Unlink, Bold, Italic, Delete, Remove), and the Bold, Italic and More buttons that mark the format group. The rules that need them are written into a `<style id="cnl-block-toolbar-labels">` at runtime, and again whenever the translations change, rather than into `_style.scss`, which can't know the site's language. `use-floating-format-toolbar.js` finds the format group the same way.
+- **Block options menu** (`src/block-toolbar/options-menu.jsx`, labels in `core-labels.js`). Group (`_x( 'Group', 'verb' )`), Ungroup (with its long context) and Create pattern sit at the top of the menu rather than under More, and those three, Lock, Unlock, Rename, Hide and Show get their icons, all by their words. The Format flyout's Bold and Italic click core's buttons found by their labels.
+- **Shuffle styles** (`src/site-canvas/edit-section-controls.js`). Hidden in Edit by its translated label, written into a `<style>` at runtime.
+
+Matched by structure instead, so these hold in any language: the movers' arrows (core's `is-up-button` and `is-down-button`, inside `.block-editor-block-mover.is-horizontal` or not, flipped right to left with `:dir(rtl)`), the format group's More (the slot's last `.components-dropdown-menu`), the stage's breadcrumbs (`[class*="__header-lockup"] > nav`, the only `nav` in `@wordpress/admin-ui`'s page header), and core's menu items in the options menu, which are read from core's slots.
+
+The gettext filters (`section-wording.js`, `writing-aids.jsx` and `edit-section-controls.js`) key on core's source strings, not on what the site shows, so they hold in any language. Their replacements are the editor's own strings, though, so a site in a language the editor has no translation for reads them in English.
+
+`tests/e2e/interactions/block-toolbar-locale.spec.js` runs the toolbar in German, and fails if any of these show core's controls through. It also runs in the Gutenberg compatibility workflow.
+
+These would go away if core gave its toolbar controls, its format group and its menu items a class or data attribute to find them by. The draft of that request is in the pull request that added this entry.

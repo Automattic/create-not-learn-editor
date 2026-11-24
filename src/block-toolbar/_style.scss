@@ -4,9 +4,10 @@
  * options menu, the Layout menu or the floating format toolbar stands in for
  * them.
  *
- * Core's controls are found by core's own classes where it has them, and by
- * their labels where it doesn't. Labels aren't an API: if core rewords one,
- * that control shows again. See "Drift canaries" in the README.
+ * Core's controls are found by core's own classes where it has them. Those
+ * it gives none are found by their labels, in the site's language, in
+ * `core-labels.js`, which writes those rules. Labels aren't an API: if core
+ * rewords one, that control shows again. See "Drift canaries" in the README.
  */
 
 @use "../elevation" as *;
@@ -14,50 +15,6 @@
 // Scoped to the block popover's toolbar, as core's own rules are, so these
 // win over them.
 $toolbar: "html.cnl-has-block-toolbar .components-popover .block-editor-block-contextual-toolbar";
-
-// Core's style controls, which move to the options or Layout menu.
-$style-controls: (
-	"Align text",
-	"Align block",
-	"Align",
-	"Font size",
-	"Change items justification",
-	"Align content vertically",
-	"Change vertical alignment",
-	"Apply duotone filter",
-);
-
-$style-label: "";
-
-@each $label in $style-controls {
-
-	@if $style-label == "" {
-		$style-label: '[aria-label="#{$label}"]';
-	} @else {
-		$style-label: '#{$style-label}, [aria-label="#{$label}"]';
-	}
-}
-$style-control: "#{$style-label}, .components-dropdown:has(> :is(#{$style-label}))";
-
-// Icons people know from across the web, which keep their place.
-$well-known: ("Link", "Unlink", "Bold", "Italic", "Delete", "Remove");
-$well-known-label: "";
-
-@each $label in $well-known {
-
-	@if $well-known-label == "" {
-		$well-known-label: '[aria-label="#{$label}"]';
-	} @else {
-		$well-known-label: '#{$well-known-label}, [aria-label="#{$label}"]';
-	}
-}
-
-// Any other icon-only button, which the options menu takes instead, named.
-// `readToolbarTools()` in `core-menu-items.jsx` lists what this hides.
-$tool-button: ".block-editor-block-toolbar__slot > button.has-icon:not(.has-text, [aria-haspopup], .cnl-block-toolbar__keep, #{$well-known-label})";
-
-// Core's format buttons, which mark the format group.
-$format-buttons: '[aria-label="Bold"], [aria-label="Italic"], [aria-label="More"]';
 
 @function icon($path) {
 
@@ -68,11 +25,21 @@ $parent-gap: var(--wpds-dimension-gap-sm);
 
 $chevron-down: icon("M7 11L12 15L17 11");
 $more-vertical: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='6' r='1.25'/%3E%3Ccircle cx='12' cy='12' r='1.25'/%3E%3Ccircle cx='12' cy='18' r='1.25'/%3E%3C/svg%3E");
+$arrow-up: icon("M12 20L12 5M17 10L12 5L7 10");
+$arrow-down: icon("M12 4V19M7 14L12 19L17 14");
+$arrow-left: icon("M20 12L5 12M10 7L5 12L10 17");
+$arrow-right: icon("M4 12L19 12M14 17L19 12L14 7");
+
+// Each mover button's arrow, by core's classes for its direction: up and
+// down, or, in a horizontal list, back and forward along it, which right to
+// left is the other way.
 $arrows: (
-	"Move up": icon("M12 20L12 5M17 10L12 5L7 10"),
-	"Move down": icon("M12 4V19M7 14L12 19L17 14"),
-	"Move left": icon("M20 12L5 12M10 7L5 12L10 17"),
-	"Move right": icon("M4 12L19 12M14 17L19 12L14 7"),
+	".is-up-button:not(.is-horizontal *)": $arrow-up,
+	".is-down-button:not(.is-horizontal *)": $arrow-down,
+	".is-up-button:is(.is-horizontal *):not(:dir(rtl))": $arrow-left,
+	".is-down-button:is(.is-horizontal *):not(:dir(rtl))": $arrow-right,
+	".is-up-button:is(.is-horizontal *):dir(rtl)": $arrow-right,
+	".is-down-button:is(.is-horizontal *):dir(rtl)": $arrow-left,
 );
 
 // The design system's overlay, as its menus are, rather than core's black
@@ -277,8 +244,8 @@ $divider: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neut
 			display: none;
 		}
 
-		@each $label, $image in $arrows {
-			&[aria-label^="#{$label}"]::after {
+		@each $button, $image in $arrows {
+			&#{$button}::after {
 
 				@include mask-icon($image, var(--wpds-dimension-size-xs));
 				position: static;
@@ -307,22 +274,8 @@ $divider: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neut
 		opacity: 0.4;
 	}
 
-	// Style controls, now in the options or Layout menu.
-	.block-editor-block-toolbar__slot > :is(#{$style-control}) {
-		display: none;
-	}
-
-	// Icon tools without a well-known icon, now in the options menu.
-	.block-editor-block-toolbar > .components-toolbar-group:not(:has(#{$format-buttons})) #{$tool-button} {
-		display: none;
-	}
-
-	// A group left with nothing in it. (`:has()` can't hold another.)
-	.block-editor-block-toolbar > .components-toolbar-group:has(> .block-editor-block-toolbar__slot):not(
-		:has(.block-editor-block-toolbar__slot :is(button, a):not(#{$style-label}):not(#{$tool-button}))
-	) {
-		display: none;
-	}
+	// Core's style controls, its other icon-only tools and its format group
+	// are hidden by their labels, in `core-labels.js`.
 
 	// The options menu stands in for core's.
 	.block-editor-block-toolbar:has(.cnl-block-options__toggle) .components-toolbar-group:has(> .block-editor-block-settings-menu),
@@ -418,8 +371,7 @@ $divider: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neut
 	 * the proposal draws it a size down; an active format filled in, and
 	 * "More" as ⋮ after a divider.
 	 */
-	.block-editor-block-toolbar > .components-toolbar-group:has(#{$format-buttons}) {
-		display: none;
+	.block-editor-block-toolbar > .components-toolbar-group {
 
 		&[data-cnl-format="floating"] {
 			display: flex;
@@ -464,7 +416,8 @@ $divider: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neut
 				}
 			}
 
-			.components-dropdown-menu:has(> [aria-label="More"]) {
+			// "More", core's last item in the group and its only menu.
+			.block-editor-block-toolbar__slot > .components-dropdown-menu:last-child {
 				display: flex;
 				align-items: center;
 				margin-inline-start: var(--wpds-dimension-gap-xs);
@@ -472,7 +425,7 @@ $divider: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neut
 				border-inline-start: $divider;
 			}
 
-			[aria-label="More"] {
+			.block-editor-block-toolbar__slot > .components-dropdown-menu:last-child .components-dropdown-menu__toggle {
 
 				svg {
 					display: none;
