@@ -57,6 +57,7 @@ import { Icon, Tooltip, VisuallyHidden } from '@wordpress/ui';
 /**
  * Internal dependencies
  */
+import { getCurrentLayout, resolveLayout } from '../../../src/menu-layout';
 import {
 	getItemIdForRoute,
 	pickShownItems,
@@ -143,6 +144,131 @@ const PREFERENCE_NAME = 'foldedMenuSections';
 const USE_PREFERENCE_NAME = 'menuItemUse';
 
 const DEFAULT_FOLDED = { advanced: true };
+
+/*
+ * How someone has arranged the sidebar, by workspace id
+ * (`src/menu-layout.js`). A workspace with nothing saved shows its own
+ * layout: its preset's `menuLayout` if it has one, otherwise the registered
+ * order with the items used most listed.
+ */
+const LAYOUT_PREFERENCE_NAME = 'menuLayouts';
+
+/*
+ * What was used as of loading, which picks the items listed until the
+ * editor is loaded again, and the time it is measured at. Set on mounting.
+ */
+let usesAtLoad = {};
+let loadedAt = 0;
+
+/**
+ * The items a section lists until someone arranges them: its defaults, and
+ * any used more than them lately.
+ *
+ * @param {string}   id    Section id.
+ * @param {Object[]} items The section's items.
+ * @return {Set<string>} Ids of the items listed.
+ */
+function pickDefaultItems( id, items ) {
+	return pickShownItems( items, {
+		limit: getSection( id ).shownItems ?? MAX_SHOWN_ITEMS,
+		defaults: SECTIONS[ id ].defaults,
+		uses: usesAtLoad,
+		now: loadedAt,
+	} );
+}
+
+/**
+ * The layout saved for the active workspace, if any.
+ *
+ * @param {Function} selectFn `select`, or a `useSelect` callback's.
+ * @return {?Object} Saved layout.
+ */
+function getSavedLayout( selectFn = select ) {
+	const workspace = getActiveWorkspace( selectFn );
+
+	return (
+		selectFn( preferencesStore ).get(
+			PREFERENCES_SCOPE,
+			LAYOUT_PREFERENCE_NAME
+		)?.[ workspace.id ] ??
+		workspace.menuLayout ??
+		null
+	);
+}
+
+/**
+ * Whether the active workspace's sidebar has been arranged by hand.
+ *
+ * @param {Function} selectFn `select`, or a `useSelect` callback's.
+ * @return {boolean} Whether a layout is saved for it.
+ */
+export function isMenuCustomized( selectFn = select ) {
+	return !! selectFn( preferencesStore ).get(
+		PREFERENCES_SCOPE,
+		LAYOUT_PREFERENCE_NAME
+	)?.[ getActiveWorkspace( selectFn ).id ];
+}
+
+/**
+ * The active workspace's layout as it stands, ready to edit.
+ *
+ * @return {Object} Layout.
+ */
+export function getEditableMenuLayout() {
+	const saved = getSavedLayout();
+	const items = getTopLevelItems();
+
+	return saved
+		? resolveLayout(
+				saved,
+				items,
+				Object.keys( SECTIONS ),
+				MAX_SHOWN_ITEMS
+			)
+		: getCurrentLayout( items, Object.keys( SECTIONS ), ( id ) =>
+				pickDefaultItems(
+					id,
+					items.filter( ( item ) => item.section === id )
+				)
+			);
+}
+
+/**
+ * Save a layout for the active workspace, or forget it with `null`.
+ *
+ * @param {?Object} layout Layout.
+ */
+export function saveMenuLayout( layout ) {
+	const { id } = getActiveWorkspace();
+	const { [ id ]: _previous, ...others } =
+		select( preferencesStore ).get(
+			PREFERENCES_SCOPE,
+			LAYOUT_PREFERENCE_NAME
+		) || {};
+
+	dispatch( preferencesStore ).set(
+		PREFERENCES_SCOPE,
+		LAYOUT_PREFERENCE_NAME,
+		layout ? { ...others, [ id ]: layout } : others
+	);
+}
+
+/**
+ * A section's title, for those outside this file.
+ *
+ * @param {string} id Section id.
+ * @return {string} Its title.
+ */
+export function getMenuSectionLabel( id ) {
+	return SECTIONS[ id ]?.label ?? id;
+}
+
+/**
+ * The menu items, for those outside this file.
+ *
+ * @return {Object[]} Top-level menu items.
+ */
+export { getTopLevelItems as getTopLevelMenuItems };
 
 /*
  * The main menu at the sidebar's top level. Inside a drilldown the title row
@@ -494,6 +620,67 @@ function setData( element, key, value ) {
 }
 
 /**
+ * Put boot's items in the order they're arranged in: items with no section
+ * first, as boot lists them, then each section's in turn. With nothing
+ * arranged that is boot's own order, which puts it back after a reset.
+ *
+ * Boot's items are moved rather than re-rendered, as boot's menu isn't ours
+ * to render. React leaves alone what it rendered unless its own order
+ * changes, and the titles and "…" are placed around the items afterwards.
+ *
+ * @param {Element}  list          The main menu.
+ * @param {Object[]} entries       Its items, with their menu item and section.
+ * @param {?Object}  layout        The layout arranged, if any.
+ * @param {Object[]} topLevelItems Boot's menu items, in registered order.
+ * @return {Object[]} The entries in their new order.
+ */
+function sortEntries( list, entries, layout, topLevelItems ) {
+	const registeredOrder = topLevelItems.map( ( item ) => item.id );
+	let sorted;
+
+	if ( layout ) {
+		const sectionOrder = layout.sections.map( ( section ) => section.id );
+		const itemOrder = layout.sections.flatMap( ( section ) =>
+			section.items.map( ( item ) => item.id )
+		);
+
+		sorted = [
+			...entries.filter( ( entry ) => ! entry.section ),
+			...entries
+				.filter( ( entry ) => entry.section )
+				.sort(
+					( a, b ) =>
+						sectionOrder.indexOf( a.section ) -
+							sectionOrder.indexOf( b.section ) ||
+						itemOrder.indexOf( a.item.id ) -
+							itemOrder.indexOf( b.item.id )
+				),
+		];
+	} else {
+		// Boot's order. An item it lists that isn't registered stays after
+		// the one before it.
+		let previousRank = -1;
+		const ranked = entries.map( ( entry ) => {
+			const index = entry.item
+				? registeredOrder.indexOf( entry.item.id )
+				: -1;
+			previousRank = index === -1 ? previousRank + 0.001 : index;
+			return { entry, rank: previousRank };
+		} );
+
+		sorted = ranked
+			.sort( ( a, b ) => a.rank - b.rank )
+			.map( ( { entry } ) => entry );
+	}
+
+	if ( sorted.some( ( entry, index ) => entry !== entries[ index ] ) ) {
+		sorted.forEach( ( entry ) => list.append( entry.child ) );
+	}
+
+	return sorted;
+}
+
+/**
  * Title the sections of the sidebar's main menu, and keep them titled as
  * boot re-renders it and as workspaces move items between sections.
  */
@@ -554,12 +741,8 @@ export function mountMenuSections() {
 	// Sections whose "…" has been clicked, so all their items show.
 	const expanded = new Set();
 
-	/*
-	 * What was used as of loading, which picks the items listed until the
-	 * editor is loaded again, and the time it is measured at.
-	 */
-	const usesAtLoad = getUses();
-	const loadedAt = Date.now();
+	usesAtLoad = getUses();
+	loadedAt = Date.now();
 
 	/*
 	 * The item whose screen is on show. The one the editor opened on isn't
@@ -597,12 +780,29 @@ export function mountMenuSections() {
 			return;
 		}
 
+		const topLevelItems = getTopLevelItems();
 		const itemByRoute = new Map(
-			getTopLevelItems().map( ( item ) => [ item.to, item ] )
+			topLevelItems.map( ( item ) => [ item.to, item ] )
 		);
 		const folded = getFolded();
 
-		const entries = [ ...list.children ]
+		// Arranged by hand, items can change section as well as place.
+		const saved = getSavedLayout();
+		const layout =
+			saved &&
+			resolveLayout(
+				saved,
+				topLevelItems,
+				Object.keys( SECTIONS ),
+				MAX_SHOWN_ITEMS
+			);
+		const sectionOf = new Map(
+			layout?.sections.flatMap( ( section ) =>
+				section.items.map( ( item ) => [ item.id, section.id ] )
+			)
+		);
+
+		let entries = [ ...list.children ]
 			.filter(
 				( child ) =>
 					! child.classList.contains( TITLE_CLASS ) &&
@@ -611,15 +811,16 @@ export function mountMenuSections() {
 			)
 			.map( ( child ) => {
 				const item = itemByRoute.get( getLinkedRoute( child ) );
+				const section = sectionOf.get( item?.id ) ?? item?.section;
 
 				return {
 					child,
 					item,
-					section: SECTIONS[ item?.section ]
-						? item.section
-						: undefined,
+					section: SECTIONS[ section ] ? section : undefined,
 				};
 			} );
+
+		entries = sortEntries( list, entries, layout, topLevelItems );
 
 		// The items each section lists, of those boot has rendered.
 		const shownBySection = {};
@@ -628,14 +829,24 @@ export function mountMenuSections() {
 				.filter( ( entry ) => entry.section === id && entry.item )
 				.map( ( { item } ) => item );
 
-			if ( items.length && ! expanded.has( id ) ) {
-				shownBySection[ id ] = pickShownItems( items, {
-					limit: getSection( id ).shownItems ?? MAX_SHOWN_ITEMS,
-					defaults: SECTIONS[ id ].defaults,
-					uses: usesAtLoad,
-					now: loadedAt,
-				} );
+			if ( ! items.length ) {
+				return;
 			}
+
+			const layoutSection = layout?.sections.find(
+				( section ) => section.id === id
+			);
+			if ( expanded.has( id ) ) {
+				return;
+			}
+
+			shownBySection[ id ] = layoutSection
+				? new Set(
+						layoutSection.items
+							.filter( ( item ) => item.shown )
+							.map( ( item ) => item.id )
+					)
+				: pickDefaultItems( id, items );
 		} );
 
 		/*

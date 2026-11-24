@@ -164,3 +164,11 @@ A link can open the editor in a workspace by adding `workspace` to its address:
 The ids are `simple` (Default), `writing`, `selling` and `builder`, from `src/workspaces/presets.js`. The link switches the person to that workspace as if they had picked it from the switcher, so it stays their workspace afterwards. The editor then takes `workspace` out of the address, so a reload doesn't undo a switch made since. A workspace the site can't use, like Selling on a site without WooCommerce, is ignored.
 
 It is there for demos, and for the end of an onboarding flow, which can send people on to the workspace that suits what they came to do. It works with any other part of the address, such as `p` for the screen to open on.
+
+## Customizing the sidebar
+
+Anyone can rearrange the black sidebar for themselves, from "Customize sidebar" in the workspace switcher's menu or the command palette. The menu gives way to a panel of cards, one per section, after the RSM prototype's "Customize navigation" (`packages/app-init/src/menu-customizer.jsx`). Sections and items move by drag handle, or with the arrow keys on a handle, and items can move between sections. A switch per item lists it, or keeps it behind its section's "…", so nothing can be switched out of reach. Home stays first.
+
+Each change is saved as it is made, as the `menuLayouts` preference, keyed by workspace id, so each workspace keeps its own arrangement. "Reset to default" forgets the active workspace's. Until someone rearranges a sidebar it is the workspace's own: registered order, with the items used most listed (`src/menu-use.js`). A preset can give its workspace a starting layout with a `menuLayout` setting, which a reset returns to. None does yet.
+
+The layout itself, and how a saved one is laid over the items registered now (dropping ones that have gone and adding new ones at the end of their section), is in `src/menu-layout.js`. `menu-sections.jsx` moves boot's rendered items into that order, as boot's store can't reorder them, and places the titles and "…" around them.
