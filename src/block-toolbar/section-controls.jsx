@@ -2,7 +2,8 @@
  * A section's own tools on core's toolbar, once the site canvas has picked
  * it and core has its block selected: Add, then its design choices, Layout,
  * Colour and Width, each only when it has something to choose. Each has its
- * icon and its name, and all but Add open under the toolbar. Layers, the
+ * icon and its name, and all but Add open under the toolbar. Last, Zoom
+ * out, an icon alone, goes to Compose to move the section. Layers, the
  * blocks inside it, opens from the section's name (`name-menu.js`).
  *
  * The canvas knows what a section can choose, and draws what each button
@@ -18,12 +19,17 @@
  */
 import { ToolbarButton } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { color, layout, stretchWide } from '@wordpress/icons';
+import { color, layout, square, stretchWide } from '@wordpress/icons';
 
 /**
  * Internal dependencies
  */
-import { toggleSectionTool, useSectionTool } from '../site-canvas/mode';
+import {
+	MODE_COMPOSE,
+	requestCanvasMode,
+	toggleSectionTool,
+	useSectionTool,
+} from '../site-canvas/mode';
 import { AddBlockButton } from './layout-menu';
 
 // The canvas's names for the choices, and their icons. See `design-bar.jsx`.
@@ -78,6 +84,13 @@ export function SectionControls( { clientId, title, views, isContainer } ) {
 					</ToolbarButton>
 				);
 			} ) }
+			{ /* Sections are moved zoomed out, where the whole page shows.
+			     The same icon as the canvas's own Zoom out. */ }
+			<ToolbarButton
+				icon={ square }
+				label={ __( 'Zoom out to arrange sections' ) }
+				onClick={ () => requestCanvasMode( MODE_COMPOSE ) }
+			/>
 		</>
 	);
 }
