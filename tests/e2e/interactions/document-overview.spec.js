@@ -45,9 +45,11 @@ test.describe( 'Document Overview', () => {
 		await expect(
 			panel.getByRole( 'tab', { name: 'Details' } )
 		).toHaveAttribute( 'aria-selected', 'true' );
+		// Its title is a field of the form, to change in place.
 		await expect(
-			panel.getByRole( 'heading', { name: testPage.title } )
+			panel.getByRole( 'button', { name: 'Edit Title' } )
 		).toBeVisible();
+		await expect( panel.getByText( testPage.title ) ).toBeVisible();
 
 		await panel.getByRole( 'tab', { name: 'Layers' } ).click();
 

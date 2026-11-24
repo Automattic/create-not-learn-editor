@@ -77,6 +77,17 @@ const DETAILS_FORM = {
 	],
 };
 
+// The details with the title, under the featured image, for a panel that has
+// no other place to change it.
+const DETAILS_FORM_WITH_TITLE = {
+	...DETAILS_FORM,
+	fields: [
+		DETAILS_FORM.fields[ 0 ],
+		'title',
+		...DETAILS_FORM.fields.slice( 1 ),
+	],
+};
+
 // Plain words for the editor's labels.
 const LABELS = {
 	parent: __( 'Parent page', 'create-not-learn-editor' ),
@@ -312,12 +323,19 @@ export function PageSummary( { pageId } ) {
  * @param {string}   props.layoutName    The name of the page's layout.
  * @param {Function} props.onOpenLayouts Opens the layouts.
  * @param {number}   props.pageId        Page ID.
+ * @param {boolean}  [props.withTitle]   With the title first, where nothing
+ *                                       else beside the form shows it.
  * @return {Element} The details.
  */
-export function PageDetails( { layoutName, onOpenLayouts, pageId } ) {
+export function PageDetails( {
+	layoutName,
+	onOpenLayouts,
+	pageId,
+	withTitle = false,
+} ) {
 	return (
 		<PageDetailsForm
-			form={ DETAILS_FORM }
+			form={ withTitle ? DETAILS_FORM_WITH_TITLE : DETAILS_FORM }
 			isPlain
 			label={ __( 'Details', 'create-not-learn-editor' ) }
 			layoutName={ layoutName }

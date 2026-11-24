@@ -163,28 +163,36 @@ function DocumentDetails() {
 
 	return (
 		<div className="cnl-document-panel__details">
-			<div className="cnl-document-panel__summary">
-				<Text
-					className="cnl-document-panel__type"
-					render={ <p /> }
-					variant="body-sm"
-				>
-					{ isFrontPage ? __( 'Homepage' ) : typeName || postType }
-				</Text>
-				<Text
-					className="cnl-document-panel__title"
-					render={ <h2 /> }
-					variant="heading-xl"
-				>
-					{ title || __( '(no title)' ) }
-				</Text>
-				{ hasLength && <DocumentLength /> }
-			</div>
+			{ /* A page's title is the form's first field, to change in place. */ }
+			{ page ? (
+				hasLength && <DocumentLength />
+			) : (
+				<div className="cnl-document-panel__summary">
+					<Text
+						className="cnl-document-panel__type"
+						render={ <p /> }
+						variant="body-sm"
+					>
+						{ isFrontPage
+							? __( 'Homepage' )
+							: typeName || postType }
+					</Text>
+					<Text
+						className="cnl-document-panel__title"
+						render={ <h2 /> }
+						variant="heading-xl"
+					>
+						{ title || __( '(no title)' ) }
+					</Text>
+					{ hasLength && <DocumentLength /> }
+				</div>
+			) }
 			{ page && (
 				<PageDetails
 					layoutName={ layoutName }
 					onOpenLayouts={ () => setIsChangingLayout( true ) }
 					pageId={ page.id }
+					withTitle
 				/>
 			) }
 		</div>
