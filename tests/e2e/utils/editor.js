@@ -417,7 +417,9 @@ async function isWithin( page, target, selector ) {
 
 /**
  * In Edit or Compose, point at the section holding something until the
- * layer lights it up, with its bar. Forced, as the bar over a short section
+ * layer lights it up. A section in Edit has no bar, its tools being on
+ * core's block toolbar once it is picked; a header, a footer, a run of text
+ * and every section in Compose do. Forced, as a bar over a short section
  * covers it once it shows.
  *
  * @param {import('@playwright/test').Page}    page
@@ -431,9 +433,9 @@ async function pointAtSection( page, target, { timeout = 15000 } = {} ) {
 	await expect( async () => {
 		await page.mouse.move( 0, 0 );
 		await target.hover( { force: true } );
-		await expect( page.locator( '.cnl-section-modes__bar' ) ).toBeVisible( {
-			timeout: 1000,
-		} );
+		await expect( page.locator( '.cnl-section-modes__tint' ) ).toBeVisible(
+			{ timeout: 1000 }
+		);
 		expect(
 			await isWithin( page, target, '.cnl-section-modes__tint' )
 		).toBe( true );
