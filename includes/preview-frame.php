@@ -5,8 +5,9 @@
  * The Preview side of a canvas is the real site in an iframe, loaded with the
  * `cnl-editor-preview` query arg. On those requests this keeps the site's own
  * links and forms inside the preview, opens other sites in a new tab, and
- * hides the admin chrome. Ported from Big Sky's Easy Mode preview
- * (`Big_Sky_Easy_Mode_Preview`).
+ * hides the admin chrome. Only the editor loads previews, so all of that is
+ * for people logged in; a visitor who adds the query arg gets the plain
+ * site. Ported from Big Sky's Easy Mode preview (`Big_Sky_Easy_Mode_Preview`).
  *
  * @package CreateNotLearnEditor
  */
@@ -278,7 +279,7 @@ function cnl_editor_preview_posts_per_page( $value ) {
  * Chrome's renderer outright (seen in Chrome and Chromium, headed only).
  */
 function cnl_editor_output_preview_frame_styles() {
-	if ( ! cnl_editor_is_preview_frame_request() ) {
+	if ( ! cnl_editor_is_preview_frame_request() || ! is_user_logged_in() ) {
 		return;
 	}
 	?>
@@ -303,7 +304,7 @@ function cnl_editor_output_preview_frame_styles() {
  * would be left on a page the canvas cannot read.
  */
 function cnl_editor_output_preview_navigation_script() {
-	if ( ! cnl_editor_is_preview_frame_request() ) {
+	if ( ! cnl_editor_is_preview_frame_request() || ! is_user_logged_in() ) {
 		return;
 	}
 	?>

@@ -38,6 +38,8 @@ class CNL_Editor_Request_Detection_Test extends WP_UnitTestCase {
 	}
 
 	public function test_preview_frame_styles_only_in_previews() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
 		ob_start();
 		cnl_editor_output_preview_frame_styles();
 		$this->assertSame( '', ob_get_clean() );
@@ -46,6 +48,16 @@ class CNL_Editor_Request_Detection_Test extends WP_UnitTestCase {
 		ob_start();
 		cnl_editor_output_preview_frame_styles();
 		$this->assertStringContainsString( 'cnl-editor-preview-frame-styles', ob_get_clean() );
+	}
+
+	public function test_preview_frame_is_plain_for_visitors() {
+		wp_set_current_user( 0 );
+		$this->as_preview();
+
+		ob_start();
+		cnl_editor_output_preview_frame_styles();
+		cnl_editor_output_preview_navigation_script();
+		$this->assertSame( '', ob_get_clean() );
 	}
 
 	public function test_full_page_needs_admin_php() {
