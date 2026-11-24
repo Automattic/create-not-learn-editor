@@ -3,8 +3,10 @@
  */
 import { Page as AdminPage } from '@wordpress/admin-ui';
 import { Button } from '@wordpress/components';
+import { createContext, useContext } from '@wordpress/element';
 import { __, isRTL } from '@wordpress/i18n';
 import { chevronLeft, chevronRight } from '@wordpress/icons';
+import { applyFilters } from '@wordpress/hooks';
 import { useNavigate } from '@wordpress/route';
 
 /**
@@ -71,17 +73,31 @@ function StageBack( { parent } ) {
 	);
 }
 
+const IsInPage = createContext( false );
+
+/*
+ * Publish comes from app init (`src/top-bar/index.jsx`) through this filter
+ * rather than an import: every route bundles this file, and importing
+ * Publish would bundle the changes list and `@wordpress/editor` with it.
+ */
+export const STAGE_PUBLISH_FILTER = 'createNotLearnEditor.stagePublish';
+
 /**
- * Admin UI's page, with Back at the start of its header. Every screen in
- * the stage is one of these.
+ * Admin UI's page, with Back at the start of its header, and Publish at its
+ * foot, for every change on the site (`src/top-bar/publish.jsx`). Every
+ * screen in the stage is one of these.
  *
- * @param {Object}  props        Admin UI `Page` props, and:
- * @param {boolean} props.isRoot Whether this is Home, which is above every
- *                               other screen and so has no Back.
+ * @param {Object}  props          Admin UI `Page` props, and:
+ * @param {Node}    props.children The screen's contents, above Publish.
+ * @param {boolean} props.isRoot   Whether this is Home, which is above every
+ *                                 other screen and so has no Back.
  * @return {Element} The page.
  */
-export function Page( { isRoot = false, ...props } ) {
+export function Page( { isRoot = false, children, ...props } ) {
 	const { breadcrumbs } = props;
+	// A screen can show another inside it; Publish is the outermost's.
+	const isNested = useContext( IsInPage );
+	const Publish = applyFilters( STAGE_PUBLISH_FILTER, null );
 
 	return (
 		<AdminPage
@@ -94,7 +110,14 @@ export function Page( { isRoot = false, ...props } ) {
 					{ breadcrumbs }
 				</>
 			}
-		/>
+		>
+			<IsInPage.Provider value>{ children }</IsInPage.Provider>
+			{ ! isNested && Publish && (
+				<div className="cnl-stage-publish">
+					<Publish />
+				</div>
+			) }
+		</AdminPage>
 	);
 }
 

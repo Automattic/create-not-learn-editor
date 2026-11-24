@@ -226,15 +226,21 @@ export function SiteCanvas( {
 						/>
 					) }
 					{ /* Save goes after these, from `src/top-bar`. */ }
-					{ isPreviewing && canvas.canEdit && (
+					{ /* Edit and Exit follow editing the page, which fills the
+					editor, not the mode: on Colors the canvas edits only to
+					show the colour picked, and Edit is still the way in. */ }
+					{ ! isExpanded && canvas.canEdit && (
 						<EditScope>
 							<EditButton
 								buttonRef={ editButtonRef }
-								onEdit={ () => canvas.requestMode( MODE_EDIT ) }
+								onEdit={ () => {
+									canvas.requestMode( MODE_EDIT );
+									expandCanvas( true );
+								} }
 							/>
 						</EditScope>
 					) }
-					{ ! isPreviewing && <ExitButton onExit={ canvas.exit } /> }
+					{ isExpanded && <ExitButton onExit={ canvas.exit } /> }
 				</div>
 			</header>
 			<div className="cnl-site-canvas__body" ref={ bodyRef }>

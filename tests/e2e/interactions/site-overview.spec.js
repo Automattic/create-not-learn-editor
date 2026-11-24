@@ -1,16 +1,12 @@
 const {
 	expect,
+	getPublishButton,
 	getSaveControls,
 	getStage,
 	openSidebarLink,
 	test,
 	visitEditor,
 } = require( '../utils' );
-
-// The Site overview has no save bar of its own: changes waiting to be saved
-// are counted on the sidebar's Save button.
-const getReviewButton = ( page ) =>
-	page.getByRole( 'button', { name: /^Review \d+ changes?/ } );
 
 test.describe( 'Site overview interactions', () => {
 	test( 'drags a page under another page, waiting to be saved', async ( {
@@ -57,9 +53,9 @@ test.describe( 'Site overview interactions', () => {
 				)
 		).toBeVisible();
 
-		// The move waits for Save, like any other change.
-		await expect( getReviewButton( page ) ).toHaveText(
-			/^Review 1 change/
+		// The move waits for Publish, like any other change.
+		await expect( getPublishButton( page ) ).toHaveAccessibleDescription(
+			'1 unpublished change'
 		);
 		expect( await getParent() ).toBe( 0 );
 	} );
@@ -79,7 +75,9 @@ test.describe( 'Site overview interactions', () => {
 		await expect( page ).toHaveURL(
 			new RegExp( `node%3Dpage-${ testPage.id }` )
 		);
-		await expect( getReviewButton( page ) ).toHaveCount( 0 );
+		await expect( getPublishButton( page ) ).toHaveAccessibleDescription(
+			'Nothing to publish'
+		);
 	} );
 
 	test( 'pictures of pages show unsaved changes, frozen without scripts', async ( {

@@ -4,10 +4,11 @@ const {
 	getEditorCanvas,
 	getPageItem,
 	getRoute,
+	getPublishButton,
 	getSaveControls,
 	getStage,
 	openPageLayouts,
-	openReviewChanges,
+	openPublishChanges,
 	test,
 	visitEditor,
 } = require( '../utils' );
@@ -374,17 +375,19 @@ test.describe( 'Pages interactions', () => {
 			'2'
 		);
 
-		// The move waits for Save, like any other change.
+		// The move waits for Publish, like any other change.
 		await expect( getSaveControls( page ) ).toContainText(
 			'1 unsaved change'
 		);
 		expect( await getParent() ).toBe( 0 );
 
-		const review = await openReviewChanges( page );
+		const review = await openPublishChanges( page );
 
-		await review.getByRole( 'button', { name: 'Save 1 change' } ).click();
-		await expect( getSaveControls( page ) ).toContainText(
-			'All changes saved',
+		await review
+			.getByRole( 'button', { name: 'Publish 1 change' } )
+			.click();
+		await expect( getPublishButton( page ) ).toHaveAccessibleDescription(
+			'Nothing to publish',
 			{ timeout: 15000 }
 		);
 		expect( await getParent() ).toBe( parent.id );

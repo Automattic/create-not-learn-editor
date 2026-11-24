@@ -227,11 +227,22 @@ function ChangeGroups( { changes, onDiscard } ) {
 
 /**
  * @param {Object}   props
- * @param {Function} props.onClose Close the dialog.
+ * @param {Function} props.onClose       Close the dialog.
+ * @param {boolean}  props.inEditSession Only what changed while editing
+ *                                       the page, for its Save.
+ * @param {boolean}  props.isPublishing  Worded for Publish, at the foot of
+ *                                       a screen, which publishes every
+ *                                       change.
  * @return {Element} The dialog.
  */
-export function ReviewChanges( { onClose } ) {
-	const { changes, isSaving, save, discard, discardAll } = useChanges();
+export function ReviewChanges( {
+	onClose,
+	inEditSession = false,
+	isPublishing = false,
+} ) {
+	const { changes, isSaving, save, discard, discardAll } = useChanges( {
+		inEditSession,
+	} );
 	const [ isConfirmingDiscard, setIsConfirmingDiscard ] = useState( false );
 	const { createSuccessNotice } = useDispatch( noticesStore );
 	const count = changes.length;
@@ -312,16 +323,22 @@ export function ReviewChanges( { onClose } ) {
 	return (
 		<Modal
 			key="review"
-			title={ __( 'Review changes' ) }
+			title={
+				isPublishing ? __( 'Publish changes' ) : __( 'Review changes' )
+			}
 			onRequestClose={ onClose }
 			size="medium"
 			className="cnl-review-changes"
 		>
 			<Stack direction="column" gap="xl">
 				<Text className="cnl-review-changes__intro">
-					{ __(
-						'Visitors see these once you save them. Discard any you don’t want to keep.'
-					) }
+					{ isPublishing
+						? __(
+								'Visitors see these once you publish them. Discard any you don’t want to keep.'
+							)
+						: __(
+								'Visitors see these once you save them. Discard any you don’t want to keep.'
+							) }
 				</Text>
 				<ChangeGroups changes={ changes } onDiscard={ discard } />
 				<div className="cnl-review-changes__footer">
@@ -351,15 +368,25 @@ export function ReviewChanges( { onClose } ) {
 							disabled={ isSaving }
 							accessibleWhenDisabled
 						>
-							{ sprintf(
-								/* translators: %d: Number of changes to save. */
-								_n(
-									'Save %d change',
-									'Save %d changes',
-									count
-								),
-								count
-							) }
+							{ isPublishing
+								? sprintf(
+										/* translators: %d: Number of changes to publish. */
+										_n(
+											'Publish %d change',
+											'Publish %d changes',
+											count
+										),
+										count
+									)
+								: sprintf(
+										/* translators: %d: Number of changes to save. */
+										_n(
+											'Save %d change',
+											'Save %d changes',
+											count
+										),
+										count
+									) }
 						</Button>
 					</div>
 				</div>

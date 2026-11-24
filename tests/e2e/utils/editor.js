@@ -505,6 +505,31 @@ function getSaveControls( page ) {
 }
 
 /**
+ * Publish, at the foot of the screen beside the canvas, for every change on
+ * the site. Its description says how many are waiting.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @return {import('@playwright/test').Locator} The button.
+ */
+function getPublishButton( page ) {
+	return page.locator( '.cnl-stage-publish' ).getByRole( 'button', {
+		name: 'Publish',
+	} );
+}
+
+/**
+ * Open the Publish changes dialog from the foot of the screen.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @return {Promise<import('@playwright/test').Locator>} The dialog.
+ */
+async function openPublishChanges( page ) {
+	await getPublishButton( page ).click();
+
+	return page.getByRole( 'dialog', { name: 'Publish changes' } );
+}
+
+/**
  * Open the Review changes dialog from the canvas toolbar.
  *
  * @param {import('@playwright/test').Page} page
@@ -600,11 +625,13 @@ module.exports = {
 	getPageItem,
 	getZoomOutToggle,
 	getRoute,
+	getPublishButton,
 	getSaveControls,
 	getSitePreview,
 	getStage,
 	openAddPage,
 	openPageLayouts,
+	openPublishChanges,
 	openReviewChanges,
 	openSidebarLink,
 	closeViewMenu,
