@@ -5,6 +5,7 @@
 @use "./section-modes/style" as section-modes;
 @use "./section-modes/canvas-overview";
 @use "./edit-hint";
+@use "./document-panel/style" as document-panel;
 
 .cnl-site-canvas {
 	height: 100%;
@@ -98,13 +99,25 @@ body:not(.cnl-canvas-is-expanded) .cnl-site-canvas .cnl-save-controls {
 	}
 }
 
-.cnl-site-canvas__document-overview-toggle.components-button.has-icon,
 .cnl-site-canvas__view-menu-toggle.components-button.has-icon,
 .cnl-site-canvas__zoom-out-toggle.components-button.has-icon {
 	width: 40px;
 	height: 40px;
 	min-width: 40px;
 	color: var(--wpds-color-foreground-content-neutral);
+}
+
+// Labelled as well as drawn, so it reads as "about this page", and pressed
+// in the brand colour while Details and Layers are open.
+.cnl-site-canvas__document-overview-toggle.components-button.has-icon.has-text {
+	gap: var(--wpds-dimension-gap-xs);
+	padding-inline: var(--wpds-dimension-padding-xs) var(--wpds-dimension-padding-sm);
+	color: var(--wpds-color-foreground-content-neutral);
+
+	&.is-pressed {
+		background: var(--wpds-color-background-interactive-brand-weak-active);
+		color: var(--wpds-color-foreground-interactive-brand);
+	}
 }
 
 // Pressed while open or zoomed out, in core's own pressed colours.

@@ -1,7 +1,7 @@
 /**
- * Document Overview's List View on the expanded site canvas, which lists a
- * page built from sections as the canvas works on it: its header, sections
- * and footer, rather than core's list of blocks.
+ * Document Overview on the expanded site canvas: Details, about the page, and
+ * Layers, which lists a page built from sections as the canvas works on it:
+ * its header, sections and footer, rather than core's list of blocks.
  */
 const { expect, getCanvasEditor, test, visitEditor } = require( '../utils' );
 
@@ -10,7 +10,7 @@ function section( heading ) {
 }
 
 test.describe( 'Document Overview', () => {
-	test( 'lists the page in Header, Content and Footer, and picks a section on the canvas', async ( {
+	test( 'opens on Details, and Layers lists the page in Header, Content and Footer and picks a section on the canvas', async ( {
 		page,
 		rest,
 	} ) => {
@@ -38,8 +38,20 @@ test.describe( 'Document Overview', () => {
 			.getByRole( 'button', { name: 'Edit', exact: true } )
 			.click();
 		await canvas
-			.getByRole( 'button', { name: 'Document Overview' } )
+			.getByRole( 'button', { name: /details and layers/i } )
 			.click();
+
+		// It opens on Details, about the page.
+		const panel = page.locator( '.cnl-document-panel' );
+
+		await expect(
+			panel.getByRole( 'tab', { name: 'Details' } )
+		).toHaveAttribute( 'aria-selected', 'true' );
+		await expect(
+			panel.getByRole( 'heading', { name: testPage.title } )
+		).toBeVisible();
+
+		await panel.getByRole( 'tab', { name: 'Layers' } ).click();
 
 		const overview = page.locator( '.cnl-canvas-overview' );
 		const content = overview.locator( '.cnl-canvas-overview__group', {
@@ -71,10 +83,10 @@ test.describe( 'Document Overview', () => {
 			overview.locator( 'tr', { hasText: 'Second section' } )
 		).toHaveAttribute( 'aria-selected', 'true' );
 
-		// Outline is core's, and the list comes back with List View.
-		await page.getByRole( 'tab', { name: 'Outline' } ).click();
-		await expect( overview ).toHaveCount( 0 );
-		await page.getByRole( 'tab', { name: 'List View' } ).click();
+		// Details hides the list, and Layers brings it back.
+		await panel.getByRole( 'tab', { name: 'Details' } ).click();
+		await expect( overview ).toBeHidden();
+		await panel.getByRole( 'tab', { name: 'Layers' } ).click();
 		await expect( page.locator( '.cnl-canvas-overview' ) ).toBeVisible();
 
 		// Add section adds at the end of the page, in place.

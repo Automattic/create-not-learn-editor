@@ -35,6 +35,7 @@ import { EditHint } from './edit-hint';
 import { useEditSectionControls } from './edit-section-controls';
 import { MODE_COMPOSE, MODE_EDIT } from './mode';
 import { expandCanvas, useCanvasExpansion } from './expansion';
+import { DocumentPanel } from './document-panel/document-panel';
 import { SectionModesLayer } from './section-modes/section-modes-layer';
 import {
 	closeDocumentOverview,
@@ -277,6 +278,9 @@ export function SiteCanvas( {
 					) }
 					{ isEditing && editorChildren }
 				</div>
+				{ ! isPreviewing && editorEntity && (
+					<DocumentPanel editorRef={ editorRef } />
+				) }
 				{ /* One layer for Edit and Compose, kept as the canvas moves
 				between them, so what is picked carries over. Without
 				sections, it only opens the template parts, and every other

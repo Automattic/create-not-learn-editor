@@ -1,0 +1,110 @@
+/*
+ * Details and Layers, in core's Document Overview sidebar. See
+ * `document-panel.jsx`. Core's own tabs give way to ours, and its panels show
+ * only while Layers is picked.
+ */
+
+.editor-list-view-sidebar:has(> .cnl-document-panel-host) {
+	display: flex;
+	flex-direction: column;
+
+	> .cnl-document-panel-host {
+		order: -1;
+	}
+
+	> .block-editor-tabbed-sidebar {
+		flex: 1;
+		min-height: 0;
+		height: auto;
+	}
+
+	.block-editor-tabbed-sidebar__tablist-and-close-button {
+		display: none;
+	}
+}
+
+.editor-list-view-sidebar[data-cnl-tab="details"] {
+
+	> .cnl-document-panel-host {
+		flex: 1;
+		min-height: 0;
+	}
+
+	> .block-editor-tabbed-sidebar {
+		display: none;
+	}
+}
+
+.cnl-document-panel {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	background: var(--wpds-color-background-surface-neutral);
+}
+
+.cnl-document-panel__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--wpds-dimension-gap-sm);
+	padding-inline: var(--wpds-dimension-padding-sm);
+	border-bottom: 1px solid var(--wpds-color-stroke-surface-neutral);
+}
+
+.cnl-document-panel__tablist {
+	flex: 1;
+	min-width: 0;
+}
+
+.cnl-document-panel__tab {
+	gap: var(--wpds-dimension-gap-xs);
+}
+
+.cnl-document-panel__panel {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+}
+
+.cnl-document-panel.is-layers .cnl-document-panel__panel {
+	display: none;
+}
+
+.cnl-document-panel__details,
+.cnl-document-panel__drilldown {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-lg);
+	padding: var(--wpds-dimension-padding-lg) var(--wpds-dimension-padding-md) var(--wpds-dimension-padding-2xl);
+}
+
+.cnl-document-panel__summary {
+	display: flex;
+	flex-direction: column;
+	gap: var(--wpds-dimension-gap-xs);
+	padding-inline: var(--wpds-dimension-padding-xs);
+}
+
+.cnl-document-panel__type,
+.cnl-document-panel__title {
+	margin: 0;
+}
+
+.cnl-document-panel__type,
+.cnl-document-panel__length {
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+.cnl-document-panel__title {
+	overflow-wrap: anywhere;
+}
+
+.cnl-document-panel__drilldown-header {
+	display: flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-xs);
+
+	h3 {
+		margin: 0;
+	}
+}
