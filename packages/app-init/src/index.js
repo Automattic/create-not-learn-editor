@@ -38,6 +38,8 @@ import { mountSaveControls } from '../../../src/top-bar';
 import { mountWorkspaces } from '../../../src/workspaces';
 import { registerWebMcpTools } from '../../../src/webmcp';
 import { mountPreferences } from '../../../src/preferences';
+import { mountOnboarding } from '../../../src/onboarding';
+import { registerOnboardingTips } from '../../../src/onboarding/tips';
 import { trackHomeTrip } from '../../../src/home-trip';
 import { mountMenuSections } from './menu-sections';
 import { enhanceSidebar } from './sidebar';
@@ -86,6 +88,8 @@ export async function init() {
 	mountCommands();
 	enhanceSidebar();
 	registerWebMcpTools();
+	registerOnboardingTips();
+	mountOnboarding();
 
 	// The section picker, ready before it's opened.
 	preloadDeferredWhenIdle();

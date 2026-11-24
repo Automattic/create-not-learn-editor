@@ -84,6 +84,40 @@ class RestClient {
 	}
 
 	/**
+	 * Set some of the editor's own preferences for the logged-in user, the
+	 * `create-not-learn-editor` scope of core's persisted preferences, and put
+	 * them all back when the test ends.
+	 *
+	 * @param {Object} changes Preferences to set, by name.
+	 */
+	async setEditorPreferences( changes ) {
+		const scope = 'create-not-learn-editor';
+		const user = await this.fetch( '/wp/v2/users/me', {
+			params: { context: 'edit' },
+		} );
+		const saved = user.meta?.persisted_preferences || {};
+		// Newer than anything the browser kept, so the editor reads these.
+		const save = ( preferences ) =>
+			this.fetch( '/wp/v2/users/me', {
+				data: {
+					meta: {
+						persisted_preferences: {
+							...preferences,
+							_modified: new Date().toISOString(),
+						},
+					},
+				},
+				method: 'POST',
+			} );
+
+		this.onCleanup( () => save( saved ) );
+		await save( {
+			...saved,
+			[ scope ]: { ...saved[ scope ], ...changes },
+		} );
+	}
+
+	/**
 	 * Make a page holding a paragraph, published unless told otherwise.
 	 *
 	 * @param {Object} [options]

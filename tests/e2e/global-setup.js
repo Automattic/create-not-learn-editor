@@ -1,5 +1,6 @@
 const path = require( 'node:path' );
 const { chromium, request } = require( '@playwright/test' );
+const { RestClient } = require( './utils/rest' );
 
 const ADMIN_USER = process.env.WP_ADMIN_USER || 'admin';
 const ADMIN_PASSWORD = process.env.WP_ADMIN_PASSWORD || 'password';
@@ -54,7 +55,31 @@ async function globalSetup( config ) {
 	const { baseURL } = config.projects[ 0 ].use;
 
 	await logIn( baseURL );
+	await hideHints( baseURL );
 	await warmUp( baseURL );
+}
+
+/**
+ * Turn the editor's hints off for the run (`src/onboarding/`). A hint dims
+ * the editor and catches clicks, so one turning up after a change would get
+ * in the way of tests about something else. `onboarding.spec.js` turns them
+ * on for itself.
+ *
+ * @param {string} baseURL The site.
+ */
+async function hideHints( baseURL ) {
+	const context = await request.newContext( {
+		baseURL,
+		storageState: STORAGE_STATE_PATH,
+	} );
+
+	try {
+		await new RestClient( context ).setEditorPreferences( {
+			showHints: false,
+		} );
+	} finally {
+		await context.dispose();
+	}
 }
 
 /**
