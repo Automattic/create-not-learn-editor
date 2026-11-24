@@ -1,0 +1,101 @@
+// One home for plugin UI. See `README.md`.
+
+// The Plugins button and any pinned plugins beside it, as one group in the
+// canvas toolbar or core's header.
+.cnl-plugins-menu {
+	display: flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+}
+
+.cnl-plugins-menu.is-full-screen .components-button.has-icon {
+	min-width: 32px;
+}
+
+.cnl-plugins-menu__popover .components-popover__content {
+	width: min(340px, calc(100vw - 16px));
+	max-height: min(560px, 70vh);
+	overflow-y: auto;
+	padding: var(--wpds-dimension-padding-sm);
+}
+
+.cnl-plugins-menu__search {
+	margin-block-end: var(--wpds-dimension-padding-sm);
+}
+
+.cnl-plugins-menu__meta-boxes {
+	margin: 0 0 var(--wpds-dimension-padding-sm);
+}
+
+// Each plugin's icon, then its name over what it adds, a line each.
+.cnl-plugins-menu__item.components-button {
+	height: auto;
+	min-height: 48px;
+	padding-block: var(--wpds-dimension-padding-sm);
+}
+
+.cnl-plugins-menu__item .components-menu-item__info-wrapper {
+	align-items: flex-start;
+	min-width: 0;
+	text-align: start;
+}
+
+.cnl-plugins-menu__item .components-menu-item__info {
+	max-width: 240px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.cnl-plugins-menu__empty {
+	margin: var(--wpds-dimension-padding-md);
+	color: var(--wpds-color-foreground-content-neutral-weak);
+}
+
+/*
+ * The site canvas hides core's sidebar, as its toolbar stands in for core's
+ * header. A plugin's panel, opened from the Plugins menu or by the plugin
+ * itself, shows there again, beside the page.
+ */
+body[data-cnl-plugin-sidebar] .cnl-inline-editor .interface-interface-skeleton__sidebar {
+	display: block;
+}
+
+// Wide plugin content, like a table, scrolls inside the panel rather than
+// widening it.
+.interface-complementary-area .components-panel__body {
+	overflow-x: auto;
+}
+
+// CnL pins to its own toolbar, so core's star, which pins to core's header
+// and in every editor, gives way to `PinToggle`.
+.interface-complementary-area__pin-unpin-item {
+	display: none;
+}
+
+/*
+ * Core's header pins every plugin's icon by default. The Plugins button is
+ * the way in instead, so only core's own Settings toggle stays.
+ */
+.editor-header .interface-pinned-items > .components-button[aria-controls]:not([aria-controls^="edit-post:"]):not([aria-controls^="edit-site:"]) {
+	display: none;
+}
+
+// Plugins' publish panels in CnL's review and after publishing.
+.cnl-plugins-publish {
+	border-top: 1px solid var(--wpds-color-stroke-surface-neutral);
+	padding-top: var(--wpds-dimension-padding-lg);
+}
+
+.cnl-plugins-publish__title {
+	margin: 0 0 var(--wpds-dimension-padding-sm);
+}
+
+.cnl-plugins-publish__panels .components-panel__body {
+	border: 1px solid var(--wpds-color-stroke-surface-neutral);
+	border-radius: var(--wpds-border-radius-sm);
+
+	+ .components-panel__body {
+		border-top: 0;
+	}
+}

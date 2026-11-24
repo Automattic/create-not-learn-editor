@@ -19,6 +19,7 @@
 @use "./section-picker/style" as section-picker;
 @use "./editor-extensions/style" as editor-extensions;
 @use "./block-toolbar/style" as block-toolbar;
+@use "./plugin-ui/style" as plugin-ui;
 @use "./pickers/color-well" as color-well;
 
 // Shared by every screen.

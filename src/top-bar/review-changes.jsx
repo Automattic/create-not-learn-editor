@@ -16,7 +16,7 @@
  * WordPress dependencies
  */
 import { Button, Modal } from '@wordpress/components';
-import { useDispatch } from '@wordpress/data';
+import { useDispatch, useSelect } from '@wordpress/data';
 import {
 	Fragment,
 	useEffect,
@@ -37,6 +37,10 @@ import { Icon, Stack, Text } from '@wordpress/ui';
  * Internal dependencies
  */
 import { GlobalScope } from '../global-scope';
+import {
+	isPublishingCurrentPost,
+	setPrePublishHost,
+} from '../plugin-ui/publish-host';
 import { useChanges } from './use-changes';
 
 const GROUPS = [
@@ -235,6 +239,9 @@ export function ReviewChanges( { onClose } ) {
 	const [ isConfirmingDiscard, setIsConfirmingDiscard ] = useState( false );
 	const { createSuccessNotice } = useDispatch( noticesStore );
 	const count = changes.length;
+	// Plugins' checks before publishing, like what to share, are rendered
+	// here by `src/plugin-ui`, which is inside the editor's slots.
+	const isPublishing = useSelect( isPublishingCurrentPost, [] );
 
 	// Nothing left to review, whether saved, discarded or undone elsewhere.
 	useEffect( () => {
@@ -324,6 +331,12 @@ export function ReviewChanges( { onClose } ) {
 					) }
 				</Text>
 				<ChangeGroups changes={ changes } onDiscard={ discard } />
+				{ isPublishing && (
+					<div
+						className="cnl-review-changes__plugin-checks"
+						ref={ setPrePublishHost }
+					/>
+				) }
 				<div className="cnl-review-changes__footer">
 					<Button
 						__next40pxDefaultSize

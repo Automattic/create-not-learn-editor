@@ -38,6 +38,10 @@ import {
 	getAvailableWorkspaces,
 	getWorkspace,
 } from './presets';
+import {
+	hasPluginPublishChecks,
+	subscribePluginPublishChecks,
+} from '../plugin-ui/publish-host';
 
 export const WORKSPACE_PARAM = 'workspace';
 
@@ -111,22 +115,27 @@ export function mountWorkspaces() {
 	} );
 	switchToWorkspaceInUrl();
 
-	let appliedId;
+	let applied;
 	const apply = () => {
 		const workspace = getActiveWorkspace();
+		// A plugin asking something before publishing, like what to share,
+		// needs the step to ask it, in any workspace.
+		const publishStep = workspace.publishStep || hasPluginPublishChecks();
+		const key = `${ workspace.id }:${ publishStep }`;
 
-		if ( workspace.id === appliedId ) {
+		if ( key === applied ) {
 			return;
 		}
-		appliedId = workspace.id;
+		applied = key;
 
 		document.body.dataset.cnlWorkspace = workspace.id;
 		// Core's own preference, so a choice made on the step itself wins.
 		dispatch( preferencesStore ).setDefaults( 'core', {
-			isPublishSidebarEnabled: workspace.publishStep,
+			isPublishSidebarEnabled: publishStep,
 		} );
 	};
 
 	apply();
 	subscribe( apply, preferencesStore );
+	subscribePluginPublishChecks( apply );
 }

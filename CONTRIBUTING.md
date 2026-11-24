@@ -30,7 +30,7 @@ Always run wp-env through `npm run wp-env ...`, not the `wp-env` binary. `npm ru
 - On `start`, the script fills the cache (`~/.cache/create-not-learn-editor/wp-env`, or `CNL_WP_ENV_CACHE`) with anything missing, then sets up `.wp-env/sources/`, which `.wp-env.json` points at and git ignores. Gutenberg is a symlink into the cache. WordPress is copied into the checkout, because wp-env writes `wp-config.php` and uploads into it.
 - Versions live in `scripts/wp-env.mjs`, not `.wp-env.json`. Each version downloads once. To change WordPress, update its `key` with its URL. To change the Gutenberg every checkout runs, the minimum the editor supports, change `GUTENBERG_PIN`, and keep the blueprints' Gutenberg version in step.
 - wp-env always runs `git fetch` in its PHPUnit clones. The script points them at a cached wordpress-develop clone, so that fetch stays local.
-- Keep the environment to what the editor needs, which is WordPress, Gutenberg, this plugin and the Mainstay theme. Optional plugins belong in a local `.wp-env.override.json`, as below, not in `.wp-env.json`.
+- Keep the environment to what the editor needs, which is WordPress, Gutenberg, this plugin and the Mainstay theme. Optional plugins belong in a local `.wp-env.override.json`, as below, not in `.wp-env.json`. The one exception is the plugin UI fixture, `tests/e2e/plugins/cnl-plugin-ui-fixture`, which is mapped in but left inactive (see `src/plugin-ui/README.md`).
 
 ### Trying another Gutenberg
 
