@@ -13,7 +13,8 @@
  * one, each replacing what was registered. So whenever a source is there
  * without it, it is registered once that batch is done: at app init, and
  * again after each such reload. A Gutenberg that registers it itself is
- * left to.
+ * left to, as 24.5 does (WordPress/gutenberg#86896), so this can go once the
+ * minimum is 24.5.
  *
  * Imported package by package rather than through `src/wordpress-packages`,
  * for the same reason as `template-part-editing.jsx`: this is registered from
@@ -28,7 +29,9 @@ import {
 	store as blocksStore,
 } from '@wordpress/blocks';
 import { subscribe } from '@wordpress/data';
-import { privateApis as editorPrivateApis } from '@wordpress/editor';
+// Read as a namespace, as `registerCoreBlockBindingsSources` moved from the
+// private APIs to a public export after Gutenberg 24.0.
+import * as editor from '@wordpress/editor';
 
 /**
  * Internal dependencies
@@ -44,6 +47,18 @@ const CORE_SOURCES = [
 ];
 
 let isScheduled = false;
+
+/**
+ * Register what reads and writes core's sources, through the editor's public
+ * export where it has one, as Gutenberg 24.5 does, and its private APIs before.
+ */
+export function registerCoreSources() {
+	const register =
+		editor.registerCoreBlockBindingsSources ??
+		unlock( editor.privateApis ).registerCoreBlockBindingsSources;
+
+	register?.();
+}
 
 function isMissing() {
 	const sources = getBlockBindingsSources();
@@ -64,7 +79,7 @@ function registerWhenMissing() {
 		isScheduled = false;
 
 		if ( isMissing() ) {
-			unlock( editorPrivateApis ).registerCoreBlockBindingsSources();
+			registerCoreSources();
 		}
 	} );
 }
