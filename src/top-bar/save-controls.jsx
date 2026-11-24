@@ -1,12 +1,10 @@
 /**
  * Save controls: how many changes are waiting, and a way to review them.
  *
- * Changes made across the editor are held back until the user saves them,
- * so Save opens the review, where they are saved or discarded. Save is always
- * there, and disabled while there's nothing to save, so it's somewhere to
- * look before there is. It sits in the canvas toolbar, and replaces boot's
- * save button at the foot of the sidebar, which `style.scss` hides wherever
- * there is a canvas toolbar.
+ * Changes are held back until the user saves them, so Save opens the review,
+ * where they are saved or discarded. In the canvas toolbar, while editing a
+ * page, Save is the page's: always there, and disabled while there's nothing
+ * to save. Every other change waits for Publish (`publish.jsx`).
  *
  * How many changes are waiting, or that they were all saved, is in Save's
  * tooltip and read out as it changes, rather than written beside it: the
@@ -30,7 +28,8 @@ import { useChanges } from './use-changes';
 export function SaveControls() {
 	const [ isReviewOpen, setIsReviewOpen ] = useState( false );
 	const [ hasSaved, setHasSaved ] = useState( false );
-	const { changes, isSaving } = useChanges();
+	// Beside the page being edited, so only what changed while editing it.
+	const { changes, isSaving } = useChanges( { inEditSession: true } );
 	const changeCount = changes.length;
 	const hasChanges = changeCount > 0;
 	const closeReview = useCallback( () => setIsReviewOpen( false ), [] );
@@ -113,7 +112,9 @@ export function SaveControls() {
 			>
 				{ isSaving ? __( 'Saving…' ) : __( 'Save' ) }
 			</Button>
-			{ isReviewOpen && <ReviewChanges onClose={ closeReview } /> }
+			{ isReviewOpen && (
+				<ReviewChanges onClose={ closeReview } inEditSession />
+			) }
 		</div>
 	);
 }

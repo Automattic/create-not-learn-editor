@@ -154,3 +154,38 @@ html:root.cnl-canvas-is-transitioning {
 		object-position: left top;
 	}
 }
+
+/*
+ * Publish, at the foot of every screen in the stage (`Page`, in
+ * `src/stage-page.jsx`), for every change on the site. It stays at the foot
+ * of the panel however short the screen, and above its contents however
+ * long, the screen scrolling behind it.
+ */
+.cnl-stage-publish {
+	position: sticky;
+	inset-block-end: 0;
+	z-index: 2;
+	flex-shrink: 0;
+	margin-block-start: auto;
+	padding: var(--wpds-dimension-padding-lg) var(--wpds-dimension-padding-xl);
+	border-block-start: 1px solid var(--wpds-color-stroke-surface-neutral);
+	background: var(--wpds-color-background-surface-neutral);
+
+	.components-button.cnl-publish {
+		justify-content: center;
+		width: 100%;
+	}
+
+	.cnl-publish__count {
+		display: grid;
+		place-items: center;
+		min-width: 18px;
+		height: 18px;
+		padding-inline: 5px;
+		box-sizing: border-box;
+		border-radius: 9px;
+		background: rgba(255, 255, 255, 0.25);
+		font-size: 11px;
+		line-height: 1;
+	}
+}
