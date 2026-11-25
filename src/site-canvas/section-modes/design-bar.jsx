@@ -113,9 +113,9 @@ export const MAX_PER_SLIDE = 4;
  */
 function getViewLabels() {
 	return {
-		[ VIEW_LAYOUT ]: __( 'Layout' ),
-		[ VIEW_COLOR ]: __( 'Colour' ),
-		[ VIEW_WIDTH ]: __( 'Width' ),
+		[ VIEW_LAYOUT ]: __( 'Layout', 'create-not-learn-editor' ),
+		[ VIEW_COLOR ]: __( 'Colour', 'create-not-learn-editor' ),
+		[ VIEW_WIDTH ]: __( 'Width', 'create-not-learn-editor' ),
 	};
 }
 
@@ -166,7 +166,11 @@ function LayoutOptions( { current, onSelect, options } ) {
 
 	return (
 		<div
-			aria-roledescription={ hasMore ? __( 'carousel' ) : undefined }
+			aria-roledescription={
+				hasMore
+					? __( 'carousel', 'create-not-learn-editor' )
+					: undefined
+			}
 			className="cnl-section-modes__carousel"
 			role="group"
 			style={ {
@@ -180,7 +184,10 @@ function LayoutOptions( { current, onSelect, options } ) {
 						className="cnl-section-modes__carousel-arrow"
 						disabled={ shown === 0 }
 						icon={ isRTL() ? chevronRightIcon : chevronLeftIcon }
-						label={ __( 'Previous layout' ) }
+						label={ __(
+							'Previous layout',
+							'create-not-learn-editor'
+						) }
 						onClick={ () => setStart( shown - 1 ) }
 						size="compact"
 						tone="neutral"
@@ -219,7 +226,7 @@ function LayoutOptions( { current, onSelect, options } ) {
 						className="cnl-section-modes__carousel-arrow"
 						disabled={ shown === lastStart }
 						icon={ isRTL() ? chevronLeftIcon : chevronRightIcon }
-						label={ __( 'Next layout' ) }
+						label={ __( 'Next layout', 'create-not-learn-editor' ) }
 						onClick={ () => setStart( shown + 1 ) }
 						size="compact"
 						tone="neutral"
@@ -234,7 +241,10 @@ function LayoutOptions( { current, onSelect, options } ) {
 							aria-current={ index === shown }
 							aria-label={ sprintf(
 								/* translators: 1: first layout shown, 2: last layout shown, 3: number of layouts. */
-								__( 'Show layouts %1$d to %2$d of %3$d' ),
+								__(
+									'Show layouts %1$d to %2$d of %3$d',
+									'create-not-learn-editor'
+								),
 								index + 1,
 								index + visible,
 								options.length
@@ -257,9 +267,9 @@ function LayoutOptions( { current, onSelect, options } ) {
  */
 function getWidthLabel( width ) {
 	return {
-		[ WIDTH_NARROW ]: __( 'Narrow' ),
-		[ WIDTH_WIDE ]: __( 'Wide' ),
-		[ WIDTH_FULL ]: __( 'Full width' ),
+		[ WIDTH_NARROW ]: __( 'Narrow', 'create-not-learn-editor' ),
+		[ WIDTH_WIDE ]: __( 'Wide', 'create-not-learn-editor' ),
+		[ WIDTH_FULL ]: __( 'Full width', 'create-not-learn-editor' ),
 	}[ width ];
 }
 
@@ -279,7 +289,7 @@ const WIDTH_ICONS = {
 function WidthOptions( { width } ) {
 	return (
 		<div
-			aria-label={ __( 'Width' ) }
+			aria-label={ __( 'Width', 'create-not-learn-editor' ) }
 			className="cnl-section-modes__swatches"
 			role="group"
 		>
@@ -326,7 +336,7 @@ function ColorOptions( { colors, isCustomOpen, onCustom } ) {
 
 	return (
 		<div
-			aria-label={ __( 'Colour' ) }
+			aria-label={ __( 'Colour', 'create-not-learn-editor' ) }
 			className="cnl-section-modes__swatches"
 			role="group"
 		>
@@ -377,7 +387,7 @@ function ColorOptions( { colors, isCustomOpen, onCustom } ) {
 					aria-expanded={ isCustomOpen }
 					aria-pressed={ isCustom }
 					className="cnl-section-modes__swatch cnl-section-modes__custom"
-					label={ __( 'Custom' ) }
+					label={ __( 'Custom', 'create-not-learn-editor' ) }
 					onClick={ onCustom }
 					// No tooltip to repeat the name while it is on the button.
 					showTooltip={ isCustom }
@@ -398,7 +408,10 @@ function ColorOptions( { colors, isCustomOpen, onCustom } ) {
 							<>
 								<span className="cnl-section-modes__swatch-wheel" />
 								<span className="cnl-section-modes__swatch-custom-label">
-									{ __( 'Custom' ) }
+									{ __(
+										'Custom',
+										'create-not-learn-editor'
+									) }
 								</span>
 							</>
 						) }
@@ -450,29 +463,50 @@ function CustomColors( { colors } ) {
 	);
 	const textNote =
 		! isTextReadable &&
-		__( 'Text may be hard to read on this background.' );
+		__(
+			'Text may be hard to read on this background.',
+			'create-not-learn-editor'
+		);
 	const buttonNote =
 		( ! hasContrast(
 			resolved.button,
 			resolved.background,
 			MIN_BUTTON_CONTRAST
 		) &&
-			__( 'Buttons may not stand out from the background.' ) ) ||
+			__(
+				'Buttons may not stand out from the background.',
+				'create-not-learn-editor'
+			) ) ||
 		( ! hasContrast(
 			resolved.button,
 			resolveColor( getButtonTextValue( values, palette ), palette ),
 			MIN_TEXT_CONTRAST
 		) &&
-			__( 'Words on buttons may be hard to read in this colour.' ) );
+			__(
+				'Words on buttons may be hard to read in this colour.',
+				'create-not-learn-editor'
+			) );
 	const wells = [
-		{ key: 'background', label: __( 'Background' ), note: textNote },
-		{ key: 'text', label: __( 'Text' ), note: textNote },
-		{ key: 'button', label: __( 'Button' ), note: buttonNote },
+		{
+			key: 'background',
+			label: __( 'Background', 'create-not-learn-editor' ),
+			note: textNote,
+		},
+		{
+			key: 'text',
+			label: __( 'Text', 'create-not-learn-editor' ),
+			note: textNote,
+		},
+		{
+			key: 'button',
+			label: __( 'Button', 'create-not-learn-editor' ),
+			note: buttonNote,
+		},
 	];
 
 	return (
 		<div
-			aria-label={ __( 'Custom colours' ) }
+			aria-label={ __( 'Custom colours', 'create-not-learn-editor' ) }
 			className="cnl-section-modes__swatches"
 			role="group"
 		>
@@ -650,7 +684,7 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 		<div
 			aria-label={ sprintf(
 				/* translators: %s: section name. */
-				__( '%s design' ),
+				__( '%s design', 'create-not-learn-editor' ),
 				title
 			) }
 			className="cnl-section-modes__design"
@@ -663,13 +697,16 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 					<Button
 						className="cnl-section-modes__bar-button"
 						icon={ isRTL() ? chevronRightIcon : chevronLeftIcon }
-						label={ __( 'Back to Edit design' ) }
+						label={ __(
+							'Back to Edit design',
+							'create-not-learn-editor'
+						) }
 						onClick={ () => onView( null ) }
 						showTooltip
 						size="compact"
 						tooltipPosition="bottom"
 					>
-						{ __( 'Back' ) }
+						{ __( 'Back', 'create-not-learn-editor' ) }
 					</Button>
 				) : (
 					<>
@@ -679,7 +716,10 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 								icon={
 									isRTL() ? chevronRightIcon : chevronLeftIcon
 								}
-								label={ __( 'Back' ) }
+								label={ __(
+									'Back',
+									'create-not-learn-editor'
+								) }
 								onClick={ onClose }
 								showTooltip
 								size="compact"
@@ -701,13 +741,17 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 							<Button
 								className="cnl-section-modes__bar-button"
 								description={ __(
-									'Move, resize and restyle its blocks'
+									'Move, resize and restyle its blocks',
+									'create-not-learn-editor'
 								) }
 								icon={ moreControlIcon }
 								onClick={ onFreeform }
 								size="compact"
 							>
-								{ __( 'More control' ) }
+								{ __(
+									'More control',
+									'create-not-learn-editor'
+								) }
 							</Button>
 						) }
 					</>

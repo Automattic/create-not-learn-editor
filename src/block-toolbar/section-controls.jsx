@@ -31,9 +31,9 @@ const VIEW_ICONS = { layout, color, width: stretchWide };
 
 function getViewLabels() {
 	return {
-		layout: __( 'Layout' ),
-		color: __( 'Colour' ),
-		width: __( 'Width' ),
+		layout: __( 'Layout', 'create-not-learn-editor' ),
+		color: __( 'Colour', 'create-not-learn-editor' ),
+		width: __( 'Width', 'create-not-learn-editor' ),
 	};
 }
 
@@ -54,7 +54,7 @@ export function SectionControls( { clientId, title, views, isContainer } ) {
 			{ isContainer && (
 				<AddBlockButton
 					clientId={ clientId }
-					text={ __( 'Add' ) }
+					text={ __( 'Add', 'create-not-learn-editor' ) }
 					title={ title }
 				/>
 			) }

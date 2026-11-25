@@ -32,10 +32,15 @@ export function Publish() {
 	const status = count
 		? sprintf(
 				/* translators: %d: Number of changes waiting to be published. */
-				_n( '%d unpublished change', '%d unpublished changes', count ),
+				_n(
+					'%d unpublished change',
+					'%d unpublished changes',
+					count,
+					'create-not-learn-editor'
+				),
 				count
 			)
-		: __( 'Nothing to publish' );
+		: __( 'Nothing to publish', 'create-not-learn-editor' );
 
 	return (
 		<>
@@ -51,7 +56,9 @@ export function Publish() {
 				description={ status }
 			>
 				<span className="cnl-publish__label">
-					{ isSaving ? __( 'Publishing…' ) : __( 'Publish' ) }
+					{ isSaving
+						? __( 'Publishing…', 'create-not-learn-editor' )
+						: __( 'Publish', 'create-not-learn-editor' ) }
 				</span>
 				{ count > 0 && (
 					<span className="cnl-publish__count" aria-hidden="true">

@@ -43,17 +43,37 @@ import { Menu } from '@wordpress/ui';
 import { fromRadio, NONE, useBlockWidths } from './alignment';
 import { ToolbarMenu } from './toolbar-menu';
 
-const LEFT = { value: 'left', label: __( 'Left' ), icon: justifyLeft };
-const CENTER = { value: 'center', label: __( 'Center' ), icon: justifyCenter };
-const RIGHT = { value: 'right', label: __( 'Right' ), icon: justifyRight };
+const LEFT = {
+	value: 'left',
+	label: __( 'Left', 'create-not-learn-editor' ),
+	icon: justifyLeft,
+};
+const CENTER = {
+	value: 'center',
+	label: __( 'Center', 'create-not-learn-editor' ),
+	icon: justifyCenter,
+};
+const RIGHT = {
+	value: 'right',
+	label: __( 'Right', 'create-not-learn-editor' ),
+	icon: justifyRight,
+};
 
-const TOP = { value: 'top', label: __( 'Top' ), icon: justifyTop };
+const TOP = {
+	value: 'top',
+	label: __( 'Top', 'create-not-learn-editor' ),
+	icon: justifyTop,
+};
 const MIDDLE = {
 	value: 'center',
-	label: __( 'Middle' ),
+	label: __( 'Middle', 'create-not-learn-editor' ),
 	icon: justifyCenterVertical,
 };
-const BOTTOM = { value: 'bottom', label: __( 'Bottom' ), icon: justifyBottom };
+const BOTTOM = {
+	value: 'bottom',
+	label: __( 'Bottom', 'create-not-learn-editor' ),
+	icon: justifyBottom,
+};
 
 /**
  * Whether a block lays out other blocks, and so gets a Layout menu.
@@ -100,7 +120,7 @@ function getContentGroups( layout ) {
 		return [
 			{
 				key: 'justifyContent',
-				label: __( 'Content' ),
+				label: __( 'Content', 'create-not-learn-editor' ),
 				options: [ LEFT, CENTER, RIGHT ],
 				fallback: 'center',
 			},
@@ -115,14 +135,14 @@ function getContentGroups( layout ) {
 		return [
 			{
 				key: 'justifyContent',
-				label: __( 'Content' ),
+				label: __( 'Content', 'create-not-learn-editor' ),
 				options: [
 					LEFT,
 					CENTER,
 					RIGHT,
 					{
 						value: 'stretch',
-						label: __( 'Stretch' ),
+						label: __( 'Stretch', 'create-not-learn-editor' ),
 						icon: justifyStretch,
 					},
 				],
@@ -130,14 +150,14 @@ function getContentGroups( layout ) {
 			},
 			{
 				key: 'verticalAlignment',
-				label: __( 'Vertical' ),
+				label: __( 'Vertical', 'create-not-learn-editor' ),
 				options: [
 					TOP,
 					MIDDLE,
 					BOTTOM,
 					{
 						value: 'space-between',
-						label: __( 'Space between' ),
+						label: __( 'Space between', 'create-not-learn-editor' ),
 						icon: justifySpaceBetweenVertical,
 					},
 				],
@@ -149,14 +169,14 @@ function getContentGroups( layout ) {
 	return [
 		{
 			key: 'justifyContent',
-			label: __( 'Content' ),
+			label: __( 'Content', 'create-not-learn-editor' ),
 			options: [
 				LEFT,
 				CENTER,
 				RIGHT,
 				{
 					value: 'space-between',
-					label: __( 'Space between' ),
+					label: __( 'Space between', 'create-not-learn-editor' ),
 					icon: justifySpaceBetween,
 				},
 			],
@@ -164,14 +184,14 @@ function getContentGroups( layout ) {
 		},
 		{
 			key: 'verticalAlignment',
-			label: __( 'Vertical' ),
+			label: __( 'Vertical', 'create-not-learn-editor' ),
 			options: [
 				TOP,
 				MIDDLE,
 				BOTTOM,
 				{
 					value: 'stretch',
-					label: __( 'Stretch' ),
+					label: __( 'Stretch', 'create-not-learn-editor' ),
 					icon: justifyStretchVertical,
 				},
 			],
@@ -231,7 +251,7 @@ export function AddBlockButton( { clientId, title, text = null } ) {
 					icon={ plus }
 					label={ sprintf(
 						/* translators: %s: the container block's name, like Group. */
-						__( 'Add block to %s' ),
+						__( 'Add block to %s', 'create-not-learn-editor' ),
 						title
 					) }
 					onClick={ onToggle }
@@ -290,13 +310,16 @@ export function ContainerControls( {
 				<ToolbarMenu
 					buttonProps={ {
 						className: 'cnl-block-layout__toggle',
-						children: __( 'Layout' ),
+						children: __( 'Layout', 'create-not-learn-editor' ),
 					} }
 					popupClassName="cnl-block-layout"
 				>
 					{ showWidths && (
 						<ChoiceGroup
-							label={ __( 'Block width' ) }
+							label={ __(
+								'Block width',
+								'create-not-learn-editor'
+							) }
 							options={ widths }
 							value={ attributes.align ?? NONE }
 							onChange={ ( value ) =>
