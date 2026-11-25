@@ -210,10 +210,10 @@ export function DocumentOverviewToggle() {
 	const label = typeName
 		? sprintf(
 				/* translators: %s: The kind of document, like Page. */
-				__( '%s details and layers' ),
+				__( '%s details and layers', 'create-not-learn-editor' ),
 				typeName
 			)
-		: __( 'Details and layers' );
+		: __( 'Details and layers', 'create-not-learn-editor' );
 
 	// The status chip and the rail open the panel from elsewhere, but core
 	// still needs a toggle to hand focus back to.
@@ -231,14 +231,20 @@ export function DocumentOverviewToggle() {
 			icon={ isAbout ? drawerLeftIcon : documentInfoIcon }
 			isPressed={ isOpen }
 			// The name read out has to match the words on the button.
-			label={ isAbout ? label : __( 'Document info' ) }
+			label={
+				isAbout
+					? label
+					: __( 'Document info', 'create-not-learn-editor' )
+			}
 			onClick={ () => toggleDocumentPanel() }
 			ref={ toggleRef }
 			shortcut={ shortcut }
 			showTooltip
 			variant={ isAbout ? 'secondary' : undefined }
 		>
-			{ isAbout ? __( 'About this page' ) : __( 'Document info' ) }
+			{ isAbout
+				? __( 'About this page', 'create-not-learn-editor' )
+				: __( 'Document info', 'create-not-learn-editor' ) }
 		</Button>
 	);
 }

@@ -22,8 +22,16 @@ import {
 } from './state';
 
 const ITEMS = [
-	{ tab: DETAILS_TAB, icon: documentInfoIcon, label: __( 'Details' ) },
-	{ tab: LAYERS_TAB, icon: layersIcon, label: __( 'Layers' ) },
+	{
+		tab: DETAILS_TAB,
+		icon: documentInfoIcon,
+		label: __( 'Details', 'create-not-learn-editor' ),
+	},
+	{
+		tab: LAYERS_TAB,
+		icon: layersIcon,
+		label: __( 'Layers', 'create-not-learn-editor' ),
+	},
 ];
 
 /**
@@ -38,7 +46,10 @@ export function DocumentRail() {
 
 	return (
 		<nav
-			aria-label={ __( 'Page details and layers' ) }
+			aria-label={ __(
+				'Page details and layers',
+				'create-not-learn-editor'
+			) }
 			className="cnl-document-rail"
 		>
 			{ ITEMS.map( ( item ) => {
@@ -62,7 +73,9 @@ export function DocumentRail() {
 						<Tooltip.Popup
 							positioner={ <Tooltip.Positioner side="right" /> }
 						>
-							{ isCurrent ? __( 'Close' ) : item.label }
+							{ isCurrent
+								? __( 'Close', 'create-not-learn-editor' )
+								: item.label }
 						</Tooltip.Popup>
 					</Tooltip.Root>
 				);

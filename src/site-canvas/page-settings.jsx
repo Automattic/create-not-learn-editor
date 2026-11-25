@@ -109,7 +109,10 @@ export function PageSettings( { pageId, status, statusLabel, statusIcon } ) {
 					aria-expanded={ isPanelOpen }
 					aria-label={ sprintf(
 						/* translators: %s: The page's status, like Published. */
-						__( 'Page details and layers. %s' ),
+						__(
+							'Page details and layers. %s',
+							'create-not-learn-editor'
+						),
 						statusLabel
 					) }
 					className={ `cnl-page-switcher__status is-${ status } is-details-chip${
@@ -120,7 +123,7 @@ export function PageSettings( { pageId, status, statusLabel, statusIcon } ) {
 				>
 					<Icon icon={ statusIcon } size={ 20 } />
 					<span className="cnl-page-switcher__details-label">
-						{ __( 'Details' ) }
+						{ __( 'Details', 'create-not-learn-editor' ) }
 					</span>
 				</Tooltip.Trigger>
 				<Tooltip.Popup
@@ -128,7 +131,10 @@ export function PageSettings( { pageId, status, statusLabel, statusIcon } ) {
 				>
 					{ sprintf(
 						/* translators: %s: The page's status, like Published. */
-						__( '%s · Page details and layers' ),
+						__(
+							'%s · Page details and layers',
+							'create-not-learn-editor'
+						),
 						statusLabel
 					) }
 				</Tooltip.Popup>

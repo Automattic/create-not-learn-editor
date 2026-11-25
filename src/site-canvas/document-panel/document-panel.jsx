@@ -79,13 +79,13 @@ function ChangeLayout( { page, isFrontPage, onBack } ) {
 			<div className="cnl-document-panel__drilldown-header">
 				<Button
 					icon={ isRTL() ? chevronRightIcon : chevronLeftIcon }
-					label={ __( 'Back to details' ) }
+					label={ __( 'Back to details', 'create-not-learn-editor' ) }
 					onClick={ onBack }
 					ref={ backRef }
 					size="compact"
 				/>
 				<Text render={ <h3 /> } variant="heading-md">
-					{ __( 'Change layout' ) }
+					{ __( 'Change layout', 'create-not-learn-editor' ) }
 				</Text>
 			</div>
 			<MemoizedPageLayouts
@@ -109,7 +109,8 @@ function ChangeLayout( { page, isFrontPage, onBack } ) {
 function DocumentLength() {
 	return (
 		<Text className="cnl-document-panel__length" variant="body-sm">
-			<WordCount /> { __( 'words' ) } · <TimeToRead />
+			<WordCount /> { __( 'words', 'create-not-learn-editor' ) } ·{ ' ' }
+			<TimeToRead />
 		</Text>
 	);
 }
@@ -174,7 +175,7 @@ function DocumentDetails() {
 						variant="body-sm"
 					>
 						{ isFrontPage
-							? __( 'Homepage' )
+							? __( 'Homepage', 'create-not-learn-editor' )
 							: typeName || postType }
 					</Text>
 					<Text
@@ -182,7 +183,8 @@ function DocumentDetails() {
 						render={ <h2 /> }
 						variant="heading-xl"
 					>
-						{ title || __( '(no title)' ) }
+						{ title ||
+							__( '(no title)', 'create-not-learn-editor' ) }
 					</Text>
 					{ hasLength && <DocumentLength /> }
 				</div>
@@ -230,19 +232,19 @@ function DocumentPanelContent( { tab, onChangeTab } ) {
 						value={ DETAILS_TAB }
 					>
 						<Icon icon={ documentInfoIcon } size={ 20 } />
-						{ __( 'Details' ) }
+						{ __( 'Details', 'create-not-learn-editor' ) }
 					</Tabs.Tab>
 					<Tabs.Tab
 						className="cnl-document-panel__tab"
 						value={ LAYERS_TAB }
 					>
 						<Icon icon={ layersIcon } size={ 20 } />
-						{ __( 'Layers' ) }
+						{ __( 'Layers', 'create-not-learn-editor' ) }
 					</Tabs.Tab>
 				</Tabs.List>
 				<Button
 					icon={ closeSmallIcon }
-					label={ __( 'Close' ) }
+					label={ __( 'Close', 'create-not-learn-editor' ) }
 					onClick={ closeDocumentOverview }
 					size="compact"
 				/>
