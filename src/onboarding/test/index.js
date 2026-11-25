@@ -313,6 +313,36 @@ describe( 'onboarding tips', () => {
 		expect( getSeen() ).toEqual( [ 'first' ] );
 	} );
 
+	it( 'counts a tip as seen once its control has been clicked', () => {
+		const target = addTarget();
+		registerTip();
+
+		target.click();
+		expect( getSeen() ).toEqual( [ 'test-tip' ] );
+
+		makeDue();
+		expect( requestOnboardingTip( 'test-tip' ) ).toBe( false );
+	} );
+
+	it( 'counts a click inside the control, even with hints off', () => {
+		setPreference( 'showHints', false );
+		const target = addTarget();
+		const icon = document.createElement( 'span' );
+		target.append( icon );
+		registerTip();
+
+		icon.click();
+		expect( getSeen() ).toEqual( [ 'test-tip' ] );
+	} );
+
+	it( 'doesn’t count a click elsewhere', () => {
+		addTarget();
+		registerTip();
+
+		document.body.click();
+		expect( getSeen() ).toEqual( [] );
+	} );
+
 	it( 'shows tips again after a reset', () => {
 		setPreference( 'onboardingSeen', [ 'test-tip' ] );
 		onboarding.resetOnboarding();

@@ -8,7 +8,8 @@
  * it with `requestOnboardingTip( id )` after an action. Either way, it's shown
  * once ever: its id is kept in a user preference as soon as it's on screen.
  *
- * Nothing is shown to someone who has turned hints off, from the tip's
+ * A tip whose control has already been clicked counts as seen. Nothing is
+ * shown to someone who has turned hints off, from the tip's
  * "Don't show hints like these" or Preferences, in a workspace whose
  * `onboarding` is off, like Builder,
  * while a dialog is open, or while what the tip points at is out of sight.
@@ -218,6 +219,28 @@ const isDialogOpen = () =>
 		)
 	);
 
+/**
+ * Someone who has used a tip's control has found it, so the tip has nothing
+ * left to tell them: a click on it, by pointer or keyboard, counts as seeing
+ * the tip, in any workspace and with hints off. Getting to the same place
+ * another way, like a double click on the page for Edit, doesn't count.
+ *
+ * @param {MouseEvent} event A click anywhere in the editor.
+ */
+function noteControlUsed( event ) {
+	if ( ! event.target?.closest ) {
+		return;
+	}
+
+	const seen = getSeen();
+
+	for ( const tip of tips.values() ) {
+		if ( ! seen.includes( tip.id ) && event.target.closest( tip.target ) ) {
+			markSeen( tip.id );
+		}
+	}
+}
+
 function noteActivity() {
 	lastActivity = Date.now();
 }
@@ -346,6 +369,7 @@ export function mountOnboarding() {
 	ACTIVITY_EVENTS.forEach( ( type ) =>
 		window.addEventListener( type, noteActivity, listenerOptions )
 	);
+	window.addEventListener( 'click', noteControlUsed, listenerOptions );
 
 	// A tip a change makes due is noted as due there and then, on the screen
 	// the change was made on, as the person may move on before the next
@@ -370,6 +394,7 @@ export function mountOnboarding() {
 		ACTIVITY_EVENTS.forEach( ( type ) =>
 			window.removeEventListener( type, noteActivity, listenerOptions )
 		);
+		window.removeEventListener( 'click', noteControlUsed, listenerOptions );
 		clearTimeout( timer );
 		timer = null;
 	};

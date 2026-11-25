@@ -173,4 +173,19 @@ test.describe( 'Onboarding hints', () => {
 			page.getByRole( 'dialog', { name: EDIT_TIP } )
 		).toBeHidden();
 	} );
+
+	test( 'never points at Edit for someone who has clicked it', async ( {
+		page,
+		rest,
+	} ) => {
+		await browsePage( page, rest );
+		await page.locator( '.cnl-site-canvas__edit' ).click();
+
+		await expect
+			.poll(
+				async () =>
+					( await getSavedPreferences( rest ) )?.onboardingSeen
+			)
+			.toContain( 'edit-from-browse' );
+	} );
 } );

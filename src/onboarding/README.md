@@ -92,6 +92,7 @@ Whatever the moment, a tip shows only when all of these hold.
 - The person hasn't turned hints off. Each tip has a "Don’t show hints like these" checkbox, which turns off every hint, not only that one. Preferences has a Show hints switch to turn them back on. Both set the `showHints` preference, which is on by default.
 - The active workspace has `onboarding` on. Builder turns it off (`src/workspaces/presets.js`). Read the workspace's setting, never its id.
 - The tip isn't in the person's `onboardingSeen` preference. The id is added the moment the tip is on screen, so it's seen once, even if the page is left before it's closed.
+- The person hasn't clicked the control already. Someone who has used it has found it, so a click on the control, by pointer or keyboard, adds the tip to `onboardingSeen` without showing it, in any workspace and with hints off. Getting to the same place another way doesn't count, like a double click on the page going into Edit.
 - The control is on screen and not inside something inert or hidden.
 - No dialog is open, and no other tip is showing. When two are due at once, the one registered first shows.
 
@@ -127,6 +128,6 @@ wp.data.dispatch( 'core/preferences' ).set( 'create-not-learn-editor', 'onboardi
 
 ## Tests
 
-- `test/index.js` covers when tips show: each moment, the screen a tip became due on, the opt-out, workspaces, the control being on screen, open dialogs, one tip at a time and what `requestOnboardingTip()` answers. It mocks the spotlight and core's store, and uses fake timers. Add a case here when you add a moment or a rule.
-- `tests/e2e/interactions/onboarding.spec.js` covers both tips in the editor. Publish shows after a pause and on leaving the screen, only once, not after opting out, and never in Builder. Edit shows on the first click on the page's words, then Edit only pulses, and in Builder it only pulses.
+- `test/index.js` covers when tips show: each moment, the screen a tip became due on, the opt-out, workspaces, the control being on screen, open dialogs, one tip at a time, a click on the control counting as seen, and what `requestOnboardingTip()` answers. It mocks the spotlight and core's store, and uses fake timers. Add a case here when you add a moment or a rule.
+- `tests/e2e/interactions/onboarding.spec.js` covers both tips in the editor. Publish shows after a pause and on leaving the screen, only once, not after opting out, and never in Builder. Edit shows on the first click on the page's words, then Edit only pulses, in Builder it only pulses, and clicking Edit counts as seeing it.
 - Every other e2e test runs with hints off. A tip dims the editor and catches clicks, so one turning up would get in the way of tests about something else. `tests/e2e/global-setup.js` turns them off for the run, and `onboarding.spec.js` turns them on for itself with `rest.setEditorPreferences()`, which puts them back when it ends. A new e2e test about a tip should do the same.
