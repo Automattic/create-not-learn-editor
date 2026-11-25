@@ -31,11 +31,12 @@ export function UnsavedChangesDialog( {
 			// doesn't trap the user in the dialog.
 			shouldCloseOnClickOutside
 			size="small"
-			title={ __( 'Save your changes?' ) }
+			title={ __( 'Save your changes?', 'create-not-learn-editor' ) }
 		>
 			<p className="cnl-site-canvas__unsaved-dialog-description">
 				{ __(
-					'The preview shows your saved site, so unsaved changes won’t appear there.'
+					'The preview shows your saved site, so unsaved changes won’t appear there.',
+					'create-not-learn-editor'
 				) }
 			</p>
 			<div className="cnl-site-canvas__unsaved-dialog-actions">
@@ -45,7 +46,7 @@ export function UnsavedChangesDialog( {
 					onClick={ onDiscard }
 					variant="secondary"
 				>
-					{ __( 'Discard' ) }
+					{ __( 'Discard', 'create-not-learn-editor' ) }
 				</Button>
 				<Button
 					accessibleWhenDisabled
@@ -54,7 +55,7 @@ export function UnsavedChangesDialog( {
 					onClick={ onSave }
 					variant="primary"
 				>
-					{ __( 'Save' ) }
+					{ __( 'Save', 'create-not-learn-editor' ) }
 				</Button>
 			</div>
 		</Modal>

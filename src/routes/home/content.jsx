@@ -56,7 +56,7 @@ function PageOptionsDropdown( {
 							onConfigureHomepage();
 						} }
 					>
-						{ __( 'Manage homepage' ) }
+						{ __( 'Manage homepage', 'create-not-learn-editor' ) }
 					</MenuItem>
 				</MenuGroup>
 			) }
@@ -65,7 +65,7 @@ function PageOptionsDropdown( {
 					aria-expanded={ isOpen }
 					className="cnl-editor-homepage-options__toggle"
 					icon={ moreHorizontalIcon }
-					label={ __( 'Page options' ) }
+					label={ __( 'Page options', 'create-not-learn-editor' ) }
 					onClick={ onToggle }
 					showTooltip
 					size="compact"
@@ -83,11 +83,15 @@ function EmptyPreview() {
 				className="cnl-editor-canvas-placeholder__icon dashicons dashicons-admin-home"
 			/>
 			<div className="cnl-editor-canvas-placeholder__title">
-				{ __( 'Homepage preview unavailable' ) }
+				{ __(
+					'Homepage preview unavailable',
+					'create-not-learn-editor'
+				) }
 			</div>
 			<p className="cnl-editor-canvas-placeholder__description">
 				{ __(
-					'Configure the site URL before previewing the homepage.'
+					'Configure the site URL before previewing the homepage.',
+					'create-not-learn-editor'
 				) }
 			</p>
 		</div>

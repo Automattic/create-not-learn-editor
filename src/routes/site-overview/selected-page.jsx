@@ -64,7 +64,7 @@ export function SelectedPage( {
 		node.layout
 			? sprintf(
 					/* translators: %s: Layout (template) name. */
-					__( 'Uses the “%s” layout.' ),
+					__( 'Uses the “%s” layout.', 'create-not-learn-editor' ),
 					node.layout
 				)
 			: '',
@@ -104,7 +104,7 @@ export function SelectedPage( {
 				</Stack>
 				<Button
 					icon={ closeSmallIcon }
-					label={ __( 'Close' ) }
+					label={ __( 'Close', 'create-not-learn-editor' ) }
 					onClick={ onClose }
 					size="small"
 				/>
@@ -114,7 +114,7 @@ export function SelectedPage( {
 					{ isDynamic
 						? sprintf(
 								/* translators: %s: Kind of dynamic page, e.g. "Collection". */
-								__( 'Dynamic · %s' ),
+								__( 'Dynamic · %s', 'create-not-learn-editor' ),
 								getNodeKindLabel( node )
 							)
 						: getNodeKindLabel( node ) }
@@ -141,11 +141,11 @@ export function SelectedPage( {
 					onClick={ onEdit }
 					size="compact"
 				>
-					{ __( 'Edit' ) }
+					{ __( 'Edit', 'create-not-learn-editor' ) }
 				</UiButton>
 				{ node.url && (
 					<Link href={ node.url } openInNewTab>
-						{ __( 'View' ) }
+						{ __( 'View', 'create-not-learn-editor' ) }
 					</Link>
 				) }
 			</Stack>

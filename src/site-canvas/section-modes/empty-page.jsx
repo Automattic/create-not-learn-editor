@@ -23,19 +23,23 @@ export function EmptyPage( { onAddSection, onStartBlank, style } ) {
 			<EmptyState.Root>
 				<EmptyState.Icon icon={ sectionsIcon } />
 				<EmptyState.Title>
-					{ __( 'This page has nothing on it yet' ) }
+					{ __(
+						'This page has nothing on it yet',
+						'create-not-learn-editor'
+					) }
 				</EmptyState.Title>
 				<EmptyState.Description>
 					{ __(
-						'Add a ready-made section, like a banner or a few columns, or start with a blank one and type.'
+						'Add a ready-made section, like a banner or a few columns, or start with a blank one and type.',
+						'create-not-learn-editor'
 					) }
 				</EmptyState.Description>
 				<EmptyState.Actions>
 					<UiButton onClick={ onStartBlank } variant="outline">
-						{ __( 'Start blank' ) }
+						{ __( 'Start blank', 'create-not-learn-editor' ) }
 					</UiButton>
 					<UiButton onClick={ onAddSection }>
-						{ __( 'Add a section' ) }
+						{ __( 'Add a section', 'create-not-learn-editor' ) }
 					</UiButton>
 				</EmptyState.Actions>
 			</EmptyState.Root>

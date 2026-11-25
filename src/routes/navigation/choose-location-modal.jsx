@@ -32,11 +32,12 @@ function NavigationLocationsUnavailableEmptyState() {
 		<EmptyState.Root className="routes-navigation-choose-location-modal__empty-state">
 			<EmptyState.Icon icon={ layoutIcon } />
 			<EmptyState.Title>
-				{ __( 'No menu locations found' ) }
+				{ __( 'No menu locations found', 'create-not-learn-editor' ) }
 			</EmptyState.Title>
 			<EmptyState.Description>
 				{ __(
-					'Add a menu space to a header, footer, or other site area before choosing a location here.'
+					'Add a menu space to a header, footer, or other site area before choosing a location here.',
+					'create-not-learn-editor'
 				) }
 			</EmptyState.Description>
 		</EmptyState.Root>
@@ -59,30 +60,38 @@ function getLocationSelectionSummary( count, mode ) {
 	if ( count > 0 ) {
 		return sprintf(
 			/* translators: %d: Number of selected locations. */
-			_n( '%d location selected', '%d locations selected', count ),
+			_n(
+				'%d location selected',
+				'%d locations selected',
+				count,
+				'create-not-learn-editor'
+			),
 			count
 		);
 	}
 
 	if ( mode === 'update' ) {
-		return __( 'No locations selected.' );
+		return __( 'No locations selected.', 'create-not-learn-editor' );
 	}
 
-	return __( 'Select one or more locations for this menu.' );
+	return __(
+		'Select one or more locations for this menu.',
+		'create-not-learn-editor'
+	);
 }
 
 function getLocationActionLabel( count, mode ) {
 	if ( mode === 'update' ) {
-		return __( 'Update locations' );
+		return __( 'Update locations', 'create-not-learn-editor' );
 	}
 
 	if ( count === 1 ) {
-		return __( 'Add to location' );
+		return __( 'Add to location', 'create-not-learn-editor' );
 	}
 
 	return sprintf(
 		/* translators: %d: Number of selected locations. */
-		__( 'Add to %d locations' ),
+		__( 'Add to %d locations', 'create-not-learn-editor' ),
 		count
 	);
 }
@@ -119,7 +128,10 @@ export function ChooseLocationModal( {
 	const applyLocations = () => {
 		if ( mode === 'choose' && selectedCandidates.length === 0 ) {
 			setError(
-				__( 'Select at least one location before applying this menu.' )
+				__(
+					'Select at least one location before applying this menu.',
+					'create-not-learn-editor'
+				)
 			);
 			return;
 		}
@@ -133,13 +145,14 @@ export function ChooseLocationModal( {
 			onRequestClose={ onClose }
 			title={
 				mode === 'update'
-					? __( 'Update locations' )
-					: __( 'Choose location' )
+					? __( 'Update locations', 'create-not-learn-editor' )
+					: __( 'Choose location', 'create-not-learn-editor' )
 			}
 		>
 			<p className="routes-navigation-choose-location-modal__intro">
 				{ __(
-					'Choose where this navigation menu should be shown on your site.'
+					'Choose where this navigation menu should be shown on your site.',
+					'create-not-learn-editor'
 				) }
 			</p>
 			{ !! error && (
@@ -201,7 +214,7 @@ export function ChooseLocationModal( {
 							onClick={ onClose }
 							variant="tertiary"
 						>
-							{ __( 'Cancel' ) }
+							{ __( 'Cancel', 'create-not-learn-editor' ) }
 						</Button>
 						<Button
 							disabled={

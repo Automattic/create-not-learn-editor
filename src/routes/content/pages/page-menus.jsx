@@ -43,7 +43,9 @@ const EMPTY_ARRAY = [];
 function getMenuName( menu ) {
 	const title = menu?.title?.raw || menu?.title?.rendered || '';
 
-	return title ? decodeEntities( title ) : __( 'Untitled menu' );
+	return title
+		? decodeEntities( title )
+		: __( 'Untitled menu', 'create-not-learn-editor' );
 }
 
 /**
@@ -58,17 +60,22 @@ function getPlacesText( places ) {
 	].map( ( area ) => area.toLocaleLowerCase() );
 
 	if ( ! areas.length ) {
-		return __( 'This menu is not shown on your site' );
+		return __(
+			'This menu is not shown on your site',
+			'create-not-learn-editor'
+		);
 	}
 
 	const list = new Intl.ListFormat(
 		document.documentElement.lang || undefined,
-		{ type: 'conjunction' }
+		{
+			type: 'conjunction',
+		}
 	).format( areas );
 
 	return sprintf(
 		/* translators: %s: where a menu shows, like "header and footer". */
-		__( 'Shown in the %s' ),
+		__( 'Shown in the %s', 'create-not-learn-editor' ),
 		list
 	);
 }
@@ -136,7 +143,9 @@ function MenusLoading() {
 	return (
 		<span className="cnl-page-menus__loading" role="status">
 			<Skeleton aria-hidden style={ { height: 16, width: 120 } } />
-			<VisuallyHidden>{ __( 'Loading menus' ) }</VisuallyHidden>
+			<VisuallyHidden>
+				{ __( 'Loading menus', 'create-not-learn-editor' ) }
+			</VisuallyHidden>
 		</span>
 	);
 }
@@ -208,12 +217,12 @@ export function PageMenusView( { item } ) {
 			pages,
 		} )
 	);
-	let text = __( 'Not in a menu' );
+	let text = __( 'Not in a menu', 'create-not-learn-editor' );
 
 	if ( inMenus.length === 1 ) {
 		text = inMenus[ 0 ].name;
 	} else if ( inMenus.length > 1 ) {
-		text = __( 'Shown in multiple menus' );
+		text = __( 'Shown in multiple menus', 'create-not-learn-editor' );
 	}
 
 	return (
@@ -294,7 +303,10 @@ export function PageMenusEdit( { data } ) {
 	if ( ! menus.length ) {
 		return (
 			<Text variant="body-sm">
-				{ __( 'Your site doesn’t have a menu yet.' ) }
+				{ __(
+					'Your site doesn’t have a menu yet.',
+					'create-not-learn-editor'
+				) }
 			</Text>
 		);
 	}
@@ -305,12 +317,16 @@ export function PageMenusEdit( { data } ) {
 				<UiNotice.Root intent="warning">
 					<UiNotice.Description>
 						{ __(
-							'This page won’t show in your menus until it’s published.'
+							'This page won’t show in your menus until it’s published.',
+							'create-not-learn-editor'
 						) }
 					</UiNotice.Description>
 				</UiNotice.Root>
 			) }
-			<ul aria-label={ __( 'Menus' ) } className="cnl-page-menus">
+			<ul
+				aria-label={ __( 'Menus', 'create-not-learn-editor' ) }
+				className="cnl-page-menus"
+			>
 				{ menus.map( ( menu ) => (
 					<PageMenuSwitch
 						homepage={ homepage }

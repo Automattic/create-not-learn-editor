@@ -115,7 +115,7 @@ function getDayKey( date ) {
  */
 export function getMonthLabel( date, year = new Date().getFullYear() ) {
 	if ( ! date ) {
-		return __( 'No date' );
+		return __( 'No date', 'create-not-learn-editor' );
 	}
 
 	return date.toLocaleDateString( undefined, {
@@ -262,7 +262,7 @@ export function getTimelineTone( status ) {
  */
 export function getTimelineTime( post, date ) {
 	if ( ! date ) {
-		return __( 'No date' );
+		return __( 'No date', 'create-not-learn-editor' );
 	}
 
 	const time = date.toLocaleTimeString( undefined, {
@@ -272,15 +272,24 @@ export function getTimelineTime( post, date ) {
 
 	switch ( getTimelineTone( post.status ) ) {
 		case 'scheduled':
-			/* translators: %s: Time of day a scheduled post goes live. */
-			return sprintf( __( 'Goes live at %s' ), time );
+			return sprintf(
+				/* translators: %s: Time of day a scheduled post goes live. */
+				__( 'Goes live at %s', 'create-not-learn-editor' ),
+				time
+			);
 		case 'draft':
 		case 'trash':
-			/* translators: %s: Time of day a post was last edited. */
-			return sprintf( __( 'Last edited at %s' ), time );
+			return sprintf(
+				/* translators: %s: Time of day a post was last edited. */
+				__( 'Last edited at %s', 'create-not-learn-editor' ),
+				time
+			);
 		default:
-			/* translators: %s: Time of day a post was published. */
-			return sprintf( __( 'Published at %s' ), time );
+			return sprintf(
+				/* translators: %s: Time of day a post was published. */
+				__( 'Published at %s', 'create-not-learn-editor' ),
+				time
+			);
 	}
 }
 
@@ -300,7 +309,7 @@ export function getTimelineComments( post ) {
 
 	return sprintf(
 		/* translators: %d: Number of comments. */
-		_n( '%d comment', '%d comments', count ),
+		_n( '%d comment', '%d comments', count, 'create-not-learn-editor' ),
 		count
 	);
 }

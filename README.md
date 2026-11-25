@@ -153,6 +153,10 @@ So the editing tools have to be great on their own.
 
 The editor already has an Agent workspace and tools for an agent in the browser to work with, so you can watch it change your site and step in at any point. [Driving the editor with WebMCP](docs/webmcp.md) explains how to connect one.
 
+## Translations
+
+The editor's strings are in its own text domain, `create-not-learn-editor`, in PHP and JavaScript alike, so it can be translated like any other plugin. Translations come as a language pack, made from the built plugin with WP-CLI: `wp i18n make-pot` collects the strings and `wp i18n make-json` writes the files the editor's script modules load. Until a string has a translation of its own, the editor uses WordPress's translation of the same words, if it has one. [CONTRIBUTING.md](CONTRIBUTING.md#translations) has the details.
+
 ## Contributing
 
 Ideas, bug reports and pull requests are all welcome. If something worked for you, didn't work, or you think something's missing, [open an issue](https://github.com/Automattic/create-not-learn-editor/issues).

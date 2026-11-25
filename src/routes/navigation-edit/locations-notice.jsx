@@ -43,21 +43,31 @@ export function LocationsNotice( {
 	const summary = isOnePlace
 		? sprintf(
 				/* translators: %s: Where the menu appears, like "Header". */
-				__( 'This menu appears in one place on your site, your %s.' ),
+				__(
+					'This menu appears in one place on your site, your %s.',
+					'create-not-learn-editor'
+				),
 				locations[ 0 ].label
 			)
 		: sprintf(
 				/* translators: %d: How many places the menu appears. */
 				__(
-					'This menu appears in %d places on your site, shown below. Changes to the menu show in all of them.'
+					'This menu appears in %d places on your site, shown below. Changes to the menu show in all of them.',
+					'create-not-learn-editor'
 				),
 				locations.length
 			);
-	let action = __( '<a>Change where it appears</a>.' );
+	let action = __(
+		'<a>Change where it appears</a>.',
+		'create-not-learn-editor'
+	);
 
 	if ( isOnePlace ) {
 		action = canAddLocation
-			? __( '<a>Show it in another place too</a>.' )
+			? __(
+					'<a>Show it in another place too</a>.',
+					'create-not-learn-editor'
+				)
 			: '';
 	}
 
@@ -96,7 +106,8 @@ export function OverlayDesignNotice( { onEditDesign } ) {
 			<UiNotice.Description>
 				{ createInterpolateElement(
 					__(
-						'This is how your mobile menu opens. Its links change here, but its design is changed on its own. <a>Edit the mobile menu’s design</a>.'
+						'This is how your mobile menu opens. Its links change here, but its design is changed on its own. <a>Edit the mobile menu’s design</a>.',
+						'create-not-learn-editor'
 					),
 					{ a: <LinkButton onClick={ onEditDesign } /> }
 				) }

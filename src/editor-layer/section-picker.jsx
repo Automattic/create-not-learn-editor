@@ -87,7 +87,7 @@ export function addPatternSection(
 	registry.dispatch( noticesStore ).createSuccessNotice(
 		sprintf(
 			/* translators: %s: section design name. */
-			__( 'Added “%s”.' ),
+			__( 'Added “%s”.', 'create-not-learn-editor' ),
 			getPatternTitle( pattern )
 		),
 		{ id: 'cnl-editor-section-added', type: 'snackbar' }

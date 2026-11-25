@@ -39,9 +39,10 @@ import {
 } from '../../pickers/page-designs';
 import { usePreviewBlocks } from '../../pickers/preview-blocks';
 import {
-	PagePreviewLoading,
-	useHasPreviewDrawn,
-} from '../../pickers/preview-loading';
+	FormPreview,
+	PageLayoutResultsPlaceholder,
+	PageLayoutSidebarPlaceholder,
+} from './add-page-previews';
 import {
 	Button,
 	CheckboxControl,
@@ -53,7 +54,6 @@ import {
 	InputControl,
 	Notice,
 	SelectControl,
-	Skeleton,
 	Stack,
 	Text,
 	ToggleGroupControl,
@@ -66,7 +66,6 @@ import {
 	useDispatch,
 	useId,
 	useMemo,
-	useRef,
 	useSelect,
 	useState,
 } from '../../wordpress-packages';
@@ -84,7 +83,7 @@ const BLANK_PAGE_PATTERN = { content: '' };
  */
 function getTextPageContent( paragraph ) {
 	return `<!-- wp:group ${ JSON.stringify( {
-		metadata: { name: __( 'Page text' ) },
+		metadata: { name: __( 'Page text', 'create-not-learn-editor' ) },
 		templateLock: false,
 		layout: { type: 'constrained' },
 	} ) } -->
@@ -94,18 +93,22 @@ function getTextPageContent( paragraph ) {
 
 const TEXT_PAGE_PATTERN = {
 	content: getTextPageContent( `<!-- wp:paragraph ${ JSON.stringify( {
-		placeholder: __( 'Start writing your page…' ),
+		placeholder: __(
+			'Start writing your page…',
+			'create-not-learn-editor'
+		),
 	} ) } -->
 <p></p>
 <!-- /wp:paragraph -->` ),
-	title: __( 'Text page' ),
+	title: __( 'Text page', 'create-not-learn-editor' ),
 };
 
 // The page starts empty, which a preview can't show, so it shows some text.
 const TEXT_PAGE_PREVIEW_PATTERN = {
 	content: getTextPageContent( `<!-- wp:paragraph -->
 <p>${ __(
-		'Your text goes here. Write as much as you need, and add headings, lists and links where they help. Pages like this are for reading, so there are no sections to design.'
+		'Your text goes here. Write as much as you need, and add headings, lists and links where they help. Pages like this are for reading, so there are no sections to design.',
+		'create-not-learn-editor'
 	) }</p>
 <!-- /wp:paragraph -->` ),
 };
@@ -126,9 +129,21 @@ const NEW_PAGE_TEMPLATE_SLUG = 'blank-page';
  * full-height columns, which read as awkwardly narrow slivers.
  */
 const PAGE_LAYOUT_DENSITIES = [
-	{ columns: 3, label: __( 'Small previews' ), rows: 2 },
-	{ columns: 2, label: __( 'Medium previews' ), rows: 1 },
-	{ columns: 1, label: __( 'Large previews' ), rows: 1 },
+	{
+		columns: 3,
+		label: __( 'Small previews', 'create-not-learn-editor' ),
+		rows: 2,
+	},
+	{
+		columns: 2,
+		label: __( 'Medium previews', 'create-not-learn-editor' ),
+		rows: 1,
+	},
+	{
+		columns: 1,
+		label: __( 'Large previews', 'create-not-learn-editor' ),
+		rows: 1,
+	},
 ];
 
 function getPageLayoutDensity( columns ) {
@@ -142,7 +157,7 @@ function getPageLayoutDensity( columns ) {
 function getPageTemplateOptions( templates ) {
 	return [
 		{
-			label: __( 'Standard layout' ),
+			label: __( 'Standard layout', 'create-not-learn-editor' ),
 			value: '',
 		},
 		...templates
@@ -155,68 +170,6 @@ function getPageTemplateOptions( templates ) {
 	];
 }
 
-/*
- * The page being named, as it will start. It shows a page in outline until
- * the preview has drawn, and again for each design chosen, as it mounts anew.
- */
-function FormPreview( { blocks, description } ) {
-	const ref = useRef();
-	const hasDrawn = useHasPreviewDrawn( ref );
-
-	return (
-		<div className="cnl-add-page-form__preview">
-			<div
-				className="cnl-design-picker__preview cnl-add-page-form__preview-page"
-				ref={ ref }
-			>
-				<LazyEditorPreview
-					blocks={ blocks }
-					description={ description }
-				/>
-			</div>
-			{ ! hasDrawn && <PagePreviewLoading /> }
-		</div>
-	);
-}
-
-function PageLayoutSidebarPlaceholder() {
-	return (
-		<Stack
-			aria-hidden
-			className="cnl-add-page-layout-categories-placeholder"
-			direction="column"
-			gap="lg"
-		>
-			{ [ 70, 54, 62, 48, 66, 52 ].map( ( width, index ) => (
-				<Skeleton
-					key={ index }
-					style={ { height: 14, width: `${ width }%` } }
-				/>
-			) ) }
-		</Stack>
-	);
-}
-
-function PageLayoutResultsPlaceholder( { columns, rows } ) {
-	return (
-		<div
-			aria-hidden
-			className="cnl-add-page-layout-grid"
-			style={ {
-				'--cnl-add-page-layout-columns': columns,
-				'--cnl-add-page-layout-rows': rows,
-			} }
-		>
-			{ Array.from( { length: columns * rows } ).map( ( _, index ) => (
-				<Skeleton
-					className="cnl-add-page-layout-skeleton"
-					key={ index }
-				/>
-			) ) }
-		</div>
-	);
-}
-
 function getAddToMenuHelp( {
 	addToMenu,
 	menuListsAllPages,
@@ -225,21 +178,33 @@ function getAddToMenuHelp( {
 } ) {
 	if ( menuListsAllPages ) {
 		return addToMenu
-			? __( 'Your menu updates by itself, so new pages join it.' )
-			: __( 'It stays out of your menu.' );
+			? __(
+					'Your menu updates by itself, so new pages join it.',
+					'create-not-learn-editor'
+				)
+			: __( 'It stays out of your menu.', 'create-not-learn-editor' );
 	}
 
 	if ( ! publishImmediately ) {
-		return __( 'It shows in your menu once you publish it.' );
+		return __(
+			'It shows in your menu once you publish it.',
+			'create-not-learn-editor'
+		);
 	}
 
 	return menuTitle
 		? sprintf(
 				/* translators: %s: navigation menu name. */
-				__( 'Adds a link to your “%s” menu so visitors can find it.' ),
+				__(
+					'Adds a link to your “%s” menu so visitors can find it.',
+					'create-not-learn-editor'
+				),
 				menuTitle
 			)
-		: __( 'Adds a link to your menu so visitors can find it.' );
+		: __(
+				'Adds a link to your menu so visitors can find it.',
+				'create-not-learn-editor'
+			);
 }
 
 export default function AddPageFlow( {
@@ -304,7 +269,7 @@ export default function AddPageFlow( {
 	const activePageLayoutLabel =
 		pageLayoutGroups.length === 1 &&
 		activePageLayoutGroup?.slug === OTHER_PAGE_LAYOUT_TYPE
-			? __( 'All designs' )
+			? __( 'All designs', 'create-not-learn-editor' )
 			: activePageLayoutGroup?.label;
 	const newPageTemplateContent = useSelect( ( select ) => {
 		const store = select( coreDataStore );
@@ -416,7 +381,9 @@ export default function AddPageFlow( {
 		const trimmedTitle = pageTitle.trim();
 
 		if ( ! trimmedTitle ) {
-			setValidationError( __( 'Enter a page title.' ) );
+			setValidationError(
+				__( 'Enter a page title.', 'create-not-learn-editor' )
+			);
 			return;
 		}
 
@@ -499,21 +466,24 @@ export default function AddPageFlow( {
 					// eslint-disable-next-line no-nested-ternary
 					isTextPage
 						? __(
-								'Your page uses your theme’s standard layout, with its title and featured image at the top and your text below. You can change its name later.'
+								'Your page uses your theme’s standard layout, with its title and featured image at the top and your text below. You can change its name later.',
+								'create-not-learn-editor'
 							)
 						: selectedLayout
 							? sprintf(
 									/* translators: %s: page design name. */
 									__(
-										'Your page starts from the “%s” design. You can change its name later.'
+										'Your page starts from the “%s” design. You can change its name later.',
+										'create-not-learn-editor'
 									),
 									getPatternTitle( selectedLayout )
 								)
 							: __(
-									'Your page starts blank. You can change its name later.'
+									'Your page starts blank. You can change its name later.',
+									'create-not-learn-editor'
 								)
 				}
-				title={ __( 'Name your page' ) }
+				title={ __( 'Name your page', 'create-not-learn-editor' ) }
 			>
 				<div className="cnl-add-page-form__fields">
 					{ validationError && (
@@ -529,9 +499,12 @@ export default function AddPageFlow( {
 						autoComplete="off"
 						className="cnl-add-page-form__title"
 						disabled={ isBusy }
-						label={ __( 'Page title' ) }
+						label={ __( 'Page title', 'create-not-learn-editor' ) }
 						onValueChange={ setPageTitle }
-						placeholder={ __( 'Enter page title' ) }
+						placeholder={ __(
+							'Enter page title',
+							'create-not-learn-editor'
+						) }
 						required
 						value={ pageTitle }
 					/>
@@ -541,12 +514,16 @@ export default function AddPageFlow( {
 								<CheckboxControl
 									checked={ publishImmediately }
 									disabled={ isBusy }
-									label={ __( 'Publish immediately' ) }
+									label={ __(
+										'Publish immediately',
+										'create-not-learn-editor'
+									) }
 									onChange={ setPublishImmediately }
 								/>
 								<p className="cnl-add-page-form__checkbox-help">
 									{ __(
-										'Your page will be visible to visitors immediately.'
+										'Your page will be visible to visitors immediately.',
+										'create-not-learn-editor'
 									) }
 								</p>
 							</div>
@@ -556,7 +533,10 @@ export default function AddPageFlow( {
 								<CheckboxControl
 									checked={ addToMenu }
 									disabled={ isBusy }
-									label={ __( 'Add to my menu' ) }
+									label={ __(
+										'Add to my menu',
+										'create-not-learn-editor'
+									) }
 									onChange={ setAddToMenu }
 								/>
 								<p className="cnl-add-page-form__checkbox-help">
@@ -574,7 +554,10 @@ export default function AddPageFlow( {
 								__next40pxDefaultSize
 								__nextHasNoMarginBottom
 								disabled={ isBusy }
-								label={ __( 'Layout' ) }
+								label={ __(
+									'Layout',
+									'create-not-learn-editor'
+								) }
 								onChange={ ( value ) =>
 									setSelectedTemplateSlug( String( value ) )
 								}
@@ -591,7 +574,10 @@ export default function AddPageFlow( {
 							onClick={ handleBack }
 							variant="tertiary"
 						>
-							{ __( 'Back to designs' ) }
+							{ __(
+								'Back to designs',
+								'create-not-learn-editor'
+							) }
 						</Button>
 						<Button
 							__next40pxDefaultSize
@@ -601,7 +587,7 @@ export default function AddPageFlow( {
 							onClick={ createPage }
 							variant="primary"
 						>
-							{ __( 'Create page' ) }
+							{ __( 'Create page', 'create-not-learn-editor' ) }
 						</Button>
 					</div>
 				</div>
@@ -611,7 +597,7 @@ export default function AddPageFlow( {
 						description={
 							selectedLayout
 								? getPatternTitle( selectedLayout )
-								: __( 'Blank page' )
+								: __( 'Blank page', 'create-not-learn-editor' )
 						}
 					/>
 				) }
@@ -659,7 +645,8 @@ export default function AddPageFlow( {
 		designs = (
 			<Text className="cnl-design-picker__empty" variant="body-md">
 				{ __(
-					'Your theme has no page designs to offer, so start from scratch.'
+					'Your theme has no page designs to offer, so start from scratch.',
+					'create-not-learn-editor'
 				) }
 			</Text>
 		);
@@ -675,7 +662,10 @@ export default function AddPageFlow( {
 				>
 					{ activePageLayouts.length > pageLayoutPerPage && (
 						<Stack
-							aria-label={ __( 'Page design pagination' ) }
+							aria-label={ __(
+								'Page design pagination',
+								'create-not-learn-editor'
+							) }
 							align="center"
 							className="cnl-add-page-layout-pagination"
 							direction="row"
@@ -686,7 +676,10 @@ export default function AddPageFlow( {
 								accessibleWhenDisabled
 								disabled={ currentPageLayoutPage === 1 }
 								icon={ chevronLeftIcon }
-								label={ __( 'Previous designs' ) }
+								label={ __(
+									'Previous designs',
+									'create-not-learn-editor'
+								) }
 								onClick={ goToPreviousPageLayouts }
 								size="compact"
 								variant="tertiary"
@@ -697,7 +690,10 @@ export default function AddPageFlow( {
 							>
 								{ sprintf(
 									/* translators: 1: first visible design number, 2: last visible design number, 3: total designs. */
-									__( '%1$d-%2$d of %3$d designs' ),
+									__(
+										'%1$d-%2$d of %3$d designs',
+										'create-not-learn-editor'
+									),
 									firstVisiblePageLayoutIndex,
 									lastVisiblePageLayoutIndex,
 									activePageLayouts.length
@@ -710,7 +706,10 @@ export default function AddPageFlow( {
 									pageLayoutPageCount
 								}
 								icon={ chevronRightIcon }
-								label={ __( 'Next designs' ) }
+								label={ __(
+									'Next designs',
+									'create-not-learn-editor'
+								) }
 								onClick={ goToNextPageLayouts }
 								size="compact"
 								variant="tertiary"
@@ -749,7 +748,10 @@ export default function AddPageFlow( {
 						__nextHasNoMarginBottom
 						className="cnl-add-page-layout-template-select"
 						key="template"
-						label={ __( 'Preview with' ) }
+						label={ __(
+							'Preview with',
+							'create-not-learn-editor'
+						) }
 						labelPosition="side"
 						onChange={ ( value ) =>
 							setSelectedTemplateSlug( String( value ) )
@@ -763,7 +765,7 @@ export default function AddPageFlow( {
 					hideLabelFromVision
 					isBlock={ false }
 					key="density"
-					label={ __( 'Preview size' ) }
+					label={ __( 'Preview size', 'create-not-learn-editor' ) }
 					onChange={ ( value ) =>
 						setPageLayoutColumns( Number( value ) )
 					}
@@ -788,7 +790,10 @@ export default function AddPageFlow( {
 			footer={
 				<CheckboxControl
 					checked={ ! isShowingDesigns }
-					label={ __( 'Don’t show this again' ) }
+					label={ __(
+						'Don’t show this again',
+						'create-not-learn-editor'
+					) }
 					onChange={ ( isChecked ) =>
 						setShowsPageDesigns( ! isChecked )
 					}
@@ -805,7 +810,10 @@ export default function AddPageFlow( {
 							onClick={ handleStartBlank }
 							variant="secondary"
 						>
-							{ __( 'Start from scratch' ) }
+							{ __(
+								'Start from scratch',
+								'create-not-learn-editor'
+							) }
 						</Button>
 					}
 					current={ activePageType }
@@ -817,7 +825,7 @@ export default function AddPageFlow( {
 								} ) )
 							: []
 					}
-					label={ __( 'Page types' ) }
+					label={ __( 'Page types', 'create-not-learn-editor' ) }
 					onSelect={ setSelectedPageType }
 				>
 					{ isLoadingPageLayouts && <PageLayoutSidebarPlaceholder /> }
@@ -825,18 +833,20 @@ export default function AddPageFlow( {
 			}
 			onClose={ onClose }
 			subtitle={ __(
-				'Choose a design to get started. You can change anything on it later.'
+				'Choose a design to get started. You can change anything on it later.',
+				'create-not-learn-editor'
 			) }
-			title={ __( 'Add a page' ) }
+			title={ __( 'Add a page', 'create-not-learn-editor' ) }
 		>
 			<div className="cnl-design-picker__starts">
 				<StartFromScratch
 					description={ __(
-						'A title and text, for pages like a privacy policy'
+						'A title and text, for pages like a privacy policy',
+						'create-not-learn-editor'
 					) }
 					icon={ postContentIcon }
 					onClick={ handleStartText }
-					title={ __( 'Text page' ) }
+					title={ __( 'Text page', 'create-not-learn-editor' ) }
 				/>
 			</div>
 			{ designs }

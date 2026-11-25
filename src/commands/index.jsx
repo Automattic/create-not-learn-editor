@@ -85,136 +85,175 @@ function getScreenCommands() {
 			to: `/types/${ type.name }`,
 			keywords:
 				type.name === 'post'
-					? [ __( 'blog' ), __( 'articles' ), __( 'news' ) ]
+					? [
+							__( 'blog', 'create-not-learn-editor' ),
+							__( 'articles', 'create-not-learn-editor' ),
+							__( 'news', 'create-not-learn-editor' ),
+						]
 					: [],
 		} ) );
 
 	return [
 		{
 			name: 'create-not-learn-editor/screen-site',
-			label: __( 'Home' ),
+			label: __( 'Home', 'create-not-learn-editor' ),
 			icon: homeIcon,
 			to: '/',
-			keywords: [ __( 'start' ), __( 'dashboard' ), __( 'my site' ) ],
+			keywords: [
+				__( 'start', 'create-not-learn-editor' ),
+				__( 'dashboard', 'create-not-learn-editor' ),
+				__( 'my site', 'create-not-learn-editor' ),
+			],
 		},
 		{
 			name: 'create-not-learn-editor/screen-homepage',
-			label: __( 'Your homepage' ),
+			label: __( 'Your homepage', 'create-not-learn-editor' ),
 			icon: homeIcon,
 			callback: () => openPage( HOMEPAGE ),
 			keywords: [
-				__( 'homepage' ),
-				__( 'home page' ),
-				__( 'front page' ),
-				__( 'landing page' ),
+				__( 'homepage', 'create-not-learn-editor' ),
+				__( 'home page', 'create-not-learn-editor' ),
+				__( 'front page', 'create-not-learn-editor' ),
+				__( 'landing page', 'create-not-learn-editor' ),
 			],
 		},
 		{
 			name: 'create-not-learn-editor/screen-pages',
-			label: __( 'Pages' ),
+			label: __( 'Pages', 'create-not-learn-editor' ),
 			icon: pagesIcon,
 			to: '/types/page/list/default',
 			keywords: [
-				__( 'pages' ),
-				__( 'menu' ),
-				__( 'navigation' ),
-				__( 'links' ),
+				__( 'pages', 'create-not-learn-editor' ),
+				__( 'menu', 'create-not-learn-editor' ),
+				__( 'navigation', 'create-not-learn-editor' ),
+				__( 'links', 'create-not-learn-editor' ),
 			],
 		},
 		{
 			name: 'create-not-learn-editor/screen-identity',
-			label: __( 'Name & logo' ),
+			label: __( 'Name & logo', 'create-not-learn-editor' ),
 			icon: siteLogoIcon,
 			to: '/design/identity',
 			keywords: [
-				__( 'logo' ),
-				__( 'site name' ),
-				__( 'site title' ),
-				__( 'tagline' ),
-				__( 'site icon' ),
-				__( 'favicon' ),
-				__( 'brand' ),
+				__( 'logo', 'create-not-learn-editor' ),
+				__( 'site name', 'create-not-learn-editor' ),
+				__( 'site title', 'create-not-learn-editor' ),
+				__( 'tagline', 'create-not-learn-editor' ),
+				__( 'site icon', 'create-not-learn-editor' ),
+				__( 'favicon', 'create-not-learn-editor' ),
+				__( 'brand', 'create-not-learn-editor' ),
 			],
 		},
 		{
 			name: 'create-not-learn-editor/screen-design',
-			label: __( 'Design' ),
+			label: __( 'Design', 'create-not-learn-editor' ),
 			icon: brushIcon,
 			to: '/design',
 			// Not colors or fonts: they have screens of their own, which
 			// should come first for them.
-			keywords: [ __( 'style' ), __( 'look' ), __( 'theme' ) ],
+			keywords: [
+				__( 'style', 'create-not-learn-editor' ),
+				__( 'look', 'create-not-learn-editor' ),
+				__( 'theme', 'create-not-learn-editor' ),
+			],
 		},
 		{
 			name: 'create-not-learn-editor/screen-site-parts',
-			label: __( 'Site parts' ),
+			label: __( 'Site parts', 'create-not-learn-editor' ),
 			icon: headerIcon,
 			to: '/site-parts',
-			keywords: [ __( 'top' ), __( 'bottom' ) ],
+			keywords: [
+				__( 'top', 'create-not-learn-editor' ),
+				__( 'bottom', 'create-not-learn-editor' ),
+			],
 		},
 		{
 			name: 'create-not-learn-editor/screen-colors',
-			label: __( 'Colors' ),
+			label: __( 'Colors', 'create-not-learn-editor' ),
 			icon: colorIcon,
 			to: '/design/colors',
-			keywords: [ __( 'colours' ), __( 'palette' ) ],
+			keywords: [
+				__( 'colours', 'create-not-learn-editor' ),
+				__( 'palette', 'create-not-learn-editor' ),
+			],
 		},
 		{
 			name: 'create-not-learn-editor/screen-fonts',
-			label: __( 'Fonts' ),
+			label: __( 'Fonts', 'create-not-learn-editor' ),
 			icon: typographyIcon,
 			to: '/design/fonts',
-			keywords: [ __( 'typography' ), __( 'text' ), __( 'typeface' ) ],
+			keywords: [
+				__( 'typography', 'create-not-learn-editor' ),
+				__( 'text', 'create-not-learn-editor' ),
+				__( 'typeface', 'create-not-learn-editor' ),
+			],
 		},
 		{
 			name: 'create-not-learn-editor/screen-header',
-			label: __( 'Header' ),
+			label: __( 'Header', 'create-not-learn-editor' ),
 			icon: headerIcon,
 			to: '/site-parts/header',
-			keywords: [ __( 'top' ), __( 'banner' ) ],
+			keywords: [
+				__( 'top', 'create-not-learn-editor' ),
+				__( 'banner', 'create-not-learn-editor' ),
+			],
 		},
 		{
 			name: 'create-not-learn-editor/screen-footer',
-			label: __( 'Footer' ),
+			label: __( 'Footer', 'create-not-learn-editor' ),
 			icon: footerIcon,
 			to: '/site-parts/footer',
-			keywords: [ __( 'bottom' ) ],
+			keywords: [ __( 'bottom', 'create-not-learn-editor' ) ],
 		},
 		{
 			name: 'create-not-learn-editor/screen-site-overview',
-			label: __( 'Site overview' ),
+			label: __( 'Site overview', 'create-not-learn-editor' ),
 			icon: tableOfContentsIcon,
 			to: '/site-overview',
-			keywords: [ __( 'sitemap' ), __( 'structure' ), __( 'map' ) ],
+			keywords: [
+				__( 'sitemap', 'create-not-learn-editor' ),
+				__( 'structure', 'create-not-learn-editor' ),
+				__( 'map', 'create-not-learn-editor' ),
+			],
 		},
 		...contentTypes,
 		{
 			name: 'create-not-learn-editor/screen-menus',
-			label: __( 'Menus' ),
+			label: __( 'Menus', 'create-not-learn-editor' ),
 			icon: navigationIcon,
 			to: '/navigation',
-			keywords: [ __( 'menu' ), __( 'navigation' ), __( 'links' ) ],
+			keywords: [
+				__( 'menu', 'create-not-learn-editor' ),
+				__( 'navigation', 'create-not-learn-editor' ),
+				__( 'links', 'create-not-learn-editor' ),
+			],
 		},
 		{
 			name: 'create-not-learn-editor/screen-sections',
-			label: __( 'Patterns' ),
+			label: __( 'Patterns', 'create-not-learn-editor' ),
 			icon: symbolIcon,
 			to: '/patterns',
-			keywords: [ __( 'sections' ), __( 'blocks' ) ],
+			keywords: [
+				__( 'sections', 'create-not-learn-editor' ),
+				__( 'blocks', 'create-not-learn-editor' ),
+			],
 		},
 		{
 			name: 'create-not-learn-editor/screen-site-part-list',
-			label: __( 'All site parts' ),
+			label: __( 'All site parts', 'create-not-learn-editor' ),
 			icon: symbolFilledIcon,
 			to: '/template-parts',
-			keywords: [ __( 'template parts' ), __( 'headers' ) ],
+			keywords: [
+				__( 'template parts', 'create-not-learn-editor' ),
+				__( 'headers', 'create-not-learn-editor' ),
+			],
 		},
 		{
 			name: 'create-not-learn-editor/screen-layouts',
-			label: __( 'Templates' ),
+			label: __( 'Templates', 'create-not-learn-editor' ),
 			icon: layoutIcon,
 			to: '/templates',
-			keywords: [ __( 'layouts' ) ],
+			keywords: [ __( 'layouts', 'create-not-learn-editor' ) ],
 		},
 	];
 }
@@ -248,10 +287,13 @@ function useViewSiteCommand() {
 				? [
 						{
 							name: 'create-not-learn-editor/view-site',
-							label: __( 'View site' ),
+							label: __( 'View site', 'create-not-learn-editor' ),
 							icon: externalIcon,
 							category: 'view',
-							keywords: [ __( 'live site' ), __( 'visit' ) ],
+							keywords: [
+								__( 'live site', 'create-not-learn-editor' ),
+								__( 'visit', 'create-not-learn-editor' ),
+							],
 							callback: ( { close } ) => {
 								close();
 								window.open( settings.homeUrl, '_blank' );
@@ -270,10 +312,13 @@ function usePreferencesCommand() {
 		() => [
 			{
 				name: 'create-not-learn-editor/preferences',
-				label: __( 'Preferences' ),
+				label: __( 'Preferences', 'create-not-learn-editor' ),
 				icon: cogIcon,
 				category: 'view',
-				keywords: [ __( 'settings' ), __( 'options' ) ],
+				keywords: [
+					__( 'settings', 'create-not-learn-editor' ),
+					__( 'options', 'create-not-learn-editor' ),
+				],
 				callback: ( { close } ) => {
 					close();
 					openPreferences();
@@ -367,7 +412,7 @@ function usePageCommands( { search } ) {
 					name: `create-not-learn-editor/page-${ record.id }`,
 					label:
 						decodeEntities( record.title?.rendered ?? '' ) ||
-						__( '(no title)' ),
+						__( '(no title)', 'create-not-learn-editor' ),
 					icon: pageIcon,
 					category: 'edit',
 					callback: ( { close } ) => {

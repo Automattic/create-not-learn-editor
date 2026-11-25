@@ -75,7 +75,7 @@ function TrashButton( { clientId } ) {
 		<ToolbarButton
 			className="cnl-block-toolbar__trash"
 			icon={ trash }
-			label={ __( 'Delete' ) }
+			label={ __( 'Delete', 'create-not-learn-editor' ) }
 			shortcut={ remove?.displayShortcut }
 			onClick={ () => removeBlocks( [ clientId ], true ) }
 		/>
@@ -102,7 +102,8 @@ function BlockToolbarFills( { clientId, name, attributes, setAttributes } ) {
 	useFloatingFormatToolbar( clientId );
 	// A section is called that, unless it has been given a name.
 	const sectionTitle = sectionViews
-		? attributes?.metadata?.name || __( 'Section' )
+		? attributes?.metadata?.name ||
+			__( 'Section', 'create-not-learn-editor' )
 		: null;
 
 	useNameMenu( clientId, sectionTitle, isContainer );

@@ -8,8 +8,11 @@
  */
 import { getSitePartArea } from '../content/pages/data';
 import {
+	__,
+	_n,
 	blockEditorStore,
 	coreDataStore,
+	sprintf,
 	useMemo,
 	useSelect,
 } from '../../wordpress-packages';
@@ -197,3 +200,37 @@ export {
 	putLayoutFirst,
 	useSitePartLayouts,
 } from './layouts';
+
+// What a menu holds, from its saved blocks: its links, and whether it lists
+// the site's pages by itself.
+export function getLinkCount( menu ) {
+	const content = String(
+		( typeof menu?.content === 'string'
+			? menu.content
+			: menu?.content?.raw ) || ''
+	);
+	const count = (
+		content.match(
+			/<!-- wp:(navigation-link|navigation-submenu|home-link)\b/g
+		) || []
+	).length;
+	const hasPages = content.includes( '<!-- wp:page-list' );
+
+	if ( hasPages && ! count ) {
+		return __( 'Lists your pages', 'create-not-learn-editor' );
+	}
+
+	const links = sprintf(
+		/* translators: %d: Number of links in a menu. */
+		_n( '%d link', '%d links', count, 'create-not-learn-editor' ),
+		count
+	);
+
+	return hasPages
+		? sprintf(
+				/* translators: %s: Number of links, like "2 links". */
+				__( '%s and your pages', 'create-not-learn-editor' ),
+				links
+			)
+		: links;
+}

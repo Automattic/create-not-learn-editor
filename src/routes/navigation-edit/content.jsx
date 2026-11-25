@@ -111,7 +111,8 @@ function NavigationEditStage() {
 			setIsRenaming( false );
 			createSuccessNotice(
 				__(
-					'Navigation menu renamed. Review and save changes when you are ready.'
+					'Navigation menu renamed. Review and save changes when you are ready.',
+					'create-not-learn-editor'
 				),
 				{ type: 'snackbar' }
 			);
@@ -119,7 +120,10 @@ function NavigationEditStage() {
 			createErrorNotice(
 				sprintf(
 					/* translators: %s: error message. */
-					__( 'Unable to rename navigation menu (%s).' ),
+					__(
+						'Unable to rename navigation menu (%s).',
+						'create-not-learn-editor'
+					),
 					getErrorMessage( error )
 				),
 				{ type: 'snackbar' }
@@ -147,15 +151,21 @@ function NavigationEditStage() {
 				{ throwOnError: true }
 			);
 			invalidateNavigationMenus();
-			createSuccessNotice( __( 'Navigation menu deleted.' ), {
-				type: 'snackbar',
-			} );
+			createSuccessNotice(
+				__( 'Navigation menu deleted.', 'create-not-learn-editor' ),
+				{
+					type: 'snackbar',
+				}
+			);
 			navigate( { to: '/navigation' } );
 		} catch ( error ) {
 			createErrorNotice(
 				sprintf(
 					/* translators: %s: error message. */
-					__( 'Unable to delete navigation menu (%s).' ),
+					__(
+						'Unable to delete navigation menu (%s).',
+						'create-not-learn-editor'
+					),
 					getErrorMessage( error )
 				),
 				{ type: 'snackbar' }
@@ -168,7 +178,7 @@ function NavigationEditStage() {
 	const menuOptions = isMenuReady && (
 		<DropdownMenu
 			icon={ moreVerticalIcon }
-			label={ __( 'Navigation menu options' ) }
+			label={ __( 'Navigation menu options', 'create-not-learn-editor' ) }
 			popoverProps={ { placement: 'bottom-end' } }
 			toggleProps={ { variant: 'tertiary' } }
 		>
@@ -183,7 +193,10 @@ function NavigationEditStage() {
 								onClose();
 							} }
 						>
-							{ __( 'Add menu items' ) }
+							{ __(
+								'Add menu items',
+								'create-not-learn-editor'
+							) }
 						</MenuItem>
 						<MenuItem
 							icon={ pencilIcon }
@@ -192,7 +205,7 @@ function NavigationEditStage() {
 								onClose();
 							} }
 						>
-							{ __( 'Rename' ) }
+							{ __( 'Rename', 'create-not-learn-editor' ) }
 						</MenuItem>
 						<MenuItem
 							onClick={ () =>
@@ -201,7 +214,10 @@ function NavigationEditStage() {
 								} )
 							}
 						>
-							{ __( 'Open block editor' ) }
+							{ __(
+								'Open block editor',
+								'create-not-learn-editor'
+							) }
 						</MenuItem>
 					</MenuGroup>
 					<MenuGroup>
@@ -213,7 +229,7 @@ function NavigationEditStage() {
 								onClose();
 							} }
 						>
-							{ __( 'Delete' ) }
+							{ __( 'Delete', 'create-not-learn-editor' ) }
 						</MenuItem>
 					</MenuGroup>
 				</div>
@@ -230,7 +246,10 @@ function NavigationEditStage() {
 			breadcrumbs={
 				<Breadcrumbs
 					items={ [
-						{ label: __( 'Menus' ), to: '/navigation' },
+						{
+							label: __( 'Menus', 'create-not-learn-editor' ),
+							to: '/navigation',
+						},
 						{ label: menuTitle },
 					] }
 				/>
@@ -238,7 +257,10 @@ function NavigationEditStage() {
 			className="cnl-editor-stage routes-navigation-edit"
 			hasPadding={ false }
 			headingLevel={ 2 }
-			subTitle={ __( 'Manage this navigation menu.' ) }
+			subTitle={ __(
+				'Manage this navigation menu.',
+				'create-not-learn-editor'
+			) }
 		>
 			{ ! isMenuReady && (
 				<div className="cnl-editor-spinner">
@@ -252,11 +274,17 @@ function NavigationEditStage() {
 						<Modal
 							className="routes-navigation-edit__item-modal"
 							onRequestClose={ closeRenameModal }
-							title={ __( 'Rename navigation menu' ) }
+							title={ __(
+								'Rename navigation menu',
+								'create-not-learn-editor'
+							) }
 						>
 							<InputControl
 								disabled={ isSaving }
-								label={ __( 'Name' ) }
+								label={ __(
+									'Name',
+									'create-not-learn-editor'
+								) }
 								onValueChange={ setRenameTitle }
 								value={ renameTitle }
 							/>
@@ -266,7 +294,10 @@ function NavigationEditStage() {
 									onClick={ closeRenameModal }
 									variant="tertiary"
 								>
-									{ __( 'Cancel' ) }
+									{ __(
+										'Cancel',
+										'create-not-learn-editor'
+									) }
 								</Button>
 								<Button
 									disabled={
@@ -276,7 +307,7 @@ function NavigationEditStage() {
 									onClick={ renameNavigationMenu }
 									variant="primary"
 								>
-									{ __( 'Save' ) }
+									{ __( 'Save', 'create-not-learn-editor' ) }
 								</Button>
 							</div>
 						</Modal>
@@ -285,13 +316,17 @@ function NavigationEditStage() {
 						<Modal
 							className="routes-navigation-edit__item-modal"
 							onRequestClose={ closeDeleteModal }
-							title={ __( 'Delete navigation menu' ) }
+							title={ __(
+								'Delete navigation menu',
+								'create-not-learn-editor'
+							) }
 						>
 							<p>
 								{ sprintf(
 									/* translators: %s: navigation menu title. */
 									__(
-										'Are you sure you want to delete "%s"? This cannot be undone.'
+										'Are you sure you want to delete "%s"? This cannot be undone.',
+										'create-not-learn-editor'
 									),
 									menuTitle
 								) }
@@ -302,7 +337,10 @@ function NavigationEditStage() {
 									onClick={ closeDeleteModal }
 									variant="tertiary"
 								>
-									{ __( 'Cancel' ) }
+									{ __(
+										'Cancel',
+										'create-not-learn-editor'
+									) }
 								</Button>
 								<Button
 									disabled={ isSaving }
@@ -311,7 +349,10 @@ function NavigationEditStage() {
 									onClick={ deleteNavigationMenu }
 									variant="primary"
 								>
-									{ __( 'Delete' ) }
+									{ __(
+										'Delete',
+										'create-not-learn-editor'
+									) }
 								</Button>
 							</div>
 						</Modal>

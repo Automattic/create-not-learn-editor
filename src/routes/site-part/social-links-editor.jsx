@@ -47,7 +47,7 @@ function SocialLinkOptions( { index, isLast, onMove, onRemove, title } ) {
 			icon={ moreVerticalIcon }
 			label={ sprintf(
 				/* translators: %s: Social service, like Instagram. */
-				__( '%s options' ),
+				__( '%s options', 'create-not-learn-editor' ),
 				title
 			) }
 			popoverProps={ { placement: 'bottom-end' } }
@@ -63,7 +63,7 @@ function SocialLinkOptions( { index, isLast, onMove, onRemove, title } ) {
 							onClose();
 						} }
 					>
-						{ __( 'Move up' ) }
+						{ __( 'Move up', 'create-not-learn-editor' ) }
 					</MenuItem>
 					<MenuItem
 						accessibleWhenDisabled
@@ -74,7 +74,7 @@ function SocialLinkOptions( { index, isLast, onMove, onRemove, title } ) {
 							onClose();
 						} }
 					>
-						{ __( 'Move down' ) }
+						{ __( 'Move down', 'create-not-learn-editor' ) }
 					</MenuItem>
 					<MenuItem
 						icon={ trashIcon }
@@ -83,7 +83,7 @@ function SocialLinkOptions( { index, isLast, onMove, onRemove, title } ) {
 							onClose();
 						} }
 					>
-						{ __( 'Remove' ) }
+						{ __( 'Remove', 'create-not-learn-editor' ) }
 					</MenuItem>
 				</MenuGroup>
 			) }
@@ -121,9 +121,15 @@ function AddSocialLink( { onAdd, services } ) {
 				<div className="cnl-site-part__add-social-content">
 					<InputControl
 						hideLabelFromVision
-						label={ __( 'Search services' ) }
+						label={ __(
+							'Search services',
+							'create-not-learn-editor'
+						) }
 						onValueChange={ setSearch }
-						placeholder={ __( 'Search' ) }
+						placeholder={ __(
+							'Search',
+							'create-not-learn-editor'
+						) }
 						value={ search }
 					/>
 					<MenuGroup className="cnl-site-part__add-social-list">
@@ -142,7 +148,12 @@ function AddSocialLink( { onAdd, services } ) {
 						) ) }
 					</MenuGroup>
 					{ ! matches.length && (
-						<Note>{ __( 'No services match.' ) }</Note>
+						<Note>
+							{ __(
+								'No services match.',
+								'create-not-learn-editor'
+							) }
+						</Note>
 					) }
 				</div>
 			) }
@@ -154,7 +165,7 @@ function AddSocialLink( { onAdd, services } ) {
 					onClick={ onToggle }
 					variant="secondary"
 				>
-					{ __( 'Add social link' ) }
+					{ __( 'Add social link', 'create-not-learn-editor' ) }
 				</Button>
 			) }
 		/>
@@ -193,7 +204,12 @@ export function SocialLinks( { area } ) {
 
 	if ( ! links ) {
 		return (
-			<Note>{ __( 'Your site doesn’t show social links here.' ) }</Note>
+			<Note>
+				{ __(
+					'Your site doesn’t show social links here.',
+					'create-not-learn-editor'
+				) }
+			</Note>
 		);
 	}
 
@@ -211,10 +227,17 @@ export function SocialLinks( { area } ) {
 
 	return (
 		<div className="routes-styles__section cnl-site-part__social">
-			{ ! links.length && <Note>{ __( 'No social links yet.' ) }</Note> }
+			{ ! links.length && (
+				<Note>
+					{ __( 'No social links yet.', 'create-not-learn-editor' ) }
+				</Note>
+			) }
 			{ links.length > 0 && (
 				<ul
-					aria-label={ __( 'Social links' ) }
+					aria-label={ __(
+						'Social links',
+						'create-not-learn-editor'
+					) }
 					className="cnl-site-part__social-links"
 				>
 					{ links.map( ( link, index ) => {
@@ -230,7 +253,10 @@ export function SocialLinks( { area } ) {
 									onValueChange={ ( url ) =>
 										setUrl( index, url )
 									}
-									placeholder={ __( 'Add your address' ) }
+									placeholder={ __(
+										'Add your address',
+										'create-not-learn-editor'
+									) }
 									prefix={
 										service.icon && (
 											<InputLayout.Slot padding="minimal">

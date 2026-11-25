@@ -207,10 +207,13 @@ export function followPath( section, path ) {
  */
 export function getAddableTypes() {
 	return [
-		{ label: __( 'Heading' ), type: 'heading' },
-		{ label: __( 'Paragraph' ), type: 'paragraph' },
-		{ label: __( 'Button' ), type: 'button' },
-		{ label: __( 'Image' ), type: 'image' },
+		{ label: __( 'Heading', 'create-not-learn-editor' ), type: 'heading' },
+		{
+			label: __( 'Paragraph', 'create-not-learn-editor' ),
+			type: 'paragraph',
+		},
+		{ label: __( 'Button', 'create-not-learn-editor' ), type: 'button' },
+		{ label: __( 'Image', 'create-not-learn-editor' ), type: 'image' },
 	];
 }
 

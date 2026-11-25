@@ -16,14 +16,19 @@
 import { store as blockEditorStore } from '@wordpress/block-editor';
 import { useSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 
 /**
- * Core's buttons that mark the format group, by their labels. Core's markup
- * gives the group nothing else to find it by.
+ * Core's buttons that mark the format group, by their labels in the site's
+ * language. Core's markup gives the group nothing else to find it by.
  */
-const FORMAT_BUTTONS = [ 'Bold', 'Italic', 'More' ]
-	.map( ( label ) => `[aria-label="${ label }"]` )
-	.join( ', ' );
+/* eslint-disable @wordpress/i18n-text-domain -- core's own labels. */
+const FORMAT_LABELS = [ __( 'Bold' ), __( 'Italic' ), __( 'More' ) ];
+/* eslint-enable @wordpress/i18n-text-domain */
+
+const FORMAT_BUTTONS = FORMAT_LABELS.map(
+	( label ) => `[aria-label="${ label }"]`
+).join( ', ' );
 
 const GAP = 8;
 

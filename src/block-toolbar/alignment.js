@@ -41,9 +41,21 @@ export const NONE = 'none';
 export const fromRadio = ( value ) => ( value === NONE ? undefined : value );
 
 export const TEXT_ALIGNMENTS = [
-	{ value: 'left', label: __( 'Left' ), icon: alignLeft },
-	{ value: 'center', label: __( 'Center' ), icon: alignCenter },
-	{ value: 'right', label: __( 'Right' ), icon: alignRight },
+	{
+		value: 'left',
+		label: __( 'Left', 'create-not-learn-editor' ),
+		icon: alignLeft,
+	},
+	{
+		value: 'center',
+		label: __( 'Center', 'create-not-learn-editor' ),
+		icon: alignCenter,
+	},
+	{
+		value: 'right',
+		label: __( 'Right', 'create-not-learn-editor' ),
+		icon: alignRight,
+	},
 ];
 
 /**
@@ -156,25 +168,25 @@ export function useBlockWidths( clientId, name ) {
 	const hint = ( size ) =>
 		size &&
 		/* translators: %s: a width, like 645px. */
-		sprintf( __( 'Max. %s' ), size );
+		sprintf( __( 'Max. %s', 'create-not-learn-editor' ), size );
 
 	return [
 		{
 			value: NONE,
-			label: __( 'None' ),
+			label: __( 'None', 'create-not-learn-editor' ),
 			icon: positionCenter,
 			hint: hint( contentSize ),
 		},
 		allows( 'wide' ) &&
 			wideSize && {
 				value: 'wide',
-				label: __( 'Wide width' ),
+				label: __( 'Wide width', 'create-not-learn-editor' ),
 				icon: stretchWide,
 				hint: hint( wideSize ),
 			},
 		allows( 'full' ) && {
 			value: 'full',
-			label: __( 'Full width' ),
+			label: __( 'Full width', 'create-not-learn-editor' ),
 			icon: stretchFullWidth,
 		},
 	].filter( Boolean );
@@ -188,6 +200,10 @@ export function useBlockWidths( clientId, name ) {
  * @param {string}   [none]  What to say when nothing is set.
  * @return {string} Its label.
  */
-export function getChoiceLabel( options, value, none = __( 'Default' ) ) {
+export function getChoiceLabel(
+	options,
+	value,
+	none = __( 'Default', 'create-not-learn-editor' )
+) {
 	return options.find( ( option ) => option.value === value )?.label ?? none;
 }

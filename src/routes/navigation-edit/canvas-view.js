@@ -36,12 +36,17 @@ export function getCanvasViewDevice( value ) {
  */
 export function getMenuLocationsSummary( count ) {
 	if ( ! count ) {
-		return __( 'Not shown on your site' );
+		return __( 'Not shown on your site', 'create-not-learn-editor' );
 	}
 
 	return sprintf(
 		/* translators: %d: Number of locations where this navigation menu is shown. */
-		_n( 'Shown in %d location', 'Shown in %d locations', count ),
+		_n(
+			'Shown in %d location',
+			'Shown in %d locations',
+			count,
+			'create-not-learn-editor'
+		),
 		count
 	);
 }

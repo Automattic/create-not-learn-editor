@@ -146,7 +146,7 @@ function RowOptions( { groups, icon, title, toggleProps } ) {
 			icon={ icon }
 			label={ sprintf(
 				/* translators: %s: page title. */
-				__( 'Options for %s' ),
+				__( 'Options for %s', 'create-not-learn-editor' ),
 				title
 			) }
 			popoverProps={ { placement: 'bottom-end' } }
@@ -209,7 +209,9 @@ function PageRowEnd( { clientId, icon, toggleProps } ) {
 	const isHomepage = ! pageId || pageId === row.homePageId;
 	const target = isHomepage ? HOMEPAGE : pageId;
 	const page = row.pagesById.get( pageId );
-	const title = isHomepage ? __( 'Homepage' ) : getPageTitle( page );
+	const title = isHomepage
+		? __( 'Homepage', 'create-not-learn-editor' )
+		: getPageTitle( page );
 	const badge = isHomepage
 		? getHomepageSummary( row.homepage ).badge
 		: getStatusBadge( page?.status );
@@ -232,7 +234,10 @@ function PageRowEnd( { clientId, icon, toggleProps } ) {
 					pageId && row.onOpenDetails
 						? [
 								{
-									label: __( 'Page details' ),
+									label: __(
+										'Page details',
+										'create-not-learn-editor'
+									),
 									onClick: () => row.onOpenDetails( target ),
 								},
 							]
@@ -243,8 +248,14 @@ function PageRowEnd( { clientId, icon, toggleProps } ) {
 								{
 									disabled: menuSwitch.disabled,
 									label: menuSwitch.checked
-										? __( 'Hide from menu' )
-										: __( 'Show in menu' ),
+										? __(
+												'Hide from menu',
+												'create-not-learn-editor'
+											)
+										: __(
+												'Show in menu',
+												'create-not-learn-editor'
+											),
 									onClick: () => row.menu.toggle( target ),
 									reason: menuSwitch.disabled
 										? menuSwitch.note
@@ -259,19 +270,27 @@ function PageRowEnd( { clientId, icon, toggleProps } ) {
 							? {
 									disabled: true,
 									isDestructive: true,
-									label: __( 'Move to Trash' ),
+									label: __(
+										'Move to Trash',
+										'create-not-learn-editor'
+									),
 									onClick: () => {},
 									reason: pageId
 										? __(
-												'This page is your homepage. Choose another homepage before moving it to the Trash.'
+												'This page is your homepage. Choose another homepage before moving it to the Trash.',
+												'create-not-learn-editor'
 											)
 										: __(
-												'Your homepage shows your latest posts, so there’s no page to move to the Trash.'
+												'Your homepage shows your latest posts, so there’s no page to move to the Trash.',
+												'create-not-learn-editor'
 											),
 								}
 							: {
 									isDestructive: true,
-									label: __( 'Move to Trash' ),
+									label: __(
+										'Move to Trash',
+										'create-not-learn-editor'
+									),
 									onClick: () => row.onDelete( pageId ),
 								},
 					],
@@ -292,7 +311,10 @@ function PageRowEnd( { clientId, icon, toggleProps } ) {
 							hideLabelFromVision
 							label={ sprintf(
 								/* translators: %s: page title. */
-								__( 'Show %s in your menu' ),
+								__(
+									'Show %s in your menu',
+									'create-not-learn-editor'
+								),
 								title
 							) }
 							onCheckedChange={ () => row.menu.toggle( target ) }
@@ -300,7 +322,11 @@ function PageRowEnd( { clientId, icon, toggleProps } ) {
 					</Tooltip.Trigger>
 					{ /* Says why a switch can't be used, or what it means. */ }
 					<Tooltip.Popup>
-						{ menuSwitch.note || __( 'Show in your menu' ) }
+						{ menuSwitch.note ||
+							__(
+								'Show in your menu',
+								'create-not-learn-editor'
+							) }
 					</Tooltip.Popup>
 				</Tooltip.Root>
 			) }
@@ -335,7 +361,7 @@ function PagesAppender( {
 	return (
 		<DropdownMenu
 			icon={ plusIcon }
-			label={ __( 'Add' ) }
+			label={ __( 'Add', 'create-not-learn-editor' ) }
 			popoverProps={ { placement: 'bottom-start' } }
 			toggleProps={ {
 				...props,
@@ -417,9 +443,11 @@ export default function PagesListView( {
 			hasHomeLink:
 				! homePageId &&
 				( ! isSearching ||
-					__( 'Homepage' ).toLowerCase().includes( needle ) ),
+					__( 'Homepage', 'create-not-learn-editor' )
+						.toLowerCase()
+						.includes( needle ) ),
 			homeId: homePageId,
-			homeName: __( 'Homepage' ),
+			homeName: __( 'Homepage', 'create-not-learn-editor' ),
 			// Pages can't be moved while only some are listed.
 			isLocked: isSearching,
 		} );
@@ -483,7 +511,7 @@ export default function PagesListView( {
 		return [
 			{
 				disabled: ! up,
-				label: __( 'Move up' ),
+				label: __( 'Move up', 'create-not-learn-editor' ),
 				onClick: () =>
 					movePages(
 						getPageMoveChanges( tree, pageId, up, { frontPageId } )
@@ -491,7 +519,7 @@ export default function PagesListView( {
 			},
 			{
 				disabled: ! down,
-				label: __( 'Move down' ),
+				label: __( 'Move down', 'create-not-learn-editor' ),
 				onClick: () =>
 					movePages(
 						getPageMoveChanges( tree, pageId, down, {
@@ -675,7 +703,10 @@ function PagesListViewContent( {
 			{ iconStyles && <style>{ iconStyles }</style> }
 			<PrivateListView
 				blockSettingsMenu={ PageRowEnd }
-				description={ __( 'Every page on your site.' ) }
+				description={ __(
+					'Every page on your site.',
+					'create-not-learn-editor'
+				) }
 				isExpanded
 				onSelect={ showPage }
 				renderAppender={ hasAppender ? renderPagesAppender : undefined }

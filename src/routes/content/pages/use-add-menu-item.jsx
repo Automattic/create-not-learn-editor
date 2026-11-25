@@ -62,7 +62,7 @@ export function AddOptions( { onAddMenuItem, onAddPage, onClose } ) {
 						onAddPage();
 					} }
 				>
-					{ __( 'Page' ) }
+					{ __( 'Page', 'create-not-learn-editor' ) }
 				</MenuItem>
 			) }
 			{ onAddMenuItem && (
@@ -72,7 +72,10 @@ export function AddOptions( { onAddMenuItem, onAddPage, onClose } ) {
 						onAddMenuItem();
 					} }
 				>
-					{ __( 'Link or something else' ) }
+					{ __(
+						'Link or something else',
+						'create-not-learn-editor'
+					) }
 				</MenuItem>
 			) }
 		</MenuGroup>
@@ -131,7 +134,8 @@ export default function useAddMenuItem( menuId ) {
 			createSuccessNotice,
 			editEntityRecord,
 			message: __(
-				'Menu customized. New pages won’t be added to it for you.'
+				'Menu customized. New pages won’t be added to it for you.',
+				'create-not-learn-editor'
 			),
 			navigationId: menuId,
 			previousContent,
@@ -144,11 +148,12 @@ export default function useAddMenuItem( menuId ) {
 			className="routes-navigation-edit__item-modal"
 			onRequestClose={ () => setIsConfirming( false ) }
 			size="medium"
-			title={ __( 'Customize your menu?' ) }
+			title={ __( 'Customize your menu?', 'create-not-learn-editor' ) }
 		>
 			<p>
 				{ __(
-					'Customizing lets you add other types of links (e.g. Posts or links to external websites), but your menu will stop adding new pages automatically.'
+					'Customizing lets you add other types of links (e.g. Posts or links to external websites), but your menu will stop adding new pages automatically.',
+					'create-not-learn-editor'
 				) }
 			</p>
 			<div className="routes-navigation-edit__modal-actions">
@@ -156,10 +161,10 @@ export default function useAddMenuItem( menuId ) {
 					onClick={ () => setIsConfirming( false ) }
 					variant="tertiary"
 				>
-					{ __( 'Cancel' ) }
+					{ __( 'Cancel', 'create-not-learn-editor' ) }
 				</Button>
 				<Button onClick={ setByHandAndOpen } variant="primary">
-					{ __( 'Customize menu' ) }
+					{ __( 'Customize menu', 'create-not-learn-editor' ) }
 				</Button>
 			</div>
 		</Modal>

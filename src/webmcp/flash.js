@@ -98,7 +98,10 @@ function mark( element, clientId, duration ) {
 	// Marked again before the last flash ended: start its fade over.
 	element.removeAttribute( CHANGE_ATTRIBUTE );
 	void element.offsetWidth;
-	element.setAttribute( CHANGE_ATTRIBUTE, __( 'Updated by agent' ) );
+	element.setAttribute(
+		CHANGE_ATTRIBUTE,
+		__( 'Updated by agent', 'create-not-learn-editor' )
+	);
 	element.style.setProperty( DURATION_PROPERTY, `${ duration }ms` );
 
 	window.clearTimeout( timers.get( clientId ) );

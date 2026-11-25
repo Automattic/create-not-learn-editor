@@ -205,8 +205,8 @@ function PhotoField( { product, update } ) {
 						variant="secondary"
 					>
 						{ images.length
-							? __( 'Replace photo' )
-							: __( 'Add a photo' ) }
+							? __( 'Replace photo', 'create-not-learn-editor' )
+							: __( 'Add a photo', 'create-not-learn-editor' ) }
 					</Button>
 				) }
 				value={ images[ 0 ]?.id }
@@ -267,17 +267,21 @@ function DescriptionField( { description, onChange, productId } ) {
 		return (
 			<Stack direction="column" gap="xs">
 				<Text render={ <h3 /> } variant="heading-sm">
-					{ __( 'Short description' ) }
+					{ __( 'Short description', 'create-not-learn-editor' ) }
 				</Text>
 				<Text className="routes-styles__muted" variant="body-sm">
 					{ stripTags( description ) }
 				</Text>
 				<Text variant="body-sm">
 					{ __(
-						'It has formatting, like a list or a link, that can’t be changed here without losing it.'
+						'It has formatting, like a list or a link, that can’t be changed here without losing it.',
+						'create-not-learn-editor'
 					) }{ ' ' }
 					<Link href={ getProductEditUrl( productId ) } openInNewTab>
-						{ __( 'Change it in WP Admin' ) }
+						{ __(
+							'Change it in WP Admin',
+							'create-not-learn-editor'
+						) }
 					</Link>
 				</Text>
 			</Stack>
@@ -286,8 +290,11 @@ function DescriptionField( { description, onChange, productId } ) {
 
 	return (
 		<TextareaControl
-			description={ __( 'A sentence or two, shown beside the photo.' ) }
-			label={ __( 'Short description' ) }
+			description={ __(
+				'A sentence or two, shown beside the photo.',
+				'create-not-learn-editor'
+			) }
+			label={ __( 'Short description', 'create-not-learn-editor' ) }
 			onValueChange={ ( next ) => {
 				setText( next );
 
@@ -321,11 +328,12 @@ function LongDescriptionField( { productId } ) {
 	return (
 		<Stack direction="column" gap="xs">
 			<Text render={ <h3 /> } variant="heading-sm">
-				{ __( 'Long description' ) }
+				{ __( 'Long description', 'create-not-learn-editor' ) }
 			</Text>
 			<Text className="routes-styles__muted" variant="body-sm">
 				{ __(
-					'Everything else about it, with headings, lists and pictures. Written on the page, in the Description tab.'
+					'Everything else about it, with headings, lists and pictures. Written on the page, in the Description tab.',
+					'create-not-learn-editor'
 				) }
 			</Text>
 			<div>
@@ -339,7 +347,7 @@ function LongDescriptionField( { productId } ) {
 					} }
 					variant="secondary"
 				>
-					{ __( 'Write it on the page' ) }
+					{ __( 'Write it on the page', 'create-not-learn-editor' ) }
 				</Button>
 			</div>
 		</Stack>
@@ -359,10 +367,11 @@ function StockField( { product, update } ) {
 		return (
 			<InputControl
 				description={ __(
-					'Goes down as people buy it. At 0 it shows as sold out.'
+					'Goes down as people buy it. At 0 it shows as sold out.',
+					'create-not-learn-editor'
 				) }
 				inputMode="numeric"
-				label={ __( 'How many you have' ) }
+				label={ __( 'How many you have', 'create-not-learn-editor' ) }
 				onValueChange={ ( value ) =>
 					update( {
 						stock_quantity:
@@ -379,13 +388,22 @@ function StockField( { product, update } ) {
 		<SelectControl
 			__next40pxDefaultSize
 			__nextHasNoMarginBottom
-			label={ __( 'Stock' ) }
+			label={ __( 'Stock', 'create-not-learn-editor' ) }
 			onChange={ ( value ) => update( { stock_status: value } ) }
 			options={ [
-				{ label: __( 'In stock' ), value: 'instock' },
-				{ label: __( 'Sold out' ), value: 'outofstock' },
 				{
-					label: __( 'Sold out, but taking orders' ),
+					label: __( 'In stock', 'create-not-learn-editor' ),
+					value: 'instock',
+				},
+				{
+					label: __( 'Sold out', 'create-not-learn-editor' ),
+					value: 'outofstock',
+				},
+				{
+					label: __(
+						'Sold out, but taking orders',
+						'create-not-learn-editor'
+					),
 					value: 'onbackorder',
 				},
 			] }
@@ -403,15 +421,16 @@ function ExternalFields( { product, update } ) {
 		<>
 			<InputControl
 				description={ __(
-					'It’s sold on another site. Its button takes visitors there.'
+					'It’s sold on another site. Its button takes visitors there.',
+					'create-not-learn-editor'
 				) }
-				label={ __( 'Where it’s sold' ) }
+				label={ __( 'Where it’s sold', 'create-not-learn-editor' ) }
 				onValueChange={ ( value ) => update( { external_url: value } ) }
 				type="url"
 				value={ product.external_url }
 			/>
 			<InputControl
-				label={ __( 'Button text' ) }
+				label={ __( 'Button text', 'create-not-learn-editor' ) }
 				onValueChange={ ( value ) => update( { button_text: value } ) }
 				value={ product.button_text }
 			/>
@@ -422,13 +441,25 @@ function ExternalFields( { product, update } ) {
 function getVisibilityDescription( status ) {
 	switch ( status ) {
 		case 'pending':
-			return __( 'Waiting for someone to review it before it shows.' );
+			return __(
+				'Waiting for someone to review it before it shows.',
+				'create-not-learn-editor'
+			);
 		case 'private':
-			return __( 'Only people who run the site can see it.' );
+			return __(
+				'Only people who run the site can see it.',
+				'create-not-learn-editor'
+			);
 		case 'future':
-			return __( 'It is scheduled to show later.' );
+			return __(
+				'It is scheduled to show later.',
+				'create-not-learn-editor'
+			);
 		default:
-			return __( 'When it’s off, visitors can’t see or buy it.' );
+			return __(
+				'When it’s off, visitors can’t see or buy it.',
+				'create-not-learn-editor'
+			);
 	}
 }
 
@@ -455,9 +486,12 @@ function ProductFields( { id } ) {
 		<div className="routes-styles__section cnl-shop-product">
 			<PhotoField { ...fieldProps } />
 			<InputControl
-				label={ __( 'Name' ) }
+				label={ __( 'Name', 'create-not-learn-editor' ) }
 				onValueChange={ ( title ) => editPost( { title } ) }
-				placeholder={ __( 'What is it called?' ) }
+				placeholder={ __(
+					'What is it called?',
+					'create-not-learn-editor'
+				) }
 				value={ getPostText( post?.title, product.name ) }
 			/>
 			<ProductPriceFields { ...fieldProps } />
@@ -478,19 +512,25 @@ function ProductFields( { id } ) {
 			<SwitchControl
 				checked={ product.status === 'publish' }
 				description={ getVisibilityDescription( product.status ) }
-				label={ __( 'Show in your shop' ) }
+				label={ __( 'Show in your shop', 'create-not-learn-editor' ) }
 				onCheckedChange={ ( isShown ) =>
 					update( { status: isShown ? 'publish' : 'draft' } )
 				}
 			/>
 			{ ( hasEdits || hasPostEdits ) && (
 				<Text className="routes-styles__muted" variant="body-sm">
-					{ __( 'Visitors see your changes once you save.' ) }
+					{ __(
+						'Visitors see your changes once you save.',
+						'create-not-learn-editor'
+					) }
 				</Text>
 			) }
 			<Text variant="body-sm">
 				<Link href={ getProductEditUrl( id ) } openInNewTab>
-					{ __( 'Options, delivery, tax and more' ) }
+					{ __(
+						'Options, delivery, tax and more',
+						'create-not-learn-editor'
+					) }
 				</Link>
 			</Text>
 		</div>
@@ -515,7 +555,7 @@ function ProductsActions() {
 				onClick={ add }
 				variant="primary"
 			>
-				{ __( 'Add product' ) }
+				{ __( 'Add product', 'create-not-learn-editor' ) }
 			</Button>
 			<ProductsOptions />
 		</div>
@@ -546,7 +586,7 @@ function ProductsOptions() {
 		<DropdownMenu
 			icon={ moreVerticalIcon }
 			className="routes-post-list__more-options"
-			label={ __( 'Product Options' ) }
+			label={ __( 'Product Options', 'create-not-learn-editor' ) }
 			popoverProps={ { placement: 'bottom-end' } }
 			toggleProps={ { __next40pxDefaultSize: true, variant: 'tertiary' } }
 		>
@@ -558,7 +598,7 @@ function ProductsOptions() {
 							onClose();
 						} }
 					>
-						{ __( 'Manage products' ) }
+						{ __( 'Manage products', 'create-not-learn-editor' ) }
 					</MenuItem>
 					{ adminUrls.products && (
 						<MenuItem
@@ -567,7 +607,10 @@ function ProductsOptions() {
 							rel="noopener noreferrer"
 							target="_blank"
 						>
-							{ __( 'Products in WP Admin' ) }
+							{ __(
+								'Products in WP Admin',
+								'create-not-learn-editor'
+							) }
 						</MenuItem>
 					) }
 				</MenuGroup>
@@ -589,7 +632,7 @@ function ProductOptions( { product } ) {
 		<DropdownMenu
 			className="routes-post-list__more-options"
 			icon={ moreVerticalIcon }
-			label={ __( 'Product Options' ) }
+			label={ __( 'Product Options', 'create-not-learn-editor' ) }
 			popoverProps={ { placement: 'bottom-end' } }
 			toggleProps={ { __next40pxDefaultSize: true, variant: 'tertiary' } }
 		>
@@ -602,7 +645,10 @@ function ProductOptions( { product } ) {
 							rel="noopener noreferrer"
 							target="_blank"
 						>
-							{ __( 'View in your shop' ) }
+							{ __(
+								'View in your shop',
+								'create-not-learn-editor'
+							) }
 						</MenuItem>
 					) }
 					<MenuItem
@@ -611,7 +657,7 @@ function ProductOptions( { product } ) {
 						rel="noopener noreferrer"
 						target="_blank"
 					>
-						{ __( 'Edit in WP Admin' ) }
+						{ __( 'Edit in WP Admin', 'create-not-learn-editor' ) }
 					</MenuItem>
 				</MenuGroup>
 			) }
@@ -628,9 +674,12 @@ export function ProductsStage() {
 	if ( ! getShop().can.editProducts ) {
 		return (
 			<ShopPage
-				crumbs={ [ { label: __( 'Products' ) } ] }
+				crumbs={ [
+					{ label: __( 'Products', 'create-not-learn-editor' ) },
+				] }
 				description={ __(
-					'You don’t have permission to change the shop’s products.'
+					'You don’t have permission to change the shop’s products.',
+					'create-not-learn-editor'
 				) }
 			/>
 		);
@@ -647,11 +696,14 @@ export function ProductsStage() {
 					product?.id && <ProductOptions product={ product } />
 				}
 				crumbs={ [
-					{ label: __( 'Products' ), to: PRODUCTS_PATH },
+					{
+						label: __( 'Products', 'create-not-learn-editor' ),
+						to: PRODUCTS_PATH,
+					},
 					{
 						label:
 							getPostText( post?.title, product?.name ) ||
-							__( 'Product' ),
+							__( 'Product', 'create-not-learn-editor' ),
 					},
 				] }
 			>
@@ -663,8 +715,13 @@ export function ProductsStage() {
 	return (
 		<ShopPage
 			actions={ <ProductsActions /> }
-			crumbs={ [ { label: __( 'Products' ) } ] }
-			description={ __( 'What you sell, with photos and prices.' ) }
+			crumbs={ [
+				{ label: __( 'Products', 'create-not-learn-editor' ) },
+			] }
+			description={ __(
+				'What you sell, with photos and prices.',
+				'create-not-learn-editor'
+			) }
 		>
 			<ProductsList />
 		</ShopPage>

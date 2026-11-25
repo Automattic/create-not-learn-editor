@@ -72,7 +72,10 @@ export function AddNavigationModal( { onClose } ) {
 				new CustomEvent( NAVIGATION_MENUS_CHANGED_EVENT )
 			);
 			createSuccessNotice(
-				__( 'Navigation menu created successfully.' ),
+				__(
+					'Navigation menu created successfully.',
+					'create-not-learn-editor'
+				),
 				{
 					type: 'snackbar',
 				}
@@ -80,9 +83,7 @@ export function AddNavigationModal( { onClose } ) {
 
 			if ( savedRecord?.id ) {
 				navigate( {
-					to: `/navigation/edit/${ encodeURIComponent(
-						savedRecord.id
-					) }`,
+					to: `/navigation/edit/${ encodeURIComponent( savedRecord.id ) }`,
 				} );
 			}
 
@@ -91,7 +92,10 @@ export function AddNavigationModal( { onClose } ) {
 			createErrorNotice(
 				sprintf(
 					/* translators: %s: error message. */
-					__( 'Unable to create navigation menu: %s' ),
+					__(
+						'Unable to create navigation menu: %s',
+						'create-not-learn-editor'
+					),
 					getErrorMessage( error )
 				),
 				{ type: 'snackbar' }
@@ -106,26 +110,36 @@ export function AddNavigationModal( { onClose } ) {
 			focusOnMount="firstContentElement"
 			onRequestClose={ closeModal }
 			size="small"
-			title={ __( 'Add a menu' ) }
+			title={ __( 'Add a menu', 'create-not-learn-editor' ) }
 		>
 			<form onSubmit={ submit }>
 				<Stack direction="column" gap="lg">
 					<InputControl
 						autoComplete="off"
 						disabled={ isBusy }
-						label={ __( 'Name' ) }
+						label={ __( 'Name', 'create-not-learn-editor' ) }
 						onValueChange={ setMenuTitle }
-						placeholder={ __( 'Enter menu name' ) }
+						placeholder={ __(
+							'Enter menu name',
+							'create-not-learn-editor'
+						) }
 						value={ menuTitle }
 					/>
 					<CheckboxControl
-						aria-label={ __( 'List every page automatically' ) }
+						aria-label={ __(
+							'List every page automatically',
+							'create-not-learn-editor'
+						) }
 						checked={ autoSyncWithPages }
 						disabled={ isBusy }
 						help={ __(
-							'This menu will update automatically when you add, rename, or remove pages, until you choose to customize it manually.'
+							'This menu will update automatically when you add, rename, or remove pages, until you choose to customize it manually.',
+							'create-not-learn-editor'
 						) }
-						label={ __( 'List every page automatically' ) }
+						label={ __(
+							'List every page automatically',
+							'create-not-learn-editor'
+						) }
 						onChange={ setAutoSyncWithPages }
 					/>
 					<Stack align="center" gap="sm" justify="flex-end">
@@ -137,7 +151,7 @@ export function AddNavigationModal( { onClose } ) {
 							type="button"
 							variant="tertiary"
 						>
-							{ __( 'Cancel' ) }
+							{ __( 'Cancel', 'create-not-learn-editor' ) }
 						</Button>
 						<Button
 							__next40pxDefaultSize
@@ -147,7 +161,7 @@ export function AddNavigationModal( { onClose } ) {
 							type="submit"
 							variant="primary"
 						>
-							{ __( 'Create menu' ) }
+							{ __( 'Create menu', 'create-not-learn-editor' ) }
 						</Button>
 					</Stack>
 				</Stack>

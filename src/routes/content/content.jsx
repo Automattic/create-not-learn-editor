@@ -15,8 +15,8 @@ import { getActiveWorkspace } from '../../workspaces/presets';
 import useMainMenu from './use-main-menu';
 import { PageDetailStage } from './pages/stage';
 import { parseTarget, useHomepageState } from './pages/homepage';
-import { getPageTitle } from './pages/data';
 import { HOMEPAGE } from './pages/homepage-state';
+import { useLayoutForTitle } from './use-layout-for-title';
 import HomepageStage from './pages/homepage-stage';
 import PagesList from './pages/pages-list';
 import useAddMenuItem, { AddOptions } from './pages/use-add-menu-item';
@@ -39,7 +39,6 @@ import {
 	Breadcrumbs,
 	Button,
 	checkIcon,
-	coreDataStore,
 	createInterpolateElement,
 	searchIcon,
 	DropdownMenu,
@@ -70,22 +69,7 @@ function Stage() {
 	const postsTrip = usePostsTrip();
 	// The page whose Edit layout opened Layouts, to lead back to.
 	const layoutFor = parseTarget( searchParams.layoutFor );
-	const layoutForTitle = useSelect(
-		( select ) => {
-			if ( ! layoutFor || layoutFor === HOMEPAGE ) {
-				return layoutFor ? __( 'Homepage' ) : '';
-			}
-
-			return getPageTitle(
-				select( coreDataStore ).getEditedEntityRecord(
-					'postType',
-					'page',
-					layoutFor
-				)
-			);
-		},
-		[ layoutFor ]
-	);
+	const layoutForTitle = useLayoutForTitle( layoutFor );
 	// Where a page being added goes: in the menu, out of it, or the user picks.
 	const [ addingPage, setAddingPage ] = useState( null );
 	const [ isPickingPostKind, setIsPickingPostKind ] = useState( false );
@@ -261,7 +245,7 @@ function Stage() {
 		postsSettings?.addLabel ||
 		sprintf(
 			/* translators: %s: post type singular label. */
-			__( 'Add %s' ),
+			__( 'Add %s', 'create-not-learn-editor' ),
 			( type.singular || type.name ).toLowerCase()
 		);
 	const openCreateFlow = ( menuPlacement ) => {
@@ -342,7 +326,7 @@ function Stage() {
 				<DropdownMenu
 					className="routes-post-list__more-options"
 					icon={ moreVerticalIcon }
-					label={ __( 'Page options' ) }
+					label={ __( 'Page options', 'create-not-learn-editor' ) }
 					popoverProps={ { placement: 'bottom-end' } }
 					toggleProps={ {
 						__next40pxDefaultSize: true,
@@ -357,7 +341,10 @@ function Stage() {
 									onClose();
 								} }
 							>
-								{ __( 'Manage pages' ) }
+								{ __(
+									'Manage pages',
+									'create-not-learn-editor'
+								) }
 							</MenuItem>
 							<MenuItem
 								onClick={ () => {
@@ -365,7 +352,10 @@ function Stage() {
 									onClose();
 								} }
 							>
-								{ __( 'Manage layouts' ) }
+								{ __(
+									'Manage layouts',
+									'create-not-learn-editor'
+								) }
 							</MenuItem>
 							<MenuItem
 								onClick={ () => {
@@ -373,7 +363,10 @@ function Stage() {
 									onClose();
 								} }
 							>
-								{ __( 'Manage homepage' ) }
+								{ __(
+									'Manage homepage',
+									'create-not-learn-editor'
+								) }
 							</MenuItem>
 						</MenuGroup>
 					) }
@@ -422,7 +415,7 @@ function Stage() {
 				<EmptyState.Title>
 					{ sprintf(
 						/* translators: %s: post type plural label. */
-						__( 'No %s yet' ),
+						__( 'No %s yet', 'create-not-learn-editor' ),
 						( type.label || type.name ).toLowerCase()
 					) }
 				</EmptyState.Title>
@@ -430,7 +423,8 @@ function Stage() {
 					{ sprintf(
 						/* translators: %s: post type singular label. */
 						__(
-							'Create your first %s to start adding content here.'
+							'Create your first %s to start adding content here.',
+							'create-not-learn-editor'
 						),
 						( type.singular || type.name ).toLowerCase()
 					) }
@@ -453,10 +447,13 @@ function Stage() {
 		<div className="cnl-editor-empty-state">
 			<EmptyState.Root>
 				<EmptyState.Icon icon={ pageIcon } />
-				<EmptyState.Title>{ __( 'No system pages' ) }</EmptyState.Title>
+				<EmptyState.Title>
+					{ __( 'No system pages', 'create-not-learn-editor' ) }
+				</EmptyState.Title>
 				<EmptyState.Description>
 					{ __(
-						'Your theme leaves these to WordPress, so there is nothing of its own to change here.'
+						'Your theme leaves these to WordPress, so there is nothing of its own to change here.',
+						'create-not-learn-editor'
 					) }
 				</EmptyState.Description>
 			</EmptyState.Root>
@@ -466,12 +463,15 @@ function Stage() {
 			<EmptyState.Root>
 				<EmptyState.Icon icon={ layoutIcon } />
 				<EmptyState.Title>
-					{ __( 'No templates found' ) }
+					{ __( 'No templates found', 'create-not-learn-editor' ) }
 				</EmptyState.Title>
 				<EmptyState.Description>
 					{ sprintf(
 						/* translators: %s: post type label. */
-						__( 'No templates are currently available for %s.' ),
+						__(
+							'No templates are currently available for %s.',
+							'create-not-learn-editor'
+						),
 						( type.label || type.name ).toLowerCase()
 					) }
 				</EmptyState.Description>
@@ -570,11 +570,11 @@ function Stage() {
 	let subScreenLabel = null;
 
 	if ( isLayoutsStep ) {
-		subScreenLabel = __( 'Layouts' );
+		subScreenLabel = __( 'Layouts', 'create-not-learn-editor' );
 	} else if ( isSystemPages && isPages ) {
-		subScreenLabel = __( 'System pages' );
+		subScreenLabel = __( 'System pages', 'create-not-learn-editor' );
 	} else if ( isPagesTable ) {
-		subScreenLabel = __( 'All pages' );
+		subScreenLabel = __( 'All pages', 'create-not-learn-editor' );
 	}
 
 	const title = type.menuName || type.label;
@@ -624,16 +624,21 @@ function Stage() {
 					( type.name === 'page' &&
 						( canAddToMenu
 							? __(
-									'Every page on your site. Pick one to see it, and switch it on to show it in your menu.'
+									'Every page on your site. Pick one to see it, and switch it on to show it in your menu.',
+									'create-not-learn-editor'
 								)
 							: __(
-									'Every page on your site. Pick one to see it.'
+									'Every page on your site. Pick one to see it.',
+									'create-not-learn-editor'
 								) ) ) ||
 					postsSettings?.description ||
 					type.description ||
 					sprintf(
 						/* translators: %s: post type label. */
-						__( 'Browse, preview, and edit %s.' ),
+						__(
+							'Browse, preview, and edit %s.',
+							'create-not-learn-editor'
+						),
 						( type.label || type.name ).toLowerCase()
 					),
 				title: siteCrumbs.length > 0 ? undefined : title,
@@ -657,7 +662,10 @@ function Stage() {
 							<Tabs.Tab value="templates">
 								<TabLabel
 									icon="dashicons-layout"
-									label={ __( 'Layouts' ) }
+									label={ __(
+										'Layouts',
+										'create-not-learn-editor'
+									) }
 								/>
 							</Tabs.Tab>
 						</Tabs.List>
@@ -670,7 +678,7 @@ function Stage() {
 						__next40pxDefaultSize
 						hideLabelFromVision
 						isBlock
-						label={ __( 'Show posts' ) }
+						label={ __( 'Show posts', 'create-not-learn-editor' ) }
 						onChange={ ( slug ) =>
 							navigate( {
 								to: `/types/${ type.name }/list/${ slug }`,
@@ -691,7 +699,8 @@ function Stage() {
 			{ isSystemPages && (
 				<p className="cnl-editor-stage__description">
 					{ __(
-						'Your site makes these pages for itself, so they aren’t in your list of pages. WordPress calls these templates. Pick one to see it, and change how it looks.'
+						'Your site makes these pages for itself, so they aren’t in your list of pages. WordPress calls these templates. Pick one to see it, and change how it looks.',
+						'create-not-learn-editor'
 					) }
 				</p>
 			) }
@@ -700,7 +709,8 @@ function Stage() {
 					{ sprintf(
 						/* translators: %s: post type label. */
 						__(
-							'Layouts decide how your %s are arranged, like where the title and image go. WordPress calls these templates. Changing a layout changes every page that uses it.'
+							'Layouts decide how your %s are arranged, like where the title and image go. WordPress calls these templates. Changing a layout changes every page that uses it.',
+							'create-not-learn-editor'
 						),
 						( type.label || type.name ).toLowerCase()
 					) }
@@ -718,7 +728,10 @@ function Stage() {
 						// Drawn as the homepage's choices are: picking a
 						// layout shows it on the canvas.
 						<ul
-							aria-label={ __( 'Layouts' ) }
+							aria-label={ __(
+								'Layouts',
+								'create-not-learn-editor'
+							) }
 							className="cnl-homepage-shows__options"
 							role="list"
 						>
@@ -786,12 +799,14 @@ function Stage() {
 					{ createInterpolateElement(
 						isSystemPages
 							? __(
-									'For more advanced control <a>view all layouts</a>'
+									'For more advanced control <a>view all layouts</a>',
+									'create-not-learn-editor'
 								)
 							: sprintf(
 									/* translators: %s: post type singular label, like "Post". */
 									__(
-										'For more advanced control <a>view all %s layouts</a>'
+										'For more advanced control <a>view all %s layouts</a>',
+										'create-not-learn-editor'
 									),
 									type.singular || type.name
 								),

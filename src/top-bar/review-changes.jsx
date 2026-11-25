@@ -48,16 +48,20 @@ const GROUPS = [
 		id: 'site-wide',
 		isSiteWide: true,
 		icon: symbolFilledIcon,
-		title: __( 'Site-wide changes' ),
-		description: __( 'These change every page of your site.' ),
+		title: __( 'Site-wide changes', 'create-not-learn-editor' ),
+		description: __(
+			'These change every page of your site.',
+			'create-not-learn-editor'
+		),
 	},
 	{
 		id: 'page',
 		isSiteWide: false,
 		icon: pageIcon,
-		title: __( 'Page changes' ),
+		title: __( 'Page changes', 'create-not-learn-editor' ),
 		description: __(
-			'These change only the page or post they were made on.'
+			'These change only the page or post they were made on.',
+			'create-not-learn-editor'
 		),
 	},
 ];
@@ -145,11 +149,14 @@ function ChangeGroup( { group, changes, leftOut, onToggle, onDiscard } ) {
 								onClick={ () => onDiscard( change ) }
 								aria-label={ sprintf(
 									/* translators: %s: What was changed, like "Site name". */
-									__( 'Discard change to %s' ),
+									__(
+										'Discard change to %s',
+										'create-not-learn-editor'
+									),
 									change.label
 								) }
 							>
-								{ __( 'Discard' ) }
+								{ __( 'Discard', 'create-not-learn-editor' ) }
 							</Button>
 						</li>
 					) ) }
@@ -165,7 +172,8 @@ function ChangeGroup( { group, changes, leftOut, onToggle, onDiscard } ) {
 							_n(
 								'Show %d more change',
 								'Show %d more changes',
-								hiddenCount
+								hiddenCount,
+								'create-not-learn-editor'
 							),
 							hiddenCount
 						) }
@@ -287,9 +295,12 @@ export function ReviewChanges( {
 
 	const onDiscardAll = () => {
 		discardAll();
-		createSuccessNotice( __( 'Changes discarded.' ), {
-			type: 'snackbar',
-		} );
+		createSuccessNotice(
+			__( 'Changes discarded.', 'create-not-learn-editor' ),
+			{
+				type: 'snackbar',
+			}
+		);
 	};
 
 	if ( isConfirmingDiscard ) {
@@ -298,7 +309,7 @@ export function ReviewChanges( {
 				// A new dialog for each step, so focus moves into it: here
 				// onto Keep changes, the safe choice.
 				key="discard"
-				title={ __( 'Discard changes?' ) }
+				title={ __( 'Discard changes?', 'create-not-learn-editor' ) }
 				onRequestClose={ onClose }
 				size="small"
 				className="cnl-review-changes"
@@ -311,7 +322,8 @@ export function ReviewChanges( {
 							_n(
 								'Your %d unsaved change will be lost, and your site goes back to how visitors see it now. This can’t be undone.',
 								'All %d unsaved changes will be lost, and your site goes back to how visitors see it now. This can’t be undone.',
-								count
+								count,
+								'create-not-learn-editor'
 							),
 							count
 						) }
@@ -325,7 +337,10 @@ export function ReviewChanges( {
 									setIsConfirmingDiscard( false )
 								}
 							>
-								{ __( 'Keep changes' ) }
+								{ __(
+									'Keep changes',
+									'create-not-learn-editor'
+								) }
 							</Button>
 							<Button
 								__next40pxDefaultSize
@@ -333,7 +348,10 @@ export function ReviewChanges( {
 								isDestructive
 								onClick={ onDiscardAll }
 							>
-								{ __( 'Discard changes' ) }
+								{ __(
+									'Discard changes',
+									'create-not-learn-editor'
+								) }
 							</Button>
 						</div>
 					</div>
@@ -346,7 +364,9 @@ export function ReviewChanges( {
 		<Modal
 			key="review"
 			title={
-				isPublishing ? __( 'Publish changes' ) : __( 'Review changes' )
+				isPublishing
+					? __( 'Publish changes', 'create-not-learn-editor' )
+					: __( 'Review changes', 'create-not-learn-editor' )
 			}
 			onRequestClose={ onClose }
 			size="medium"
@@ -356,10 +376,12 @@ export function ReviewChanges( {
 				<Text className="cnl-review-changes__intro">
 					{ isPublishing
 						? __(
-								'Visitors see these once you publish them. Untick any you want to keep working on, or discard any you don’t want.'
+								'Visitors see these once you publish them. Untick any you want to keep working on, or discard any you don’t want.',
+								'create-not-learn-editor'
 							)
 						: __(
-								'Visitors see these once you save them. Untick any you want to keep working on, or discard any you don’t want.'
+								'Visitors see these once you save them. Untick any you want to keep working on, or discard any you don’t want.',
+								'create-not-learn-editor'
 							) }
 				</Text>
 				<ChangeGroups
@@ -377,7 +399,7 @@ export function ReviewChanges( {
 						disabled={ isSaving }
 						accessibleWhenDisabled
 					>
-						{ __( 'Discard all' ) }
+						{ __( 'Discard all', 'create-not-learn-editor' ) }
 					</Button>
 					<div className="cnl-review-changes__footer-end">
 						<Button
@@ -385,7 +407,7 @@ export function ReviewChanges( {
 							variant="tertiary"
 							onClick={ onClose }
 						>
-							{ __( 'Cancel' ) }
+							{ __( 'Cancel', 'create-not-learn-editor' ) }
 						</Button>
 						<Button
 							__next40pxDefaultSize
@@ -401,7 +423,8 @@ export function ReviewChanges( {
 										_n(
 											'Publish %d change',
 											'Publish %d changes',
-											saveCount
+											saveCount,
+											'create-not-learn-editor'
 										),
 										saveCount
 									)
@@ -410,7 +433,8 @@ export function ReviewChanges( {
 										_n(
 											'Save %d change',
 											'Save %d changes',
-											saveCount
+											saveCount,
+											'create-not-learn-editor'
 										),
 										saveCount
 									) }

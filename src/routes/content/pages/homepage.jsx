@@ -160,16 +160,23 @@ export function useHomepageState() {
  */
 export function getHomepageSummary( state ) {
 	if ( state.shows === 'theme' ) {
-		return { summary: __( 'Designed by your theme' ) };
+		return {
+			summary: __( 'Designed by your theme', 'create-not-learn-editor' ),
+		};
 	}
 
 	if ( state.shows === 'posts' ) {
-		return { summary: __( 'Your latest posts' ) };
+		return {
+			summary: __( 'Your latest posts', 'create-not-learn-editor' ),
+		};
 	}
 
 	if ( state.problem === 'missing' ) {
 		return {
-			badge: { intent: 'high', label: __( 'Page missing' ) },
+			badge: {
+				intent: 'high',
+				label: __( 'Page missing', 'create-not-learn-editor' ),
+			},
 			summary: '',
 		};
 	}
@@ -177,7 +184,10 @@ export function getHomepageSummary( state ) {
 	return {
 		badge:
 			state.problem === 'unpublished'
-				? { intent: 'medium', label: __( 'Not published' ) }
+				? {
+						intent: 'medium',
+						label: __( 'Not published', 'create-not-learn-editor' ),
+					}
 				: null,
 		summary: state.page ? getPageTitle( state.page ) : '',
 	};
@@ -272,7 +282,7 @@ export function useSwitchHomepage( state ) {
 						? replacePageLinksWithHomeLinks(
 								blocks,
 								pageId,
-								__( 'Home' )
+								__( 'Home', 'create-not-learn-editor' )
 							)
 						: blocks;
 
@@ -332,20 +342,21 @@ export function useUseAsHomepage( state ) {
 			<Modal
 				className="routes-navigation-edit__item-modal"
 				onRequestClose={ close }
-				title={ __( 'Publish this page?' ) }
+				title={ __( 'Publish this page?', 'create-not-learn-editor' ) }
 			>
 				<p>
 					{ sprintf(
 						/* translators: %s: page title. */
 						__(
-							'“%s” isn’t published yet. To be your homepage, visitors need to see it, so it will be published when you save your changes.'
+							'“%s” isn’t published yet. To be your homepage, visitors need to see it, so it will be published when you save your changes.',
+							'create-not-learn-editor'
 						),
 						getPageTitle( pending )
 					) }
 				</p>
 				<div className="routes-navigation-edit__modal-actions">
 					<Button onClick={ close } variant="tertiary">
-						{ __( 'Cancel' ) }
+						{ __( 'Cancel', 'create-not-learn-editor' ) }
 					</Button>
 					<Button
 						onClick={ () => {
@@ -354,7 +365,10 @@ export function useUseAsHomepage( state ) {
 						} }
 						variant="primary"
 					>
-						{ __( 'Publish and use as homepage' ) }
+						{ __(
+							'Publish and use as homepage',
+							'create-not-learn-editor'
+						) }
 					</Button>
 				</div>
 			</Modal>

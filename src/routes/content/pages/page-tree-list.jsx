@@ -109,7 +109,7 @@ export function usePageTrash( { pages: effectivePages, previewedId } ) {
 			createSuccessNotice(
 				sprintf(
 					/* translators: %s: page title. */
-					__( '“%s” moved to Trash.' ),
+					__( '“%s” moved to Trash.', 'create-not-learn-editor' ),
 					title
 				),
 				{ type: 'snackbar' }
@@ -119,7 +119,10 @@ export function usePageTrash( { pages: effectivePages, previewedId } ) {
 			createErrorNotice(
 				sprintf(
 					/* translators: 1: page title, 2: error message. */
-					__( 'Unable to delete “%1$s” (%2$s).' ),
+					__(
+						'Unable to delete “%1$s” (%2$s).',
+						'create-not-learn-editor'
+					),
 					title,
 					getErrorMessage( error )
 				),
@@ -135,13 +138,14 @@ export function usePageTrash( { pages: effectivePages, previewedId } ) {
 			<Modal
 				className="routes-navigation-edit__item-modal"
 				onRequestClose={ closeDeleteModal }
-				title={ __( 'Delete page' ) }
+				title={ __( 'Delete page', 'create-not-learn-editor' ) }
 			>
 				<p>
 					{ sprintf(
 						/* translators: %s: page title. */
 						__(
-							'Are you sure you want to delete “%s”? It will be moved to the Trash.'
+							'Are you sure you want to delete “%s”? It will be moved to the Trash.',
+							'create-not-learn-editor'
 						),
 						getPageTitle(
 							effectivePages.find(
@@ -156,7 +160,7 @@ export function usePageTrash( { pages: effectivePages, previewedId } ) {
 						onClick={ closeDeleteModal }
 						variant="tertiary"
 					>
-						{ __( 'Cancel' ) }
+						{ __( 'Cancel', 'create-not-learn-editor' ) }
 					</Button>
 					<Button
 						disabled={ isDeleting }
@@ -165,7 +169,7 @@ export function usePageTrash( { pages: effectivePages, previewedId } ) {
 						onClick={ deletePage }
 						variant="primary"
 					>
-						{ __( 'Move to Trash' ) }
+						{ __( 'Move to Trash', 'create-not-learn-editor' ) }
 					</Button>
 				</div>
 			</Modal>

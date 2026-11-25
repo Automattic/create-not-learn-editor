@@ -29,20 +29,25 @@ function getCopy( pendingComments ) {
 						_n(
 							'%d waiting for you to approve.',
 							'%d waiting for you to approve.',
-							pendingComments
+							pendingComments,
+							'create-not-learn-editor'
 						),
 						pendingComments
 					)
-				: __( 'Approve, reply to and remove comments.' ),
+				: __(
+						'Approve, reply to and remove comments.',
+						'create-not-learn-editor'
+					),
 			icon: commentIcon,
-			title: __( 'Comments' ),
+			title: __( 'Comments', 'create-not-learn-editor' ),
 		},
 		categories: {
 			description: __(
-				'Group your posts so readers can find more like them.'
+				'Group your posts so readers can find more like them.',
+				'create-not-learn-editor'
 			),
 			icon: postCategoriesIcon,
-			title: __( 'Categories' ),
+			title: __( 'Categories', 'create-not-learn-editor' ),
 		},
 	};
 }

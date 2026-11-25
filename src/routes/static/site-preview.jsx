@@ -36,10 +36,13 @@ function EmptyPreview() {
 				className="cnl-editor-canvas-placeholder__icon dashicons dashicons-admin-home"
 			/>
 			<div className="cnl-editor-canvas-placeholder__title">
-				{ __( 'Preview unavailable' ) }
+				{ __( 'Preview unavailable', 'create-not-learn-editor' ) }
 			</div>
 			<p className="cnl-editor-canvas-placeholder__description">
-				{ __( 'Configure the site URL before previewing your site.' ) }
+				{ __(
+					'Configure the site URL before previewing your site.',
+					'create-not-learn-editor'
+				) }
 			</p>
 		</div>
 	);

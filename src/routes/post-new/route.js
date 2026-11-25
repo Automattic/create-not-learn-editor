@@ -40,7 +40,7 @@ export const route = {
 		const type = getPostType( params.type );
 		return sprintf(
 			/* translators: %s: post type singular label. */
-			__( 'New %s' ),
+			__( 'New %s', 'create-not-learn-editor' ),
 			( type?.singular || params.type ).toLowerCase()
 		);
 	},
