@@ -97,8 +97,8 @@ export function SaveControls() {
 				{ status }
 			</div>
 			<Button
+				__next40pxDefaultSize
 				variant="primary"
-				size="compact"
 				className={ `cnl-save-controls__button${ isPulsing ? ' is-pulsing' : '' }` }
 				onAnimationEnd={ () => setIsPulsing( false ) }
 				onClick={ () => setIsReviewOpen( true ) }

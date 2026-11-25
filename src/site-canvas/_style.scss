@@ -56,10 +56,16 @@
 	}
 }
 
-// Edit while viewing, and Exit beside Save while editing.
+/*
+ * Edit while viewing, and Exit beside Save while editing. Every toolbar
+ * button is 40px, so the text buttons line up with the icon cluster, and
+ * the first text button keeps a gap from that cluster, whose buttons sit
+ * flush and would otherwise touch it.
+ */
 .cnl-site-canvas__edit.components-button,
 .cnl-site-canvas__exit.components-button {
 	flex-shrink: 0;
+	margin-inline-start: var(--wpds-dimension-gap-sm);
 }
 
 .cnl-site-canvas__exit.components-button {
