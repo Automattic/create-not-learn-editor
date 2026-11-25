@@ -220,6 +220,41 @@ test.describe( 'Site canvas interactions', () => {
 		await expect( title ).toHaveText( source.title, { timeout: 15000 } );
 	} );
 
+	for ( const from of [ 'Home', 'a page on the Pages screen' ] ) {
+		test( `going to another page from the switcher on ${ from } keeps the page on view`, async ( {
+			page,
+			rest,
+		} ) => {
+			const target = await rest.createPage( {
+				title: `Switcher target ${ Date.now() }`,
+			} );
+
+			if ( from === 'Home' ) {
+				await visitEditor( page );
+			} else {
+				const source = await rest.createPage( {
+					title: `Switcher source ${ Date.now() }`,
+				} );
+				await visitEditor(
+					page,
+					`/types/page/list/all?postId=${ source.id }&previewId=${ source.id }`
+				);
+			}
+			await expectCanvasMode( page, 'Browse' );
+
+			const toolbar = page.locator( '.cnl-editor-homepage-toolbar' );
+
+			await toolbar.locator( '.cnl-page-switcher__toggle' ).click();
+			await page.keyboard.type( target.title );
+			await page.getByRole( 'option', { name: target.title } ).click();
+
+			await expect(
+				toolbar.locator( '.cnl-editor-homepage-document__title' )
+			).toHaveText( target.title, { timeout: 15000 } );
+			await expectCanvasMode( page, 'Browse' );
+		} );
+	}
+
 	test( 'offers homepage options for the homepage', async ( { page } ) => {
 		await visitEditor( page );
 

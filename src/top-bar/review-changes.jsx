@@ -232,11 +232,21 @@ function ChangeGroups( { changes, leftOut, onToggle, onDiscard } ) {
 
 /**
  * @param {Object}   props
- * @param {Function} props.onClose Close the dialog.
+ * @param {Function} props.onClose       Close the dialog.
+ * @param {boolean}  props.inEditSession Only what changed while editing
+ *                                       the page, for its Save.
+ * @param {boolean}  props.isPublishing  Worded for Publish, at the foot of
+ *                                       a screen.
  * @return {Element} The dialog.
  */
-export function ReviewChanges( { onClose } ) {
-	const { changes, isSaving, save, discard, discardAll } = useChanges();
+export function ReviewChanges( {
+	onClose,
+	inEditSession = false,
+	isPublishing = false,
+} ) {
+	const { changes, isSaving, save, discard, discardAll } = useChanges( {
+		inEditSession,
+	} );
 	const [ isConfirmingDiscard, setIsConfirmingDiscard ] = useState( false );
 	// Changes the user has unticked, by ID. Everything is ticked to begin
 	// with, so a change made while the dialog is open is too.
@@ -335,16 +345,22 @@ export function ReviewChanges( { onClose } ) {
 	return (
 		<Modal
 			key="review"
-			title={ __( 'Review changes' ) }
+			title={
+				isPublishing ? __( 'Publish changes' ) : __( 'Review changes' )
+			}
 			onRequestClose={ onClose }
 			size="medium"
 			className="cnl-review-changes"
 		>
 			<Stack direction="column" gap="xl">
 				<Text className="cnl-review-changes__intro">
-					{ __(
-						'Visitors see these once you save them. Untick any you want to keep working on, or discard any you don’t want.'
-					) }
+					{ isPublishing
+						? __(
+								'Visitors see these once you publish them. Untick any you want to keep working on, or discard any you don’t want.'
+							)
+						: __(
+								'Visitors see these once you save them. Untick any you want to keep working on, or discard any you don’t want.'
+							) }
 				</Text>
 				<ChangeGroups
 					changes={ changes }
@@ -379,15 +395,25 @@ export function ReviewChanges( { onClose } ) {
 							disabled={ isSaving || ! saveCount }
 							accessibleWhenDisabled
 						>
-							{ sprintf(
-								/* translators: %d: Number of changes to save. */
-								_n(
-									'Save %d change',
-									'Save %d changes',
-									saveCount
-								),
-								saveCount
-							) }
+							{ isPublishing
+								? sprintf(
+										/* translators: %d: Number of changes to publish. */
+										_n(
+											'Publish %d change',
+											'Publish %d changes',
+											saveCount
+										),
+										saveCount
+									)
+								: sprintf(
+										/* translators: %d: Number of changes to save. */
+										_n(
+											'Save %d change',
+											'Save %d changes',
+											saveCount
+										),
+										saveCount
+									) }
 						</Button>
 					</div>
 				</div>

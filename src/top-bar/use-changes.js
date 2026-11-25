@@ -17,6 +17,7 @@ import { __, sprintf } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
+import { getRecordId, useUnsavedBeforeEditSession } from '../edit-session';
 import { unlock } from '../lock-unlock';
 
 /*
@@ -152,10 +153,6 @@ function describeChange( record, { site, getEntityConfig, getPageTitle } ) {
 
 function getChangeId( { kind, name, key, property } ) {
 	return [ kind, name, key ?? '', property ?? '' ].join( '|' );
-}
-
-function getRecordId( { kind, name, key } ) {
-	return [ kind, name, key ?? '' ].join( '|' );
 }
 
 /**
@@ -295,12 +292,26 @@ function putBackWhileSettling( registry, kept ) {
 }
 
 /**
+ * @param {Object}  [options]
+ * @param {boolean} [options.inEditSession] Only what changed while editing
+ *                                          the page, from Edit, during a
+ *                                          session (`src/edit-session.js`).
  * @return {Object} `changes`, each with an `id`, a `label`, a `detail` and
  *                  `isSiteWide`, whether they are saving, and `save`,
  *                  `discard` and `discardAll` actions.
  */
-export function useChanges() {
-	const { dirtyEntityRecords } = useEntitiesSavedStatesIsDirty();
+export function useChanges( { inEditSession = false } = {} ) {
+	const { dirtyEntityRecords: allDirtyEntityRecords } =
+		useEntitiesSavedStatesIsDirty();
+	// While editing a page, its Save and Exit only reach what changed since
+	// Edit (`src/edit-session.js`).
+	const unsavedBefore = useUnsavedBeforeEditSession();
+	const dirtyEntityRecords =
+		inEditSession && unsavedBefore
+			? allDirtyEntityRecords.filter(
+					( record ) => ! unsavedBefore.has( getRecordId( record ) )
+				)
+			: allDirtyEntityRecords;
 	const {
 		editedSite,
 		savedSite,
@@ -367,7 +378,7 @@ export function useChanges() {
 	const discardRecords = ( records ) => {
 		const discarded = new Set( records.map( getRecordId ) );
 		const kept = new Set(
-			dirtyEntityRecords
+			allDirtyEntityRecords
 				.map( getRecordId )
 				.filter( ( id ) => ! discarded.has( id ) )
 		);

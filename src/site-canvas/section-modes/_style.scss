@@ -641,6 +641,27 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 }
 
 /*
+ * What a section's toolbar opens under it, in a popover: one design choice's
+ * options, drawn as they are in the bar, or Layers. The panel borrows the
+ * layer's class for the options' styles, without its place over the canvas.
+ */
+.cnl-section-modes.cnl-section-tool-panel {
+	position: static;
+	z-index: auto;
+	inset: auto;
+	overflow: visible;
+	padding: var(--wpds-dimension-padding-sm);
+	color: $ink;
+	pointer-events: auto;
+
+	&.is-layers {
+		min-width: 280px;
+		max-height: 50vh;
+		overflow: auto;
+	}
+}
+
+/*
  * Manage posts' menu: its labelled dropdowns one above the other, then the
  * way to every post, across the menu's width.
  */

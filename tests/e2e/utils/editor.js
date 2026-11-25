@@ -417,7 +417,9 @@ async function isWithin( page, target, selector ) {
 
 /**
  * In Edit or Compose, point at the section holding something until the
- * layer lights it up, with its bar. Forced, as the bar over a short section
+ * layer lights it up. A section in Edit has no bar, its tools being on
+ * core's block toolbar once it is picked; a header, a footer, a run of text
+ * and every section in Compose do. Forced, as a bar over a short section
  * covers it once it shows.
  *
  * @param {import('@playwright/test').Page}    page
@@ -431,9 +433,9 @@ async function pointAtSection( page, target, { timeout = 15000 } = {} ) {
 	await expect( async () => {
 		await page.mouse.move( 0, 0 );
 		await target.hover( { force: true } );
-		await expect( page.locator( '.cnl-section-modes__bar' ) ).toBeVisible( {
-			timeout: 1000,
-		} );
+		await expect( page.locator( '.cnl-section-modes__tint' ) ).toBeVisible(
+			{ timeout: 1000 }
+		);
 		expect(
 			await isWithin( page, target, '.cnl-section-modes__tint' )
 		).toBe( true );
@@ -502,6 +504,31 @@ async function expectSnackbar( page, message ) {
  */
 function getSaveControls( page ) {
 	return page.locator( '.cnl-save-controls' );
+}
+
+/**
+ * Publish, at the foot of the screen beside the canvas, for every change on
+ * the site. Its description says how many are waiting.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @return {import('@playwright/test').Locator} The button.
+ */
+function getPublishButton( page ) {
+	return page.locator( '.cnl-stage-publish' ).getByRole( 'button', {
+		name: 'Publish',
+	} );
+}
+
+/**
+ * Open the Publish changes dialog from the foot of the screen.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @return {Promise<import('@playwright/test').Locator>} The dialog.
+ */
+async function openPublishChanges( page ) {
+	await getPublishButton( page ).click();
+
+	return page.getByRole( 'dialog', { name: 'Publish changes' } );
 }
 
 /**
@@ -600,11 +627,13 @@ module.exports = {
 	getPageItem,
 	getZoomOutToggle,
 	getRoute,
+	getPublishButton,
 	getSaveControls,
 	getSitePreview,
 	getStage,
 	openAddPage,
 	openPageLayouts,
+	openPublishChanges,
 	openReviewChanges,
 	openSidebarLink,
 	closeViewMenu,

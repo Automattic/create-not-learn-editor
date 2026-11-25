@@ -122,14 +122,20 @@ export function ActiveChrome( {
 				clientId={ active.id }
 				end={ isPartOpen && <DoneButton onDone={ exitMode } /> }
 				onClose={ isPartOpen ? undefined : exitMode }
-				onFreeform={ () => {
-					// More control is for getting on with the section's
-					// blocks, so the canvas expands to fill the editor
-					// too, and stays so until its back arrow.
-					expandCanvas( true );
+				// A section's blocks are open as they are. A header or
+				// footer is still unlocked on purpose.
+				onFreeform={
+					activePart
+						? () => {
+								// For getting on with its blocks, so the
+								// canvas expands to fill the editor too,
+								// and stays so until its back arrow.
+								expandCanvas( true );
 
-					leaveCompose( enterFreeform );
-				} }
+								leaveCompose( enterFreeform );
+							}
+						: undefined
+				}
 				onReplace={ onLayoutReplace }
 				onView={ setDesignView }
 				part={ activePart }

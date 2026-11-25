@@ -1,8 +1,10 @@
 const {
 	expect,
+	expectCanvasMode,
+	getPublishButton,
 	getSaveControls,
 	getStage,
-	openReviewChanges,
+	openPublishChanges,
 	test,
 	visitEditor,
 } = require( '../utils' );
@@ -112,7 +114,7 @@ test.describe( 'Design interactions', () => {
 			'1 unsaved change'
 		);
 
-		const review = await openReviewChanges( page );
+		const review = await openPublishChanges( page );
 		await review
 			.getByRole( 'button', { name: 'Discard change to Site look' } )
 			.click();
@@ -137,7 +139,7 @@ test.describe( 'Design interactions', () => {
 		await goBackToDesignBesideCanvas( page );
 	} );
 
-	test( 'opening a page after a change was shown still fills the editor', async ( {
+	test( 'going to a page after a change was shown opens it on view', async ( {
 		page,
 		rest,
 	} ) => {
@@ -147,7 +149,7 @@ test.describe( 'Design interactions', () => {
 		await pickSecondChoice( page, '.routes-styles__palette' );
 		await goBackToDesignBesideCanvas( page );
 
-		// Picking a page means editing it, so the editor fills the screen.
+		// The editor was only on show for the change, so the page is on view.
 		await page
 			.getByRole( 'button', { name: /Go to another page$/ } )
 			.click();
@@ -159,7 +161,8 @@ test.describe( 'Design interactions', () => {
 		await expect(
 			page.locator( '.cnl-editor-homepage-document__title' )
 		).toHaveText( target.title, { timeout: 15000 } );
-		await expect( page.locator( 'body' ) ).toHaveClass(
+		await expectCanvasMode( page, 'Browse' );
+		await expect( page.locator( 'body' ) ).not.toHaveClass(
 			/cnl-canvas-is-expanded/
 		);
 	} );
@@ -196,11 +199,13 @@ test.describe( 'Design interactions', () => {
 		await expect( getSaveControls( page ) ).toContainText(
 			'2 unsaved changes'
 		);
-		const review = await openReviewChanges( page );
-		await review.getByRole( 'button', { name: 'Save 2 changes' } ).click();
+		const review = await openPublishChanges( page );
+		await review
+			.getByRole( 'button', { name: 'Publish 2 changes' } )
+			.click();
 
-		await expect( getSaveControls( page ) ).toContainText(
-			'All changes saved',
+		await expect( getPublishButton( page ) ).toHaveAccessibleDescription(
+			'Nothing to publish',
 			{ timeout: 15000 }
 		);
 		expect(
@@ -230,7 +235,7 @@ test.describe( 'Design interactions', () => {
 		await expect( saveControls ).toContainText( '2 unsaved changes' );
 
 		// One change, from the review.
-		const review = await openReviewChanges( page );
+		const review = await openPublishChanges( page );
 		await review
 			.getByRole( 'button', { name: 'Discard change to Site name' } )
 			.click();
@@ -248,7 +253,7 @@ test.describe( 'Design interactions', () => {
 		await expect( review ).toHaveCount( 0 );
 
 		// The rest, all at once.
-		await openReviewChanges( page );
+		await openPublishChanges( page );
 		await review.getByRole( 'button', { name: 'Discard all' } ).click();
 		await confirm
 			.getByRole( 'button', { name: 'Discard changes' } )

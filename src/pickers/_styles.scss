@@ -373,15 +373,6 @@
 	font-size: var(--wpds-typography-font-size-sm);
 }
 
-.routes-styles__save {
-	display: flex;
-	flex-direction: column;
-	gap: var(--wpds-dimension-gap-sm);
-	padding: var(--wpds-dimension-padding-lg);
-	border-radius: var(--wpds-border-radius-lg);
-	background: var(--wpds-color-background-surface-info-weak);
-}
-
 /*
  * These buttons show their selected state with a brand outline, so drop the
  * dark fill that `aria-pressed` gives a default button.

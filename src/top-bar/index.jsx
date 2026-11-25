@@ -9,20 +9,24 @@
  * (see `src/webmcp/connection.js`), and the save controls. The way to the
  * full-screen editor is in the canvas's View menu.
  *
- * A screen with no canvas toolbar, like Media or Posts, keeps boot's own save
- * button at the foot of the sidebar instead. `body.cnl-has-canvas-save` says
- * which, for `style.scss`.
+ * The save controls there are the page's, while it's being edited: Save
+ * and its review only reach what changed while editing (`src/edit-session.js`).
+ * Everything else waits for Publish, at the foot of each screen beside the
+ * canvas (`publish.jsx`), which publishes every change.
  */
 
 /**
  * WordPress dependencies
  */
 import { createRoot } from '@wordpress/element';
+import { addFilter } from '@wordpress/hooks';
 
 /**
  * Internal dependencies
  */
+import { STAGE_PUBLISH_FILTER } from '../stage-page';
 import { AgentStatus } from './agent-status';
+import { Publish } from './publish';
 import { SaveControls } from './save-controls';
 
 const HAS_CANVAS_SAVE_CLASS = 'cnl-has-canvas-save';
@@ -47,6 +51,13 @@ function CanvasSave() {
  * toolbar is on show, whenever the page changes.
  */
 export function mountSaveControls() {
+	// Publish at the foot of each screen (`src/stage-page.jsx`).
+	addFilter(
+		STAGE_PUBLISH_FILTER,
+		'create-not-learn-editor/publish',
+		() => Publish
+	);
+
 	const container = document.createElement( 'div' );
 	container.className = 'cnl-canvas-save-host';
 	createRoot( container ).render( <CanvasSave /> );

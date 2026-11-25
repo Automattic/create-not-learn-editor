@@ -199,10 +199,9 @@ export function getPatternSectionBlocks( pattern ) {
 /**
  * An empty section to build from scratch: a group holding a blank paragraph.
  *
- * Its blocks are free, with core's own `templateLock: false`, so in Edit it
- * isn't locked to its content as a section from a design is: it has no design
- * to keep, and anything can be added to it, moved in it, or typed after a
- * heading with Enter. See `use-section-lock.js`.
+ * Its blocks are free, with core's own `templateLock: false`: it has no
+ * design to keep, and anything can be added to it, moved in it, or typed
+ * after a heading with Enter.
  *
  * Shaped like a theme's own sections, the page's full width with room above
  * and below, so it reads as a section and has room for the controls laid

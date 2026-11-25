@@ -335,7 +335,7 @@ function PageFinderPanel( {
 
 	const pick = ( entry ) => {
 		onClose();
-		openPage( entry.id );
+		openPage( entry.id, { keepMode: true } );
 	};
 
 	keyDownRef.current = ( event ) => {
