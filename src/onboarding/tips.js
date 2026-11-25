@@ -11,13 +11,9 @@ import { __ } from '@wordpress/i18n';
 /**
  * Internal dependencies
  */
-import { settings } from '../settings';
 import { getDirtyRecords, isSiteWideChange } from '../top-bar/use-changes';
 import { registerOnboardingTip } from './index';
 import { EDIT_TIP } from './tip-ids';
-
-const video = ( name ) =>
-	settings.assetsUrl ? `${ settings.assetsUrl }onboarding/${ name }` : null;
 
 export function registerOnboardingTips() {
 	// The first change that shows on every page, like a colour or the menu,
@@ -35,7 +31,6 @@ export function registerOnboardingTips() {
 			'You have changes that apply across your entire site, and this is where you publish them.',
 			'create-not-learn-editor'
 		),
-		video: video( 'publish.mp4' ),
 		placement: 'top',
 		showOn: [ 'idle', 'leave' ],
 		when: ( select ) => getDirtyRecords( select ).some( isSiteWideChange ),

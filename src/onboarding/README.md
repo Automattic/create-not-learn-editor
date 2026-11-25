@@ -1,6 +1,6 @@
 # Onboarding tips
 
-Inline help that shows up when it's useful, not all at once. The first time something happens, the editor picks its moment, dims the rest of the screen round the control in question, and shows a short, silent, looping video of that control beside a line on what it's for. Each person sees each tip once.
+Inline help that shows up when it's useful, not all at once. The first time something happens, the editor picks its moment, dims the rest of the screen round the control in question, and shows a line on what it's for beside it, with room for a short, silent, looping video of the control. Each person sees each tip once.
 
 Use this for any help that points at a control. Don't build a one-off popover, spotlight or "new!" badge elsewhere in the editor; add a tip here, so every hint shares the timing, the opt-out, the Builder rule and the "seen once" record.
 
@@ -21,7 +21,7 @@ There are two so far.
 | `tip-ids.js` | The ids of tips that code elsewhere asks for, shared with `tips.js`. |
 | `_style.scss` | The spotlight and popover. |
 | `test/index.js` | Unit tests for when tips show. |
-| `assets/onboarding/` (plugin root) | The videos. |
+| `assets/onboarding/` (plugin root) | Where videos go. There are none yet. |
 
 ## Adding a tip
 
@@ -35,7 +35,6 @@ registerOnboardingTip( {
 	description: __(
 		'You have changes that apply across your entire site, and this is where you publish them.'
 	),
-	video: video( 'publish.mp4' ),
 	placement: 'top',
 	showOn: [ 'idle', 'leave' ],
 	when: ( select ) => getDirtyRecords( select ).some( isSiteWideChange ),
@@ -48,7 +47,7 @@ registerOnboardingTip( {
 | `target` | Yes | Selector for the control it points at, in the editor's own document (not inside the canvas iframe). |
 | `title` | Yes | Its heading. |
 | `description` | Yes | One or two sentences on what the control is for, in plain words. |
-| `video` | No | URL of a short clip of the control. Use the `video( name )` helper in `tips.js`. |
+| `video` | No | URL of a short clip of the control, such as `` `${ settings.assetsUrl }onboarding/<name>.mp4` ``. See "Making a video". |
 | `placement` | No | Which side of the control it sits, as core's `Popover` takes it. `top` by default. |
 | `when( select )` | One of these | Whether it's due, from the data stores. For tips about a state, like changes waiting to be published. |
 | `requestOnboardingTip( id )` | One of these | Call it after an action, for tips about something done, like a click on the page while browsing, where there's no state to read afterwards. Import it from `request.js`. |
@@ -58,11 +57,13 @@ Then check it in the browser, write its unit or e2e test if its trigger needs on
 
 ### Writing the words
 
-Follow the editor's plain-language rules. Say what the control does for the person, not what it's called, with no jargon and no examples in the description. Keep the title to a few words and the description to one or two short sentences, as the video does the rest.
+Follow the editor's plain-language rules. Say what the control does for the person, not what it's called, with no jargon and no examples in the description. Keep the title to a few words and the description to one or two short sentences.
 
-### Making the video
+### Making a video
 
-Videos live in `assets/onboarding/` and are served from the plugin (`settings.assetsUrl`). Keep them to a few seconds, cropped tight to the control, 640px wide at 16:9, H.264 with no sound, and with `-movflags +faststart` so they start before they've fully loaded. `publish.mp4` is about 80 KB.
+No tip has a video yet. The first try, a clip of the Name & logo panel for the Publish tip, read as broken UI: it showed the same panel the tip sat on, at the same size, with its edges cropped, so it looked like the panel drawn twice. A clip has to read as an illustration, not as more of the editor. Zoom in on the control, give it room and a background of its own, and keep the crop clear of the panel's edges.
+
+Videos live in `assets/onboarding/` and are served from the plugin (`settings.assetsUrl`). Keep them to a few seconds, 640px wide at 16:9, H.264 with no sound, and with `-movflags +faststart` so they start before they've fully loaded.
 
 One way to make one is to record the dev site with Playwright's `recordVideo`, draw a cursor in with a little CSS (recordings don't show one), then trim and crop with ffmpeg.
 
