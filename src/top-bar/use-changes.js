@@ -44,6 +44,12 @@ const HOMEPAGE_SETTINGS = [
 	'page_for_posts',
 ];
 
+const HOMEPAGE_CHANGE = {
+	kind: 'root',
+	name: 'site',
+	property: 'show_on_front',
+};
+
 const TYPE_LABELS = {
 	'postType/page': __( 'Page' ),
 	'postType/post': __( 'Post' ),
@@ -385,9 +391,29 @@ export function useChanges( { inEditSession = false } = {} ) {
 
 	const discardAll = () => discardRecords( changes );
 
-	// Core's own save, as its review uses: it saves site settings together
-	// and publishes menus, and reports success or failure in a snackbar.
-	const save = () => saveDirtyEntities( { dirtyEntityRecords } );
+	/*
+	 * Core's own save, as its review uses: it saves site settings together
+	 * and publishes menus, and reports success or failure in a snackbar.
+	 * Changes left out are skipped as core's review skips unticked ones, and
+	 * stay unsaved. Leaving out the homepage leaves out all three of its
+	 * settings, as it is listed and discarded as one.
+	 */
+	const save = ( leftOut = [] ) => {
+		const skipped = new Set( leftOut.map( getChangeId ) );
+
+		if ( skipped.has( getChangeId( HOMEPAGE_CHANGE ) ) ) {
+			HOMEPAGE_SETTINGS.forEach( ( property ) =>
+				skipped.add( getChangeId( { ...HOMEPAGE_CHANGE, property } ) )
+			);
+		}
+
+		saveDirtyEntities( {
+			dirtyEntityRecords,
+			entitiesToSkip: dirtyEntityRecords.filter( ( record ) =>
+				skipped.has( getChangeId( record ) )
+			),
+		} );
+	};
 
 	return { changes, isSaving, save, discard, discardAll };
 }

@@ -2,6 +2,10 @@
  * Review changes: every change waiting to be saved, each of which can be
  * discarded, with Save and Discard all for the lot.
  *
+ * Each change has a checkbox, ticked to begin with, so the user can save some
+ * changes and leave the rest unsaved for later, as core's review does. Save
+ * counts only the ticked ones.
+ *
  * Discarding everything is asked about first, in the same dialog, because it
  * cannot be undone.
  *
@@ -15,7 +19,7 @@
 /**
  * WordPress dependencies
  */
-import { Button, Modal } from '@wordpress/components';
+import { Button, CheckboxControl, Modal } from '@wordpress/components';
 import { useDispatch } from '@wordpress/data';
 import {
 	Fragment,
@@ -62,7 +66,7 @@ const GROUPS = [
 // session's changes don't turn the dialog into a long scroll.
 const VISIBLE_CHANGES = 5;
 
-function ChangeGroup( { group, changes, onDiscard } ) {
+function ChangeGroup( { group, changes, leftOut, onToggle, onDiscard } ) {
 	const headingId = useId();
 	const listRef = useRef();
 	const [ isExpanded, setIsExpanded ] = useState( false );
@@ -124,17 +128,16 @@ function ChangeGroup( { group, changes, onDiscard } ) {
 							key={ change.id }
 							className="cnl-review-changes__item"
 						>
-							<div className="cnl-review-changes__text">
-								<Text className="cnl-review-changes__label">
-									{ change.label }
-								</Text>
-								<Text
-									className="cnl-review-changes__detail"
-									variant="body-sm"
-								>
-									{ change.detail }
-								</Text>
-							</div>
+							<CheckboxControl
+								className="cnl-review-changes__text"
+								__nextHasNoMarginBottom
+								label={ change.label }
+								help={ change.detail }
+								checked={ ! leftOut.has( change.id ) }
+								onChange={ ( isChecked ) =>
+									onToggle( change, isChecked )
+								}
+							/>
 							<Button
 								className="cnl-review-changes__discard"
 								variant="tertiary"
@@ -180,7 +183,7 @@ function ChangeGroup( { group, changes, onDiscard } ) {
  * the Discard button now in the same place, or the last one if it was last,
  * even when that is in the other group.
  */
-function ChangeGroups( { changes, onDiscard } ) {
+function ChangeGroups( { changes, leftOut, onToggle, onDiscard } ) {
 	const ref = useRef();
 	const discardedIndex = useRef( null );
 
@@ -215,6 +218,8 @@ function ChangeGroups( { changes, onDiscard } ) {
 					key={ group.id }
 					group={ group }
 					changes={ groupChanges }
+					leftOut={ leftOut }
+					onToggle={ onToggle }
 					onDiscard={ ( change ) => {
 						discardedIndex.current = ordered.indexOf( change );
 						onDiscard( change );
@@ -231,8 +236,7 @@ function ChangeGroups( { changes, onDiscard } ) {
  * @param {boolean}  props.inEditSession Only what changed while editing
  *                                       the page, for its Save.
  * @param {boolean}  props.isPublishing  Worded for Publish, at the foot of
- *                                       a screen, which publishes every
- *                                       change.
+ *                                       a screen.
  * @return {Element} The dialog.
  */
 export function ReviewChanges( {
@@ -244,8 +248,26 @@ export function ReviewChanges( {
 		inEditSession,
 	} );
 	const [ isConfirmingDiscard, setIsConfirmingDiscard ] = useState( false );
+	// Changes the user has unticked, by ID. Everything is ticked to begin
+	// with, so a change made while the dialog is open is too.
+	const [ leftOutIds, setLeftOutIds ] = useState( () => new Set() );
 	const { createSuccessNotice } = useDispatch( noticesStore );
 	const count = changes.length;
+	const leftOut = changes.filter( ( change ) => leftOutIds.has( change.id ) );
+	const saveCount = count - leftOut.length;
+
+	const onToggle = ( change, isChecked ) =>
+		setLeftOutIds( ( ids ) => {
+			const next = new Set( ids );
+
+			if ( isChecked ) {
+				next.delete( change.id );
+			} else {
+				next.add( change.id );
+			}
+
+			return next;
+		} );
 
 	// Nothing left to review, whether saved, discarded or undone elsewhere.
 	useEffect( () => {
@@ -259,7 +281,7 @@ export function ReviewChanges( {
 	}
 
 	const onSave = () => {
-		save();
+		save( leftOut );
 		onClose();
 	};
 
@@ -334,13 +356,18 @@ export function ReviewChanges( {
 				<Text className="cnl-review-changes__intro">
 					{ isPublishing
 						? __(
-								'Visitors see these once you publish them. Discard any you don’t want to keep.'
+								'Visitors see these once you publish them. Untick any you want to keep working on, or discard any you don’t want.'
 							)
 						: __(
-								'Visitors see these once you save them. Discard any you don’t want to keep.'
+								'Visitors see these once you save them. Untick any you want to keep working on, or discard any you don’t want.'
 							) }
 				</Text>
-				<ChangeGroups changes={ changes } onDiscard={ discard } />
+				<ChangeGroups
+					changes={ changes }
+					leftOut={ leftOutIds }
+					onToggle={ onToggle }
+					onDiscard={ discard }
+				/>
 				<div className="cnl-review-changes__footer">
 					<Button
 						__next40pxDefaultSize
@@ -365,7 +392,7 @@ export function ReviewChanges( {
 							variant="primary"
 							onClick={ onSave }
 							isBusy={ isSaving }
-							disabled={ isSaving }
+							disabled={ isSaving || ! saveCount }
 							accessibleWhenDisabled
 						>
 							{ isPublishing
@@ -374,18 +401,18 @@ export function ReviewChanges( {
 										_n(
 											'Publish %d change',
 											'Publish %d changes',
-											count
+											saveCount
 										),
-										count
+										saveCount
 									)
 								: sprintf(
 										/* translators: %d: Number of changes to save. */
 										_n(
 											'Save %d change',
 											'Save %d changes',
-											count
+											saveCount
 										),
-										count
+										saveCount
 									) }
 						</Button>
 					</div>
