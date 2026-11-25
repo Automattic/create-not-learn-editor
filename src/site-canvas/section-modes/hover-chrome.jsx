@@ -29,7 +29,8 @@ import {
 
 /*
  * The section pointed at: tinted, named, its "Add section" buttons and its
- * bar.
+ * bar, where it has one. A section in Edit has core's block toolbar instead,
+ * once it is picked.
  */
 export function HoverChrome( {
 	active,
@@ -62,6 +63,7 @@ export function HoverChrome( {
 	sectionIds,
 	setMenuOpenFor,
 	shownHoverId,
+	usesToolbar,
 	zoomInTo,
 } ) {
 	const rect = ! drag && shownHoverId && rects[ shownHoverId ];
@@ -87,9 +89,15 @@ export function HoverChrome( {
 	const isNarrow = ! isPart && box.width < NARROW_WIDTH;
 	const showsAddSection =
 		! isPart && ! isLayoutItem && ! active && ! inlineAdd;
+	// A section worked on with core's block toolbar, which has its tools
+	// and names it once it is picked.
+	const hasToolbar = usesToolbar( shownHoverId );
 	// A layout item has nothing to change but its words or picture,
-	// reached by clicking, so it has a bar only zoomed out, to zoom in.
-	const showsBar = ! isLayoutItem || isComposing;
+	// reached by clicking, so it has a bar only zoomed out, to zoom in. A
+	// section with core's toolbar has one only for Manage posts.
+	const showsBar = hasToolbar
+		? Boolean( hoverPosts )
+		: ! isLayoutItem || isComposing;
 	// Clear of the "Add section" buttons on its edges, where they show.
 	const barInset = showsAddSection ? ADD_SECTION_HEIGHT / 2 + BAR_GAP : INSET;
 	/*
@@ -137,16 +145,18 @@ export function HoverChrome( {
 					}` }
 					style={ box }
 				/>
-				<SectionTab
-					{ ...placeTab(
-						box,
-						hangsTabBelow( shownHoverId ),
-						frame.height
-					) }
-					isPart={ isPart }
-					layout={ isLayoutItem ? layoutName : null }
-					title={ title }
-				/>
+				{ ! ( hasToolbar && shownHoverId === pickedId ) && (
+					<SectionTab
+						{ ...placeTab(
+							box,
+							hangsTabBelow( shownHoverId ),
+							frame.height
+						) }
+						isPart={ isPart }
+						layout={ isLayoutItem ? layoutName : null }
+						title={ title }
+					/>
+				) }
 				<div { ...holdHover }>
 					{ showsAddSection &&
 						[
@@ -165,11 +175,15 @@ export function HoverChrome( {
 								} }
 								variant="primary"
 							>
-								{ __( 'Add section' ) }
+								{ __(
+									'Add section',
+									'create-not-learn-editor'
+								) }
 							</Button>
 						) ) }
 					{ showsBar && (
 						<HoverBar
+							hasToolbar={ hasToolbar }
 							canMoveDown={ index < sectionIds.length - 1 }
 							canMoveUp={ index > 0 }
 							isCompact={ isCompact }

@@ -71,11 +71,11 @@ export function RenamePageModal( { onClose, pageId } ) {
 		<Modal
 			className="routes-navigation-edit__item-modal"
 			onRequestClose={ onClose }
-			title={ __( 'Rename page' ) }
+			title={ __( 'Rename page', 'create-not-learn-editor' ) }
 		>
 			<form onSubmit={ rename }>
 				<InputControl
-					label={ __( 'Page title' ) }
+					label={ __( 'Page title', 'create-not-learn-editor' ) }
 					onValueChange={ ( next ) => setTyped( next ?? '' ) }
 					value={ value }
 				/>
@@ -85,14 +85,14 @@ export function RenamePageModal( { onClose, pageId } ) {
 						type="button"
 						variant="tertiary"
 					>
-						{ __( 'Cancel' ) }
+						{ __( 'Cancel', 'create-not-learn-editor' ) }
 					</Button>
 					<Button
 						disabled={ ! value.trim() || value.trim() === title }
 						type="submit"
 						variant="primary"
 					>
-						{ __( 'Rename' ) }
+						{ __( 'Rename', 'create-not-learn-editor' ) }
 					</Button>
 				</div>
 			</form>
@@ -140,7 +140,10 @@ export function PageOptions( { isHomepage, page, pageId, onEdit } ) {
 			createSuccessNotice(
 				sprintf(
 					/* translators: %s: page title. */
-					__( '“%s” is now in your menu.' ),
+					__(
+						'“%s” is now in your menu.',
+						'create-not-learn-editor'
+					),
 					getPageTitle( page )
 				),
 				{ type: 'snackbar' }
@@ -156,7 +159,7 @@ export function PageOptions( { isHomepage, page, pageId, onEdit } ) {
 		<>
 			<DropdownMenu
 				icon={ moreVerticalIcon }
-				label={ __( 'Page options' ) }
+				label={ __( 'Page options', 'create-not-learn-editor' ) }
 				popoverProps={ { placement: 'bottom-end' } }
 				toggleProps={ { size: 'compact' } }
 			>
@@ -169,7 +172,7 @@ export function PageOptions( { isHomepage, page, pageId, onEdit } ) {
 									setIsRenaming( true );
 								} }
 							>
-								{ __( 'Rename' ) }
+								{ __( 'Rename', 'create-not-learn-editor' ) }
 							</MenuItem>
 							{ canAddToMenu && (
 								<MenuItem
@@ -178,7 +181,10 @@ export function PageOptions( { isHomepage, page, pageId, onEdit } ) {
 										addToMenu();
 									} }
 								>
-									{ __( 'Add to menu' ) }
+									{ __(
+										'Add to menu',
+										'create-not-learn-editor'
+									) }
 								</MenuItem>
 							) }
 							{ canUseAsHomepage && (
@@ -191,7 +197,10 @@ export function PageOptions( { isHomepage, page, pageId, onEdit } ) {
 										} );
 									} }
 								>
-									{ __( 'Use as homepage' ) }
+									{ __(
+										'Use as homepage',
+										'create-not-learn-editor'
+									) }
 								</MenuItem>
 							) }
 						</MenuGroup>
@@ -203,7 +212,10 @@ export function PageOptions( { isHomepage, page, pageId, onEdit } ) {
 									onEdit();
 								} }
 							>
-								{ __( 'Open in advanced editor' ) }
+								{ __(
+									'Open in advanced editor',
+									'create-not-learn-editor'
+								) }
 							</MenuItem>
 							{ page?.link && (
 								<MenuItem
@@ -217,7 +229,10 @@ export function PageOptions( { isHomepage, page, pageId, onEdit } ) {
 										);
 									} }
 								>
-									{ __( 'View on your site' ) }
+									{ __(
+										'View on your site',
+										'create-not-learn-editor'
+									) }
 								</MenuItem>
 							) }
 						</MenuGroup>

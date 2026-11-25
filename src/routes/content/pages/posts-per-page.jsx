@@ -47,9 +47,12 @@ export default function PostsPerPage() {
 		<ToggleGroupControl
 			__next40pxDefaultSize
 			className="cnl-posts-per-page"
-			help={ __( 'Older posts are a click away, on the next page.' ) }
+			help={ __(
+				'Older posts are a click away, on the next page.',
+				'create-not-learn-editor'
+			) }
 			isBlock
-			label={ __( 'Posts to show at once' ) }
+			label={ __( 'Posts to show at once', 'create-not-learn-editor' ) }
 			onChange={ ( value ) =>
 				editEntityRecord( 'root', 'site', undefined, {
 					posts_per_page: Number( value ),

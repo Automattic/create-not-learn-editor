@@ -32,7 +32,7 @@ export function RemoveControl( { onRemove } ) {
 				<ToolbarButton
 					className="cnl-remove-control"
 					icon={ trashIcon }
-					label={ __( 'Remove' ) }
+					label={ __( 'Remove', 'create-not-learn-editor' ) }
 					onClick={ onRemove }
 				/>
 			</ToolbarGroup>

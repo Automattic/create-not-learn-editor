@@ -43,17 +43,37 @@ import { Menu } from '@wordpress/ui';
 import { fromRadio, NONE, useBlockWidths } from './alignment';
 import { ToolbarMenu } from './toolbar-menu';
 
-const LEFT = { value: 'left', label: __( 'Left' ), icon: justifyLeft };
-const CENTER = { value: 'center', label: __( 'Center' ), icon: justifyCenter };
-const RIGHT = { value: 'right', label: __( 'Right' ), icon: justifyRight };
+const LEFT = {
+	value: 'left',
+	label: __( 'Left', 'create-not-learn-editor' ),
+	icon: justifyLeft,
+};
+const CENTER = {
+	value: 'center',
+	label: __( 'Center', 'create-not-learn-editor' ),
+	icon: justifyCenter,
+};
+const RIGHT = {
+	value: 'right',
+	label: __( 'Right', 'create-not-learn-editor' ),
+	icon: justifyRight,
+};
 
-const TOP = { value: 'top', label: __( 'Top' ), icon: justifyTop };
+const TOP = {
+	value: 'top',
+	label: __( 'Top', 'create-not-learn-editor' ),
+	icon: justifyTop,
+};
 const MIDDLE = {
 	value: 'center',
-	label: __( 'Middle' ),
+	label: __( 'Middle', 'create-not-learn-editor' ),
 	icon: justifyCenterVertical,
 };
-const BOTTOM = { value: 'bottom', label: __( 'Bottom' ), icon: justifyBottom };
+const BOTTOM = {
+	value: 'bottom',
+	label: __( 'Bottom', 'create-not-learn-editor' ),
+	icon: justifyBottom,
+};
 
 /**
  * Whether a block lays out other blocks, and so gets a Layout menu.
@@ -100,7 +120,7 @@ function getContentGroups( layout ) {
 		return [
 			{
 				key: 'justifyContent',
-				label: __( 'Content' ),
+				label: __( 'Content', 'create-not-learn-editor' ),
 				options: [ LEFT, CENTER, RIGHT ],
 				fallback: 'center',
 			},
@@ -115,14 +135,14 @@ function getContentGroups( layout ) {
 		return [
 			{
 				key: 'justifyContent',
-				label: __( 'Content' ),
+				label: __( 'Content', 'create-not-learn-editor' ),
 				options: [
 					LEFT,
 					CENTER,
 					RIGHT,
 					{
 						value: 'stretch',
-						label: __( 'Stretch' ),
+						label: __( 'Stretch', 'create-not-learn-editor' ),
 						icon: justifyStretch,
 					},
 				],
@@ -130,14 +150,14 @@ function getContentGroups( layout ) {
 			},
 			{
 				key: 'verticalAlignment',
-				label: __( 'Vertical' ),
+				label: __( 'Vertical', 'create-not-learn-editor' ),
 				options: [
 					TOP,
 					MIDDLE,
 					BOTTOM,
 					{
 						value: 'space-between',
-						label: __( 'Space between' ),
+						label: __( 'Space between', 'create-not-learn-editor' ),
 						icon: justifySpaceBetweenVertical,
 					},
 				],
@@ -149,14 +169,14 @@ function getContentGroups( layout ) {
 	return [
 		{
 			key: 'justifyContent',
-			label: __( 'Content' ),
+			label: __( 'Content', 'create-not-learn-editor' ),
 			options: [
 				LEFT,
 				CENTER,
 				RIGHT,
 				{
 					value: 'space-between',
-					label: __( 'Space between' ),
+					label: __( 'Space between', 'create-not-learn-editor' ),
 					icon: justifySpaceBetween,
 				},
 			],
@@ -164,14 +184,14 @@ function getContentGroups( layout ) {
 		},
 		{
 			key: 'verticalAlignment',
-			label: __( 'Vertical' ),
+			label: __( 'Vertical', 'create-not-learn-editor' ),
 			options: [
 				TOP,
 				MIDDLE,
 				BOTTOM,
 				{
 					value: 'stretch',
-					label: __( 'Stretch' ),
+					label: __( 'Stretch', 'create-not-learn-editor' ),
 					icon: justifyStretchVertical,
 				},
 			],
@@ -210,6 +230,58 @@ function ChoiceGroup( { label, options, value, onChange } ) {
 }
 
 /**
+ * The "+" on a container's toolbar, which adds a block as its last child.
+ *
+ * @param {Object}  props
+ * @param {string}  props.clientId Block client ID.
+ * @param {string}  props.title    The container's name, like Group.
+ * @param {?string} props.text     Words for the button, beside its icon.
+ * @return {Element} The button, and core's quick inserter.
+ */
+export function AddBlockButton( { clientId, title, text = null } ) {
+	return (
+		<Inserter
+			rootClientId={ clientId }
+			isAppender
+			__experimentalIsQuick
+			position="bottom center"
+			renderToggle={ ( { onToggle, disabled, isOpen } ) => (
+				<ToolbarButton
+					className="cnl-block-toolbar__keep"
+					icon={ plus }
+					label={ sprintf(
+						/* translators: %s: the container block's name, like Group. */
+						__( 'Add block to %s', 'create-not-learn-editor' ),
+						title
+					) }
+					onClick={ onToggle }
+					aria-expanded={ isOpen }
+					disabled={ disabled }
+				>
+					{ text }
+				</ToolbarButton>
+			) }
+		/>
+	);
+}
+
+/**
+ * A container's name: the one it was given, else its block's.
+ *
+ * @param {string} clientId Block client ID.
+ * @param {string} name     Block name.
+ * @return {string} The name.
+ */
+export function useContainerTitle( clientId, name ) {
+	return useSelect(
+		( select ) =>
+			select( blockEditorStore ).getBlockAttributes( clientId )?.metadata
+				?.name ?? getBlockType( name )?.title,
+		[ clientId, name ]
+	);
+}
+
+/**
  * The Layout menu and the add button, on a container's toolbar.
  *
  * @param {Object}   props
@@ -228,12 +300,7 @@ export function ContainerControls( {
 	const widths = useBlockWidths( clientId, name );
 	const layout = getLayout( name, attributes );
 	const contentGroups = getContentGroups( layout );
-	const title = useSelect(
-		( select ) =>
-			select( blockEditorStore ).getBlockAttributes( clientId )?.metadata
-				?.name ?? getBlockType( name )?.title,
-		[ clientId, name ]
-	);
+	const title = useContainerTitle( clientId, name );
 
 	const showWidths = widths.length > 1;
 
@@ -243,13 +310,16 @@ export function ContainerControls( {
 				<ToolbarMenu
 					buttonProps={ {
 						className: 'cnl-block-layout__toggle',
-						children: __( 'Layout' ),
+						children: __( 'Layout', 'create-not-learn-editor' ),
 					} }
 					popupClassName="cnl-block-layout"
 				>
 					{ showWidths && (
 						<ChoiceGroup
-							label={ __( 'Block width' ) }
+							label={ __(
+								'Block width',
+								'create-not-learn-editor'
+							) }
 							options={ widths }
 							value={ attributes.align ?? NONE }
 							onChange={ ( value ) =>
@@ -280,26 +350,7 @@ export function ContainerControls( {
 					) ) }
 				</ToolbarMenu>
 			) }
-			<Inserter
-				rootClientId={ clientId }
-				isAppender
-				__experimentalIsQuick
-				position="bottom center"
-				renderToggle={ ( { onToggle, disabled, isOpen } ) => (
-					<ToolbarButton
-						className="cnl-block-toolbar__keep"
-						icon={ plus }
-						label={ sprintf(
-							/* translators: %s: the container block's name, like Group. */
-							__( 'Add block to %s' ),
-							title
-						) }
-						onClick={ onToggle }
-						aria-expanded={ isOpen }
-						disabled={ disabled }
-					/>
-				) }
-			/>
+			<AddBlockButton clientId={ clientId } title={ title } />
 		</>
 	);
 }

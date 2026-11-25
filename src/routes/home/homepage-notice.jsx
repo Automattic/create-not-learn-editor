@@ -49,18 +49,26 @@ const EMPTY_ARRAY = [];
 
 const COPY = {
 	page: {
-		action: __( 'Set up a homepage' ),
+		action: __( 'Set up a homepage', 'create-not-learn-editor' ),
 		description: __(
-			'Your homepage lists your latest posts. Many websites open on a page of their own instead, with posts on their own pages (e.g. /blog).'
+			'Your homepage lists your latest posts. Many websites open on a page of their own instead, with posts on their own pages (e.g. /blog).',
+			'create-not-learn-editor'
 		),
-		title: __( 'Visitors land on your latest posts' ),
+		title: __(
+			'Visitors land on your latest posts',
+			'create-not-learn-editor'
+		),
 	},
 	posts: {
-		action: __( 'Show my posts first' ),
+		action: __( 'Show my posts first', 'create-not-learn-editor' ),
 		description: __(
-			'Your homepage is a page, so visitors don’t see what you’ve just written when they arrive. Most blogs open on the latest posts.'
+			'Your homepage is a page, so visitors don’t see what you’ve just written when they arrive. Most blogs open on the latest posts.',
+			'create-not-learn-editor'
 		),
-		title: __( 'Visitors land on a page, not your posts' ),
+		title: __(
+			'Visitors land on a page, not your posts',
+			'create-not-learn-editor'
+		),
 	},
 };
 
@@ -138,7 +146,10 @@ export default function HomepageNotice() {
 						</Notice.ActionButton>
 					</Notice.Actions>
 					<Notice.CloseIconButton
-						label={ __( 'Don’t show this again here' ) }
+						label={ __(
+							'Don’t show this again here',
+							'create-not-learn-editor'
+						) }
 						onClick={ dismiss }
 					/>
 				</Notice.Root>

@@ -29,14 +29,14 @@ export default function LabelOnlySubmenuModal( {
 		<Modal
 			className="routes-navigation-edit__item-modal"
 			onRequestClose={ onClose }
-			title={ __( 'Label only submenu' ) }
+			title={ __( 'Label only submenu', 'create-not-learn-editor' ) }
 		>
 			<form
 				className="routes-navigation-edit__item-form"
 				onSubmit={ submit }
 			>
 				<InputControl
-					label={ __( 'Submenu label' ) }
+					label={ __( 'Submenu label', 'create-not-learn-editor' ) }
 					onValueChange={ setLabel }
 					value={ label }
 				/>
@@ -47,7 +47,7 @@ export default function LabelOnlySubmenuModal( {
 						type="button"
 						variant="tertiary"
 					>
-						{ __( 'Cancel' ) }
+						{ __( 'Cancel', 'create-not-learn-editor' ) }
 					</Button>
 					<Button
 						disabled={ ! canSave || isSaving }
@@ -55,7 +55,7 @@ export default function LabelOnlySubmenuModal( {
 						type="submit"
 						variant="primary"
 					>
-						{ __( 'Add drop-down' ) }
+						{ __( 'Add drop-down', 'create-not-learn-editor' ) }
 					</Button>
 				</div>
 			</form>

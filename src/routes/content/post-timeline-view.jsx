@@ -117,7 +117,7 @@ function TimelineActions( { actions, post } ) {
 						<Button
 							className="cnl-post-timeline__actions"
 							icon={ moreVerticalIcon }
-							label={ __( 'Actions' ) }
+							label={ __( 'Actions', 'create-not-learn-editor' ) }
 							size="compact"
 						/>
 					}
@@ -182,7 +182,9 @@ function TimelinePost( {
 } ) {
 	const { date, isSameDay, post } = row;
 	const fields = view.fields || [];
-	const title = getTitleText( post.title ) || __( '(no title)' );
+	const title =
+		getTitleText( post.title ) ||
+		__( '(no title)', 'create-not-learn-editor' );
 	const excerpt =
 		view.showDescription !== false ? getExcerptText( post ) : '';
 	const image =
@@ -196,7 +198,7 @@ function TimelinePost( {
 		authorName &&
 			sprintf(
 				/* translators: %s: Name of the person who wrote a post. */
-				__( 'By %s' ),
+				__( 'By %s', 'create-not-learn-editor' ),
 				authorName
 			),
 		fields.includes( 'categories' ) && getCategoryText( post, categories ),
@@ -458,7 +460,9 @@ function TimelineRows( { rows, details, shared } ) {
 						className="cnl-post-timeline__when"
 						direction="column"
 					>
-						<Text variant="heading-sm">{ __( 'Today' ) }</Text>
+						<Text variant="heading-sm">
+							{ __( 'Today', 'create-not-learn-editor' ) }
+						</Text>
 					</Stack>
 					<div className="cnl-post-timeline__rail" aria-hidden="true">
 						<span className="cnl-post-timeline__dot" />
@@ -541,7 +545,12 @@ function TimelineYear( { year, count, source, shared } ) {
 					>
 						{ sprintf(
 							/* translators: %d: Number of posts in a year. */
-							_n( '%d post', '%d posts', count ),
+							_n(
+								'%d post',
+								'%d posts',
+								count,
+								'create-not-learn-editor'
+							),
 							count
 						) }
 					</Text>

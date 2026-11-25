@@ -58,7 +58,7 @@ function StageBack( { parent } ) {
 		<Button
 			className="cnl-stage-back"
 			icon={ isRTL() ? chevronRight : chevronLeft }
-			label={ __( 'Back' ) }
+			label={ __( 'Back', 'create-not-learn-editor' ) }
 			onClick={ () => {
 				if ( isOnHomeTrip() ) {
 					navigate( { to: '/' } );

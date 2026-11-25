@@ -303,7 +303,7 @@ export function InlineSectionPicker( {
 
 	return (
 		<div
-			aria-label={ __( 'Add a section' ) }
+			aria-label={ __( 'Add a section', 'create-not-learn-editor' ) }
 			className="cnl-inline-section-picker"
 			ref={ ref }
 			role="region"
@@ -311,7 +311,7 @@ export function InlineSectionPicker( {
 		>
 			<div className="cnl-inline-section-picker__header">
 				<span className="cnl-inline-section-picker__title">
-					{ __( 'Add a section' ) }
+					{ __( 'Add a section', 'create-not-learn-editor' ) }
 				</span>
 				<div className="cnl-inline-section-picker__actions">
 					<Button
@@ -321,12 +321,12 @@ export function InlineSectionPicker( {
 						onClick={ onViewAll }
 						variant="primary"
 					>
-						{ __( 'View all sections' ) }
+						{ __( 'View all sections', 'create-not-learn-editor' ) }
 					</Button>
 					<Button
 						__next40pxDefaultSize
 						icon={ closeIcon }
-						label={ __( 'Close' ) }
+						label={ __( 'Close', 'create-not-learn-editor' ) }
 						onClick={ onClose }
 					/>
 				</div>
@@ -349,26 +349,40 @@ export function InlineSectionPicker( {
 			{ designs.length > 0 && (
 				<DesignCarousel
 					description={ __(
-						'Predesigned sections you can customize'
+						'Predesigned sections you can customize',
+						'create-not-learn-editor'
 					) }
-					label={ __( 'Designs' ) }
-					nextLabel={ __( 'More designs' ) }
+					label={ __( 'Designs', 'create-not-learn-editor' ) }
+					nextLabel={ __(
+						'More designs',
+						'create-not-learn-editor'
+					) }
 					onPick={ onPick }
 					patterns={ designs }
-					prevLabel={ __( 'Previous designs' ) }
+					prevLabel={ __(
+						'Previous designs',
+						'create-not-learn-editor'
+					) }
 					Preview={ Preview }
 				/>
 			) }
 			{ templates.length > 0 && (
 				<DesignCarousel
 					description={ __(
-						'Starting points to fill with your content'
+						'Starting points to fill with your content',
+						'create-not-learn-editor'
 					) }
-					label={ __( 'Templates' ) }
-					nextLabel={ __( 'More templates' ) }
+					label={ __( 'Templates', 'create-not-learn-editor' ) }
+					nextLabel={ __(
+						'More templates',
+						'create-not-learn-editor'
+					) }
 					onPick={ onPick }
 					patterns={ templates }
-					prevLabel={ __( 'Previous templates' ) }
+					prevLabel={ __(
+						'Previous templates',
+						'create-not-learn-editor'
+					) }
 					Preview={ Preview }
 				/>
 			) }
@@ -379,10 +393,13 @@ export function InlineSectionPicker( {
 			>
 				<Icon icon={ plusIcon } size={ 20 } />
 				<span className="cnl-inline-section-picker__blank-label">
-					{ __( 'Start blank' ) }
+					{ __( 'Start blank', 'create-not-learn-editor' ) }
 				</span>
 				<span className="cnl-inline-section-picker__blank-description">
-					{ __( 'An empty section to build however you like' ) }
+					{ __(
+						'An empty section to build however you like',
+						'create-not-learn-editor'
+					) }
 				</span>
 			</button>
 		</div>

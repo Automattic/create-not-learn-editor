@@ -245,39 +245,6 @@ test.describe( 'Canvas styles', () => {
 			.toBe( '"Type here, or use Add for a heading, button or image"' );
 	} );
 
-	test( 'More control fades the page around the section', async ( {
-		page,
-		rest,
-	} ) => {
-		// Sections with a design to keep, which Edit design is for.
-		await openPage( page, rest, {
-			content: TWO_SECTIONS.replaceAll(
-				'{"style"',
-				'{"templateLock":"contentOnly","style"'
-			),
-		} );
-		await setCanvasMode( page, 'Edit' );
-
-		const sections = getCanvasEditor( page )
-			.contentFrame()
-			.locator( '.is-root-container .wp-block-post-content > *' );
-		const section = sections.first();
-		const other = sections.nth( 1 );
-
-		await expect( section ).toBeVisible( { timeout: 15000 } );
-		await pickSectionMode( page, section, 'Edit design' );
-		await page
-			.locator( '.cnl-section-modes__design' )
-			.getByRole( 'button', { name: 'More control', exact: true } )
-			.click();
-		await expect(
-			page.locator( '.cnl-section-modes__mode-bar' )
-		).toHaveAttribute( 'aria-label', 'Freeform' );
-
-		await expect.poll( () => getStyle( other, 'opacity' ) ).toBe( '0.2' );
-		await expect.poll( () => getStyle( section, 'opacity' ) ).toBe( '1' );
-	} );
-
 	test( 'an open header turns the canvas purple', async ( {
 		page,
 		rest,

@@ -373,7 +373,7 @@ async function addSection( { design, after } ) {
 	const index = getBlockIndex( sections, -1, place );
 	let blocks = [ createBlankSection() ];
 	let added = 'Added a blank section';
-	let note = __( 'Added a blank section' );
+	let note = __( 'Added a blank section', 'create-not-learn-editor' );
 
 	if ( design ) {
 		const designs = await getDesigns();
@@ -391,7 +391,7 @@ async function addSection( { design, after } ) {
 		added = `Added "${ getPatternTitle( pattern ) }"`;
 		note = sprintf(
 			/* translators: %s: A section design's name. */
-			__( 'Added “%s”' ),
+			__( 'Added “%s”', 'create-not-learn-editor' ),
 			getPatternTitle( pattern )
 		);
 	}
@@ -434,7 +434,7 @@ function moveSection( { section, to } ) {
 	);
 	changed(
 		/* translators: %s: A section's name. */
-		sprintf( __( 'Moved “%s”' ), name ),
+		sprintf( __( 'Moved “%s”', 'create-not-learn-editor' ), name ),
 		moved.clientIds[ 0 ]
 	);
 
@@ -453,14 +453,12 @@ function duplicateSection( { section } ) {
 	dispatch( blockEditorStore ).duplicateBlocks( copied.clientIds, false );
 	changed(
 		/* translators: %s: A section's name. */
-		sprintf( __( 'Copied “%s”' ), name ),
+		sprintf( __( 'Copied “%s”', 'create-not-learn-editor' ), name ),
 		getSections( canvas )[ Number( section ) ]?.clientIds[ 0 ]
 	);
 
 	return {
-		done: `Copied section ${ section } to section ${
-			Number( section ) + 1
-		}.`,
+		done: `Copied section ${ section } to section ${ Number( section ) + 1 }.`,
 		...describePage(),
 	};
 }
@@ -472,8 +470,10 @@ function removeSection( { section } ) {
 	const name = getSectionName( removed );
 
 	dispatch( blockEditorStore ).removeBlocks( removed.clientIds, false );
-	/* translators: %s: A section's name. */
-	recordChange( sprintf( __( 'Removed “%s”' ), name ) );
+	recordChange(
+		/* translators: %s: A section's name. */
+		sprintf( __( 'Removed “%s”', 'create-not-learn-editor' ), name )
+	);
 
 	return { done: `Removed section ${ section }.`, ...describePage() };
 }
@@ -490,22 +490,34 @@ function removeSection( { section } ) {
  */
 function describeStyleChange( { color, layout, width }, name ) {
 	if ( [ color, layout, width ].filter( Boolean ).length > 1 ) {
-		/* translators: %s: A section's name. */
-		return sprintf( __( 'Changed the design of “%s”' ), name );
+		return sprintf(
+			/* translators: %s: A section's name. */
+			__( 'Changed the design of “%s”', 'create-not-learn-editor' ),
+			name
+		);
 	}
 
 	if ( color ) {
-		/* translators: %s: A section's name. */
-		return sprintf( __( 'Changed the colour of “%s”' ), name );
+		return sprintf(
+			/* translators: %s: A section's name. */
+			__( 'Changed the colour of “%s”', 'create-not-learn-editor' ),
+			name
+		);
 	}
 
 	if ( layout ) {
-		/* translators: %s: A section's name. */
-		return sprintf( __( 'Changed the layout of “%s”' ), name );
+		return sprintf(
+			/* translators: %s: A section's name. */
+			__( 'Changed the layout of “%s”', 'create-not-learn-editor' ),
+			name
+		);
 	}
 
-	/* translators: %s: A section's name. */
-	return sprintf( __( 'Changed the width of “%s”' ), name );
+	return sprintf(
+		/* translators: %s: A section's name. */
+		__( 'Changed the width of “%s”', 'create-not-learn-editor' ),
+		name
+	);
 }
 
 function styleSection( { section, color, layout, width } ) {
@@ -606,7 +618,7 @@ async function setSiteStyleTool( input ) {
 		throw new Error( 'Give a look, a palette or fonts.' );
 	}
 
-	recordChange( __( "Changed the site's look" ) );
+	recordChange( __( "Changed the site's look", 'create-not-learn-editor' ) );
 
 	return {
 		done: `Changed the site's ${ done.join( ', ' ) }, on every page.`,
@@ -634,11 +646,11 @@ async function setSiteTitle( { title, tagline } ) {
 
 	if ( edits.title !== undefined ) {
 		changed(
-			__( 'Changed the site title' ),
+			__( 'Changed the site title', 'create-not-learn-editor' ),
 			select( blockEditorStore ).getBlocksByName( 'core/site-title' )[ 0 ]
 		);
 	} else {
-		recordChange( __( 'Changed the tagline' ) );
+		recordChange( __( 'Changed the tagline', 'create-not-learn-editor' ) );
 	}
 
 	return {

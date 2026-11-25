@@ -100,7 +100,10 @@ export function Canvas() {
 					throw new Error(
 						sprintf(
 							/* translators: %s: location label. */
-							__( 'Could not update %s.' ),
+							__(
+								'Could not update %s.',
+								'create-not-learn-editor'
+							),
 							candidate.label
 						)
 					);
@@ -127,7 +130,10 @@ export function Canvas() {
 						throw new Error(
 							sprintf(
 								/* translators: %s: location label. */
-								__( 'Could not update %s.' ),
+								__(
+									'Could not update %s.',
+									'create-not-learn-editor'
+								),
 								candidate.label
 							)
 						);
@@ -140,7 +146,8 @@ export function Canvas() {
 			setLocationModalMode( null );
 			createSuccessNotice(
 				__(
-					'Menu locations updated. Review and save changes when you are ready.'
+					'Menu locations updated. Review and save changes when you are ready.',
+					'create-not-learn-editor'
 				),
 				{ type: 'snackbar' }
 			);
@@ -148,7 +155,10 @@ export function Canvas() {
 			createErrorNotice(
 				sprintf(
 					/* translators: %s: error message. */
-					__( 'Unable to update menu locations (%s).' ),
+					__(
+						'Unable to update menu locations (%s).',
+						'create-not-learn-editor'
+					),
 					getErrorMessage( saveError )
 				),
 				{ type: 'snackbar' }
@@ -161,7 +171,7 @@ export function Canvas() {
 	const selectedMenuActions = selectedMenu && (
 		<DropdownMenu
 			icon={ moreVerticalIcon }
-			label={ __( 'Menu location options' ) }
+			label={ __( 'Menu location options', 'create-not-learn-editor' ) }
 			popoverProps={ { placement: 'bottom-end' } }
 			toggleProps={ {
 				__next40pxDefaultSize: true,
@@ -178,8 +188,8 @@ export function Canvas() {
 					} }
 				>
 					{ selectedLocations.length > 0
-						? __( 'Update locations' )
-						: __( 'Choose location' ) }
+						? __( 'Update locations', 'create-not-learn-editor' )
+						: __( 'Choose location', 'create-not-learn-editor' ) }
 				</MenuItem>
 			) }
 		</DropdownMenu>

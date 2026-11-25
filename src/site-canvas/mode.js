@@ -77,6 +77,8 @@ if ( ! select( STORE_NAME ) ) {
 					pickedSection: null,
 					postsTrip: null,
 					editableSection: null,
+					sectionTools: null,
+					sectionTool: null,
 				},
 				action
 			) {
@@ -107,6 +109,10 @@ if ( ! select( STORE_NAME ) ) {
 							...state,
 							editableSection: action.editableSection,
 						};
+					case 'SET_SECTION_TOOLS':
+						return { ...state, sectionTools: action.tools };
+					case 'SET_SECTION_TOOL':
+						return { ...state, sectionTool: action.tool };
 				}
 
 				return state;
@@ -152,6 +158,14 @@ if ( ! select( STORE_NAME ) ) {
 					editableSection,
 					type: 'SET_EDITABLE_SECTION',
 				} ),
+				setSectionTools: ( tools ) => ( {
+					tools,
+					type: 'SET_SECTION_TOOLS',
+				} ),
+				setSectionTool: ( tool ) => ( {
+					tool,
+					type: 'SET_SECTION_TOOL',
+				} ),
 			},
 			selectors: {
 				getCanvasMode: ( state ) => state.mode,
@@ -164,6 +178,8 @@ if ( ! select( STORE_NAME ) ) {
 				getPartRequest: ( state ) => state.partRequest,
 				getPostsTrip: ( state ) => state.postsTrip,
 				getEditableSection: ( state ) => state.editableSection,
+				getSectionTools: ( state ) => state.sectionTools,
+				getSectionTool: ( state ) => state.sectionTool,
 			},
 		} )
 	);
@@ -399,4 +415,77 @@ export function setEditableSection( editableSection ) {
  */
 export function getEditableSection() {
 	return select( STORE_NAME ).getEditableSection();
+}
+
+/**
+ * Note the section whose block core has selected, and which of its design
+ * choices, `layout`, `color` and `width`, it has something to choose for,
+ * so the block toolbar, built with app init, can offer them. Null when no
+ * section is.
+ *
+ * @param {?Object} tools `{ clientId, views }`, or null.
+ */
+export function setSectionTools( tools ) {
+	const current = select( STORE_NAME ).getSectionTools();
+
+	if (
+		current?.clientId !== tools?.clientId ||
+		current?.views.join() !== tools?.views.join()
+	) {
+		dispatch( STORE_NAME ).setSectionTools( tools );
+	}
+}
+
+/**
+ * The design choices a block has as the section the canvas has picked.
+ *
+ * @param {string} clientId The block.
+ * @return {?string[]} Its choices, or null when it isn't that section.
+ */
+export function useSectionTools( clientId ) {
+	return useSelect(
+		( selectStore ) => {
+			const tools = selectStore( STORE_NAME ).getSectionTools();
+
+			return tools?.clientId === clientId ? tools.views : null;
+		},
+		[ clientId ]
+	);
+}
+
+/**
+ * Open one of the section's tools under its toolbar, `layout`, `color`,
+ * `width` or `layers`, or close whichever is open. The toolbar's buttons
+ * say which, and the canvas draws it, anchored to the button.
+ *
+ * @param {?Object} tool `{ clientId, view }`, or null.
+ */
+export function setSectionTool( tool ) {
+	dispatch( STORE_NAME ).setSectionTool( tool );
+}
+
+/**
+ * Open a section's tool, or close it when it is the one open.
+ *
+ * @param {string} clientId The section.
+ * @param {string} view     The tool.
+ */
+export function toggleSectionTool( clientId, view ) {
+	const open = select( STORE_NAME ).getSectionTool();
+
+	setSectionTool(
+		open?.clientId === clientId && open.view === view
+			? null
+			: { clientId, view }
+	);
+}
+
+/**
+ * @return {?Object} The section's tool that is open, `{ clientId, view }`.
+ */
+export function useSectionTool() {
+	return useSelect(
+		( selectStore ) => selectStore( STORE_NAME ).getSectionTool(),
+		[]
+	);
 }

@@ -106,14 +106,19 @@ export default function Stage() {
 			subTitle={
 				<SiteAddress fallbackLabel={ workspace.home.viewLabel } />
 			}
-			title={ site.name || __( 'Untitled site' ) }
+			title={
+				site.name || __( 'Untitled site', 'create-not-learn-editor' )
+			}
 			visual={ <SiteMark { ...site } /> }
 		>
 			<div className="cnl-editor-stage cnl-site-hub">
 				<HomepageNotice />
 				<Stack direction="column" gap="sm">
 					<ScreenLinks
-						label={ __( 'Start working on your site' ) }
+						label={ __(
+							'Start working on your site',
+							'create-not-learn-editor'
+						) }
 						links={ getStartLinks( workspace, {
 							isAskingKind,
 							onPickPostKind: () => setIsPickingPostKind( true ),

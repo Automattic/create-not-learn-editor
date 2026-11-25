@@ -84,12 +84,15 @@ const KIND_DETAILS = {
 export function getPostKinds( patterns = settings.postKinds || [] ) {
 	return [
 		{
-			description: __( 'With a title, as long as you like' ),
+			description: __(
+				'With a title, as long as you like',
+				'create-not-learn-editor'
+			),
 			format: 'standard',
 			icon: pencil,
 			name: PLAIN_POST,
 			sketch: 'post',
-			title: __( 'Post' ),
+			title: __( 'Post', 'create-not-learn-editor' ),
 		},
 		...patterns.map( ( pattern ) => ( {
 			content: pattern.content || '',

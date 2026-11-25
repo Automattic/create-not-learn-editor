@@ -59,7 +59,7 @@ function PageSettingsContent( { pageId, onClose } ) {
 	return (
 		<div className="cnl-page-settings__content">
 			<h2 className="cnl-page-settings__heading">
-				{ __( 'Page settings' ) }
+				{ __( 'Page settings', 'create-not-learn-editor' ) }
 			</h2>
 			<PageDetails
 				layoutName={ layoutName }
@@ -127,7 +127,10 @@ export function PageSettings( { pageId, status, statusLabel, statusIcon } ) {
 						aria-haspopup="dialog"
 						aria-label={ sprintf(
 							/* translators: %s: The page's status, like Published. */
-							__( 'Page settings. %s' ),
+							__(
+								'Page settings. %s',
+								'create-not-learn-editor'
+							),
 							statusLabel
 						) }
 						className="cnl-page-switcher__settings-toggle"
@@ -141,7 +144,10 @@ export function PageSettings( { pageId, status, statusLabel, statusIcon } ) {
 					>
 						{ sprintf(
 							/* translators: %s: The page's status, like Published. */
-							__( '%s · Page settings' ),
+							__(
+								'%s · Page settings',
+								'create-not-learn-editor'
+							),
 							statusLabel
 						) }
 					</Tooltip.Popup>

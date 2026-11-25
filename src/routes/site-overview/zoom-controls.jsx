@@ -16,7 +16,7 @@ import { Button, __, minusIcon, plusIcon } from '../../wordpress-packages';
 export function ZoomControls( { canZoomIn, isReset, onReset, onZoom, zoom } ) {
 	return (
 		<div
-			aria-label={ __( 'Zoom' ) }
+			aria-label={ __( 'Zoom', 'create-not-learn-editor' ) }
 			className="cnl-site-overview__zoom"
 			role="group"
 		>
@@ -24,7 +24,7 @@ export function ZoomControls( { canZoomIn, isReset, onReset, onZoom, zoom } ) {
 				accessibleWhenDisabled
 				disabled={ isReset }
 				icon={ minusIcon }
-				label={ __( 'Zoom out' ) }
+				label={ __( 'Zoom out', 'create-not-learn-editor' ) }
 				onClick={ () => onZoom( -1 ) }
 				shortcut="-"
 				showTooltip
@@ -37,7 +37,7 @@ export function ZoomControls( { canZoomIn, isReset, onReset, onZoom, zoom } ) {
 				accessibleWhenDisabled
 				disabled={ ! canZoomIn }
 				icon={ plusIcon }
-				label={ __( 'Zoom in' ) }
+				label={ __( 'Zoom in', 'create-not-learn-editor' ) }
 				onClick={ () => onZoom( 1 ) }
 				shortcut="+"
 				showTooltip
@@ -47,14 +47,14 @@ export function ZoomControls( { canZoomIn, isReset, onReset, onZoom, zoom } ) {
 				accessibleWhenDisabled
 				className="cnl-site-overview__zoom-reset"
 				disabled={ isReset }
-				label={ __( 'Show the whole site' ) }
+				label={ __( 'Show the whole site', 'create-not-learn-editor' ) }
 				onClick={ onReset }
 				shortcut="0"
 				showTooltip
 				size="compact"
 				variant="tertiary"
 			>
-				{ __( 'Reset' ) }
+				{ __( 'Reset', 'create-not-learn-editor' ) }
 			</Button>
 		</div>
 	);

@@ -44,38 +44,48 @@ function getShopPages() {
 	return [
 		{
 			description: pages.product
-				? __( 'How every product’s page is laid out.' )
-				: __( 'Add a product to see its page.' ),
+				? __(
+						'How every product’s page is laid out.',
+						'create-not-learn-editor'
+					)
+				: __(
+						'Add a product to see its page.',
+						'create-not-learn-editor'
+					),
 			icon: tagIcon,
 			id: 'product',
 			templateSlug: 'single-product',
-			title: __( 'Single Product' ),
+			title: __( 'Single Product', 'create-not-learn-editor' ),
 			url: pages.product,
 		},
 		{
 			description: __(
-				'How the shop, and every list of products, is laid out.'
+				'How the shop, and every list of products, is laid out.',
+				'create-not-learn-editor'
 			),
 			icon: storeIcon,
 			id: 'shop',
 			templateSlug: 'archive-product',
-			title: __( 'Product Listing' ),
+			title: __( 'Product Listing', 'create-not-learn-editor' ),
 			url: pages.shop,
 		},
 		{
-			description: __( 'What visitors have picked, before they pay.' ),
+			description: __(
+				'What visitors have picked, before they pay.',
+				'create-not-learn-editor'
+			),
 			icon: pageIcon,
 			id: 'cart',
 			pageId: pageIds.cart,
-			title: __( 'Cart' ),
+			title: __( 'Cart', 'create-not-learn-editor' ),
 			url: pages.cart,
 		},
 		{
-			description: __( 'Where visitors pay.' ),
+			description: __( 'Where visitors pay.', 'create-not-learn-editor' ),
 			icon: paymentIcon,
 			id: 'checkout',
 			pageId: pageIds.checkout,
-			title: __( 'Checkout' ),
+			title: __( 'Checkout', 'create-not-learn-editor' ),
 			url: pages.checkout,
 		},
 	];
@@ -100,8 +110,13 @@ export function ShopPagesStage() {
 
 	return (
 		<ShopPage
-			crumbs={ [ { label: __( 'Shop pages' ) } ] }
-			description={ __( 'Pick a page to change how it looks.' ) }
+			crumbs={ [
+				{ label: __( 'Shop pages', 'create-not-learn-editor' ) },
+			] }
+			description={ __(
+				'Pick a page to change how it looks.',
+				'create-not-learn-editor'
+			) }
 		>
 			<ul className="cnl-shop-products">
 				{ pages.map( ( page ) => (
@@ -134,15 +149,16 @@ export function ShopPagesStage() {
 				) ) }
 			</ul>
 			<ScreenLinks
-				label={ __( 'More shop layouts' ) }
+				label={ __( 'More shop layouts', 'create-not-learn-editor' ) }
 				links={ [
 					{
 						description: __(
-							'All of WooCommerce’s templates, like a product category’s or search results.'
+							'All of WooCommerce’s templates, like a product category’s or search results.',
+							'create-not-learn-editor'
 						),
 						icon: layoutIcon,
 						search: { layouts: SHOP_LAYOUTS },
-						title: __( 'Advanced' ),
+						title: __( 'Advanced', 'create-not-learn-editor' ),
 						to: '/templates',
 					},
 				] }

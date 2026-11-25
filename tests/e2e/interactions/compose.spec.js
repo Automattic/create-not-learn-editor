@@ -348,9 +348,12 @@ test.describe( 'Compose', () => {
 		await expectCanvasMode( page, 'Edit' );
 		await expect( layer ).toHaveAttribute( 'data-level', 'section' );
 		await expect( words ).toBeInViewport();
-		// Back in Edit, Add is on the bar again, and Edit content isn't.
+		// Back in Edit, the section has core's toolbar, with its Add, and
+		// no bar of the layer's with Edit content.
 		await expect(
-			bar.getByRole( 'button', { name: 'Add', exact: true } )
+			page
+				.locator( '.block-editor-block-contextual-toolbar' )
+				.getByRole( 'button', { name: 'Add block to Section' } )
 		).toBeVisible();
 		await expect(
 			bar.getByRole( 'button', { name: 'Edit content' } )

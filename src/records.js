@@ -83,11 +83,15 @@ async function getLayoutContext( url ) {
 			editPostId: data.id,
 			editPostType: 'wp_template',
 			previewCanEdit: true,
-			previewLabel: data.title || __( 'Layout' ),
-			previewStatusLabel: __( 'Changes everywhere it is used' ),
+			previewLabel:
+				data.title || __( 'Layout', 'create-not-learn-editor' ),
+			previewStatusLabel: __(
+				'Changes everywhere it is used',
+				'create-not-learn-editor'
+			),
 			previewTone: 'global',
 			previewType: 'template',
-			previewTypeLabel: __( 'Layout' ),
+			previewTypeLabel: __( 'Layout', 'create-not-learn-editor' ),
 		};
 	} catch {
 		return {};
@@ -510,39 +514,70 @@ export function getTitleText( title ) {
 export function getTemplateDisplayTitle( template ) {
 	switch ( template?.slug ) {
 		case 'home':
-			return __( 'Posts Listing' );
+			return __( 'Posts Listing', 'create-not-learn-editor' );
 		case 'single':
-			return __( 'Single Post' );
+			return __( 'Single Post', 'create-not-learn-editor' );
 		case 'index':
-			return __( 'Fallback' );
+			return __( 'Fallback', 'create-not-learn-editor' );
 		case 'front-page':
-			return __( 'Homepage' );
+			return __( 'Homepage', 'create-not-learn-editor' );
 		case '404':
-			return __( 'Page not found' );
+			return __( 'Page not found', 'create-not-learn-editor' );
 	}
 
 	return getTitleText( template?.title );
 }
 
 const TEMPLATE_DESCRIPTIONS = {
-	404: __( 'What people see when a link is broken or a page is gone.' ),
-	archive: __(
-		'Lists of posts, such as every post in one category or by one author.'
+	404: __(
+		'What people see when a link is broken or a page is gone.',
+		'create-not-learn-editor'
 	),
-	attachment: __( 'An image or file shown on a page of its own.' ),
-	author: __( 'Lists of posts by one author.' ),
-	category: __( 'Lists of posts in one category.' ),
-	date: __( 'Lists of posts from one month or year.' ),
-	'front-page': __( 'Your homepage.' ),
-	home: __( 'Your blog posts, newest first.' ),
-	index: __( 'Used for anything that has no layout of its own.' ),
-	page: __( 'Your pages, like About or Contact.' ),
-	'privacy-policy': __( 'Your privacy policy page.' ),
-	search: __( 'What people see after they search your site.' ),
-	single: __( 'Each blog post, shown on its own.' ),
-	singular: __( 'Each post and page, shown on its own.' ),
-	tag: __( 'Lists of posts with one tag.' ),
-	taxonomy: __( 'Lists of posts that share a topic.' ),
+	archive: __(
+		'Lists of posts, such as every post in one category or by one author.',
+		'create-not-learn-editor'
+	),
+	attachment: __(
+		'An image or file shown on a page of its own.',
+		'create-not-learn-editor'
+	),
+	author: __( 'Lists of posts by one author.', 'create-not-learn-editor' ),
+	category: __(
+		'Lists of posts in one category.',
+		'create-not-learn-editor'
+	),
+	date: __(
+		'Lists of posts from one month or year.',
+		'create-not-learn-editor'
+	),
+	'front-page': __( 'Your homepage.', 'create-not-learn-editor' ),
+	home: __( 'Your blog posts, newest first.', 'create-not-learn-editor' ),
+	index: __(
+		'Used for anything that has no layout of its own.',
+		'create-not-learn-editor'
+	),
+	page: __( 'Your pages, like About or Contact.', 'create-not-learn-editor' ),
+	'privacy-policy': __(
+		'Your privacy policy page.',
+		'create-not-learn-editor'
+	),
+	search: __(
+		'What people see after they search your site.',
+		'create-not-learn-editor'
+	),
+	single: __(
+		'Each blog post, shown on its own.',
+		'create-not-learn-editor'
+	),
+	singular: __(
+		'Each post and page, shown on its own.',
+		'create-not-learn-editor'
+	),
+	tag: __( 'Lists of posts with one tag.', 'create-not-learn-editor' ),
+	taxonomy: __(
+		'Lists of posts that share a topic.',
+		'create-not-learn-editor'
+	),
 };
 
 /**
@@ -578,7 +613,7 @@ export function getTemplateAuthorText( template ) {
 		return getTitleCasedSlug( template.theme );
 	}
 
-	return __( 'Site editor' );
+	return __( 'Site editor', 'create-not-learn-editor' );
 }
 
 export function getNavigationMenuItemCount( menu ) {
@@ -589,5 +624,5 @@ export function getNavigationMenuItemCount( menu ) {
 }
 
 export function getErrorMessage( error ) {
-	return error?.message || __( 'Request failed.' );
+	return error?.message || __( 'Request failed.', 'create-not-learn-editor' );
 }

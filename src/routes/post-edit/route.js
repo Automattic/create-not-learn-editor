@@ -30,7 +30,7 @@ export const route = {
 		const type = getEditablePostType( params.type );
 		return sprintf(
 			/* translators: %s: post type singular label. */
-			__( 'Edit %s' ),
+			__( 'Edit %s', 'create-not-learn-editor' ),
 			( type?.singular || params.type ).toLowerCase()
 		);
 	},

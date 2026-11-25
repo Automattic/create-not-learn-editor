@@ -86,14 +86,14 @@ export function PageDetailStage( {
 	} );
 	const listPage = pages.find( ( item ) => Number( item.id ) === pageId );
 	const title = isHomepage
-		? __( 'Homepage' )
+		? __( 'Homepage', 'create-not-learn-editor' )
 		: getPageTitle( listPage || page );
 	const ancestors = isHomepage
 		? []
 		: getPageAncestorTitles( pages, pageId, getPageTitle );
 	const viewTitles = {
-		[ DETAILS_VIEW ]: __( 'Details' ),
-		[ LAYOUT_VIEW ]: __( 'Change layout' ),
+		[ DETAILS_VIEW ]: __( 'Details', 'create-not-learn-editor' ),
+		[ LAYOUT_VIEW ]: __( 'Change layout', 'create-not-learn-editor' ),
 	};
 	const view = viewTitles[ searchParams.view ] ? searchParams.view : null;
 	const openLayouts = useCallback(
@@ -140,33 +140,57 @@ export function PageDetailStage( {
 				<PageSummary pageId={ pageId } />
 				{ intro }
 				<ScreenLinks
-					label={ __( 'More about this page' ) }
+					label={ __(
+						'More about this page',
+						'create-not-learn-editor'
+					) }
 					links={ [
 						{
 							description: layoutName
 								? sprintf(
 										/* translators: %s: layout name. */
-										__( 'Uses the %s layout' ),
+										__(
+											'Uses the %s layout',
+											'create-not-learn-editor'
+										),
 										layoutName
 									)
-								: __( 'How the page is set out' ),
+								: __(
+										'How the page is set out',
+										'create-not-learn-editor'
+									),
 							icon: layoutIcon,
 							search: { ...searchParams, view: LAYOUT_VIEW },
-							title: __( 'Change layout' ),
+							title: __(
+								'Change layout',
+								'create-not-learn-editor'
+							),
 							to: LIST_PATH,
 						},
 						{
-							description: __( 'Author, dates and more' ),
+							description: __(
+								'Author, dates and more',
+								'create-not-learn-editor'
+							),
 							icon: infoIcon,
 							search: { ...searchParams, view: DETAILS_VIEW },
-							title: __( 'See all details' ),
+							title: __(
+								'See all details',
+								'create-not-learn-editor'
+							),
 							to: LIST_PATH,
 						},
 						onConfigureHomepage && {
-							description: __( 'Choose what visitors see first' ),
+							description: __(
+								'Choose what visitors see first',
+								'create-not-learn-editor'
+							),
 							icon: settingsIcon,
 							onOpen: onConfigureHomepage,
-							title: __( 'Configure homepage' ),
+							title: __(
+								'Configure homepage',
+								'create-not-learn-editor'
+							),
 						},
 					].filter( Boolean ) }
 				/>
@@ -181,16 +205,17 @@ export function PageDetailStage( {
 			breadcrumbs={
 				<Breadcrumbs
 					items={ [
-						{ label: __( 'Pages' ), to: LIST_PATH },
+						{
+							label: __( 'Pages', 'create-not-learn-editor' ),
+							to: LIST_PATH,
+						},
 						...ancestors.map( ( label ) => ( { label } ) ),
 						// A view drilled into leads back to the summary.
 						...( view
 							? [
 									{
 										label: title,
-										to: `${ LIST_PATH }?${ getPageSearchString(
-											searchParams
-										) }`,
+										to: `${ LIST_PATH }?${ getPageSearchString( searchParams ) }`,
 									},
 									{ label: viewTitles[ view ] },
 								]

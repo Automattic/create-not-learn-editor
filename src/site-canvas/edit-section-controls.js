@@ -1,14 +1,12 @@
 /**
  * Core's own section controls, as Edit shows them:
  *
- * - Core's button for unlocking a section, said as "Edit" and "Done", since
- *   every section is content-only in Edit (see `use-section-lock.js`), and
- *   Freeform unlocks it with core's own unlock.
+ * - Core's button for unlocking what it keeps content-only, like a synced
+ *   pattern, said as "Edit" and "Done".
  * - None of core's "Shuffle styles", which cycles through the same colours
  *   Edit layout shows.
  *
- * A section's layouts and colours are in Edit layout's panel. See
- * `section-modes/`.
+ * A section's layouts and colours are on its toolbar. See `section-modes/`.
  */
 
 /**
@@ -32,8 +30,8 @@ const STYLE_ID = 'cnl-edit-section-controls';
  */
 function getWording() {
 	return {
-		'Edit pattern': __( 'Edit' ),
-		'Exit pattern': __( 'Done' ),
+		'Edit pattern': __( 'Edit', 'create-not-learn-editor' ),
+		'Exit pattern': __( 'Done', 'create-not-learn-editor' ),
 	};
 }
 
@@ -75,6 +73,8 @@ function useHiddenShuffle( isActive ) {
 			return undefined;
 		}
 
+		// Core's own label, so core's translation.
+		// eslint-disable-next-line @wordpress/i18n-text-domain
 		const label = __( 'Shuffle styles' ).replace( /["\\]/g, '\\$&' );
 		const style = document.createElement( 'style' );
 

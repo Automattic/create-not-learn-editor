@@ -82,9 +82,21 @@ import { EMPTY_ARRAY, getMenuTitle } from './shared';
 
 function getCanvasViewDeviceOptions() {
 	return [
-		{ icon: desktopIcon, label: __( 'Desktop view' ), value: 'Desktop' },
-		{ icon: tabletIcon, label: __( 'Tablet view' ), value: 'Tablet' },
-		{ icon: mobileIcon, label: __( 'Mobile view' ), value: 'Mobile' },
+		{
+			icon: desktopIcon,
+			label: __( 'Desktop view', 'create-not-learn-editor' ),
+			value: 'Desktop',
+		},
+		{
+			icon: tabletIcon,
+			label: __( 'Tablet view', 'create-not-learn-editor' ),
+			value: 'Tablet',
+		},
+		{
+			icon: mobileIcon,
+			label: __( 'Mobile view', 'create-not-learn-editor' ),
+			value: 'Mobile',
+		},
 	];
 }
 
@@ -95,7 +107,7 @@ function CanvasDeviceSwitcher( { device, onChange } ) {
 			__nextHasNoMarginBottom
 			className="routes-navigation-canvas-toolbar__devices"
 			hideLabelFromVision
-			label={ __( 'Preview device' ) }
+			label={ __( 'Preview device', 'create-not-learn-editor' ) }
 			onChange={ onChange }
 			value={ device }
 		>
@@ -134,26 +146,32 @@ function CanvasViewToggle( { isPreviewVisible, onChange } ) {
 			// Each option as wide as its own label, so Locations isn't squeezed
 			// to Preview's width.
 			isAdaptiveWidth
-			label={ __( 'View' ) }
+			label={ __( 'View', 'create-not-learn-editor' ) }
 			onChange={ ( value ) => onChange( value === VIEW_PREVIEW ) }
 			value={ isPreviewVisible ? VIEW_PREVIEW : VIEW_LOCATIONS }
 		>
 			{ /* A word or two on what each shows, beyond its name. */ }
 			<ComponentsTooltip
 				placement="bottom"
-				text={ __( 'See your site with this menu' ) }
+				text={ __(
+					'See your site with this menu',
+					'create-not-learn-editor'
+				) }
 			>
 				<ToggleGroupControlOption
-					label={ __( 'Preview' ) }
+					label={ __( 'Preview', 'create-not-learn-editor' ) }
 					value={ VIEW_PREVIEW }
 				/>
 			</ComponentsTooltip>
 			<ComponentsTooltip
 				placement="bottom"
-				text={ __( 'See each place this menu is shown' ) }
+				text={ __(
+					'See each place this menu is shown',
+					'create-not-learn-editor'
+				) }
 			>
 				<ToggleGroupControlOption
-					label={ __( 'Locations' ) }
+					label={ __( 'Locations', 'create-not-learn-editor' ) }
 					value={ VIEW_LOCATIONS }
 				/>
 			</ComponentsTooltip>
@@ -209,8 +227,14 @@ function NavigationDocument( {
 							} }
 						>
 							{ hasLocations
-								? __( 'Update locations' )
-								: __( 'Choose location' ) }
+								? __(
+										'Update locations',
+										'create-not-learn-editor'
+									)
+								: __(
+										'Choose location',
+										'create-not-learn-editor'
+									) }
 						</MenuItem>
 						{ onEditMobileMenu && (
 							<MenuItem
@@ -220,7 +244,10 @@ function NavigationDocument( {
 									onEditMobileMenu();
 								} }
 							>
-								{ __( 'Edit mobile menu' ) }
+								{ __(
+									'Edit mobile menu',
+									'create-not-learn-editor'
+								) }
 							</MenuItem>
 						) }
 					</MenuGroup>
@@ -230,7 +257,10 @@ function NavigationDocument( {
 						aria-expanded={ isOpen }
 						className="cnl-editor-homepage-options__toggle"
 						icon={ chevronDownIcon }
-						label={ __( 'Menu options' ) }
+						label={ __(
+							'Menu options',
+							'create-not-learn-editor'
+						) }
 						onClick={ onToggle }
 						showTooltip
 						size="compact"
@@ -268,7 +298,7 @@ function NavigationCanvasHeader( {
 						__nextHasNoMarginBottom
 						checked={ isMenuOpen }
 						className="routes-navigation-canvas-toolbar__menu-toggle"
-						label={ __( 'Menu open' ) }
+						label={ __( 'Menu open', 'create-not-learn-editor' ) }
 						onChange={ onToggleMenu }
 					/>
 				) }
@@ -305,7 +335,7 @@ function LocationCard( { blocks, icon = layoutIcon, label, onEdit } ) {
 					<span>{ label }</span>
 				</div>
 				<Button onClick={ onEdit } variant="link">
-					{ __( 'Edit' ) }
+					{ __( 'Edit', 'create-not-learn-editor' ) }
 				</Button>
 			</div>
 			<div className="routes-navigation-locations-canvas__preview">
@@ -340,7 +370,9 @@ export default function NavigationEditCanvas() {
 		() => locations.map( ( location ) => location.id ),
 		[ locations ]
 	);
-	const menuTitle = menu ? getMenuTitle( menu ) : __( 'Navigation' );
+	const menuTitle = menu
+		? getMenuTitle( menu )
+		: __( 'Navigation', 'create-not-learn-editor' );
 	const mobileMenu = usePreviewMobileMenu( {
 		bodyRef,
 		device,
@@ -451,7 +483,10 @@ export default function NavigationEditCanvas() {
 					throw new Error(
 						sprintf(
 							/* translators: %s: location label. */
-							__( 'Could not update %s.' ),
+							__(
+								'Could not update %s.',
+								'create-not-learn-editor'
+							),
 							candidate.label
 						)
 					);
@@ -478,7 +513,10 @@ export default function NavigationEditCanvas() {
 						throw new Error(
 							sprintf(
 								/* translators: %s: location label. */
-								__( 'Could not update %s.' ),
+								__(
+									'Could not update %s.',
+									'create-not-learn-editor'
+								),
 								candidate.label
 							)
 						);
@@ -491,7 +529,8 @@ export default function NavigationEditCanvas() {
 			setLocationModalMode( null );
 			createSuccessNotice(
 				__(
-					'Menu locations updated. Review and save changes when you are ready.'
+					'Menu locations updated. Review and save changes when you are ready.',
+					'create-not-learn-editor'
 				),
 				{ type: 'snackbar' }
 			);
@@ -499,7 +538,10 @@ export default function NavigationEditCanvas() {
 			createErrorNotice(
 				sprintf(
 					/* translators: %s: error message. */
-					__( 'Unable to update menu locations (%s).' ),
+					__(
+						'Unable to update menu locations (%s).',
+						'create-not-learn-editor'
+					),
 					getErrorMessage( error )
 				),
 				{ type: 'snackbar' }

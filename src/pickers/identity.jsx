@@ -218,11 +218,19 @@ export function SiteMediaSetting( {
 				render={ ( { open } ) =>
 					value || isUploading ? (
 						<div className="cnl-editor-media-field__item">
-							<Tooltip text={ __( 'Replace' ) }>
+							<Tooltip
+								text={ __(
+									'Replace',
+									'create-not-learn-editor'
+								) }
+							>
 								<MediaPickerButton
 									hasMedia
 									isUploading={ isUploading }
-									label={ __( 'Replace' ) }
+									label={ __(
+										'Replace',
+										'create-not-learn-editor'
+									) }
 									onFilesDrop={ onFilesDrop }
 									open={ open }
 								>
@@ -248,7 +256,10 @@ export function SiteMediaSetting( {
 								<Button
 									className="cnl-editor-media-field__remove"
 									icon={ closeSmall }
-									label={ __( 'Remove' ) }
+									label={ __(
+										'Remove',
+										'create-not-learn-editor'
+									) }
 									onClick={ () => onChange( 0 ) }
 									size="small"
 								/>
@@ -306,9 +317,10 @@ export function SiteIdentityFields( { fields = ALL_FIELDS, onEdit } = {} ) {
 			{ shows( 'title' ) && (
 				<InputControl
 					description={ __(
-						'Usually your business or project name.'
+						'Usually your business or project name.',
+						'create-not-learn-editor'
 					) }
-					label={ __( 'Site name' ) }
+					label={ __( 'Site name', 'create-not-learn-editor' ) }
 					onValueChange={ ( value ) => update( { title: value } ) }
 					value={ site.title || '' }
 				/>
@@ -316,34 +328,46 @@ export function SiteIdentityFields( { fields = ALL_FIELDS, onEdit } = {} ) {
 			{ shows( 'tagline' ) && (
 				<InputControl
 					description={ __(
-						'A few words about what you do, like “Pottery classes in Hackney”.'
+						'A few words about what you do, like “Pottery classes in Hackney”.',
+						'create-not-learn-editor'
 					) }
-					label={ __( 'Tagline' ) }
+					label={ __( 'Tagline', 'create-not-learn-editor' ) }
 					onValueChange={ ( value ) =>
 						update( { description: value } )
 					}
-					placeholder={ __( 'What does your site offer?' ) }
+					placeholder={ __(
+						'What does your site offer?',
+						'create-not-learn-editor'
+					) }
 					value={ site.description || '' }
 				/>
 			) }
 			{ shows( 'logo' ) && (
 				<SiteMediaSetting
-					chooseLabel={ __( 'Choose logo' ) }
-					description={ __(
-						'Shown in your header. Wide or square images both work.'
+					chooseLabel={ __(
+						'Choose logo',
+						'create-not-learn-editor'
 					) }
-					label={ __( 'Logo' ) }
+					description={ __(
+						'Shown in your header. Wide or square images both work.',
+						'create-not-learn-editor'
+					) }
+					label={ __( 'Logo', 'create-not-learn-editor' ) }
 					onChange={ ( id ) => update( { site_logo: id } ) }
 					value={ logoId }
 				/>
 			) }
 			{ shows( 'icon' ) && (
 				<SiteMediaSetting
-					chooseLabel={ __( 'Choose icon' ) }
-					description={ __(
-						'The small picture in browser tabs and bookmarks. Use a square image.'
+					chooseLabel={ __(
+						'Choose icon',
+						'create-not-learn-editor'
 					) }
-					label={ __( 'Browser icon' ) }
+					description={ __(
+						'The small picture in browser tabs and bookmarks. Use a square image.',
+						'create-not-learn-editor'
+					) }
+					label={ __( 'Browser icon', 'create-not-learn-editor' ) }
 					onChange={ ( id ) => update( { site_icon: id } ) }
 					value={ site.site_icon || 0 }
 				/>
@@ -355,7 +379,10 @@ export function SiteIdentityFields( { fields = ALL_FIELDS, onEdit } = {} ) {
 						onClick={ () => update( { site_icon: logoId } ) }
 						variant="link"
 					>
-						{ __( 'Use my logo as the browser icon' ) }
+						{ __(
+							'Use my logo as the browser icon',
+							'create-not-learn-editor'
+						) }
 					</Button>
 				) }
 		</div>

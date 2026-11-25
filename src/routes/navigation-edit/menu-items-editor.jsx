@@ -127,7 +127,9 @@ export function useMenuItemsEditor( navigationId ) {
 		[ menuBlocks ]
 	);
 	const isMenuReady = ! isLoadingMenu && !! menu;
-	const menuTitle = isMenuReady ? getMenuTitle( menu ) : __( 'Navigation' );
+	const menuTitle = isMenuReady
+		? getMenuTitle( menu )
+		: __( 'Navigation', 'create-not-learn-editor' );
 	const isEmptyManualMenu = ! isAutoMenu && manualItems.length === 0;
 
 	useEffect( () => {
@@ -144,7 +146,10 @@ export function useMenuItemsEditor( navigationId ) {
 			createErrorNotice(
 				sprintf(
 					/* translators: %s: error message. */
-					__( 'Unable to update navigation menu (%s).' ),
+					__(
+						'Unable to update navigation menu (%s).',
+						'create-not-learn-editor'
+					),
 					getErrorMessage( error )
 				),
 				{ type: 'snackbar' }
@@ -198,7 +203,10 @@ export function useMenuItemsEditor( navigationId ) {
 			createErrorNotice(
 				sprintf(
 					/* translators: %s: error message. */
-					__( 'Unable to update navigation menu (%s).' ),
+					__(
+						'Unable to update navigation menu (%s).',
+						'create-not-learn-editor'
+					),
 					getErrorMessage( error )
 				),
 				{ type: 'snackbar' }
@@ -220,10 +228,12 @@ export function useMenuItemsEditor( navigationId ) {
 			],
 			mode === 'submenu-page'
 				? __(
-						'Submenu added to menu. Review and save changes when you are ready.'
+						'Submenu added to menu. Review and save changes when you are ready.',
+						'create-not-learn-editor'
 					)
 				: __(
-						'Page added to menu. Review and save changes when you are ready.'
+						'Page added to menu. Review and save changes when you are ready.',
+						'create-not-learn-editor'
 					)
 		);
 
@@ -244,10 +254,12 @@ export function useMenuItemsEditor( navigationId ) {
 			],
 			isSubmenu
 				? __(
-						'Submenu added to menu. Review and save changes when you are ready.'
+						'Submenu added to menu. Review and save changes when you are ready.',
+						'create-not-learn-editor'
 					)
 				: __(
-						'Link added to menu. Review and save changes when you are ready.'
+						'Link added to menu. Review and save changes when you are ready.',
+						'create-not-learn-editor'
 					)
 		);
 
@@ -260,7 +272,8 @@ export function useMenuItemsEditor( navigationId ) {
 				} ),
 			],
 			__(
-				'Submenu added to menu. Review and save changes when you are ready.'
+				'Submenu added to menu. Review and save changes when you are ready.',
+				'create-not-learn-editor'
 			)
 		);
 
@@ -268,7 +281,8 @@ export function useMenuItemsEditor( navigationId ) {
 		addNavigationBlocks(
 			blocks,
 			__(
-				'Menu items added. Review and save changes when you are ready.'
+				'Menu items added. Review and save changes when you are ready.',
+				'create-not-learn-editor'
 			)
 		);
 
@@ -290,7 +304,8 @@ export function useMenuItemsEditor( navigationId ) {
 			createSuccessNotice,
 			editEntityRecord,
 			message: __(
-				'Menu customized. New pages won’t be added to it automatically.'
+				'Menu customized. New pages won’t be added to it automatically.',
+				'create-not-learn-editor'
 			),
 			navigationId,
 			previousContent,
@@ -319,11 +334,12 @@ export function useMenuItemsEditor( navigationId ) {
 					<EmptyState.Root className="routes-navigation-edit__auto-summary">
 						<EmptyState.Icon icon={ updateIcon } />
 						<EmptyState.Title>
-							{ __( 'Auto menu' ) }
+							{ __( 'Auto menu', 'create-not-learn-editor' ) }
 						</EmptyState.Title>
 						<EmptyState.Description>
 							{ __(
-								'This menu is kept in sync with your pages. When you add, rename, or remove a page, it updates automatically.'
+								'This menu is kept in sync with your pages. When you add, rename, or remove a page, it updates automatically.',
+								'create-not-learn-editor'
 							) }
 						</EmptyState.Description>
 						<EmptyState.Actions>
@@ -335,7 +351,7 @@ export function useMenuItemsEditor( navigationId ) {
 								}
 								variant="primary"
 							>
-								{ __( 'Customize' ) }
+								{ __( 'Customize', 'create-not-learn-editor' ) }
 							</Button>
 						</EmptyState.Actions>
 					</EmptyState.Root>
@@ -344,11 +360,15 @@ export function useMenuItemsEditor( navigationId ) {
 					<EmptyState.Root className="routes-navigation-edit__empty-summary">
 						<EmptyState.Icon icon={ compassIcon } />
 						<EmptyState.Title>
-							{ __( 'No menu items yet' ) }
+							{ __(
+								'No menu items yet',
+								'create-not-learn-editor'
+							) }
 						</EmptyState.Title>
 						<EmptyState.Description>
 							{ __(
-								'Add pages, links, or other content to start building this navigation menu.'
+								'Add pages, links, or other content to start building this navigation menu.',
+								'create-not-learn-editor'
 							) }
 						</EmptyState.Description>
 						<EmptyState.Actions>
@@ -360,7 +380,10 @@ export function useMenuItemsEditor( navigationId ) {
 								onClick={ () => setAddMode( 'more' ) }
 								variant="primary"
 							>
-								{ __( 'Add menu items' ) }
+								{ __(
+									'Add menu items',
+									'create-not-learn-editor'
+								) }
 							</Button>
 						</EmptyState.Actions>
 					</EmptyState.Root>
@@ -381,11 +404,15 @@ export function useMenuItemsEditor( navigationId ) {
 				<Modal
 					className="routes-navigation-edit__customize-auto-menu-modal"
 					onRequestClose={ () => setIsConfirmingCustomize( false ) }
-					title={ __( 'Customize this menu?' ) }
+					title={ __(
+						'Customize this menu?',
+						'create-not-learn-editor'
+					) }
 				>
 					<p>
 						{ __(
-							'Your menu won’t be kept in sync with your pages anymore, but you will be able to change it however you like.'
+							'Your menu won’t be kept in sync with your pages anymore, but you will be able to change it however you like.',
+							'create-not-learn-editor'
 						) }
 					</p>
 					<div className="routes-navigation-edit__modal-actions">
@@ -394,14 +421,17 @@ export function useMenuItemsEditor( navigationId ) {
 							onClick={ () => setIsConfirmingCustomize( false ) }
 							variant="tertiary"
 						>
-							{ __( 'Cancel' ) }
+							{ __( 'Cancel', 'create-not-learn-editor' ) }
 						</Button>
 						<Button
 							__next40pxDefaultSize
 							onClick={ customizeMenu }
 							variant="primary"
 						>
-							{ __( 'Customize menu' ) }
+							{ __(
+								'Customize menu',
+								'create-not-learn-editor'
+							) }
 						</Button>
 					</div>
 				</Modal>
@@ -415,8 +445,14 @@ export function useMenuItemsEditor( navigationId ) {
 					pages={ pages }
 					title={
 						addMode === 'submenu-page'
-							? __( 'Add submenu from page' )
-							: __( 'Add existing page' )
+							? __(
+									'Add submenu from page',
+									'create-not-learn-editor'
+								)
+							: __(
+									'Add existing page',
+									'create-not-learn-editor'
+								)
 					}
 				/>
 			) }
@@ -425,7 +461,7 @@ export function useMenuItemsEditor( navigationId ) {
 					isSaving={ isSaving }
 					onAddLink={ addCustomLinkToMenu }
 					onClose={ closeAddMenuItemModal }
-					title={ __( 'Custom link' ) }
+					title={ __( 'Custom link', 'create-not-learn-editor' ) }
 				/>
 			) }
 			{ addMode === 'submenu-custom' && (
@@ -434,7 +470,10 @@ export function useMenuItemsEditor( navigationId ) {
 					isSubmenu
 					onAddLink={ addCustomLinkToMenu }
 					onClose={ closeAddMenuItemModal }
-					title={ __( 'Custom link submenu' ) }
+					title={ __(
+						'Custom link submenu',
+						'create-not-learn-editor'
+					) }
 				/>
 			) }
 			{ addMode === 'submenu-label' && (

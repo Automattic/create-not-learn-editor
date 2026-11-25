@@ -20,17 +20,41 @@ const LISTED_STATUSES = [ 'publish', 'future', 'draft', 'pending', 'private' ];
  */
 export function getPostViews() {
 	return [
-		{ slug: 'all', statuses: LISTED_STATUSES, title: __( 'All' ) },
+		{
+			slug: 'all',
+			statuses: LISTED_STATUSES,
+			title: __( 'All', 'create-not-learn-editor' ),
+		},
 		{
 			slug: 'published',
 			statuses: [ 'publish' ],
-			title: __( 'Published' ),
+			title: __( 'Published', 'create-not-learn-editor' ),
 		},
-		{ slug: 'future', statuses: [ 'future' ], title: __( 'Scheduled' ) },
-		{ slug: 'drafts', statuses: [ 'draft' ], title: __( 'Drafts' ) },
-		{ slug: 'pending', statuses: [ 'pending' ], title: __( 'Pending' ) },
-		{ slug: 'private', statuses: [ 'private' ], title: __( 'Private' ) },
-		{ slug: 'trash', statuses: [ 'trash' ], title: __( 'Trash' ) },
+		{
+			slug: 'future',
+			statuses: [ 'future' ],
+			title: __( 'Scheduled', 'create-not-learn-editor' ),
+		},
+		{
+			slug: 'drafts',
+			statuses: [ 'draft' ],
+			title: __( 'Drafts', 'create-not-learn-editor' ),
+		},
+		{
+			slug: 'pending',
+			statuses: [ 'pending' ],
+			title: __( 'Pending', 'create-not-learn-editor' ),
+		},
+		{
+			slug: 'private',
+			statuses: [ 'private' ],
+			title: __( 'Private', 'create-not-learn-editor' ),
+		},
+		{
+			slug: 'trash',
+			statuses: [ 'trash' ],
+			title: __( 'Trash', 'create-not-learn-editor' ),
+		},
 	];
 }
 
@@ -60,10 +84,13 @@ export function getPostViewEmpty( view, search = '' ) {
 	if ( search ) {
 		return {
 			canWrite: false,
-			description: __( 'Try other words, or look in another tab.' ),
+			description: __(
+				'Try other words, or look in another tab.',
+				'create-not-learn-editor'
+			),
 			title: sprintf(
 				/* translators: %s: What the posts were searched for. */
-				__( 'Nothing matches “%s”' ),
+				__( 'Nothing matches “%s”', 'create-not-learn-editor' ),
 				search
 			),
 		};
@@ -74,57 +101,67 @@ export function getPostViewEmpty( view, search = '' ) {
 			return {
 				canWrite: true,
 				description: __(
-					'Posts show here once they’re published for everyone to read.'
+					'Posts show here once they’re published for everyone to read.',
+					'create-not-learn-editor'
 				),
-				title: __( 'Nothing published yet' ),
+				title: __( 'Nothing published yet', 'create-not-learn-editor' ),
 			};
 		case 'future':
 			return {
 				canWrite: false,
 				description: __(
-					'To publish a post later, pick a date and time when you publish it. It waits here until then.'
+					'To publish a post later, pick a date and time when you publish it. It waits here until then.',
+					'create-not-learn-editor'
 				),
-				title: __( 'Nothing scheduled' ),
+				title: __( 'Nothing scheduled', 'create-not-learn-editor' ),
 			};
 		case 'drafts':
 			return {
 				canWrite: true,
 				description: __(
-					'Posts you’ve started but not published wait here, so you can pick them up again.'
+					'Posts you’ve started but not published wait here, so you can pick them up again.',
+					'create-not-learn-editor'
 				),
-				title: __( 'No drafts' ),
+				title: __( 'No drafts', 'create-not-learn-editor' ),
 			};
 		case 'pending':
 			return {
 				canWrite: false,
 				description: __(
-					'Posts someone has sent in for review wait here until they’re published.'
+					'Posts someone has sent in for review wait here until they’re published.',
+					'create-not-learn-editor'
 				),
-				title: __( 'Nothing waiting for review' ),
+				title: __(
+					'Nothing waiting for review',
+					'create-not-learn-editor'
+				),
 			};
 		case 'private':
 			return {
 				canWrite: false,
 				description: __(
-					'Posts only you and other people who run the site can read show here.'
+					'Posts only you and other people who run the site can read show here.',
+					'create-not-learn-editor'
 				),
-				title: __( 'No private posts' ),
+				title: __( 'No private posts', 'create-not-learn-editor' ),
 			};
 		case 'trash':
 			return {
 				canWrite: false,
 				description: __(
-					'Posts you move to the trash wait here, in case you want them back.'
+					'Posts you move to the trash wait here, in case you want them back.',
+					'create-not-learn-editor'
 				),
-				title: __( 'The trash is empty' ),
+				title: __( 'The trash is empty', 'create-not-learn-editor' ),
 			};
 		default:
 			return {
 				canWrite: true,
 				description: __(
-					'Write your first post and it will show here.'
+					'Write your first post and it will show here.',
+					'create-not-learn-editor'
 				),
-				title: __( 'No posts yet' ),
+				title: __( 'No posts yet', 'create-not-learn-editor' ),
 			};
 	}
 }

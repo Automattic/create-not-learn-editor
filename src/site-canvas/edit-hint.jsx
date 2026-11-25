@@ -272,11 +272,15 @@ function Spotlight( { anchor, onClose } ) {
 						className="cnl-edit-hint__title"
 						id="cnl-edit-hint-title"
 					>
-						{ __( 'Want to change something?' ) }
+						{ __(
+							'Want to change something?',
+							'create-not-learn-editor'
+						) }
 					</h2>
 					<p className="cnl-edit-hint__text" id="cnl-edit-hint-text">
 						{ __(
-							'You’re looking around your site. Click Edit to change its words and pictures.'
+							'You’re looking around your site. Click Edit to change its words and pictures.',
+							'create-not-learn-editor'
 						) }
 					</p>
 					<Button
@@ -284,7 +288,7 @@ function Spotlight( { anchor, onClose } ) {
 						onClick={ onClose }
 						variant="secondary"
 					>
-						{ __( 'Got it' ) }
+						{ __( 'Got it', 'create-not-learn-editor' ) }
 					</Button>
 				</div>
 			</Popover>
@@ -343,7 +347,12 @@ export function EditHint( { anchorRef, frameDocument, isActive, onEdit } ) {
 				// Said once on each page, as the pulse can't be seen.
 				if ( ! hasSpokenRef.current ) {
 					hasSpokenRef.current = true;
-					speak( __( 'To change this page, use the Edit button.' ) );
+					speak(
+						__(
+							'To change this page, use the Edit button.',
+							'create-not-learn-editor'
+						)
+					);
 				}
 			}
 		};

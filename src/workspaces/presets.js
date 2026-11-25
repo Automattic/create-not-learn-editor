@@ -75,16 +75,20 @@ const DEFAULTS = {
 		copy: {},
 		adminLinks: [],
 		hint: __(
-			'Tip: follow links to look around your site, and press Edit to change the page you’re on. Zoom out while editing to add and arrange its sections.'
+			'Tip: follow links to look around your site, and press Edit to change the page you’re on. Zoom out while editing to add and arrange its sections.',
+			'create-not-learn-editor'
 		),
 		preview: 'home',
-		viewLabel: __( 'View site' ),
+		viewLabel: __( 'View site', 'create-not-learn-editor' ),
 		expectsHomepage: 'page',
 	},
 	posts: {
 		addLabel: null,
 		statusFilter: false,
-		description: __( 'Your blog posts, newest first.' ),
+		description: __(
+			'Your blog posts, newest first.',
+			'create-not-learn-editor'
+		),
 		layout: 'activity',
 	},
 	writeInFocus: false,
@@ -106,13 +110,13 @@ const DEFAULTS = {
 const PRESETS = [
 	{
 		id: 'simple',
-		label: __( 'Default' ),
+		label: __( 'Default', 'create-not-learn-editor' ),
 		icon: layout,
 	},
 	{
 		id: 'writing',
 		aliases: [ 'blogging' ],
-		label: __( 'Writing' ),
+		label: __( 'Writing', 'create-not-learn-editor' ),
 		icon: pencil,
 		home: {
 			// The homepage is the same place, and the same screen, as in
@@ -123,24 +127,31 @@ const PRESETS = [
 			// homepage, which usually just lists the posts.
 			places: [ 'write', 'posts', 'style', 'home' ],
 			copy: {
-				style: { description: __( 'Pick the look of your blog.' ) },
+				style: {
+					description: __(
+						'Pick the look of your blog.',
+						'create-not-learn-editor'
+					),
+				},
 			},
 			// Kept to two, most used first. Every other setting is one
 			// "All settings" link under them.
 			adminLinks: [ 'comments', 'categories' ],
 			hint: __(
-				'Tip: follow links on your blog to read it here as visitors do. Open a post to change it.'
+				'Tip: follow links on your blog to read it here as visitors do. Open a post to change it.',
+				'create-not-learn-editor'
 			),
 			preview: 'posts',
-			viewLabel: __( 'View blog' ),
+			viewLabel: __( 'View blog', 'create-not-learn-editor' ),
 			// Visitors to a blog come for the latest posts.
 			expectsHomepage: 'posts',
 		},
 		posts: {
-			addLabel: __( 'Write a post' ),
+			addLabel: __( 'Write a post', 'create-not-learn-editor' ),
 			statusFilter: true,
 			description: __(
-				'Everything you’ve written. Pick up a draft, or change something you’ve published.'
+				'Everything you’ve written. Pick up a draft, or change something you’ve published.',
+				'create-not-learn-editor'
 			),
 		},
 		writeInFocus: true,
@@ -149,7 +160,7 @@ const PRESETS = [
 	},
 	{
 		id: 'selling',
-		label: __( 'Selling' ),
+		label: __( 'Selling', 'create-not-learn-editor' ),
 		icon: store,
 		isAvailable: () => !! settings.shop,
 		// The shop first on Home. The rest is as Default has it, so the site
@@ -167,7 +178,7 @@ const PRESETS = [
 	},
 	{
 		id: 'builder',
-		label: __( 'Builder' ),
+		label: __( 'Builder', 'create-not-learn-editor' ),
 		icon: tool,
 		// For agencies, in-house developers and theme authors, who know what
 		// they've come to change: Home goes straight to the site editor's
@@ -182,8 +193,11 @@ const PRESETS = [
 			],
 			copy: {
 				pages: {
-					description: __( 'Add and edit pages.' ),
-					title: __( 'Pages' ),
+					description: __(
+						'Add and edit pages.',
+						'create-not-learn-editor'
+					),
+					title: __( 'Pages', 'create-not-learn-editor' ),
 				},
 			},
 			hint: null,
@@ -194,7 +208,7 @@ const PRESETS = [
 	},
 	{
 		id: 'agent',
-		label: __( 'Agent' ),
+		label: __( 'Agent', 'create-not-learn-editor' ),
 		icon: sparkleIcon,
 		// The site canvas is the point, so it gets the room:
 		// `src/styles/_stage.scss` hides the stage wherever a screen has a

@@ -41,8 +41,14 @@ import {
 import { usePreviewBlocks } from './preview-blocks';
 
 const NO_LAYOUTS = {
-	footer: __( 'Your theme doesn’t offer any layouts for its footer.' ),
-	header: __( 'Your theme doesn’t offer any layouts for its header.' ),
+	footer: __(
+		'Your theme doesn’t offer any layouts for its footer.',
+		'create-not-learn-editor'
+	),
+	header: __(
+		'Your theme doesn’t offer any layouts for its header.',
+		'create-not-learn-editor'
+	),
 };
 
 function LayoutCard( { isCurrent, onSelect, pattern, Preview } ) {
@@ -53,9 +59,7 @@ function LayoutCard( { isCurrent, onSelect, pattern, Preview } ) {
 		<li>
 			<button
 				aria-pressed={ isCurrent }
-				className={ `cnl-site-part__layout${
-					isCurrent ? ' is-current' : ''
-				}` }
+				className={ `cnl-site-part__layout${ isCurrent ? ' is-current' : '' }` }
 				onClick={ () => ! isCurrent && onSelect( pattern ) }
 				type="button"
 			>
@@ -69,7 +73,7 @@ function LayoutCard( { isCurrent, onSelect, pattern, Preview } ) {
 					{ isCurrent && (
 						<span className="cnl-site-part__layout-current">
 							<Icon icon={ checkIcon } size={ 16 } />
-							{ __( 'Current' ) }
+							{ __( 'Current', 'create-not-learn-editor' ) }
 						</span>
 					) }
 				</span>
@@ -149,7 +153,10 @@ export function SitePartLayouts( {
 	};
 
 	return (
-		<ul aria-label={ __( 'Layouts' ) } className="cnl-site-part__layouts">
+		<ul
+			aria-label={ __( 'Layouts', 'create-not-learn-editor' ) }
+			className="cnl-site-part__layouts"
+		>
 			{ orderedLayouts.map( ( pattern ) => (
 				<LayoutCard
 					isCurrent={ pattern.name === currentName }

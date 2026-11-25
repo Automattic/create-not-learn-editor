@@ -24,14 +24,14 @@ import { unlock } from '../lock-unlock';
  * Named as the editor names them, so a change reads as the place it was made.
  */
 const SITE_SETTING_LABELS = {
-	title: __( 'Site name' ),
-	description: __( 'Tagline' ),
-	site_logo: __( 'Logo' ),
-	site_icon: __( 'Browser icon' ),
-	show_on_front: __( 'Your homepage' ),
-	page_on_front: __( 'Your homepage' ),
-	page_for_posts: __( 'Blog page' ),
-	posts_per_page: __( 'Posts shown at once' ),
+	title: __( 'Site name', 'create-not-learn-editor' ),
+	description: __( 'Tagline', 'create-not-learn-editor' ),
+	site_logo: __( 'Logo', 'create-not-learn-editor' ),
+	site_icon: __( 'Browser icon', 'create-not-learn-editor' ),
+	show_on_front: __( 'Your homepage', 'create-not-learn-editor' ),
+	page_on_front: __( 'Your homepage', 'create-not-learn-editor' ),
+	page_for_posts: __( 'Blog page', 'create-not-learn-editor' ),
+	posts_per_page: __( 'Posts shown at once', 'create-not-learn-editor' ),
 };
 
 /*
@@ -44,13 +44,19 @@ const HOMEPAGE_SETTINGS = [
 	'page_for_posts',
 ];
 
+const HOMEPAGE_CHANGE = {
+	kind: 'root',
+	name: 'site',
+	property: 'show_on_front',
+};
+
 const TYPE_LABELS = {
-	'postType/page': __( 'Page' ),
-	'postType/post': __( 'Post' ),
-	'postType/wp_navigation': __( 'Menu' ),
-	'postType/wp_template': __( 'Layout' ),
-	'postType/wp_template_part': __( 'Site part' ),
-	'postType/wp_block': __( 'Section' ),
+	'postType/page': __( 'Page', 'create-not-learn-editor' ),
+	'postType/post': __( 'Post', 'create-not-learn-editor' ),
+	'postType/wp_navigation': __( 'Menu', 'create-not-learn-editor' ),
+	'postType/wp_template': __( 'Layout', 'create-not-learn-editor' ),
+	'postType/wp_template_part': __( 'Site part', 'create-not-learn-editor' ),
+	'postType/wp_block': __( 'Section', 'create-not-learn-editor' ),
 };
 
 /*
@@ -75,7 +81,7 @@ function isSiteWideChange( { kind, name, property } ) {
 
 function describeHomepage( site, getPageTitle ) {
 	if ( site?.show_on_front !== 'page' ) {
-		return __( 'Shows your latest posts' );
+		return __( 'Shows your latest posts', 'create-not-learn-editor' );
 	}
 
 	const title = getPageTitle( site?.page_on_front );
@@ -83,33 +89,36 @@ function describeHomepage( site, getPageTitle ) {
 	return title
 		? sprintf(
 				/* translators: %s: page title. */
-				__( 'Shows “%s”' ),
+				__( 'Shows “%s”', 'create-not-learn-editor' ),
 				title
 			)
-		: __( 'Shows a page' );
+		: __( 'Shows a page', 'create-not-learn-editor' );
 }
 
 function describeSiteSetting( property, value, { site, getPageTitle } ) {
-	let detail = __( 'Site setting' );
+	let detail = __( 'Site setting', 'create-not-learn-editor' );
 
 	if ( property === 'title' || property === 'description' ) {
 		detail = value
 			? sprintf(
 					/* translators: %s: The new value of a site setting. */
-					__( 'Changed to “%s”' ),
+					__( 'Changed to “%s”', 'create-not-learn-editor' ),
 					value
 				)
-			: __( 'Left empty' );
+			: __( 'Left empty', 'create-not-learn-editor' );
 	} else if ( property === 'site_logo' || property === 'site_icon' ) {
-		detail = value ? __( 'New image' ) : __( 'Image removed' );
+		detail = value
+			? __( 'New image', 'create-not-learn-editor' )
+			: __( 'Image removed', 'create-not-learn-editor' );
 	} else if ( property === 'show_on_front' || property === 'page_on_front' ) {
 		detail = describeHomepage( site, getPageTitle );
 	} else if ( property === 'page_for_posts' ) {
-		detail = getPageTitle( value ) || __( 'None' );
+		detail =
+			getPageTitle( value ) || __( 'None', 'create-not-learn-editor' );
 	} else if ( property === 'posts_per_page' ) {
 		detail = sprintf(
 			/* translators: %d: How many posts a listing shows at once. */
-			__( '%d at a time' ),
+			__( '%d at a time', 'create-not-learn-editor' ),
 			Number( value ) || 0
 		);
 	}
@@ -132,8 +141,11 @@ function describeChange( record, { site, getEntityConfig, getPageTitle } ) {
 
 	if ( kind === 'root' && name === 'globalStyles' ) {
 		return {
-			label: __( 'Site look' ),
-			detail: __( 'The colors, fonts, and spacing of your whole site' ),
+			label: __( 'Site look', 'create-not-learn-editor' ),
+			detail: __(
+				'The colors, fonts, and spacing of your whole site',
+				'create-not-learn-editor'
+			),
 		};
 	}
 
@@ -385,9 +397,29 @@ export function useChanges( { inEditSession = false } = {} ) {
 
 	const discardAll = () => discardRecords( changes );
 
-	// Core's own save, as its review uses: it saves site settings together
-	// and publishes menus, and reports success or failure in a snackbar.
-	const save = () => saveDirtyEntities( { dirtyEntityRecords } );
+	/*
+	 * Core's own save, as its review uses: it saves site settings together
+	 * and publishes menus, and reports success or failure in a snackbar.
+	 * Changes left out are skipped as core's review skips unticked ones, and
+	 * stay unsaved. Leaving out the homepage leaves out all three of its
+	 * settings, as it is listed and discarded as one.
+	 */
+	const save = ( leftOut = [] ) => {
+		const skipped = new Set( leftOut.map( getChangeId ) );
+
+		if ( skipped.has( getChangeId( HOMEPAGE_CHANGE ) ) ) {
+			HOMEPAGE_SETTINGS.forEach( ( property ) =>
+				skipped.add( getChangeId( { ...HOMEPAGE_CHANGE, property } ) )
+			);
+		}
+
+		saveDirtyEntities( {
+			dirtyEntityRecords,
+			entitiesToSkip: dirtyEntityRecords.filter( ( record ) =>
+				skipped.has( getChangeId( record ) )
+			),
+		} );
+	};
 
 	return { changes, isSaving, save, discard, discardAll };
 }

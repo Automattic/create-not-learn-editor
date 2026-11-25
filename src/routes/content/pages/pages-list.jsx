@@ -80,16 +80,23 @@ function ListSkeleton() {
  */
 function getOtherMenusDescription( otherMenuAreas ) {
 	if ( ! otherMenuAreas.length ) {
-		return __( 'Add a menu for your footer, or anywhere else.' );
+		return __(
+			'Add a menu for your footer, or anywhere else.',
+			'create-not-learn-editor'
+		);
 	}
 
 	if ( otherMenuAreas.length === 1 && otherMenuAreas[ 0 ] === 'footer' ) {
 		return __(
-			'Your footer has a menu too. Change it, and any others, here.'
+			'Your footer has a menu too. Change it, and any others, here.',
+			'create-not-learn-editor'
 		);
 	}
 
-	return __( 'Your site has other menus too. Change them here.' );
+	return __(
+		'Your site has other menus too. Change them here.',
+		'create-not-learn-editor'
+	);
 }
 
 /**
@@ -179,14 +186,19 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 		return (
 			<EmptyState.Root className="cnl-pages-list__empty">
 				<EmptyState.Icon icon={ pageIcon } />
-				<EmptyState.Title>{ __( 'No pages yet' ) }</EmptyState.Title>
+				<EmptyState.Title>
+					{ __( 'No pages yet', 'create-not-learn-editor' ) }
+				</EmptyState.Title>
 				<EmptyState.Description>
-					{ __( 'Add your first page to start building your site.' ) }
+					{ __(
+						'Add your first page to start building your site.',
+						'create-not-learn-editor'
+					) }
 				</EmptyState.Description>
 				{ canCreate && (
 					<EmptyState.Actions>
 						<UiButton onClick={ () => onAddPage() }>
-							{ __( 'Add page' ) }
+							{ __( 'Add page', 'create-not-learn-editor' ) }
 						</UiButton>
 					</EmptyState.Actions>
 				) }
@@ -204,7 +216,8 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 					>
 						<UiNotice.Description>
 							{ __(
-								'Your menu is set by hand, so new pages aren’t added to it. Change what’s in it on the Menus screen.'
+								'Your menu is set by hand, so new pages aren’t added to it. Change what’s in it on the Menus screen.',
+								'create-not-learn-editor'
 							) }
 						</UiNotice.Description>
 						<UiNotice.Actions>
@@ -216,7 +229,7 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 								}
 								variant="outline"
 							>
-								{ __( 'Edit menu' ) }
+								{ __( 'Edit menu', 'create-not-learn-editor' ) }
 							</UiNotice.ActionButton>
 						</UiNotice.Actions>
 					</UiNotice.Root>
@@ -235,9 +248,12 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 				{ ! isMenuSetByHand && pageCount > SEARCH_THRESHOLD && (
 					<SearchControl
 						__nextHasNoMarginBottom
-						label={ __( 'Find a page' ) }
+						label={ __( 'Find a page', 'create-not-learn-editor' ) }
 						onChange={ setSearch }
-						placeholder={ __( 'Find a page' ) }
+						placeholder={ __(
+							'Find a page',
+							'create-not-learn-editor'
+						) }
 						value={ search }
 					/>
 				) }
@@ -257,16 +273,17 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 				) }
 			</div>
 			<ScreenLinks
-				label={ __( 'More options' ) }
+				label={ __( 'More options', 'create-not-learn-editor' ) }
 				links={ [
 					// Pages that are templates in WordPress, a step down.
 					{
 						description: __(
-							'Change pages your site makes for itself, like the 404 page.'
+							'Change pages your site makes for itself, like the 404 page.',
+							'create-not-learn-editor'
 						),
 						icon: pagesIcon,
 						search: { content: SYSTEM_PAGES_CONTENT },
-						title: __( 'System pages' ),
+						title: __( 'System pages', 'create-not-learn-editor' ),
 						to: LIST_PATH,
 					},
 					menuId && {
@@ -274,7 +291,10 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 							mainMenu.otherMenuAreas
 						),
 						icon: compassIcon,
-						title: __( 'Manage all menus' ),
+						title: __(
+							'Manage all menus',
+							'create-not-learn-editor'
+						),
 						to: '/navigation',
 					},
 				].filter( Boolean ) }

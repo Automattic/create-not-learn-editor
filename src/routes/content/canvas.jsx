@@ -31,7 +31,7 @@ function getCanvasLabel( {
 	if ( showTemplates ) {
 		return selectedTemplate
 			? getTemplateTitle( selectedTemplate )
-			: __( 'Template' );
+			: __( 'Template', 'create-not-learn-editor' );
 	}
 
 	return selectedPost
@@ -49,13 +49,13 @@ function getCanvasDescription( {
 		if ( selectedTemplate ) {
 			return (
 				selectedTemplate.description ||
-				__( 'Template preview placeholder.' )
+				__( 'Template preview placeholder.', 'create-not-learn-editor' )
 			);
 		}
 
 		return sprintf(
 			/* translators: %s: post type label. */
-			__( 'Select a template used by %s.' ),
+			__( 'Select a template used by %s.', 'create-not-learn-editor' ),
 			( type.label || type.name ).toLowerCase()
 		);
 	}
@@ -63,7 +63,10 @@ function getCanvasDescription( {
 	if ( selectedPost ) {
 		return sprintf(
 			/* translators: 1: post type label, 2: post status. */
-			__( '%1$s preview placeholder. Status: %2$s.' ),
+			__(
+				'%1$s preview placeholder. Status: %2$s.',
+				'create-not-learn-editor'
+			),
 			type.singular || type.label,
 			selectedPost.status
 		);
@@ -71,7 +74,10 @@ function getCanvasDescription( {
 
 	return sprintf(
 		/* translators: %s: post type label. */
-		__( 'Select %s from the list to populate this canvas.' ),
+		__(
+			'Select %s from the list to populate this canvas.',
+			'create-not-learn-editor'
+		),
 		( type.label || type.name ).toLowerCase()
 	);
 }
@@ -207,7 +213,8 @@ function ContentCanvas() {
 				<div>
 					<div className="cnl-editor-canvas__label">{ label }</div>
 					<div className="cnl-editor-canvas__status">
-						{ selectedPost?.status || __( 'Preview' ) }
+						{ selectedPost?.status ||
+							__( 'Preview', 'create-not-learn-editor' ) }
 					</div>
 				</div>
 				<div className="cnl-editor-canvas__actions">
@@ -218,7 +225,7 @@ function ContentCanvas() {
 							target="_blank"
 							variant="tertiary"
 						>
-							{ __( 'Open preview' ) }
+							{ __( 'Open preview', 'create-not-learn-editor' ) }
 						</Button>
 					) }
 					{ showTemplates && (
@@ -226,7 +233,10 @@ function ContentCanvas() {
 							onClick={ () => navigate( { to: '/templates' } ) }
 							variant="secondary"
 						>
-							{ __( 'See all layouts' ) }
+							{ __(
+								'See all layouts',
+								'create-not-learn-editor'
+							) }
 						</Button>
 					) }
 					{ showTemplates && selectedTemplate && (
@@ -241,7 +251,7 @@ function ContentCanvas() {
 							}
 							variant="primary"
 						>
-							{ __( 'Edit' ) }
+							{ __( 'Edit', 'create-not-learn-editor' ) }
 						</Button>
 					) }
 					{ ! showTemplates && selectedPost && (
@@ -253,7 +263,7 @@ function ContentCanvas() {
 							}
 							variant="primary"
 						>
-							{ __( 'Edit' ) }
+							{ __( 'Edit', 'create-not-learn-editor' ) }
 						</Button>
 					) }
 				</div>
@@ -276,7 +286,7 @@ function ContentCanvas() {
 						<div className="cnl-editor-canvas-placeholder__meta">
 							{ sprintf(
 								/* translators: %d: post ID. */
-								__( 'ID %d' ),
+								__( 'ID %d', 'create-not-learn-editor' ),
 								selectedPost.id
 							) }
 						</div>

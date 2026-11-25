@@ -12,7 +12,7 @@ export const route = {
 			throw notFound();
 		}
 	},
-	title: () => __( 'Edit template' ),
+	title: () => __( 'Edit template', 'create-not-learn-editor' ),
 	async canvas( { search } ) {
 		return {
 			postId: search.postId,

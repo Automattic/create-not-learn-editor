@@ -38,7 +38,10 @@ export const PAGES_QUERY = {
  * @return {string} Title, or a placeholder for an untitled page.
  */
 export function getPageTitle( page ) {
-	return getTitleText( page?.title ) || __( '(no title)' );
+	return (
+		getTitleText( page?.title ) ||
+		__( '(no title)', 'create-not-learn-editor' )
+	);
 }
 
 /**

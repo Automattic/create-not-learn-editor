@@ -1,6 +1,9 @@
 /**
- * Edit design, in the bar over the section: the bar's buttons give way to
- * the section's design choices, Layout, Colour, Width and More control, and
+ * A section's design choices, Layout, Colour and Width. In Edit each opens
+ * by itself in a popover under the section's toolbar
+ * (`SectionDesignOptions`, in `section-tool-popover.jsx`). Zoomed out in
+ * Compose, and on a header or footer, they are in a bar over it: the bar
+ * lists the choices first, with More control on a header or footer, and
  * picking one drills into its options in the same bar, Back leading out
  * again. Colours and widths
  * sit in the bar's row; layouts, each drawn with the section's own content,
@@ -13,7 +16,7 @@
  * Picking an option changes the section underneath at once, and that is it:
  * there is nothing to confirm. Back, Escape or a click anywhere else steps
  * out, the change kept, and undo takes it back like any other edit. More
- * control hands the section to core's own block tools.
+ * control hands a header or footer to core's own block tools.
  */
 
 /**
@@ -110,9 +113,9 @@ export const MAX_PER_SLIDE = 4;
  */
 function getViewLabels() {
 	return {
-		[ VIEW_LAYOUT ]: __( 'Layout' ),
-		[ VIEW_COLOR ]: __( 'Colour' ),
-		[ VIEW_WIDTH ]: __( 'Width' ),
+		[ VIEW_LAYOUT ]: __( 'Layout', 'create-not-learn-editor' ),
+		[ VIEW_COLOR ]: __( 'Colour', 'create-not-learn-editor' ),
+		[ VIEW_WIDTH ]: __( 'Width', 'create-not-learn-editor' ),
 	};
 }
 
@@ -163,7 +166,11 @@ function LayoutOptions( { current, onSelect, options } ) {
 
 	return (
 		<div
-			aria-roledescription={ hasMore ? __( 'carousel' ) : undefined }
+			aria-roledescription={
+				hasMore
+					? __( 'carousel', 'create-not-learn-editor' )
+					: undefined
+			}
 			className="cnl-section-modes__carousel"
 			role="group"
 			style={ {
@@ -177,7 +184,10 @@ function LayoutOptions( { current, onSelect, options } ) {
 						className="cnl-section-modes__carousel-arrow"
 						disabled={ shown === 0 }
 						icon={ isRTL() ? chevronRightIcon : chevronLeftIcon }
-						label={ __( 'Previous layout' ) }
+						label={ __(
+							'Previous layout',
+							'create-not-learn-editor'
+						) }
 						onClick={ () => setStart( shown - 1 ) }
 						size="compact"
 						tone="neutral"
@@ -216,7 +226,7 @@ function LayoutOptions( { current, onSelect, options } ) {
 						className="cnl-section-modes__carousel-arrow"
 						disabled={ shown === lastStart }
 						icon={ isRTL() ? chevronLeftIcon : chevronRightIcon }
-						label={ __( 'Next layout' ) }
+						label={ __( 'Next layout', 'create-not-learn-editor' ) }
 						onClick={ () => setStart( shown + 1 ) }
 						size="compact"
 						tone="neutral"
@@ -231,7 +241,10 @@ function LayoutOptions( { current, onSelect, options } ) {
 							aria-current={ index === shown }
 							aria-label={ sprintf(
 								/* translators: 1: first layout shown, 2: last layout shown, 3: number of layouts. */
-								__( 'Show layouts %1$d to %2$d of %3$d' ),
+								__(
+									'Show layouts %1$d to %2$d of %3$d',
+									'create-not-learn-editor'
+								),
 								index + 1,
 								index + visible,
 								options.length
@@ -254,9 +267,9 @@ function LayoutOptions( { current, onSelect, options } ) {
  */
 function getWidthLabel( width ) {
 	return {
-		[ WIDTH_NARROW ]: __( 'Narrow' ),
-		[ WIDTH_WIDE ]: __( 'Wide' ),
-		[ WIDTH_FULL ]: __( 'Full width' ),
+		[ WIDTH_NARROW ]: __( 'Narrow', 'create-not-learn-editor' ),
+		[ WIDTH_WIDE ]: __( 'Wide', 'create-not-learn-editor' ),
+		[ WIDTH_FULL ]: __( 'Full width', 'create-not-learn-editor' ),
 	}[ width ];
 }
 
@@ -276,7 +289,7 @@ const WIDTH_ICONS = {
 function WidthOptions( { width } ) {
 	return (
 		<div
-			aria-label={ __( 'Width' ) }
+			aria-label={ __( 'Width', 'create-not-learn-editor' ) }
 			className="cnl-section-modes__swatches"
 			role="group"
 		>
@@ -323,7 +336,7 @@ function ColorOptions( { colors, isCustomOpen, onCustom } ) {
 
 	return (
 		<div
-			aria-label={ __( 'Colour' ) }
+			aria-label={ __( 'Colour', 'create-not-learn-editor' ) }
 			className="cnl-section-modes__swatches"
 			role="group"
 		>
@@ -374,7 +387,7 @@ function ColorOptions( { colors, isCustomOpen, onCustom } ) {
 					aria-expanded={ isCustomOpen }
 					aria-pressed={ isCustom }
 					className="cnl-section-modes__swatch cnl-section-modes__custom"
-					label={ __( 'Custom' ) }
+					label={ __( 'Custom', 'create-not-learn-editor' ) }
 					onClick={ onCustom }
 					// No tooltip to repeat the name while it is on the button.
 					showTooltip={ isCustom }
@@ -395,7 +408,10 @@ function ColorOptions( { colors, isCustomOpen, onCustom } ) {
 							<>
 								<span className="cnl-section-modes__swatch-wheel" />
 								<span className="cnl-section-modes__swatch-custom-label">
-									{ __( 'Custom' ) }
+									{ __(
+										'Custom',
+										'create-not-learn-editor'
+									) }
 								</span>
 							</>
 						) }
@@ -447,29 +463,50 @@ function CustomColors( { colors } ) {
 	);
 	const textNote =
 		! isTextReadable &&
-		__( 'Text may be hard to read on this background.' );
+		__(
+			'Text may be hard to read on this background.',
+			'create-not-learn-editor'
+		);
 	const buttonNote =
 		( ! hasContrast(
 			resolved.button,
 			resolved.background,
 			MIN_BUTTON_CONTRAST
 		) &&
-			__( 'Buttons may not stand out from the background.' ) ) ||
+			__(
+				'Buttons may not stand out from the background.',
+				'create-not-learn-editor'
+			) ) ||
 		( ! hasContrast(
 			resolved.button,
 			resolveColor( getButtonTextValue( values, palette ), palette ),
 			MIN_TEXT_CONTRAST
 		) &&
-			__( 'Words on buttons may be hard to read in this colour.' ) );
+			__(
+				'Words on buttons may be hard to read in this colour.',
+				'create-not-learn-editor'
+			) );
 	const wells = [
-		{ key: 'background', label: __( 'Background' ), note: textNote },
-		{ key: 'text', label: __( 'Text' ), note: textNote },
-		{ key: 'button', label: __( 'Button' ), note: buttonNote },
+		{
+			key: 'background',
+			label: __( 'Background', 'create-not-learn-editor' ),
+			note: textNote,
+		},
+		{
+			key: 'text',
+			label: __( 'Text', 'create-not-learn-editor' ),
+			note: textNote,
+		},
+		{
+			key: 'button',
+			label: __( 'Button', 'create-not-learn-editor' ),
+			note: buttonNote,
+		},
 	];
 
 	return (
 		<div
-			aria-label={ __( 'Custom colours' ) }
+			aria-label={ __( 'Custom colours', 'create-not-learn-editor' ) }
 			className="cnl-section-modes__swatches"
 			role="group"
 		>
@@ -620,8 +657,9 @@ function useWidthChoice( clientId ) {
  *                                     or null to step back out.
  * @param {?Function} props.onClose    Leaves Edit design. Left out for an
  *                                     open header or footer, left with `end`.
- * @param {Function}  props.onFreeform Hands the section to core's own block
- *                                     tools.
+ * @param {?Function} props.onFreeform Hands a header or footer to core's own
+ *                                     block tools. Left out for a section,
+ *                                     whose blocks are open as they are.
  * @param {?Element}  props.end        What goes at the end of the choices,
  *                                     like an open header's Done editing. A
  *                                     choice drilled into has Back only.
@@ -646,7 +684,7 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 		<div
 			aria-label={ sprintf(
 				/* translators: %s: section name. */
-				__( '%s design' ),
+				__( '%s design', 'create-not-learn-editor' ),
 				title
 			) }
 			className="cnl-section-modes__design"
@@ -659,13 +697,16 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 					<Button
 						className="cnl-section-modes__bar-button"
 						icon={ isRTL() ? chevronRightIcon : chevronLeftIcon }
-						label={ __( 'Back to Edit design' ) }
+						label={ __(
+							'Back to Edit design',
+							'create-not-learn-editor'
+						) }
 						onClick={ () => onView( null ) }
 						showTooltip
 						size="compact"
 						tooltipPosition="bottom"
 					>
-						{ __( 'Back' ) }
+						{ __( 'Back', 'create-not-learn-editor' ) }
 					</Button>
 				) : (
 					<>
@@ -675,7 +716,10 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 								icon={
 									isRTL() ? chevronRightIcon : chevronLeftIcon
 								}
-								label={ __( 'Back' ) }
+								label={ __(
+									'Back',
+									'create-not-learn-editor'
+								) }
 								onClick={ onClose }
 								showTooltip
 								size="compact"
@@ -693,17 +737,23 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 								{ labels[ name ] }
 							</Button>
 						) ) }
-						<Button
-							className="cnl-section-modes__bar-button"
-							description={ __(
-								'Move, resize and restyle the blocks in this section'
-							) }
-							icon={ moreControlIcon }
-							onClick={ onFreeform }
-							size="compact"
-						>
-							{ __( 'More control' ) }
-						</Button>
+						{ onFreeform && (
+							<Button
+								className="cnl-section-modes__bar-button"
+								description={ __(
+									'Move, resize and restyle its blocks',
+									'create-not-learn-editor'
+								) }
+								icon={ moreControlIcon }
+								onClick={ onFreeform }
+								size="compact"
+							>
+								{ __(
+									'More control',
+									'create-not-learn-editor'
+								) }
+							</Button>
+						) }
 					</>
 				) }
 				{ isColorView && choices.colors && (
@@ -750,19 +800,36 @@ const DesignBarView = forwardRef( function UnforwardedDesignBarView(
 } );
 
 /**
- * A section's design choices.
+ * Which of a section's design choices it has something to choose for, for
+ * its toolbar's buttons.
  *
- * @param {Object}   props
- * @param {string}   props.clientId  The section.
- * @param {Function} props.onReplace Called with the block that takes the
- *                                   section's place when its layout changes.
- * @param {Object}   ref             Ref to the bar.
- * @return {Element} The bar.
+ * @param {?string} clientId The section.
+ * @return {string[]} `VIEW_LAYOUT`, `VIEW_COLOR` and `VIEW_WIDTH`, those of
+ *                    them it has.
  */
-const SectionDesignBar = forwardRef( function UnforwardedSectionDesignBar(
-	{ clientId, onReplace, ...props },
-	ref
-) {
+export function useSectionDesignViews( clientId ) {
+	const { colors, layouts } = useSectionVariations( clientId, {
+		allowCustom: true,
+	} );
+	const width = useWidthChoice( clientId );
+
+	return [
+		layouts && VIEW_LAYOUT,
+		colors && VIEW_COLOR,
+		width && VIEW_WIDTH,
+	].filter( Boolean );
+}
+
+/**
+ * A section's design choices, each `{ current, options, onSelect }` or null
+ * when there is nothing to choose.
+ *
+ * @param {string}   clientId  The section.
+ * @param {Function} onReplace Called with the block that takes the section's
+ *                             place when its layout changes.
+ * @return {Object} `{ colors, layouts, width }`.
+ */
+function useSectionChoices( clientId, onReplace ) {
 	const { replaceBlock } = useDispatch( blockEditorStore );
 	const updateColors = useUpdateColors();
 	const updateCustomColors = useUpdateCustomColors();
@@ -772,32 +839,101 @@ const SectionDesignBar = forwardRef( function UnforwardedSectionDesignBar(
 	);
 	const width = useWidthChoice( clientId );
 
+	return {
+		colors: withCustom(
+			colors,
+			choices,
+			( name ) => updateColors( [ block ], name, colors.options ),
+			( values ) => updateCustomColors( [ block ], values, choices )
+		),
+		layouts: layouts && {
+			...layouts,
+			onSelect: ( option ) => {
+				const next = cloneBlock( option.block );
+
+				replaceBlock( clientId, next );
+				onReplace( next );
+			},
+		},
+		width,
+	};
+}
+
+/**
+ * A section's design choices, in the bar.
+ *
+ * @param {Object}   props
+ * @param {string}   props.clientId  The section.
+ * @param {Function} props.onReplace See `useSectionChoices`.
+ * @param {Object}   ref             Ref to the bar.
+ * @return {Element} The bar.
+ */
+const SectionDesignBar = forwardRef( function UnforwardedSectionDesignBar(
+	{ clientId, onReplace, ...props },
+	ref
+) {
 	return (
 		<DesignBarView
 			{ ...props }
-			choices={ {
-				colors: withCustom(
-					colors,
-					choices,
-					( name ) => updateColors( [ block ], name, colors.options ),
-					( values ) =>
-						updateCustomColors( [ block ], values, choices )
-				),
-				layouts: layouts && {
-					...layouts,
-					onSelect: ( option ) => {
-						const next = cloneBlock( option.block );
-
-						replaceBlock( clientId, next );
-						onReplace( next );
-					},
-				},
-				width,
-			} }
+			choices={ useSectionChoices( clientId, onReplace ) }
 			ref={ ref }
 		/>
 	);
 } );
+
+/**
+ * One of a section's design choices by itself, for the popover under its
+ * toolbar: its layouts, its colours, with the custom ones under them once
+ * Custom is picked, or its widths.
+ *
+ * @param {Object}   props
+ * @param {string}   props.clientId  The section.
+ * @param {string}   props.view      `VIEW_LAYOUT`, `VIEW_COLOR` or
+ *                                   `VIEW_WIDTH`.
+ * @param {Function} props.onReplace See `useSectionChoices`.
+ * @return {?Element} The options.
+ */
+export function SectionDesignOptions( { clientId, view, onReplace } ) {
+	const { colors, layouts, width } = useSectionChoices( clientId, onReplace );
+	const [ isCustomOpen, setIsCustomOpen ] = useState( false );
+
+	if ( view === VIEW_LAYOUT && layouts ) {
+		return <LayoutOptions { ...layouts } />;
+	}
+
+	if ( view === VIEW_COLOR && colors ) {
+		return (
+			<>
+				<ColorOptions
+					colors={ {
+						...colors,
+						// Picking a colour closes the custom ones.
+						onSelect: ( name ) => {
+							colors.onSelect( name );
+							setIsCustomOpen( false );
+						},
+					} }
+					isCustomOpen={ isCustomOpen }
+					onCustom={
+						colors.custom &&
+						( () => setIsCustomOpen( ( isOpen ) => ! isOpen ) )
+					}
+				/>
+				{ isCustomOpen && colors.custom && (
+					<div className="cnl-section-modes__design-tray">
+						<CustomColors colors={ colors.custom } />
+					</div>
+				) }
+			</>
+		);
+	}
+
+	if ( view === VIEW_WIDTH && width ) {
+		return <WidthOptions width={ width } />;
+	}
+
+	return null;
+}
 
 /**
  * A header's or footer's design choices: its designs, as its layouts, and

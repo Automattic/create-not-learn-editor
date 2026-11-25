@@ -37,13 +37,13 @@ function getNavigationItemLabel( block ) {
 
 	switch ( getBlockName( block ) ) {
 		case 'core/home-link':
-			return __( 'Home' );
+			return __( 'Home', 'create-not-learn-editor' );
 		case 'core/navigation-submenu':
-			return __( 'Submenu' );
+			return __( 'Submenu', 'create-not-learn-editor' );
 		case 'core/navigation-link':
-			return __( 'Link' );
+			return __( 'Link', 'create-not-learn-editor' );
 		default:
-			return __( 'Menu item' );
+			return __( 'Menu item', 'create-not-learn-editor' );
 	}
 }
 
@@ -198,7 +198,7 @@ function getNavigationPageTitle( page ) {
 		return decodeEntities( title.replace( /<[^>]*>/g, '' ) ).trim();
 	}
 
-	return __( '(no title)' );
+	return __( '(no title)', 'create-not-learn-editor' );
 }
 
 function appendNavigationBlocksToContent( content, blocksToAppend ) {

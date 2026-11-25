@@ -45,14 +45,17 @@ export default function PageSelectModal( {
 		>
 			{ pages.length === 0 && (
 				<p>
-					{ __( 'There are no published pages available to add.' ) }
+					{ __(
+						'There are no published pages available to add.',
+						'create-not-learn-editor'
+					) }
 				</p>
 			) }
 			{ pages.length > 0 && (
 				<SelectControl
 					__next40pxDefaultSize
 					__nextHasNoMarginBottom
-					label={ __( 'Page' ) }
+					label={ __( 'Page', 'create-not-learn-editor' ) }
 					onChange={ setSelectedPageId }
 					options={ pages.map( ( page ) => ( {
 						label: getPageTitle( page ),
@@ -67,7 +70,7 @@ export default function PageSelectModal( {
 					onClick={ onClose }
 					variant="tertiary"
 				>
-					{ __( 'Cancel' ) }
+					{ __( 'Cancel', 'create-not-learn-editor' ) }
 				</Button>
 				<Button
 					disabled={ ! selectedPage || isSaving }
@@ -76,8 +79,8 @@ export default function PageSelectModal( {
 					variant="primary"
 				>
 					{ mode === 'submenu-page'
-						? __( 'Add submenu' )
-						: __( 'Add page' ) }
+						? __( 'Add submenu', 'create-not-learn-editor' )
+						: __( 'Add page', 'create-not-learn-editor' ) }
 				</Button>
 			</div>
 		</Modal>

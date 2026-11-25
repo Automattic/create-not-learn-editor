@@ -1,9 +1,11 @@
 /**
- * The controls Edit lays over a section: its name, the bar over it while it
- * is pointed at or picked, with Add, Edit design (or Edit content in
- * Compose, and Manage posts on a section listing posts) and its own moves,
- * or Edit header or Edit footer alone on a header or footer, and the small
- * bar on a section in Freeform. A layout item, like the page's title, is named
+ * The controls the layer puts over a section: its name, and the bar over it
+ * while it is pointed at or picked. In Edit a section has core's block
+ * toolbar for its tools, so its bar is Manage posts alone, on a section
+ * listing posts. A run of text, and any section in Compose, has Add, Edit
+ * design (or Edit content in Compose) and its own moves; a header or footer
+ * has Edit header or Edit footer alone, and the small bar while it is in
+ * Freeform. A layout item, like the page's title, is named
  * as part of its layout.
  */
 
@@ -101,19 +103,23 @@ export function getModes(
 			: [
 					{
 						description: __(
-							'Change the layout, colour and width'
+							'Change the layout, colour and width',
+							'create-not-learn-editor'
 						),
 						icon: designIcon,
-						label: __( 'Edit design' ),
+						label: __( 'Edit design', 'create-not-learn-editor' ),
 						mode: MODE_DESIGN,
 					},
 				];
 
 	if ( isComposing ) {
 		modes.push( {
-			description: __( 'Zoom in to change its words and pictures' ),
+			description: __(
+				'Zoom in to change its words and pictures',
+				'create-not-learn-editor'
+			),
 			icon: pencilIcon,
-			label: __( 'Edit content' ),
+			label: __( 'Edit content', 'create-not-learn-editor' ),
 			mode: MODE_ZOOM_IN,
 		} );
 	}
@@ -130,14 +136,14 @@ export function getModes(
  */
 export function getPartTitle( part ) {
 	if ( part.area === 'header' ) {
-		return __( 'Header' );
+		return __( 'Header', 'create-not-learn-editor' );
 	}
 
 	if ( part.area === 'footer' ) {
-		return __( 'Footer' );
+		return __( 'Footer', 'create-not-learn-editor' );
 	}
 
-	return part.title || __( 'Template part' );
+	return part.title || __( 'Template part', 'create-not-learn-editor' );
 }
 
 /**
@@ -149,7 +155,7 @@ export function getPartTitle( part ) {
 export function getPartModeLabel( title ) {
 	return sprintf(
 		/* translators: %s: template part name, like header, lowercase. */
-		__( 'Edit %s' ),
+		__( 'Edit %s', 'create-not-learn-editor' ),
 		title.toLowerCase()
 	);
 }
@@ -163,7 +169,10 @@ export function getPartModeLabel( title ) {
 export function getSitewideText( title ) {
 	return sprintf(
 		/* translators: %s: template part name, like header, lowercase. */
-		__( 'Changes to the %s show on every page of your site' ),
+		__(
+			'Changes to the %s show on every page of your site',
+			'create-not-learn-editor'
+		),
 		title.toLowerCase()
 	);
 }
@@ -217,14 +226,17 @@ export function SectionTab( {
 			<span className="cnl-section-modes__tab-title">{ title }</span>
 			{ isPart && (
 				<span className="cnl-section-modes__tab-note">
-					{ __( 'shown on every page' ) }
+					{ __( 'shown on every page', 'create-not-learn-editor' ) }
 				</span>
 			) }
 			{ layout && (
 				<span className="cnl-section-modes__tab-note">
 					{ sprintf(
 						/* translators: %s: layout name, like Standard. */
-						__( 'part of the %s layout' ),
+						__(
+							'part of the %s layout',
+							'create-not-learn-editor'
+						),
 						layout
 					) }
 				</span>
@@ -296,7 +308,7 @@ function AddMenu( { onAdd, onToggle, title } ) {
 				<MenuGroup
 					label={ sprintf(
 						/* translators: %s: section name. */
-						__( 'Add to %s' ),
+						__( 'Add to %s', 'create-not-learn-editor' ),
 						title
 					) }
 				>
@@ -326,7 +338,7 @@ function AddMenu( { onAdd, onToggle, title } ) {
 						onClick={ toggle }
 						size="compact"
 					>
-						{ __( 'Add' ) }
+						{ __( 'Add', 'create-not-learn-editor' ) }
 					</Button>
 				</div>
 			) }
@@ -339,6 +351,9 @@ function AddMenu( { onAdd, onToggle, title } ) {
  *
  * @param {Object}   props
  * @param {string}   props.title         The section's name.
+ * @param {boolean}  props.hasToolbar    Whether it has core's block toolbar
+ *                                       for its tools, which leaves the bar
+ *                                       Manage posts alone.
  * @param {boolean}  props.isPart        Whether it is the header or footer,
  *                                       which stay where they are.
  * @param {boolean}  props.isText        Whether it is a run of text in
@@ -370,6 +385,7 @@ function AddMenu( { onAdd, onToggle, title } ) {
  * @return {Element} The bar.
  */
 export function HoverBar( {
+	hasToolbar = false,
 	canMoveDown,
 	canMoveUp,
 	clientId,
@@ -390,17 +406,19 @@ export function HoverBar( {
 	style,
 	title,
 } ) {
-	const modes = getModes( isPart, title, isComposing, isText, isLayoutItem );
+	// With core's toolbar, the bar is left with Manage posts alone.
+	const modes = hasToolbar
+		? []
+		: getModes( isPart, title, isComposing, isText, isLayoutItem );
+	const hasOwnTools = ! isPart && ! isLayoutItem && ! hasToolbar;
 
 	return (
 		<div
-			className={ `cnl-section-modes__bar${
-				isNarrow ? ' is-narrow' : ''
-			}` }
+			className={ `cnl-section-modes__bar${ isNarrow ? ' is-narrow' : '' }` }
 			style={ style }
 		>
 			<div className="cnl-section-modes__bar-start">
-				{ ! isPart && ! isLayoutItem && ! isComposing && (
+				{ hasOwnTools && ! isComposing && (
 					<AddMenu
 						onAdd={ onAdd }
 						onToggle={ onMenuToggle }
@@ -414,7 +432,7 @@ export function HoverBar( {
 				<div
 					aria-label={ sprintf(
 						/* translators: %s: section name. */
-						__( 'Edit %s' ),
+						__( 'Edit %s', 'create-not-learn-editor' ),
 						title
 					) }
 					className="cnl-section-modes__group"
@@ -441,33 +459,48 @@ export function HoverBar( {
 				</div>
 			) }
 			<div className="cnl-section-modes__bar-end">
-				{ ! isPart && ! isLayoutItem && (
+				{ hasOwnTools && (
 					<div
-						aria-label={ __( 'Section' ) }
+						aria-label={ __(
+							'Section',
+							'create-not-learn-editor'
+						) }
 						className="cnl-section-modes__group"
 						role="group"
 					>
 						<BarButton
 							disabled={ ! canMoveUp }
 							icon={ arrowUpIcon }
-							label={ __( 'Move section up' ) }
+							label={ __(
+								'Move section up',
+								'create-not-learn-editor'
+							) }
 							onClick={ () => onMove( -1 ) }
 						/>
 						<BarButton
 							disabled={ ! canMoveDown }
 							icon={ arrowDownIcon }
-							label={ __( 'Move section down' ) }
+							label={ __(
+								'Move section down',
+								'create-not-learn-editor'
+							) }
 							onClick={ () => onMove( 1 ) }
 						/>
 						<BarButton
 							icon={ copyIcon }
-							label={ __( 'Duplicate section' ) }
+							label={ __(
+								'Duplicate section',
+								'create-not-learn-editor'
+							) }
 							onClick={ onDuplicate }
 						/>
 						<BarButton
 							className="is-delete"
 							icon={ trashIcon }
-							label={ __( 'Delete section' ) }
+							label={ __(
+								'Delete section',
+								'create-not-learn-editor'
+							) }
 							onClick={ onDelete }
 						/>
 					</div>
@@ -492,7 +525,7 @@ export function DoneButton( { onDone } ) {
 			size="compact"
 			variant="primary"
 		>
-			{ __( 'Done editing' ) }
+			{ __( 'Done editing', 'create-not-learn-editor' ) }
 		</Button>
 	);
 }
@@ -521,9 +554,7 @@ export const ModeBar = forwardRef( function UnforwardedModeBar(
 	return (
 		<div
 			aria-label={ label }
-			className={ `cnl-section-modes__mode-bar${
-				isSmall ? ' is-small' : ''
-			}` }
+			className={ `cnl-section-modes__mode-bar${ isSmall ? ' is-small' : '' }` }
 			ref={ ref }
 			role="group"
 			style={ style }
@@ -531,14 +562,17 @@ export const ModeBar = forwardRef( function UnforwardedModeBar(
 			{ removedCount > 0 && (
 				<Button
 					className="cnl-section-modes__text-button"
-					description={ __( 'Bring back removed items' ) }
+					description={ __(
+						'Bring back removed items',
+						'create-not-learn-editor'
+					) }
 					onClick={ onRestore }
 					size="compact"
 					variant="secondary"
 				>
 					{ sprintf(
 						/* translators: %d: number of items removed. */
-						__( 'Restore (%d)' ),
+						__( 'Restore (%d)', 'create-not-learn-editor' ),
 						removedCount
 					) }
 				</Button>

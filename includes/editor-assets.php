@@ -118,6 +118,8 @@ function cnl_editor_enqueue_full_page_assets( $routes, $menu_items ) {
 
 	wp_enqueue_media();
 
+	wp_add_inline_script( 'wp-i18n', cnl_editor_get_core_translation_fallback_script() );
+
 	cnl_editor_preload_data();
 	cnl_editor_register_boot_modules( $routes );
 	cnl_editor_enqueue_built_styles();
@@ -327,6 +329,7 @@ function cnl_editor_register_script_module_from_build( $id, $path ) {
 		$deps,
 		$asset['version'] ?? CNL_EDITOR_VERSION
 	);
+	cnl_editor_set_script_module_translations( $id );
 }
 
 /**

@@ -45,11 +45,14 @@ import {
  * filters attachments by; documents are its `application` type.
  */
 const MEDIA_TABS = [
-	{ label: __( 'All media' ), value: 'all' },
-	{ label: __( 'Images' ), value: 'image' },
-	{ label: __( 'Videos' ), value: 'video' },
-	{ label: __( 'Audio' ), value: 'audio' },
-	{ label: __( 'Documents' ), value: 'application' },
+	{ label: __( 'All media', 'create-not-learn-editor' ), value: 'all' },
+	{ label: __( 'Images', 'create-not-learn-editor' ), value: 'image' },
+	{ label: __( 'Videos', 'create-not-learn-editor' ), value: 'video' },
+	{ label: __( 'Audio', 'create-not-learn-editor' ), value: 'audio' },
+	{
+		label: __( 'Documents', 'create-not-learn-editor' ),
+		value: 'application',
+	},
 ];
 
 /*
@@ -105,9 +108,9 @@ const MEDIA_FIELDS = [
 		enableHiding: false,
 		getValue: ( { item } ) =>
 			decodeEntities( item.title?.raw || item.title?.rendered || '' ) ||
-			__( '(no title)' ),
+			__( '(no title)', 'create-not-learn-editor' ),
 		id: 'title',
-		label: __( 'Title' ),
+		label: __( 'Title', 'create-not-learn-editor' ),
 		type: 'text',
 	},
 	{ ...dateAddedField, filterBy: false },
@@ -173,7 +176,12 @@ function MediaDataViewsLayout() {
 		<div className="routes-pattern-list__dataviews">
 			<div className="routes-pattern-list__dataviews-toolbar">
 				<div className="routes-pattern-list__dataviews-toolbar-start">
-					<DataViews.Search label={ __( 'Search media' ) } />
+					<DataViews.Search
+						label={ __(
+							'Search media',
+							'create-not-learn-editor'
+						) }
+					/>
 				</div>
 				<div className="routes-pattern-list__dataviews-toolbar-end">
 					<DataViews.LayoutSwitcher />
@@ -241,7 +249,7 @@ export function MediaStage() {
 				callback: ( items ) => openMedia( items[ 0 ] ),
 				id: 'edit-media',
 				isPrimary: true,
-				label: __( 'Edit' ),
+				label: __( 'Edit', 'create-not-learn-editor' ),
 				supportsBulk: false,
 			},
 		],
@@ -278,7 +286,7 @@ export function MediaStage() {
 			onClick={ () => setUploadFiles( [] ) }
 			variant="primary"
 		>
-			{ __( 'Upload' ) }
+			{ __( 'Upload', 'create-not-learn-editor' ) }
 		</Button>
 	);
 	const empty = (
@@ -287,16 +295,18 @@ export function MediaStage() {
 				<EmptyState.Icon icon={ imageIcon } />
 				<EmptyState.Title>
 					{ view.search || activeTab !== 'all'
-						? __( 'Nothing found' )
-						: __( 'No media yet' ) }
+						? __( 'Nothing found', 'create-not-learn-editor' )
+						: __( 'No media yet', 'create-not-learn-editor' ) }
 				</EmptyState.Title>
 				<EmptyState.Description>
 					{ canAdd
 						? __(
-								'Upload photos, videos, or files, or drop them here.'
+								'Upload photos, videos, or files, or drop them here.',
+								'create-not-learn-editor'
 							)
 						: __(
-								'Photos, videos, and files will appear here once they are uploaded.'
+								'Photos, videos, and files will appear here once they are uploaded.',
+								'create-not-learn-editor'
 							) }
 				</EmptyState.Description>
 			</EmptyState.Root>
@@ -316,7 +326,10 @@ export function MediaStage() {
 		>
 			{ canAdd && (
 				<DropZone
-					label={ __( 'Drop files to upload them' ) }
+					label={ __(
+						'Drop files to upload them',
+						'create-not-learn-editor'
+					) }
 					onFilesDrop={ setUploadFiles }
 				/>
 			) }

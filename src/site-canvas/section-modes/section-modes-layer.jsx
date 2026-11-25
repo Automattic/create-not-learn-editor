@@ -2,9 +2,10 @@
  * Edit's section layer. A section is worked on a level at a time, a click
  * at a time:
  *
- * 1. A click anywhere on a section picks it: outlined, named, and with its
- *    bar of Add, Edit design and its moves, which stays while it is worked
- *    on.
+ * 1. A click anywhere on a section picks it: outlined, and its block
+ *    selected in core, so it has core's block toolbar as any block does,
+ *    with its moves, "+", Layout, Colour, Width, Layers, options and delete.
+ *    See `src/block-toolbar/section-controls.jsx`.
  * 2. A click on a row of cards in it, like three services side by side,
  *    opens the row: its tools to add a card, remove one and set how many
  *    sit in a row. A click on anything not in a row skips this step.
@@ -14,10 +15,13 @@
  * Escape steps back a level at a time. A double click goes straight to the
  * text. Only one section is worked on at a time.
  *
- * - Edit design turns the bar into the section's design choices, Layout,
- *   Colour, Width and More control, each drilled into in the same bar, and
- *   applied as soon as it is picked. More control is Freeform: core's own
- *   unlock, for core's full block tools, left with Done.
+ * - Layout, Colour and Width on the toolbar each open that choice's options
+ *   in a bar over the section, applied as soon as one is picked, Back
+ *   leading to the toolbar again. A section's blocks aren't locked, so there
+ *   is nothing to unlock: once reached, each has core's full tools.
+ * - A run of text has no block of its own to select, so it keeps the bar
+ *   over it, with Add and its moves, as do Compose's sections, with Edit
+ *   design and Edit content.
  * - A header or footer shows on every page, so its words aren't reached by
  *   clicking: until it is opened it is locked. Edit header or Edit
  *   footer, alone on its bar, opens it, in the spotlight, for its words and
@@ -71,7 +75,6 @@ import { useComposeStructure } from '../compose/use-compose-structure';
 import { afterZoomIn, whenZoomSettles } from '../compose/use-compose-zoom';
 import {
 	PART_CONTENT,
-	PART_FREEFORM,
 	setOpenPart,
 	setPickedSection as setSharedPickedSection,
 } from '../mode';
@@ -81,8 +84,7 @@ import { getBlockIndex } from '../writing-mode';
 import { EmptyPage } from './empty-page';
 import { useLayoutName } from './layout-items';
 import { RemoveControl } from './remove-control';
-import { getParentView } from './design-bar';
-import { LayoutScope, MODE_CONTENT, MODE_FREEFORM } from './section-chrome';
+import { LayoutScope, MODE_CONTENT } from './section-chrome';
 import { PostsNotice } from './posts-notice';
 import { usePostsSection } from './posts-section';
 import { getTargetOf, useCanvasHover } from './use-canvas-events';
@@ -112,6 +114,10 @@ import { HoverChrome } from './hover-chrome';
 import { PickedChrome } from './picked-chrome';
 import { DragChrome } from './drag-chrome';
 import { ActiveChrome } from './active-chrome';
+import { SectionToolbarParts } from './section-tools';
+import { useSectionToolbar } from './use-section-toolbar';
+import { useDesignMode } from './use-design-mode';
+import { useSectionToolbarPlace } from './use-section-toolbar-place';
 
 /**
  * @param {Object}   props
@@ -327,50 +333,13 @@ export function SectionModesLayer( {
 		);
 	};
 
-	// From Edit design's More control into Freeform, which Done, Escape or a
-	// click elsewhere leaves, as Edit content.
-	const enterFreeform = useCallback( () => {
-		const actions = unlock( registry.dispatch( blockEditorStore ) );
-		const { id } = activeRef.current;
-
-		actions.clearSelectedBlock();
-
-		// A header or footer opens completely, as a section does.
-		if ( partsById[ id ] ) {
-			setOpenPart( id, PART_FREEFORM );
-		}
-
-		actions.editContentOnlySection( id );
-		setActive( ( current ) => ( {
-			...current,
-			mode: MODE_FREEFORM,
-			view: null,
-		} ) );
-	}, [ partsById, registry ] );
-
-	// The design choice drilled into in Edit design's bar, or null for the
-	// choices. In an open header or footer, a block picked in it lets go,
-	// so its own tools, like a link's, don't sit over the choice.
-	const setDesignView = useCallback(
-		( view ) => {
-			if ( view && partsById[ activeRef.current?.id ] ) {
-				registry.dispatch( blockEditorStore ).clearSelectedBlock();
-			}
-
-			setActive( ( current ) => current && { ...current, view } );
-		},
-		[ partsById, registry ]
-	);
-
-	// Escape leaves the mode, or steps back from a design choice to the
-	// choices, in Edit design or an open header or footer.
-	const escapeMode = useCallback( () => {
-		if ( activeRef.current?.view ) {
-			setDesignView( getParentView( activeRef.current.view ) );
-		} else {
-			exitMode();
-		}
-	}, [ exitMode, setDesignView ] );
+	const { enterFreeform, escapeMode, setDesignView } = useDesignMode( {
+		activeRef,
+		exitMode,
+		partsById,
+		registry,
+		setActive,
+	} );
 
 	// One for both, so a section never lights up before its clicks are
 	// kept off the page.
@@ -447,6 +416,16 @@ export function SectionModesLayer( {
 
 	const activePart = active ? partsById[ active.id ] : null;
 
+	const { openTool, toolbarId, usesToolbar } = useSectionToolbar( {
+		active,
+		focusId,
+		isComposing,
+		isTextSection,
+		pickedSection,
+		registry,
+		sectionIds,
+	} );
+
 	useModeSync( {
 		active,
 		activePart,
@@ -463,11 +442,13 @@ export function SectionModesLayer( {
 		isTextSection,
 		parts,
 		passesOtherClicks,
+		pickedRef,
 		registry,
 		selectedId,
 		setActive,
 		setPickedSection,
 		targets,
+		usesToolbar,
 	} );
 
 	// In Edit content, a block of the section selected can be removed from
@@ -588,6 +569,14 @@ export function SectionModesLayer( {
 		() => mergeRunRects( blockRects, groupedSections ),
 		[ blockRects, groupedSections ]
 	);
+
+	useSectionToolbarPlace( {
+		clientId: toolbarId,
+		editorRef,
+		frame,
+		layerRef,
+		rects,
+	} );
 
 	const { moveBlocksToPosition } = useDispatch( blockEditorStore );
 
@@ -883,10 +872,12 @@ export function SectionModesLayer( {
 						pickedId={ pickedId }
 						rects={ rects }
 						shownHoverId={ shownHoverId }
+						usesToolbar={ usesToolbar }
 					/>
 					{ /* Under the section being edited, so another section
 					pointed at never covers its Done. */ }
 					<HoverChrome
+						usesToolbar={ usesToolbar }
 						active={ active }
 						addItem={ addItem }
 						deleteSection={ deleteSection }
@@ -1006,6 +997,12 @@ export function SectionModesLayer( {
 	return (
 		<>
 			{ layer }
+			<SectionToolbarParts
+				items={ items }
+				openTool={ openTool }
+				sectionId={ usesToolbar( sharedSectionId ) && sharedSectionId }
+				setPickedSection={ setPickedSection }
+			/>
 			{ hasSections && ! focusId && (
 				<CanvasOverview { ...overviewProps } />
 			) }

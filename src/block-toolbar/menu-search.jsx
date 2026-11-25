@@ -86,7 +86,10 @@ export function MenuSearch( { children } ) {
 		<>
 			<div className="cnl-menu-search">
 				<BaseMenu.Input
-					aria-label={ __( 'Search options' ) }
+					aria-label={ __(
+						'Search options',
+						'create-not-learn-editor'
+					) }
 					render={
 						<Input
 							size="compact"
@@ -100,7 +103,7 @@ export function MenuSearch( { children } ) {
 				/>
 			</div>
 			<BaseMenu.Empty className="cnl-menu-search__empty">
-				{ __( 'No options found.' ) }
+				{ __( 'No options found.', 'create-not-learn-editor' ) }
 			</BaseMenu.Empty>
 			<BaseMenu.List className="cnl-menu-search__list">
 				{ children }

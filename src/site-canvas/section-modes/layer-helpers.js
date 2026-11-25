@@ -151,7 +151,7 @@ export function getLayerTitle(
 	}
 
 	if ( isTextSection( clientId ) ) {
-		return __( 'Text' );
+		return __( 'Text', 'create-not-learn-editor' );
 	}
 
 	if ( layoutItemsById[ clientId ] ) {
@@ -163,5 +163,7 @@ export function getLayerTitle(
 
 	const block = registry.select( blockEditorStore ).getBlock( clientId );
 
-	return block ? getCachedSectionTitle( block ) : __( 'Section' );
+	return block
+		? getCachedSectionTitle( block )
+		: __( 'Section', 'create-not-learn-editor' );
 }

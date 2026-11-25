@@ -41,7 +41,7 @@ export function NavigationSitePreviewNotice( { onChooseLocation } ) {
 		<Notice
 			actions={ [
 				{
-					label: __( 'Choose location' ),
+					label: __( 'Choose location', 'create-not-learn-editor' ),
 					onClick: onChooseLocation,
 					variant: 'link',
 				},
@@ -51,7 +51,8 @@ export function NavigationSitePreviewNotice( { onChooseLocation } ) {
 			status="warning"
 		>
 			{ __(
-				'This menu is not shown anywhere on your site yet, so it does not appear in the preview.'
+				'This menu is not shown anywhere on your site yet, so it does not appear in the preview.',
+				'create-not-learn-editor'
 			) }
 		</Notice>
 	);

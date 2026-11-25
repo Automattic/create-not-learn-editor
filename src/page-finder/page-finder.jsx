@@ -67,9 +67,9 @@ const ROLE_POSTS = 'posts';
 function getRoleLabel( role ) {
 	switch ( role ) {
 		case ROLE_HOMEPAGE:
-			return __( 'Homepage' );
+			return __( 'Homepage', 'create-not-learn-editor' );
 		case ROLE_POSTS:
-			return __( 'Latest posts' );
+			return __( 'Latest posts', 'create-not-learn-editor' );
 		default:
 			return '';
 	}
@@ -79,13 +79,13 @@ function getStatusLabel( status ) {
 	switch ( status ) {
 		case 'draft':
 		case 'auto-draft':
-			return __( 'Draft' );
+			return __( 'Draft', 'create-not-learn-editor' );
 		case 'future':
-			return __( 'Scheduled' );
+			return __( 'Scheduled', 'create-not-learn-editor' );
 		case 'pending':
-			return __( 'Pending review' );
+			return __( 'Pending review', 'create-not-learn-editor' );
 		case 'private':
-			return __( 'Private' );
+			return __( 'Private', 'create-not-learn-editor' );
 		default:
 			return '';
 	}
@@ -152,7 +152,7 @@ function getPageTree( records ) {
 function getTitle( page ) {
 	return (
 		decodeEntities( page.title?.raw ?? page.title?.rendered ?? '' ) ||
-		__( '(no title)' )
+		__( '(no title)', 'create-not-learn-editor' )
 	);
 }
 
@@ -210,7 +210,9 @@ function usePageEntries() {
 			depth: 0,
 			role: ROLE_HOMEPAGE,
 			status: homepage?.status,
-			title: homepage ? titles.get( homepage.id ) : __( 'Latest posts' ),
+			title: homepage
+				? titles.get( homepage.id )
+				: __( 'Latest posts', 'create-not-learn-editor' ),
 		};
 		const toEntry = ( page, depth ) => ( {
 			id: page.id,
@@ -303,12 +305,12 @@ function PageFinderPanel( {
 		onActiveChange( activeIndex >= 0 ? optionId( activeIndex ) : '' );
 	} );
 
-	let heading = __( 'Main pages' );
+	let heading = __( 'Main pages', 'create-not-learn-editor' );
 
 	if ( term ) {
-		heading = __( 'Pages' );
+		heading = __( 'Pages', 'create-not-learn-editor' );
 	} else if ( isShowingAll ) {
-		heading = __( 'All pages' );
+		heading = __( 'All pages', 'create-not-learn-editor' );
 	}
 
 	// The button goes once clicked, so typing carries on in the field.
@@ -335,7 +337,7 @@ function PageFinderPanel( {
 
 	const pick = ( entry ) => {
 		onClose();
-		openPage( entry.id );
+		openPage( entry.id, { keepMode: true } );
 	};
 
 	keyDownRef.current = ( event ) => {
@@ -382,7 +384,7 @@ function PageFinderPanel( {
 							onClick={ toggleShowingAll }
 							type="button"
 						>
-							{ __( 'Show fewer' ) }
+							{ __( 'Show fewer', 'create-not-learn-editor' ) }
 						</button>
 					) }
 				</div>
@@ -425,7 +427,10 @@ function PageFinderPanel( {
 									<span className="cnl-page-finder__role">
 										{ sprintf(
 											/* translators: %s: What the page is, like Homepage. */
-											__( '(%s)' ),
+											__(
+												'(%s)',
+												'create-not-learn-editor'
+											),
 											getRoleLabel( entry.role )
 										) }
 									</span>
@@ -458,7 +463,8 @@ function PageFinderPanel( {
 							_n(
 								'Show all %d page',
 								'Show all %d pages',
-								all.length
+								all.length,
+								'create-not-learn-editor'
 							),
 							all.length
 						) }
@@ -467,8 +473,11 @@ function PageFinderPanel( {
 				{ ! shown.length && (
 					<p className="cnl-page-finder__empty">
 						{ isLoading
-							? __( 'Loading pages…' )
-							: __( 'No pages found.' ) }
+							? __( 'Loading pages…', 'create-not-learn-editor' )
+							: __(
+									'No pages found.',
+									'create-not-learn-editor'
+								) }
 					</p>
 				) }
 			</div>
@@ -481,7 +490,7 @@ function PageFinderPanel( {
 					} }
 					type="button"
 				>
-					{ __( 'Add a page' ) }
+					{ __( 'Add a page', 'create-not-learn-editor' ) }
 					<Icon icon={ plus } />
 				</button>
 				<button
@@ -492,7 +501,7 @@ function PageFinderPanel( {
 					} }
 					type="button"
 				>
-					{ __( 'Manage pages' ) }
+					{ __( 'Manage pages', 'create-not-learn-editor' ) }
 					<Icon icon={ pagesIcon } />
 				</button>
 			</div>
@@ -611,7 +620,10 @@ export function PageFinder( {
 					aria-autocomplete="list"
 					aria-controls={ isOpen ? listId : undefined }
 					aria-expanded={ isOpen }
-					aria-label={ __( 'Find or go to any page' ) }
+					aria-label={ __(
+						'Find or go to any page',
+						'create-not-learn-editor'
+					) }
 					autoComplete="off"
 					className="cnl-page-finder__input"
 					onChange={ ( event ) => {

@@ -77,18 +77,21 @@ export function SaveControls() {
 	if ( hasChanges ) {
 		status = sprintf(
 			/* translators: %d: Number of changes waiting to be saved. */
-			_n( '%d unsaved change', '%d unsaved changes', changeCount ),
+			_n(
+				'%d unsaved change',
+				'%d unsaved changes',
+				changeCount,
+				'create-not-learn-editor'
+			),
 			changeCount
 		);
 	} else if ( hasSaved ) {
-		status = __( 'All changes saved' );
+		status = __( 'All changes saved', 'create-not-learn-editor' );
 	}
 
 	return (
 		<div
-			className={ `cnl-save-controls${
-				hasChanges ? ' has-changes' : ''
-			}` }
+			className={ `cnl-save-controls${ hasChanges ? ' has-changes' : '' }` }
 		>
 			<div className="cnl-save-controls__status" role="status">
 				{ status }
@@ -96,9 +99,7 @@ export function SaveControls() {
 			<Button
 				variant="primary"
 				size="compact"
-				className={ `cnl-save-controls__button${
-					isPulsing ? ' is-pulsing' : ''
-				}` }
+				className={ `cnl-save-controls__button${ isPulsing ? ' is-pulsing' : '' }` }
 				onAnimationEnd={ () => setIsPulsing( false ) }
 				onClick={ () => setIsReviewOpen( true ) }
 				disabled={ isSaving || ! hasChanges }
@@ -110,7 +111,9 @@ export function SaveControls() {
 				shortcut={ displayShortcut.primary( 's' ) }
 				aria-keyshortcuts={ rawShortcut.primary( 's' ) }
 			>
-				{ isSaving ? __( 'Saving…' ) : __( 'Save' ) }
+				{ isSaving
+					? __( 'Saving…', 'create-not-learn-editor' )
+					: __( 'Save', 'create-not-learn-editor' ) }
 			</Button>
 			{ isReviewOpen && (
 				<ReviewChanges onClose={ closeReview } inEditSession />

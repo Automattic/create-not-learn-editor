@@ -272,15 +272,23 @@ $save-pulse-color: color-mix(in srgb, var(--wp-admin-theme-color), #fff 40%);
 	min-width: 0;
 }
 
-.cnl-review-changes__label {
-	font-weight: var(--wpds-typography-font-weight-emphasis);
-}
+// Each change is a checkbox, its name the label and what it is the help
+// beneath, lined up under the name rather than under the box.
+.cnl-review-changes__text {
 
-.cnl-review-changes__detail {
-	overflow: hidden;
-	color: var(--wpds-color-foreground-content-neutral-weak);
-	white-space: nowrap;
-	text-overflow: ellipsis;
+	.components-checkbox-control__label {
+		font-weight: var(--wpds-typography-font-weight-emphasis);
+	}
+
+	.components-checkbox-control__help {
+		display: block;
+		overflow: hidden;
+		margin: 0;
+		padding-inline-start: 24px;
+		color: var(--wpds-color-foreground-content-neutral-weak);
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
 }
 
 .cnl-review-changes__group-count {

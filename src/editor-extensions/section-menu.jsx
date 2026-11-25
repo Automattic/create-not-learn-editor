@@ -121,7 +121,7 @@ function SectionMenuItems( { clientId } ) {
 							editSection();
 						} }
 					>
-						{ __( 'Edit section' ) }
+						{ __( 'Edit section', 'create-not-learn-editor' ) }
 					</MenuItem>
 					<MenuItem
 						onClick={ () => {
@@ -129,7 +129,7 @@ function SectionMenuItems( { clientId } ) {
 							addSection();
 						} }
 					>
-						{ __( 'Add section' ) }
+						{ __( 'Add section', 'create-not-learn-editor' ) }
 					</MenuItem>
 				</>
 			) }

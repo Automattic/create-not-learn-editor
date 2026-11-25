@@ -210,7 +210,7 @@ export function SectionDesignCard( { onPick, pattern, Preview, scrollRef } ) {
 			<button
 				aria-label={ sprintf(
 					/* translators: %s: section design name. */
-					__( 'Add %s' ),
+					__( 'Add %s', 'create-not-learn-editor' ),
 					title
 				) }
 				className="cnl-design-picker__card cnl-section-picker__card"
@@ -246,7 +246,7 @@ export function SectionDesignCard( { onPick, pattern, Preview, scrollRef } ) {
 						className="cnl-design-picker__action cnl-section-picker__add"
 					>
 						<Icon icon={ plusIcon } size={ 16 } />
-						{ __( 'Add' ) }
+						{ __( 'Add', 'create-not-learn-editor' ) }
 					</span>
 				</span>
 			</button>
@@ -322,34 +322,39 @@ function StartOption( { description, icon, isPressed, label, onClick } ) {
 function StartOptions( { hasTemplates, mode, onModeChange, onStartBlank } ) {
 	return (
 		<ul
-			aria-label={ __( 'How to start' ) }
+			aria-label={ __( 'How to start', 'create-not-learn-editor' ) }
 			className="cnl-section-picker__starts"
 			role="list"
 		>
 			<StartOption
-				description={ __( 'Predesigned sections you can customize' ) }
+				description={ __(
+					'Predesigned sections you can customize',
+					'create-not-learn-editor'
+				) }
 				icon={ brushIcon }
 				isPressed={ mode === DESIGNS_MODE }
-				label={ __( 'Designs' ) }
+				label={ __( 'Designs', 'create-not-learn-editor' ) }
 				onClick={ () => onModeChange( DESIGNS_MODE ) }
 			/>
 			{ hasTemplates && (
 				<StartOption
 					description={ __(
-						'Starting points to fill with your content'
+						'Starting points to fill with your content',
+						'create-not-learn-editor'
 					) }
 					icon={ layoutIcon }
 					isPressed={ mode === LAYOUTS_MODE }
-					label={ __( 'Templates' ) }
+					label={ __( 'Templates', 'create-not-learn-editor' ) }
 					onClick={ () => onModeChange( LAYOUTS_MODE ) }
 				/>
 			) }
 			<StartOption
 				description={ __(
-					'An empty section to build however you like'
+					'An empty section to build however you like',
+					'create-not-learn-editor'
 				) }
 				icon={ plusIcon }
-				label={ __( 'Start blank' ) }
+				label={ __( 'Start blank', 'create-not-learn-editor' ) }
 				onClick={ onStartBlank }
 			/>
 		</ul>
@@ -369,12 +374,22 @@ function getResultsLabel( count, search, isLayoutsMode ) {
 		return isLayoutsMode
 			? sprintf(
 					/* translators: %d: number of section templates. */
-					_n( '%d template', '%d templates', count ),
+					_n(
+						'%d template',
+						'%d templates',
+						count,
+						'create-not-learn-editor'
+					),
 					count
 				)
 			: sprintf(
 					/* translators: %d: number of section designs. */
-					_n( '%d design', '%d designs', count ),
+					_n(
+						'%d design',
+						'%d designs',
+						count,
+						'create-not-learn-editor'
+					),
 					count
 				);
 	}
@@ -382,12 +397,12 @@ function getResultsLabel( count, search, isLayoutsMode ) {
 	return isLayoutsMode
 		? sprintf(
 				/* translators: %s: what was searched for. */
-				__( 'No templates match “%s”' ),
+				__( 'No templates match “%s”', 'create-not-learn-editor' ),
 				search.trim()
 			)
 		: sprintf(
 				/* translators: %s: what was searched for. */
-				__( 'No designs match “%s”' ),
+				__( 'No designs match “%s”', 'create-not-learn-editor' ),
 				search.trim()
 			);
 }
@@ -620,8 +635,14 @@ export function SectionPicker( {
 						variant="link"
 					>
 						{ isLayoutsMode
-							? __( 'Search designs instead' )
-							: __( 'Search templates instead' ) }
+							? __(
+									'Search designs instead',
+									'create-not-learn-editor'
+								)
+							: __(
+									'Search templates instead',
+									'create-not-learn-editor'
+								) }
 					</Button>
 				) }
 				{ results.length > 0 && (
@@ -638,7 +659,8 @@ export function SectionPicker( {
 		body = (
 			<Text className="cnl-design-picker__empty" variant="body-md">
 				{ __(
-					'Your theme has no section designs to offer, so start blank.'
+					'Your theme has no section designs to offer, so start blank.',
+					'create-not-learn-editor'
 				) }
 			</Text>
 		);
@@ -672,18 +694,21 @@ export function SectionPicker( {
 					hideLabelFromVision
 					isBlock={ false }
 					key="per-row"
-					label={ __( 'Designs per row' ) }
+					label={ __( 'Designs per row', 'create-not-learn-editor' ) }
 					onChange={ ( value ) => setPerRow( Number( value ) ) }
 					value={ String( perRow ) }
 				>
 					<ToggleGroupControlOptionIcon
 						icon={ <GridShapeIcon columns={ 3 } rows={ 2 } /> }
-						label={ __( 'Three per row' ) }
+						label={ __(
+							'Three per row',
+							'create-not-learn-editor'
+						) }
 						value="3"
 					/>
 					<ToggleGroupControlOptionIcon
 						icon={ <GridShapeIcon columns={ 2 } rows={ 2 } /> }
-						label={ __( 'Two per row' ) }
+						label={ __( 'Two per row', 'create-not-learn-editor' ) }
 						value="2"
 					/>
 				</ToggleGroupControl>,
@@ -692,14 +717,23 @@ export function SectionPicker( {
 					key="search"
 					label={
 						isLayoutsMode
-							? __( 'Search section templates' )
-							: __( 'Search section designs' )
+							? __(
+									'Search section templates',
+									'create-not-learn-editor'
+								)
+							: __(
+									'Search section designs',
+									'create-not-learn-editor'
+								)
 					}
 					onChange={ setSearch }
 					placeholder={
 						isLayoutsMode
-							? __( 'Search templates…' )
-							: __( 'Search designs…' )
+							? __(
+									'Search templates…',
+									'create-not-learn-editor'
+								)
+							: __( 'Search designs…', 'create-not-learn-editor' )
 					}
 					value={ search }
 				/>,
@@ -715,15 +749,21 @@ export function SectionPicker( {
 						label: group.label,
 						value: group.name,
 					} ) ) }
-					label={ __( 'Kinds of section' ) }
+					label={ __(
+						'Kinds of section',
+						'create-not-learn-editor'
+					) }
 					onSelect={ jumpTo }
 				/>
 			}
 			onClose={ onClose }
-			subtitle={ [ __( 'Choose how to start.' ), placement ]
+			subtitle={ [
+				__( 'Choose how to start.', 'create-not-learn-editor' ),
+				placement,
+			]
 				.filter( Boolean )
 				.join( ' ' ) }
-			title={ __( 'Add a section' ) }
+			title={ __( 'Add a section', 'create-not-learn-editor' ) }
 		>
 			<StartOptions
 				hasTemplates={ hasLayouts }

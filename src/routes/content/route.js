@@ -14,7 +14,11 @@ export const route = {
 	},
 	title: ( { params } ) => {
 		const type = getPostType( params.type );
-		return type?.menuName || type?.label || __( 'Content' );
+		return (
+			type?.menuName ||
+			type?.label ||
+			__( 'Content', 'create-not-learn-editor' )
+		);
 	},
 	async canvas( { params, search } ) {
 		// A Layouts tab shows the layout picked there in a site canvas.

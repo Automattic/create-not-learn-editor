@@ -75,15 +75,15 @@ const DEFAULT_PATTERN_VIEW = {
 };
 const PATTERN_TABS = [
 	{
-		label: __( 'All patterns' ),
+		label: __( 'All patterns', 'create-not-learn-editor' ),
 		value: 'all',
 	},
 	{
-		label: __( 'Saved by you' ),
+		label: __( 'Saved by you', 'create-not-learn-editor' ),
 		value: 'my-patterns',
 	},
 	{
-		label: __( 'From your theme' ),
+		label: __( 'From your theme', 'create-not-learn-editor' ),
 		value: 'registered',
 	},
 ];
@@ -95,24 +95,28 @@ function PatternCategoryChips( { chips, onChange, value } ) {
 
 	return (
 		<div
-			aria-label={ __( 'Kinds of pattern' ) }
+			aria-label={ __( 'Kinds of pattern', 'create-not-learn-editor' ) }
 			className="routes-pattern-list__categories"
 			role="group"
 		>
-			{ [ { label: __( 'Everything' ), value: 'all' }, ...chips ].map(
-				( chip ) => (
-					<Button
-						aria-pressed={ value === chip.value }
-						className="routes-pattern-list__category"
-						key={ chip.value }
-						onClick={ () => onChange( chip.value ) }
-						size="compact"
-						variant="secondary"
-					>
-						{ chip.label }
-					</Button>
-				)
-			) }
+			{ [
+				{
+					label: __( 'Everything', 'create-not-learn-editor' ),
+					value: 'all',
+				},
+				...chips,
+			].map( ( chip ) => (
+				<Button
+					aria-pressed={ value === chip.value }
+					className="routes-pattern-list__category"
+					key={ chip.value }
+					onClick={ () => onChange( chip.value ) }
+					size="compact"
+					variant="secondary"
+				>
+					{ chip.label }
+				</Button>
+			) ) }
 		</div>
 	);
 }
@@ -136,7 +140,7 @@ function getPatternFields( categoryMap ) {
 			enableHiding: false,
 			getValue: ( { item } ) => getPatternTitle( item ),
 			id: 'title',
-			label: __( 'Title' ),
+			label: __( 'Title', 'create-not-learn-editor' ),
 			render: ( { item } ) => (
 				<span className="cnl-editor-dataviews-title">
 					{ getPatternTitle( item ) }
@@ -149,10 +153,10 @@ function getPatternFields( categoryMap ) {
 			enableSorting: false,
 			getValue: ( { item } ) => getPatternDescription( item ),
 			id: 'description',
-			label: __( 'Description' ),
+			label: __( 'Description', 'create-not-learn-editor' ),
 			render: ( { item } ) =>
 				getPatternDescription( item ) ||
-				__( 'Reusable block pattern.' ),
+				__( 'Reusable block pattern.', 'create-not-learn-editor' ),
 			type: 'text',
 		},
 		{
@@ -161,20 +165,20 @@ function getPatternFields( categoryMap ) {
 			getValue: ( { item } ) =>
 				getPatternCategoryLabels( item, categoryMap ),
 			id: 'category',
-			label: __( 'Category' ),
+			label: __( 'Category', 'create-not-learn-editor' ),
 			type: 'text',
 		},
 		{
 			getValue: ( { item } ) =>
 				getPatternSyncStatusLabel( item.syncStatus ),
 			id: 'sync-status',
-			label: __( 'Sync status' ),
+			label: __( 'Sync status', 'create-not-learn-editor' ),
 			type: 'text',
 		},
 		{
 			getValue: ( { item } ) => getPatternTypeLabel( item.type ),
 			id: 'type',
-			label: __( 'Type' ),
+			label: __( 'Type', 'create-not-learn-editor' ),
 			type: 'text',
 		},
 		{
@@ -182,7 +186,7 @@ function getPatternFields( categoryMap ) {
 			enableSorting: false,
 			filterBy: false,
 			id: 'preview',
-			label: __( 'Preview' ),
+			label: __( 'Preview', 'create-not-learn-editor' ),
 			render: renderPatternPreview,
 			type: 'media',
 		},
@@ -209,7 +213,7 @@ function getPatternActions( navigate ) {
 			id: 'edit-pattern',
 			isEligible: canEditPattern,
 			isPrimary: true,
-			label: __( 'Edit' ),
+			label: __( 'Edit', 'create-not-learn-editor' ),
 			supportsBulk: false,
 		},
 	];
@@ -224,7 +228,9 @@ function CreatePatternModal( { isSaving, onClose, onCreate, saveError } ) {
 		event.preventDefault();
 
 		if ( ! canCreate ) {
-			setValidationError( __( 'Enter a pattern name.' ) );
+			setValidationError(
+				__( 'Enter a pattern name.', 'create-not-learn-editor' )
+			);
 			return;
 		}
 
@@ -243,7 +249,7 @@ function CreatePatternModal( { isSaving, onClose, onCreate, saveError } ) {
 					onClose();
 				}
 			} }
-			title={ __( 'Add a pattern' ) }
+			title={ __( 'Add a pattern', 'create-not-learn-editor' ) }
 		>
 			<form
 				className="routes-pattern-list__create-form"
@@ -252,27 +258,39 @@ function CreatePatternModal( { isSaving, onClose, onCreate, saveError } ) {
 				<InputControl
 					autoComplete="off"
 					disabled={ isSaving }
-					label={ __( 'Name' ) }
+					label={ __( 'Name', 'create-not-learn-editor' ) }
 					onValueChange={ ( value ) => {
 						setTitle( value );
 						setValidationError( '' );
 					} }
-					placeholder={ __( 'Customer reviews' ) }
+					placeholder={ __(
+						'Customer reviews',
+						'create-not-learn-editor'
+					) }
 					value={ title }
 				/>
 				<SelectControl
 					__next40pxDefaultSize
 					__nextHasNoMarginBottom
 					disabled={ isSaving }
-					label={ __( 'When you edit it later' ) }
+					label={ __(
+						'When you edit it later',
+						'create-not-learn-editor'
+					) }
 					onChange={ setSyncStatus }
 					options={ [
 						{
-							label: __( 'Update it everywhere it is used' ),
+							label: __(
+								'Update it everywhere it is used',
+								'create-not-learn-editor'
+							),
 							value: PATTERN_SYNC_STATUS.full,
 						},
 						{
-							label: __( 'Let each copy be changed on its own' ),
+							label: __(
+								'Let each copy be changed on its own',
+								'create-not-learn-editor'
+							),
 							value: PATTERN_SYNC_STATUS.unsynced,
 						},
 					] }
@@ -290,7 +308,7 @@ function CreatePatternModal( { isSaving, onClose, onCreate, saveError } ) {
 						onClick={ onClose }
 						variant="tertiary"
 					>
-						{ __( 'Cancel' ) }
+						{ __( 'Cancel', 'create-not-learn-editor' ) }
 					</Button>
 					<Button
 						__next40pxDefaultSize
@@ -299,7 +317,7 @@ function CreatePatternModal( { isSaving, onClose, onCreate, saveError } ) {
 						type="submit"
 						variant="primary"
 					>
-						{ __( 'Add' ) }
+						{ __( 'Add', 'create-not-learn-editor' ) }
 					</Button>
 				</div>
 			</form>
@@ -524,7 +542,9 @@ export function PatternsStage() {
 				'postType',
 				'wp_block',
 				record,
-				{ throwOnError: true }
+				{
+					throwOnError: true,
+				}
 			);
 
 			invalidateResolution?.( 'getEntityRecords', [
@@ -550,7 +570,7 @@ export function PatternsStage() {
 				onClick={ openCreateModal }
 				variant="primary"
 			>
-				{ __( 'Add pattern' ) }
+				{ __( 'Add pattern', 'create-not-learn-editor' ) }
 			</Button>
 		</div>
 	);
@@ -559,11 +579,12 @@ export function PatternsStage() {
 			<EmptyState.Root>
 				<EmptyState.Icon icon={ layoutIcon } />
 				<EmptyState.Title>
-					{ __( 'No patterns found' ) }
+					{ __( 'No patterns found', 'create-not-learn-editor' ) }
 				</EmptyState.Title>
 				<EmptyState.Description>
 					{ __(
-						'Patterns will appear here when the active theme or site defines reusable designs.'
+						'Patterns will appear here when the active theme or site defines reusable designs.',
+						'create-not-learn-editor'
 					) }
 				</EmptyState.Description>
 			</EmptyState.Root>
