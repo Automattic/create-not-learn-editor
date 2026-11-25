@@ -44,6 +44,8 @@ Browse and Edit show the same page, so people click words or pictures in Browse 
 
 - The first time, the rest of the editor goes dark round Edit, the admin bar included, and a popover beside it says that's where changes are made. Edit can still be clicked through the gap; Got it, Escape or a click on the dark closes it. Whether it has been shown is a user preference (`create-not-learn-editor` / `editHintShown`), so it is shown once per person, not per visit.
 - After that, the same click only pulses Edit. With reduced motion it is a still ring for a moment instead.
+- It keeps out of the way while a menu, popover, dialog or the page finder is open, judged as the press starts, since clicking the preview closes a popover before the click arrives.
+- For screen readers, the popover is a dialog named and described by its words, and takes focus. The pulse can't be seen, so the first one on each page also says "To change this page, use the Edit button." politely.
 - Only a click on a line of words (`caretPositionFromPoint`, so the space round words doesn't count) or a picture counts. A click in a link, button, form, menu, toggle or anything else that works on the site never does, so the site can be used as visitors use it.
 
 ## Document Overview

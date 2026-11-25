@@ -3,12 +3,14 @@
  * on its words or a picture. The first time, the rest of the editor goes dark
  * round Edit, with a popover saying that's where changes are made. After that
  * Edit only pulses. Links, menus, buttons and other controls are left to work
- * as they do on the site. See "Pointing at Edit" in this folder's README.
+ * as they do on the site, and nothing shows while a menu, popover, dialog or
+ * the page finder is open. See "Pointing at Edit" in this folder's README.
  */
 
 /**
  * WordPress dependencies
  */
+import { speak } from '@wordpress/a11y';
 import { store as preferencesStore } from '@wordpress/preferences';
 
 /**
@@ -32,6 +34,29 @@ const PREFERENCE_NAME = 'editHintShown';
 // Room between Edit and the edge of the light round it.
 const SPOTLIGHT_PADDING = 6;
 const PULSE_CLASS = 'is-pulsing';
+
+// Anything open over the editor, while which the hint keeps out of the way.
+const OPEN_SELECTOR = [
+	'.components-popover:not(.components-tooltip)',
+	'[role="menu"]',
+	'[role="dialog"]',
+	'[role="alertdialog"]',
+	'.cnl-page-switcher.is-finding',
+].join( ',' );
+
+/**
+ * @param {Document} doc The editor's document.
+ * @return {boolean} Whether a menu, popover, dialog or the page finder is
+ *                   open.
+ */
+function isSomethingOpen( doc ) {
+	// The admin bar's own menus are always in the page, and don't count.
+	return Array.from( doc.querySelectorAll( OPEN_SELECTOR ) ).some(
+		( element ) =>
+			! element.closest( '#wpadminbar' ) &&
+			element.getClientRects().length > 0
+	);
+}
 
 // Whatever works on the site as it is: following, opening, toggling or
 // typing. A click in any of these is never a reach to change the page.
@@ -236,6 +261,7 @@ function Spotlight( { anchor, onClose } ) {
 				placement="bottom-end"
 				role="dialog"
 				aria-labelledby="cnl-edit-hint-title"
+				aria-describedby="cnl-edit-hint-text"
 			>
 				<div className="cnl-edit-hint__content">
 					<h2
@@ -244,7 +270,7 @@ function Spotlight( { anchor, onClose } ) {
 					>
 						{ __( 'Want to change something?' ) }
 					</h2>
-					<p className="cnl-edit-hint__text">
+					<p className="cnl-edit-hint__text" id="cnl-edit-hint-text">
 						{ __(
 							'You’re looking around your site. Click Edit to change its words and pictures.'
 						) }
@@ -286,6 +312,7 @@ export function EditHint( { anchorRef, frameDocument, isActive } ) {
 	const [ isOpen, setIsOpen ] = useState( false );
 	// Read in the listener, so it isn't added again when these change.
 	const stateRef = useRef();
+	const hasSpokenRef = useRef( false );
 	stateRef.current = { hasShown, isOpen };
 
 	useEffect( () => {
@@ -293,8 +320,14 @@ export function EditHint( { anchorRef, frameDocument, isActive } ) {
 			return;
 		}
 
+		// Read as the press starts: clicking the preview moves focus out of
+		// an open popover, which closes it before the click arrives.
+		let wasSomethingOpen = false;
+		const onPointerDown = () => {
+			wasSomethingOpen = isSomethingOpen( document );
+		};
 		const onClick = ( event ) => {
-			if ( ! isEditIntent( event ) ) {
+			if ( ! isEditIntent( event ) || wasSomethingOpen ) {
 				return;
 			}
 
@@ -304,12 +337,27 @@ export function EditHint( { anchorRef, frameDocument, isActive } ) {
 				setIsOpen( true );
 			} else if ( ! stateRef.current.isOpen ) {
 				pulse( anchorRef.current );
+
+				// Said once on each page, as the pulse can't be seen.
+				if ( ! hasSpokenRef.current ) {
+					hasSpokenRef.current = true;
+					speak( __( 'To change this page, use the Edit button.' ) );
+				}
 			}
 		};
 
+		frameDocument.addEventListener( 'pointerdown', onPointerDown, true );
 		frameDocument.addEventListener( 'click', onClick );
 
-		return () => frameDocument.removeEventListener( 'click', onClick );
+		return () => {
+			frameDocument.removeEventListener(
+				'pointerdown',
+				onPointerDown,
+				true
+			);
+			frameDocument.removeEventListener( 'click', onClick );
+			hasSpokenRef.current = false;
+		};
 	}, [ anchorRef, frameDocument, isActive, set ] );
 
 	// Going into editing any way, or leaving the page, closes it.
