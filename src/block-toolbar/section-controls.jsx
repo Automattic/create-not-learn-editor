@@ -1,8 +1,10 @@
 /**
  * A section's own tools on core's toolbar, once the site canvas has picked
- * it and core has its block selected: Add, then its design choices, Layout,
- * Colour and Width, each only when it has something to choose. Each has its
- * icon and its name, and all but Add open under the toolbar. Layers, the
+ * it and core has its block selected: Add, then its design choices, Layout
+ * and Colour, each only when it has something to choose. Width is in its
+ * options menu (`options-menu.jsx`), as it is used less. Each has its
+ * icon and its name, and all but Add open under the toolbar. Last, Zoom
+ * out, an icon alone, goes to Compose to move the section. Layers, the
  * blocks inside it, opens from the section's name (`name-menu.js`).
  *
  * The canvas knows what a section can choose, and draws what each button
@@ -18,22 +20,26 @@
  */
 import { ToolbarButton } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { color, layout, stretchWide } from '@wordpress/icons';
+import { color, layout, square } from '@wordpress/icons';
 
 /**
  * Internal dependencies
  */
-import { toggleSectionTool, useSectionTool } from '../site-canvas/mode';
+import {
+	MODE_COMPOSE,
+	requestCanvasMode,
+	toggleSectionTool,
+	useSectionTool,
+} from '../site-canvas/mode';
 import { AddBlockButton } from './layout-menu';
 
 // The canvas's names for the choices, and their icons. See `design-bar.jsx`.
-const VIEW_ICONS = { layout, color, width: stretchWide };
+const VIEW_ICONS = { layout, color };
 
 function getViewLabels() {
 	return {
 		layout: __( 'Layout' ),
 		color: __( 'Colour' ),
-		width: __( 'Width' ),
 	};
 }
 
@@ -58,26 +64,37 @@ export function SectionControls( { clientId, title, views, isContainer } ) {
 					title={ title }
 				/>
 			) }
-			{ views.map( ( view ) => {
-				const isOpen =
-					open?.clientId === clientId && open.view === view;
+			{ views
+				.filter( ( view ) => view !== 'width' )
+				.map( ( view ) => {
+					const isOpen =
+						open?.clientId === clientId && open.view === view;
 
-				return (
-					<ToolbarButton
-						aria-expanded={ isOpen }
-						aria-haspopup="true"
-						className="cnl-section-tools__button"
-						// Where the canvas hangs the tool's popover.
-						data-cnl-section-tool={ view }
-						icon={ VIEW_ICONS[ view ] }
-						isPressed={ isOpen }
-						key={ view }
-						onClick={ () => toggleSectionTool( clientId, view ) }
-					>
-						{ labels[ view ] }
-					</ToolbarButton>
-				);
-			} ) }
+					return (
+						<ToolbarButton
+							aria-expanded={ isOpen }
+							aria-haspopup="true"
+							className="cnl-section-tools__button"
+							// Where the canvas hangs the tool's popover.
+							data-cnl-section-tool={ view }
+							icon={ VIEW_ICONS[ view ] }
+							isPressed={ isOpen }
+							key={ view }
+							onClick={ () =>
+								toggleSectionTool( clientId, view )
+							}
+						>
+							{ labels[ view ] }
+						</ToolbarButton>
+					);
+				} ) }
+			{ /* Sections are moved zoomed out, where the whole page shows.
+			     The same icon as the canvas's own Zoom out. */ }
+			<ToolbarButton
+				icon={ square }
+				label={ __( 'Zoom out to arrange sections' ) }
+				onClick={ () => requestCanvasMode( MODE_COMPOSE ) }
+			/>
 		</>
 	);
 }

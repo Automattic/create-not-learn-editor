@@ -87,6 +87,7 @@ import {
 } from './menu-search';
 import { toShortcut, useBlockShortcuts } from './shortcuts';
 import { ToolbarMenu, useLeaveFocus } from './toolbar-menu';
+import { toggleSectionTool } from '../site-canvas/mode';
 
 /**
  * Core's items that sit with Group rather than in More, as the design has
@@ -651,15 +652,18 @@ function getItemsKey( { first, controls, tools } ) {
 /**
  * The options menu, on the block's toolbar.
  *
- * @param {Object}   props
- * @param {string}   props.clientId         Block client ID.
- * @param {string}   props.name             Block name.
- * @param {Object}   props.attributes       Block attributes.
- * @param {Function} props.setAttributes    Block attribute setter.
- * @param {boolean}  props.isContainer      Whether the block has a Layout menu.
- * @param {?string}  props.title            A name for the block other than its type's, like Section.
- * @param {Function} props.readCoreItems    Reads core's menu items.
- * @param {Function} props.observeCoreItems Calls back when core's menu items may have changed.
+ * @param {Object}    props
+ * @param {string}    props.clientId         Block client ID.
+ * @param {string}    props.name             Block name.
+ * @param {Object}    props.attributes       Block attributes.
+ * @param {Function}  props.setAttributes    Block attribute setter.
+ * @param {boolean}   props.isContainer      Whether the block has a Layout menu.
+ * @param {?string}   props.title            A name for the block other than its type's, like Section.
+ * @param {?string[]} props.sectionViews     A section's design choices, when it is a section of the page.
+ *                                           Its toolbar has no Width or Delete buttons: the menu has
+ *                                           them instead.
+ * @param {Function}  props.readCoreItems    Reads core's menu items.
+ * @param {Function}  props.observeCoreItems Calls back when core's menu items may have changed.
  * @return {Element} The menu.
  */
 export function OptionsMenu( {
@@ -669,6 +673,7 @@ export function OptionsMenu( {
 	setAttributes,
 	isContainer,
 	title = null,
+	sectionViews = null,
 	readCoreItems,
 	observeCoreItems,
 } ) {
@@ -760,7 +765,7 @@ export function OptionsMenu( {
 		},
 		[ clientId, name ]
 	);
-	const { duplicateBlocks } = useDispatch( blockEditorStore );
+	const { duplicateBlocks, removeBlocks } = useDispatch( blockEditorStore );
 
 	const topLevelCoreItems = coreItems.controls.filter( ( item ) =>
 		TOP_LEVEL_CORE_ITEMS.has( item.label )
@@ -848,6 +853,28 @@ export function OptionsMenu( {
 						onClick={ () => duplicateBlocks( [ clientId ] ) }
 					>
 						<Menu.ItemLabel>{ __( 'Duplicate' ) }</Menu.ItemLabel>
+					</Menu.Item>
+				) }
+			</Menu.Group>
+		),
+		( sectionViews?.includes( 'width' ) ||
+			( sectionViews && canRemove ) ) && (
+			<Menu.Group key="section">
+				{ sectionViews.includes( 'width' ) && (
+					<Menu.Item
+						label={ __( 'Width' ) }
+						onClick={ () => toggleSectionTool( clientId, 'width' ) }
+					>
+						<Menu.ItemLabel>{ __( 'Width' ) }</Menu.ItemLabel>
+					</Menu.Item>
+				) }
+				{ canRemove && (
+					<Menu.Item
+						label={ __( 'Delete' ) }
+						shortcut={ shortcuts.remove }
+						onClick={ () => removeBlocks( [ clientId ], true ) }
+					>
+						<Menu.ItemLabel>{ __( 'Delete' ) }</Menu.ItemLabel>
 					</Menu.Item>
 				) }
 			</Menu.Group>

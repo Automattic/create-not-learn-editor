@@ -646,3 +646,10 @@ html.cnl-has-block-toolbar.cnl-block-name-is-label .components-popover .block-ed
 	margin-inline-end: -6px;
 	border-top: 1px solid currentcolor;
 }
+
+// A section of the page has no moves on its toolbar: a section is often
+// taller than the screen, so it is rearranged zoomed out, where the whole
+// page shows. Its toolbar's Zoom out goes there.
+html.cnl-has-block-toolbar.cnl-block-name-is-section .components-popover .block-editor-block-contextual-toolbar .block-editor-block-mover {
+	display: none;
+}
