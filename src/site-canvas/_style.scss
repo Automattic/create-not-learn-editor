@@ -163,6 +163,11 @@ body:not(.cnl-canvas-is-expanded) .cnl-site-canvas .cnl-save-controls {
 	.interface-interface-skeleton__secondary-sidebar:not(:has(.editor-list-view-sidebar)) {
 		display: none;
 	}
+
+	// The canvas toolbar's border already runs along its top.
+	.interface-interface-skeleton__secondary-sidebar {
+		border-top: 0;
+	}
 }
 
 /*

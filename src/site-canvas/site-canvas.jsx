@@ -207,10 +207,11 @@ export function SiteCanvas( {
 		>
 			<header className="cnl-editor-canvas__toolbar cnl-editor-homepage-toolbar">
 				<div className="cnl-editor-homepage-toolbar__left">
-					{ ! isPreviewing && <EditHistory /> }
+					{ /* First, above the panel it opens at the canvas's left. */ }
 					{ ! isPreviewing && editorEntity && (
 						<DocumentOverviewToggle />
 					) }
+					{ ! isPreviewing && <EditHistory /> }
 					{ isPreviewing && (
 						<PreviewHistory
 							history={ frame.history }

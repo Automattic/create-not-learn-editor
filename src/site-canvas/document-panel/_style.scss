@@ -56,8 +56,9 @@
 	min-width: 0;
 }
 
-.cnl-document-panel__tab {
-	gap: var(--wpds-dimension-gap-xs);
+// Room between the icon and the word, in the span the tab wraps them in.
+.cnl-document-panel__tab > span:first-child {
+	gap: var(--wpds-dimension-gap-sm);
 }
 
 .cnl-document-panel__panel {

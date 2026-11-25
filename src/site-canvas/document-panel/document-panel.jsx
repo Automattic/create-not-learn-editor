@@ -27,7 +27,7 @@ import {
 import { groupSections } from '../../routes/content/pages/page-sections';
 import { useHomepageState } from '../../routes/content/pages/homepage';
 import { closeDocumentOverview } from '../toolbar';
-import { documentInfoIcon, layersIcon } from '../icons';
+import { layersIcon } from '../icons';
 import {
 	DETAILS_TAB,
 	LAYERS_TAB,
@@ -42,6 +42,7 @@ import {
 	closeSmallIcon,
 	createPortal,
 	isRTL,
+	pageIcon,
 	Tabs,
 	Text,
 	useEffect,
@@ -231,7 +232,7 @@ function DocumentPanelContent( { tab, onChangeTab } ) {
 						className="cnl-document-panel__tab"
 						value={ DETAILS_TAB }
 					>
-						<Icon icon={ documentInfoIcon } size={ 20 } />
+						<Icon icon={ pageIcon } size={ 20 } />
 						{ __( 'Details', 'create-not-learn-editor' ) }
 					</Tabs.Tab>
 					<Tabs.Tab
