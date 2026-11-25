@@ -28,7 +28,9 @@ import { Icon } from '@wordpress/ui';
 /**
  * Internal dependencies
  */
+import { canOpen } from '../capabilities';
 import { PageFinder } from '../page-finder';
+import { PAGES_PATH } from '../page-finder/open-page';
 import { PageSettings } from './page-settings';
 import { getStatusLabel, POST_STATUS_ICONS } from '../post-status';
 import {
@@ -82,8 +84,10 @@ export function PageSwitcher( {
 	url = '',
 	pageId = 0,
 	shared = '',
-	canSwitch = true,
+	canSwitch: canSwitchHere = true,
 } ) {
+	// The finder opens pages on the Pages screen, so only for those who can.
+	const canSwitch = canSwitchHere && canOpen( PAGES_PATH );
 	const [ isFinding, setIsFinding ] = useState( false );
 	const toggleRef = useRef();
 	const shouldRefocus = useRef( false );

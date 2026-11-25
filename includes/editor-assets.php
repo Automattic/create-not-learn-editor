@@ -39,10 +39,15 @@ function cnl_editor_preload_data() {
 		 * `gutenberg_block_editor_preload_paths_7_1()` mirrors.
 		 */
 		'/?_fields=description,gmt_offset,home,image_max_bit_depth,image_sizes,image_size_threshold,image_strip_meta,name,site_icon,site_icon_url,site_logo,timezone_string,url,page_for_posts,page_on_front,show_on_front',
-		// The save controls read the site's settings on every screen.
-		'/wp/v2/settings',
 		array( '/wp/v2/settings', 'OPTIONS' ),
 	);
+
+	// The save controls read the site's settings on every screen. Only
+	// people who can change them can read them, and a refusal preloaded
+	// would be read as the settings.
+	if ( current_user_can( 'manage_options' ) ) {
+		array_splice( $preload_paths, 1, 0, array( '/wp/v2/settings' ) );
+	}
 
 	$preload_data = array_reduce(
 		$preload_paths,
@@ -523,6 +528,14 @@ function cnl_editor_get_module_map() {
 		array(
 			'id'   => 'create-not-learn-editor/routes/post-new/route',
 			'path' => 'routes/post-new/route.min',
+		),
+		array(
+			'id'   => 'create-not-learn-editor/routes/not-available/route',
+			'path' => 'routes/not-available/route.min',
+		),
+		array(
+			'id'   => 'create-not-learn-editor/routes/not-available/content',
+			'path' => 'routes/not-available/content.min',
 		),
 	);
 

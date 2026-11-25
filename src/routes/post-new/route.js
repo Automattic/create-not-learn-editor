@@ -12,8 +12,12 @@ export const route = {
 	beforeLoad: async ( { params, search } ) => {
 		const type = getPostType( params.type );
 
-		if ( ! type || ! type.blockEditor || ! type.canCreate ) {
+		if ( ! type || ! type.blockEditor ) {
 			throw notFound();
+		}
+
+		if ( ! type.canCreate ) {
+			throw redirect( { to: '/not-available' } );
 		}
 
 		const post = await dispatch( cnlEditorStore ).createAutoDraft(

@@ -24,6 +24,7 @@ import { store as preferencesStore } from '@wordpress/preferences';
  * Internal dependencies
  */
 import { sparkleIcon } from './icons';
+import { userCan } from '../capabilities';
 import { settings } from '../settings';
 
 export const PREFERENCES_SCOPE = 'create-not-learn-editor';
@@ -100,8 +101,9 @@ const DEFAULTS = {
  * `aliases` are ids the workspace was saved under before it was renamed, so
  * a saved preference still finds it.
  *
- * `isAvailable` says whether the site can use the workspace at all. One it
- * can't isn't offered, and is treated as the default if it was picked.
+ * `isAvailable` says whether the site, and the person using it, can use the
+ * workspace at all. One they can't isn't offered, and is treated as the
+ * default if it was picked.
  */
 const PRESETS = [
 	{
@@ -151,7 +153,8 @@ const PRESETS = [
 		id: 'selling',
 		label: __( 'Selling' ),
 		icon: store,
-		isAvailable: () => !! settings.shop,
+		// Only for sites with a shop, and people who can run it.
+		isAvailable: () => !! settings.shop && userCan( 'shop' ),
 		// The shop first on Home. The rest is as Default has it, so the site
 		// is still built the same way.
 		home: {
@@ -169,6 +172,8 @@ const PRESETS = [
 		id: 'builder',
 		label: __( 'Builder' ),
 		icon: tool,
+		// Its screens all change the whole site.
+		isAvailable: () => userCan( 'site' ),
 		// For agencies, in-house developers and theme authors, who know what
 		// they've come to change: Home goes straight to the site editor's
 		// own pieces, site-wide ones first, with no tip under them.
@@ -212,6 +217,21 @@ export const WORKSPACES = PRESETS.map( ( preset ) => ( {
 export const DEFAULT_WORKSPACE = WORKSPACES[ 0 ];
 
 /**
+ * The workspace someone starts in before they pick one. People who can't
+ * change the site's look, Authors say, came to write, so they start in
+ * Writing.
+ *
+ * @return {Object} Workspace preset.
+ */
+export function getDefaultWorkspace() {
+	if ( ! userCan( 'site' ) ) {
+		return findWorkspace( 'writing' ) || DEFAULT_WORKSPACE;
+	}
+
+	return DEFAULT_WORKSPACE;
+}
+
+/**
  * The workspaces this site can use.
  *
  * @return {Object[]} Workspace presets.
@@ -242,7 +262,7 @@ export function findWorkspace( id ) {
  * @return {Object} Workspace preset.
  */
 export function getWorkspace( id ) {
-	return findWorkspace( id ) || DEFAULT_WORKSPACE;
+	return findWorkspace( id ) || getDefaultWorkspace();
 }
 
 /**

@@ -46,6 +46,7 @@ function cnl_editor_bootstrap() {
 		return;
 	}
 
+	require_once CNL_EDITOR_PATH . 'includes/capabilities.php';
 	require_once CNL_EDITOR_PATH . 'includes/content-types.php';
 	require_once CNL_EDITOR_PATH . 'includes/sections.php';
 	require_once CNL_EDITOR_PATH . 'includes/block-templates.php';

@@ -8,6 +8,7 @@ import { Preview as LazyEditorPreview } from '@wordpress/lazy-editor';
  * Internal dependencies
  */
 import { getErrorMessage } from '../../records';
+import { getPostType } from '../../settings';
 import {
 	DEFAULT_PAGE_LAYOUT_COLUMNS,
 	EMPTY_ARRAY,
@@ -242,6 +243,19 @@ function getAddToMenuHelp( {
 		: __( 'Adds a link to your menu so visitors can find it.' );
 }
 
+// Someone who can't publish pages has theirs sent for review instead.
+function canPublishPages() {
+	return getPostType( 'page' )?.canPublish !== false;
+}
+
+function getNewPageStatus( isPublishing ) {
+	if ( ! isPublishing ) {
+		return 'draft';
+	}
+
+	return canPublishPages() ? 'publish' : 'pending';
+}
+
 export default function AddPageFlow( {
 	mainMenu = {},
 	menuPlacement,
@@ -431,10 +445,9 @@ export default function AddPageFlow( {
 					content: selectedLayout
 						? getPatternContent( selectedLayout )
 						: '',
-					status:
+					status: getNewPageStatus(
 						publishImmediately || isForHomepage
-							? 'publish'
-							: 'draft',
+					),
 					/*
 					 * Left out, a new page gets the Blank template. A text
 					 * page asks for none, which is the theme's standard one.
@@ -536,7 +549,7 @@ export default function AddPageFlow( {
 						value={ pageTitle }
 					/>
 					<div className="cnl-add-page-form__settings">
-						{ ! isForHomepage && (
+						{ ! isForHomepage && canPublishPages() && (
 							<div className="cnl-add-page-form__checkbox-item">
 								<CheckboxControl
 									checked={ publishImmediately }

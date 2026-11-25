@@ -25,8 +25,10 @@ function cnl_editor_register_rest_routes() {
 		array(
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => 'cnl_editor_rest_get_preview_context',
+			// Every canvas asks for it, so it's for anyone who can open the
+			// editor. Each post in it says only what they may see of it.
 			'permission_callback' => static function () {
-				return current_user_can( 'edit_posts' );
+				return current_user_can( cnl_editor_get_access_capability() );
 			},
 			'args'                => array(
 				'url' => array(
@@ -44,8 +46,9 @@ function cnl_editor_register_rest_routes() {
 		array(
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => 'cnl_editor_rest_get_site_overview',
+			// The same as the Site overview screen.
 			'permission_callback' => static function () {
-				return current_user_can( 'edit_theme_options' );
+				return cnl_editor_user_can( 'site' );
 			},
 		)
 	);
@@ -58,8 +61,9 @@ function cnl_editor_register_rest_routes() {
 			'callback'            => 'cnl_editor_rest_setup_defaults',
 			'permission_callback' => static function () {
 				// It changes the reading settings, which core guards with
-				// `manage_options`, as well as the site's menus.
-				return current_user_can( 'edit_theme_options' ) && current_user_can( 'manage_options' );
+				// `manage_options`, as well as the site's menus. The same as
+				// Home's homepage setup.
+				return cnl_editor_user_can( 'homepage' );
 			},
 		)
 	);

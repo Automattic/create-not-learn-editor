@@ -15,7 +15,9 @@ import { privateApis as editorPrivateApis } from '@wordpress/editor';
 /**
  * Internal dependencies
  */
+import { userCan } from '../../../capabilities';
 import { unlock } from '../../../lock-unlock';
+import { getPostType } from '../../../settings';
 import { useDataViews } from '../../../use-dataviews';
 import { PageMenusEdit, PageMenusView } from './page-menus';
 import { getPagePath } from './page-path';
@@ -117,6 +119,8 @@ function AddressView( { item } ) {
  * @param {Function} onOpenLayouts Opens the layouts.
  * @return {?Object[]} DataForm fields, or `null` until they are registered.
  */
+const PUBLISHING_STATUSES = [ 'publish', 'future', 'private' ];
+
 function usePageFields( layoutName, onOpenLayouts ) {
 	const fields = usePostFields( { postType: 'page' } );
 
@@ -124,6 +128,9 @@ function usePageFields( layoutName, onOpenLayouts ) {
 		if ( ! fields?.length ) {
 			return null;
 		}
+
+		const canChangeSite = userCan( 'site' );
+		const canPublish = getPostType( 'page' )?.canPublish !== false;
 
 		return [
 			...fields.map( ( field ) => {
@@ -157,11 +164,18 @@ function usePageFields( layoutName, onOpenLayouts ) {
 
 				// As in the editor, a page is moved to the trash, not given
 				// it as a status.
+				// Someone who can't publish pages can't pick a status that
+				// would.
 				if ( field.id === 'status' ) {
 					next = {
 						...next,
 						elements: field.elements.filter(
-							( element ) => element.value !== 'trash'
+							( element ) =>
+								element.value !== 'trash' &&
+								( canPublish ||
+									! PUBLISHING_STATUSES.includes(
+										element.value
+									) )
 						),
 					};
 				}
@@ -170,7 +184,8 @@ function usePageFields( layoutName, onOpenLayouts ) {
 			} ),
 			// Which menus the page is in. Its switches change the menus
 			// themselves, not the page, so nothing goes through `onChange`.
-			{
+			// Only for people who can change menus.
+			canChangeSite && {
 				id: 'cnl_menus',
 				label: __( 'Menus' ),
 				Edit: PageMenusEdit,
@@ -180,8 +195,17 @@ function usePageFields( layoutName, onOpenLayouts ) {
 				id: 'cnl_layout',
 				label: __( 'Layout' ),
 				readOnly: true,
-				render: () =>
-					layoutName ? (
+				// Its name opens the layouts, which are the whole site's.
+				render: () => {
+					if ( ! layoutName ) {
+						return null;
+					}
+
+					if ( ! canChangeSite ) {
+						return layoutName;
+					}
+
+					return (
 						<Button
 							className="cnl-page-details__button"
 							onClick={ onOpenLayouts }
@@ -189,9 +213,10 @@ function usePageFields( layoutName, onOpenLayouts ) {
 						>
 							{ layoutName }
 						</Button>
-					) : null,
+					);
+				},
 			},
-		];
+		].filter( Boolean );
 	}, [ fields, layoutName, onOpenLayouts ] );
 }
 

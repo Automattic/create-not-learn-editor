@@ -517,6 +517,8 @@ export function getContentActions( navigate, type ) {
 			},
 			id: 'edit',
 			isPrimary: true,
+			// Only posts the user can change, when the list says.
+			isEligible: ( item ) => item.permissions?.update !== false,
 			label: __( 'Edit' ),
 			supportsBulk: false,
 		},

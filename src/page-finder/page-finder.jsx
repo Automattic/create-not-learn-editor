@@ -37,6 +37,7 @@ import { Badge, Icon } from '@wordpress/ui';
  * Internal dependencies
  */
 import { openRoute } from '../open-route';
+import { getPostType } from '../settings';
 import { openPage, PAGES_PATH } from './open-page';
 import { HOMEPAGE } from '../routes/content/pages/homepage-state';
 import { getMainPageIds, useMainMenuTopLevel } from './main-pages';
@@ -473,17 +474,19 @@ function PageFinderPanel( {
 				) }
 			</div>
 			<div className="cnl-page-finder__footer">
-				<button
-					className="cnl-page-finder__action"
-					onClick={ () => {
-						onClose();
-						openRoute( PAGES_PATH, { add: 1 } );
-					} }
-					type="button"
-				>
-					{ __( 'Add a page' ) }
-					<Icon icon={ plus } />
-				</button>
+				{ getPostType( 'page' )?.canCreate !== false && (
+					<button
+						className="cnl-page-finder__action"
+						onClick={ () => {
+							onClose();
+							openRoute( PAGES_PATH, { add: 1 } );
+						} }
+						type="button"
+					>
+						{ __( 'Add a page' ) }
+						<Icon icon={ plus } />
+					</button>
+				) }
 				<button
 					className="cnl-page-finder__action"
 					onClick={ () => {

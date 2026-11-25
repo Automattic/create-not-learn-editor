@@ -14,6 +14,7 @@ import { useNavigate } from '@wordpress/route';
 /**
  * Internal dependencies
  */
+import { canOpen } from '../../capabilities';
 import { startHomeTrip } from '../../home-trip';
 import { settings } from '../../settings';
 import { getSiteAddress } from './site-address';
@@ -33,6 +34,8 @@ import {
 	useSelect,
 	useState,
 } from '../../wordpress-packages';
+
+const IDENTITY_PATH = '/design/identity';
 
 function getMediaUrl( media ) {
 	return (
@@ -80,6 +83,18 @@ export function useSite() {
  */
 export function SiteMark( { name, imageUrl } ) {
 	const navigate = useNavigate();
+	const mark = imageUrl ? (
+		<img className="cnl-site-card__logo" src={ imageUrl } alt="" />
+	) : (
+		<span className="cnl-site-card__initial">
+			{ Array.from( name.trim() )[ 0 ]?.toUpperCase() || 'W' }
+		</span>
+	);
+
+	// Only a shortcut for people who can change the name and logo.
+	if ( ! canOpen( IDENTITY_PATH ) ) {
+		return <span className="cnl-site-card__mark">{ mark }</span>;
+	}
 
 	return (
 		<button
@@ -87,18 +102,12 @@ export function SiteMark( { name, imageUrl } ) {
 			onClick={ () => {
 				// Back on Name & logo leads straight back to Home.
 				startHomeTrip();
-				navigate( { to: '/design/identity' } );
+				navigate( { to: IDENTITY_PATH } );
 			} }
 			tabIndex={ -1 }
 			type="button"
 		>
-			{ imageUrl ? (
-				<img className="cnl-site-card__logo" src={ imageUrl } alt="" />
-			) : (
-				<span className="cnl-site-card__initial">
-					{ Array.from( name.trim() )[ 0 ]?.toUpperCase() || 'W' }
-				</span>
-			) }
+			{ mark }
 			<span className="cnl-site-card__edit">
 				<Icon icon={ pencilIcon } size={ 20 } />
 			</span>

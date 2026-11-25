@@ -11,8 +11,15 @@ import {
 	sprintf,
 } from '../../wordpress-packages';
 
+const SITE_WIDE_TYPES = [
+	'wp_navigation',
+	'wp_template',
+	'wp_template_part',
+	'wp_block',
+];
+
 export const route = {
-	beforeLoad: ( { params } ) => {
+	beforeLoad: async ( { params } ) => {
 		// Gutenberg's templates list (`includes/gutenberg-routes.php`) opens
 		// a template here, so it's sent on to the editor's template editor.
 		if ( params.type === 'wp_template' && params.id ) {
@@ -22,8 +29,38 @@ export const route = {
 			} );
 		}
 
-		if ( ! getEditablePostType( params.type ) || ! params.id ) {
+		if ( ! params.id ) {
 			throw notFound();
+		}
+
+		const type = getEditablePostType( params.type );
+
+		// Menus, layouts and site parts are left out of the editable types
+		// for people who can't change them.
+		if (
+			( ! type && SITE_WIDE_TYPES.includes( params.type ) ) ||
+			( type && ! type.canEdit )
+		) {
+			throw redirect( { to: '/not-available' } );
+		}
+
+		if ( ! type ) {
+			throw notFound();
+		}
+
+		// Someone else's post, that an Author can't change, say. People who
+		// can change everyone's aren't kept waiting to ask.
+		if ( type.canEditOthers !== false ) {
+			return;
+		}
+
+		const canUpdate = await resolveSelect( coreDataStore ).canUser(
+			'update',
+			{ kind: 'postType', name: params.type, id: params.id }
+		);
+
+		if ( canUpdate === false ) {
+			throw redirect( { to: '/not-available' } );
 		}
 	},
 	title: ( { params } ) => {

@@ -16,25 +16,48 @@ function cnl_editor_register_admin_page_hooks() {
 }
 
 /**
- * Register the hidden full-page editor and visible Appearance link.
+ * Register the hidden full-page editor and its link in WP Admin's menu.
+ *
+ * People who can change the site's look find it under Appearance, as they
+ * always have. Everyone else who can open it, Authors say, has no Appearance
+ * menu, so it gets a menu item of its own.
  */
 function cnl_editor_register_admin_menu() {
+	$capability = cnl_editor_get_access_capability();
+
 	$GLOBALS['cnl_editor_admin_hook'] = add_submenu_page(
 		'nothing',
 		__( 'Create Not Learn Editor', 'create-not-learn-editor' ),
 		__( 'Create Not Learn Editor', 'create-not-learn-editor' ),
-		'edit_theme_options',
+		$capability,
 		CNL_EDITOR_SLUG,
 		'cnl_editor_render_full_page'
 	);
 
 	global $submenu;
 
-	if ( isset( $submenu['themes.php'] ) ) {
-		$submenu['themes.php'][] = array(
+	if ( current_user_can( 'edit_theme_options' ) ) {
+		if ( isset( $submenu['themes.php'] ) ) {
+			$submenu['themes.php'][] = array(
+				__( 'Create Not Learn', 'create-not-learn-editor' ),
+				'edit_theme_options',
+				'admin.php?page=' . CNL_EDITOR_SLUG,
+			);
+		}
+
+		return;
+	}
+
+	if ( current_user_can( $capability ) ) {
+		// Just below Dashboard. WordPress sorts the menu by these keys.
+		$GLOBALS['menu']['3.1'] = array(
 			__( 'Create Not Learn', 'create-not-learn-editor' ),
-			'edit_theme_options',
+			$capability,
 			'admin.php?page=' . CNL_EDITOR_SLUG,
+			__( 'Create Not Learn Editor', 'create-not-learn-editor' ),
+			'menu-top',
+			'toplevel_page_' . CNL_EDITOR_SLUG,
+			'dashicons-edit-page',
 		);
 	}
 }
@@ -73,13 +96,15 @@ function cnl_editor_intercept_full_page_render() {
  * Render the editor as a generated full-page admin document.
  */
 function cnl_editor_render_full_page() {
-	if ( ! current_user_can( 'edit_theme_options' ) ) {
+	if ( ! current_user_can( cnl_editor_get_access_capability() ) ) {
 		wp_die( esc_html__( 'Sorry, you are not allowed to access this page.', 'create-not-learn-editor' ) );
 	}
 
 	// Every site editable here needs a menu to edit. `cnl_editor_has_navigation_menu()`
 	// makes this a cheap no-op once one exists, so it is safe to check on every visit
 	// rather than only behind the explicit setup action, which is for the homepage.
+	// For everyone who opens the editor, as core's Navigation block makes one
+	// for any visitor on the front end.
 	cnl_editor_ensure_default_navigation_menu();
 
 	// Core sends these from `admin_init` too, but adds them after this

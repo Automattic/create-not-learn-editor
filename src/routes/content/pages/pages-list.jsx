@@ -21,6 +21,7 @@ import { useNavigate, useSearch } from '@wordpress/route';
  * Internal dependencies
  */
 import ScreenLinks from '../../../screen-links';
+import { userCan } from '../../../capabilities';
 import useMainMenu from '../use-main-menu';
 import { usePages } from './data';
 import { parseTarget, useHomepageState } from './homepage';
@@ -260,7 +261,7 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 				label={ __( 'More options' ) }
 				links={ [
 					// Pages that are templates in WordPress, a step down.
-					{
+					userCan( 'site' ) && {
 						description: __(
 							'Change pages your site makes for itself, like the 404 page.'
 						),

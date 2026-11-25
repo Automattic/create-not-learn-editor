@@ -1,15 +1,28 @@
-import { notFound } from '@wordpress/route';
+import { notFound, redirect } from '@wordpress/route';
 
 /**
  * Internal dependencies
  */
+import { userCan } from '../../capabilities';
 import { getPostType } from '../../settings';
 import { __ } from '../../wordpress-packages';
 
 export const route = {
-	beforeLoad: ( { params } ) => {
-		if ( ! getPostType( params.type ) ) {
+	beforeLoad: ( { params, search } ) => {
+		const type = getPostType( params.type );
+
+		if ( ! type ) {
 			throw notFound();
+		}
+
+		// Content the person can't write, and the layouts, which are the
+		// whole site's, explain themselves rather than open.
+		if (
+			! type.canEdit ||
+			( [ 'templates', 'system' ].includes( search?.content ) &&
+				! userCan( 'site' ) )
+		) {
+			throw redirect( { to: '/not-available' } );
 		}
 	},
 	title: ( { params } ) => {

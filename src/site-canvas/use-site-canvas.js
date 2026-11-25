@@ -29,6 +29,7 @@
 /**
  * Internal dependencies
  */
+import { userCan } from '../capabilities';
 import { unlock } from '../lock-unlock';
 import { cnlEditorStore } from '../records';
 import { namespace, settings } from '../settings';
@@ -117,6 +118,8 @@ function usePreviewContext( url ) {
 		[ contextUrl ]
 	);
 }
+
+const SITE_WIDE_TYPES = [ 'wp_template', 'wp_template_part' ];
 
 function getContextEntity( context ) {
 	return context?.editPostType && context?.editPostId
@@ -444,12 +447,17 @@ export function useSiteCanvas( {
 	 * In Browse, nothing can be while the preview is on an archive, say, or
 	 * a page still loading.
 	 */
-	const canEdit = pinnedEntity
-		? true
-		: ( ! isPreviewing && Boolean( canvasEntity ) ) ||
-			( ! isLoadingContext &&
-				isSameEntity( previewEntity, followedEntity ) &&
-				Boolean( previewEntity ) );
+	const canEdit =
+		// A layout or a site part is the whole site's, so only for those
+		// who can change it.
+		( userCan( 'site' ) ||
+			! SITE_WIDE_TYPES.includes( canvasEntity?.postType ) ) &&
+		( pinnedEntity
+			? true
+			: ( ! isPreviewing && Boolean( canvasEntity ) ) ||
+				( ! isLoadingContext &&
+					isSameEntity( previewEntity, followedEntity ) &&
+					Boolean( previewEntity ) ) );
 
 	// Compose works on the page as a whole, so it is always on a desktop.
 	const editorDevice = mode === MODE_COMPOSE ? DEFAULT_DEVICE : device;

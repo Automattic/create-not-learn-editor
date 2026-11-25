@@ -49,6 +49,7 @@ import {
 /**
  * Internal dependencies
  */
+import { canOpen } from '../capabilities';
 import { openRoute } from '../open-route';
 import { openPage } from '../page-finder/open-page';
 import { openPreferences } from '../preferences';
@@ -64,6 +65,12 @@ const HIDDEN_COMMANDS = [
 ];
 
 const EMPTY_ARRAY = [];
+const PAGES_PATH = '/types/page/list/all';
+const NO_COMMANDS = { commands: EMPTY_ARRAY, isLoading: false };
+
+function useNoCommands() {
+	return NO_COMMANDS;
+}
 
 /**
  * The editor's screens, each under the name it has in the sidebar or on its
@@ -102,6 +109,8 @@ function getScreenCommands() {
 			label: __( 'Your homepage' ),
 			icon: homeIcon,
 			callback: () => openPage( HOMEPAGE ),
+			// It opens on the Pages screen.
+			to: PAGES_PATH,
 			keywords: [
 				__( 'homepage' ),
 				__( 'home page' ),
@@ -222,19 +231,22 @@ function getScreenCommands() {
 function useScreenCommands() {
 	const commands = useMemo(
 		() =>
-			getScreenCommands().map( ( { callback, to, ...command } ) => ( {
-				...command,
-				category: 'view',
-				callback: ( { close } ) => {
-					close();
+			getScreenCommands()
+				// Only the screens this person can open.
+				.filter( ( { to } ) => canOpen( to ) )
+				.map( ( { callback, to, ...command } ) => ( {
+					...command,
+					category: 'view',
+					callback: ( { close } ) => {
+						close();
 
-					if ( callback ) {
-						callback();
-					} else {
-						openRoute( to );
-					}
-				},
-			} ) ),
+						if ( callback ) {
+							callback();
+						} else {
+							openRoute( to );
+						}
+					},
+				} ) ),
 		[]
 	);
 
@@ -454,7 +466,8 @@ function CommandPalette() {
 	usePreferencesCommand();
 	useCommandLoader( {
 		name: 'create-not-learn-editor/pages',
-		hook: usePageCommands,
+		// Pages open on the Pages screen, so only for those who can open it.
+		hook: canOpen( PAGES_PATH ) ? usePageCommands : useNoCommands,
 	} );
 
 	/*

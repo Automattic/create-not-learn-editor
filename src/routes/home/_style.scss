@@ -48,10 +48,15 @@
 	border: 0;
 	border-radius: var(--wpds-border-radius-sm);
 	background: none;
-	cursor: pointer;
 	transition: box-shadow 0.1s ease-out;
 
-	&:hover {
+	// Only a button opens anything. For people who can't change the name
+	// and logo, the mark is just a picture.
+	&:is(button) {
+		cursor: pointer;
+	}
+
+	&:is(button):hover {
 		box-shadow: 0 0 0 2px var(--wpds-color-background-surface-neutral-strong), 0 0 0 3px var(--wpds-color-stroke-surface-neutral);
 	}
 

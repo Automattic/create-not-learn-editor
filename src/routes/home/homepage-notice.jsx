@@ -25,6 +25,7 @@ import { Notice } from '@wordpress/ui';
 /**
  * Internal dependencies
  */
+import { userCan } from '../../capabilities';
 import HomepageSetup from '../../pickers/homepage-setup';
 import { isHomepageMismatched } from '../../pickers/homepage-setup/plan';
 import useOnHomepageSetupDone from '../../pickers/homepage-setup/use-on-done';
@@ -101,6 +102,8 @@ export default function HomepageNotice() {
 		( isDismissed ||
 			homepage.isLoading ||
 			! homepage.canSwitch ||
+			// Setting up changes the menus as well as the reading settings.
+			! userCan( 'homepage' ) ||
 			! isMismatched )
 	) {
 		return null;

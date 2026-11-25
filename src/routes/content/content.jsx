@@ -4,6 +4,7 @@ import { useNavigate, useSearch } from '@wordpress/route';
  * Internal dependencies
  */
 import { withCanvasRecovery } from '../../canvas-recovery';
+import { userCan } from '../../capabilities';
 import { withScreenKey } from '../../screen-key';
 import { getCurrentEditorPath } from '../static/screens';
 import { withUiTheme } from '../../theme';
@@ -359,14 +360,16 @@ function Stage() {
 							>
 								{ __( 'Manage pages' ) }
 							</MenuItem>
-							<MenuItem
-								onClick={ () => {
-									handleContentTabChange( 'templates' );
-									onClose();
-								} }
-							>
-								{ __( 'Manage layouts' ) }
-							</MenuItem>
+							{ userCan( 'site' ) && (
+								<MenuItem
+									onClick={ () => {
+										handleContentTabChange( 'templates' );
+										onClose();
+									} }
+								>
+									{ __( 'Manage layouts' ) }
+								</MenuItem>
+							) }
 							<MenuItem
 								onClick={ () => {
 									manageHomepage();
@@ -641,7 +644,8 @@ function Stage() {
 
 	return (
 		<Page { ...pageHeader } hasPadding={ false } headingLevel={ 2 }>
-			{ ! isPages && (
+			{ /* Layouts are the whole site's, so only for those who can change it. */ }
+			{ ! isPages && userCan( 'site' ) && (
 				<div className="routes-post-list__tabs-wrapper">
 					<Tabs.Root
 						onValueChange={ handleContentTabChange }
