@@ -25,6 +25,7 @@ const TARGET_CLASS = 'test-onboarding-target';
 let data;
 let preferencesStore;
 let onboarding;
+let requestOnboardingTip;
 let unmount;
 
 /**
@@ -36,6 +37,7 @@ async function load() {
 	data = await import( '@wordpress/data' );
 	( { store: preferencesStore } = await import( '@wordpress/preferences' ) );
 	onboarding = await import( '..' );
+	( { requestOnboardingTip } = await import( '../request' ) );
 }
 
 const setPreference = ( name, value ) =>
@@ -256,47 +258,38 @@ describe( 'onboarding tips', () => {
 		vi.advanceTimersByTime( 5000 );
 		expect( getSeen() ).toEqual( [] );
 
-		onboarding.requestOnboardingTip( 'test-tip' );
+		expect( requestOnboardingTip( 'test-tip' ) ).toBe( true );
 		vi.advanceTimersByTime( 3000 );
 		expect( getSeen() ).toEqual( [ 'test-tip' ] );
+
+		// Still showing, so asking again doesn't need anything else.
+		expect( requestOnboardingTip( 'test-tip' ) ).toBe( true );
 	} );
 
-	it( 'doesn’t show a tip that has been seen', () => {
+	it( 'says a tip that has been seen won’t show again', () => {
 		setPreference( 'onboardingSeen', [ 'test-tip' ] );
-		const target = addTarget();
-		registerTip( { repeat: 'pulse' } );
+		addTarget();
+		registerTip();
 		makeDue();
 
+		expect( requestOnboardingTip( 'test-tip' ) ).toBe( false );
 		vi.advanceTimersByTime( 5000 );
 		expect( getSeen() ).toEqual( [ 'test-tip' ] );
-		expect( target.classList.contains( 'cnl-onboarding-pulse' ) ).toBe(
-			false
-		);
 	} );
 
-	it( 'pulses the control instead when a seen `repeat: pulse` tip is asked for', () => {
-		setPreference( 'onboardingSeen', [ 'test-tip' ] );
-		const target = addTarget();
-		registerTip( { repeat: 'pulse', when: undefined } );
-
-		onboarding.requestOnboardingTip( 'test-tip' );
-		expect( target.classList.contains( 'cnl-onboarding-pulse' ) ).toBe(
-			true
-		);
+	it( 'says a tip nobody registered won’t show', () => {
+		expect( requestOnboardingTip( 'unknown' ) ).toBe( false );
 	} );
 
 	it( 'shows nothing once hints are turned off', () => {
 		setPreference( 'showHints', false );
-		const target = addTarget();
-		registerTip( { repeat: 'pulse' } );
+		addTarget();
+		registerTip();
 		makeDue();
-		onboarding.requestOnboardingTip( 'test-tip' );
 
+		expect( requestOnboardingTip( 'test-tip' ) ).toBe( false );
 		vi.advanceTimersByTime( 5000 );
 		expect( getSeen() ).toEqual( [] );
-		expect( target.classList.contains( 'cnl-onboarding-pulse' ) ).toBe(
-			false
-		);
 	} );
 
 	it( 'shows nothing in a workspace with onboarding off', () => {
@@ -305,6 +298,7 @@ describe( 'onboarding tips', () => {
 		registerTip();
 		makeDue();
 
+		expect( requestOnboardingTip( 'test-tip' ) ).toBe( false );
 		vi.advanceTimersByTime( 5000 );
 		expect( getSeen() ).toEqual( [] );
 	} );

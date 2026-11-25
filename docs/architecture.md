@@ -155,7 +155,7 @@ Pull requests are tested against that minimum. Newer Gutenbergs, the latest rele
 
 ## Onboarding tips
 
-Inline help points at a control the first time it matters. The first change only Publish can save, for example, spotlights Publish with a short video and a line of help.
+Inline help points at a control the first time it matters. The first change only Publish can save spotlights Publish with a short video and a line of help, and the first click on the page's words or pictures in Browse spotlights Edit.
 
 A tip is registered once in `src/onboarding/tips.js`, with what makes it due and the moments it may show at, such as when the person pauses or moves to another screen. Each person sees each tip once, remembered in a preference. Nobody sees any after ticking "Don’t show hints like these", which Preferences can undo, and nothing shows in a workspace with `onboarding` off, such as Builder.
 

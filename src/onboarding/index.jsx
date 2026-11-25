@@ -20,6 +20,7 @@
  */
 import { store as coreStore } from '@wordpress/core-data';
 import { dispatch, select, subscribe } from '@wordpress/data';
+import { addFilter, removeFilter } from '@wordpress/hooks';
 import { createRoot } from '@wordpress/element';
 import { store as preferencesStore } from '@wordpress/preferences';
 
@@ -28,6 +29,7 @@ import { store as preferencesStore } from '@wordpress/preferences';
  */
 import { getActiveWorkspace, PREFERENCES_SCOPE } from '../workspaces/presets';
 import { registerOnboardingPreferences, showsHints } from './preferences';
+import { REQUEST_TIP_FILTER } from './request';
 import { Spotlight } from './spotlight';
 
 export const SEEN_PREFERENCE = 'onboardingSeen';
@@ -60,8 +62,6 @@ let root = null;
  *                                   `idle` and `leave` (see `MOMENTS`),
  *                                   whichever comes first. `idle` if not
  *                                   given.
- * @param {string}   [tip.repeat]    `pulse` to pulse the control each time
- *                                   the tip is asked for once it's been seen.
  */
 export function registerOnboardingTip( tip ) {
 	tips.set( tip.id, tip );
@@ -69,53 +69,24 @@ export function registerOnboardingTip( tip ) {
 }
 
 /**
- * Ask for a tip after an action, for tips that follow something done rather
- * than a state, such as the first section added. It still waits for a pause.
- * Once it's been seen, a tip with `repeat: 'pulse'` pulses its control
- * straight away instead, and any other does nothing.
+ * Answer `requestOnboardingTip()` (`./request.js`).
  *
  * @param {string} id Tip id.
+ * @return {boolean} Whether the tip is showing or will show.
  */
-export function requestOnboardingTip( id ) {
-	const tip = tips.get( id );
-
-	if ( ! tip || ! isOn() ) {
-		return;
+function requestTip( id ) {
+	if ( shown?.id === id ) {
+		return true;
 	}
 
-	if ( getSeen().includes( id ) ) {
-		if ( tip.repeat === 'pulse' && ! shown ) {
-			pulse( findVisibleTarget( tip.target ) );
-		}
-		return;
+	if ( ! tips.has( id ) || ! isOn() || getSeen().includes( id ) ) {
+		return false;
 	}
 
 	requested.add( id );
 	schedule();
-}
 
-const PULSE_CLASS = 'cnl-onboarding-pulse';
-
-/**
- * Pulse a control, starting again if it's pulsing already.
- *
- * @param {?Element} element The control.
- */
-export function pulse( element ) {
-	if ( ! element ) {
-		return;
-	}
-
-	element.classList.remove( PULSE_CLASS );
-	// Reading layout between taking the class off and putting it back
-	// restarts the animation.
-	void element.offsetWidth;
-	element.classList.add( PULSE_CLASS );
-	element.addEventListener(
-		'animationend',
-		() => element.classList.remove( PULSE_CLASS ),
-		{ once: true }
-	);
+	return true;
 }
 
 function getSeen() {
@@ -364,6 +335,13 @@ function show( tip, target ) {
 export function mountOnboarding() {
 	registerOnboardingPreferences();
 
+	const FILTER_NAMESPACE = 'create-not-learn-editor/onboarding';
+	addFilter(
+		REQUEST_TIP_FILTER,
+		FILTER_NAMESPACE,
+		( isShowing, id ) => isShowing || requestTip( id )
+	);
+
 	const listenerOptions = { capture: true, passive: true };
 	ACTIVITY_EVENTS.forEach( ( type ) =>
 		window.addEventListener( type, noteActivity, listenerOptions )
@@ -387,6 +365,7 @@ export function mountOnboarding() {
 	schedule();
 
 	return () => {
+		removeFilter( REQUEST_TIP_FILTER, FILTER_NAMESPACE );
 		unsubscribes.forEach( ( unsubscribe ) => unsubscribe() );
 		ACTIVITY_EVENTS.forEach( ( type ) =>
 			window.removeEventListener( type, noteActivity, listenerOptions )

@@ -4,7 +4,10 @@ Inline help that shows up when it's useful, not all at once. The first time some
 
 Use this for any help that points at a control. Don't build a one-off popover, spotlight or "new!" badge elsewhere in the editor; add a tip here, so every hint shares the timing, the opt-out, the Builder rule and the "seen once" record.
 
-The Publish tip is the only one so far: after the first change that applies across the whole site, it points at Publish.
+There are two so far.
+
+- **Publish.** After the first change that applies across the whole site, once the person pauses or moves to another screen, it points at Publish.
+- **Edit.** The first time someone browsing clicks the page's words or a picture as if to change them, it points at Edit straight away. The click detection, and the pulse on Edit for every click after that, live in `src/site-canvas/edit-hint.js`.
 
 ## Files
 
@@ -14,7 +17,9 @@ The Publish tip is the only one so far: after the first change that applies acro
 | `tips.js` | The editor's tips. Add new ones here. |
 | `spotlight.jsx` | The tip on screen: the dimmed editor, the gap round the control and the popover. |
 | `preferences.js` | The Show hints preference, kept apart so Preferences can offer it without loading the tips. |
-| `_style.scss` | The spotlight, popover and pulse. |
+| `request.js` | `requestOnboardingTip()`, for code in any bundle to ask for a tip. |
+| `tip-ids.js` | The ids of tips that code elsewhere asks for, shared with `tips.js`. |
+| `_style.scss` | The spotlight and popover. |
 | `test/index.js` | Unit tests for when tips show. |
 | `assets/onboarding/` (plugin root) | The videos. |
 
@@ -46,9 +51,8 @@ registerOnboardingTip( {
 | `video` | No | URL of a short clip of the control. Use the `video( name )` helper in `tips.js`. |
 | `placement` | No | Which side of the control it sits, as core's `Popover` takes it. `top` by default. |
 | `when( select )` | One of these | Whether it's due, from the data stores. For tips about a state, like changes waiting to be published. |
-| `requestOnboardingTip( id )` | One of these | Call it after an action, for tips about something done, like the first section added, where there's no state to read afterwards. |
+| `requestOnboardingTip( id )` | One of these | Call it after an action, for tips about something done, like a click on the page while browsing, where there's no state to read afterwards. Import it from `request.js`. |
 | `showOn` | No | When a due tip shows. See below. `[ 'idle' ]` by default. |
-| `repeat` | No | `pulse` to pulse the control each time the tip is asked for again with `requestOnboardingTip()` after it's been seen. |
 
 Then check it in the browser, write its unit or e2e test if its trigger needs one, and add a line about it to the list at the top of this file.
 
@@ -99,9 +103,11 @@ Using the control closes the tip, and so do Got it, Escape and a click on the da
 
 The video autoplays muted and loops. With reduced motion asked for, it doesn't autoplay and shows its controls instead, and the dark doesn't fade in.
 
-### After it's been seen
+### Asking for a tip from a route
 
-A tip with `repeat: 'pulse'` pulses its control each time it's asked for with `requestOnboardingTip()` after it's been seen, as a lighter reminder: a ring that swells out from it twice. With reduced motion, the ring holds still for a moment instead. `pulse( element )` is exported for anything else that wants the same nudge.
+`@wordpress/build` bundles each route with its own copy of what it imports, so a route importing `index.jsx` would get an empty registry of its own. Routes import `requestOnboardingTip()` from `request.js` instead, which asks app init's copy through a `@wordpress/hooks` filter, and the tip's id from `tip-ids.js`.
+
+It answers whether the tip is showing or will show. When it won't, because the tip has been seen, hints are off or the workspace has onboarding off, the caller can do something lighter of its own. The Edit hint pulses Edit then, which isn't a hint: it answers the click, so it happens in every workspace and with hints off.
 
 ## Preferences
 
@@ -121,6 +127,6 @@ wp.data.dispatch( 'core/preferences' ).set( 'create-not-learn-editor', 'onboardi
 
 ## Tests
 
-- `test/index.js` covers when tips show: each moment, the screen a tip became due on, the opt-out, workspaces, the control being on screen, open dialogs, one tip at a time and the pulse. It mocks the spotlight and core's store, and uses fake timers. Add a case here when you add a moment or a rule.
-- `tests/e2e/interactions/onboarding.spec.js` covers the Publish tip in the editor: it shows after a pause, and on leaving the screen, only once, not after opting out, and never in Builder.
+- `test/index.js` covers when tips show: each moment, the screen a tip became due on, the opt-out, workspaces, the control being on screen, open dialogs, one tip at a time and what `requestOnboardingTip()` answers. It mocks the spotlight and core's store, and uses fake timers. Add a case here when you add a moment or a rule.
+- `tests/e2e/interactions/onboarding.spec.js` covers both tips in the editor. Publish shows after a pause and on leaving the screen, only once, not after opting out, and never in Builder. Edit shows on the first click on the page's words, then Edit only pulses, and in Builder it only pulses.
 - Every other e2e test runs with hints off. A tip dims the editor and catches clicks, so one turning up would get in the way of tests about something else. `tests/e2e/global-setup.js` turns them off for the run, and `onboarding.spec.js` turns them on for itself with `rest.setEditorPreferences()`, which puts them back when it ends. A new e2e test about a tip should do the same.

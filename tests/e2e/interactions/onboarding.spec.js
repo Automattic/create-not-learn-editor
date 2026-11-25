@@ -7,6 +7,42 @@ const {
 } = require( '../utils' );
 
 const TIP = 'Publish your site-wide changes';
+const EDIT_TIP = 'Want to change something?';
+
+/**
+ * Open a new page on view in the canvas, as visitors see it.
+ *
+ * @param {import('@playwright/test').Page}      page
+ * @param {import('./../utils/rest').RestClient} rest
+ * @return {Promise<import('@playwright/test').Locator>} Its words.
+ */
+async function browsePage( page, rest ) {
+	const testPage = await rest.createPage( {
+		body: 'Fresh bread every morning from the oven by the door.',
+	} );
+
+	await visitEditor(
+		page,
+		`/types/page/list/all?previewId=${ testPage.id }`
+	);
+
+	const words = page
+		.frameLocator( 'iframe[title="Site preview"]' )
+		.getByText( testPage.body );
+	await expect( words ).toBeVisible( { timeout: 15000 } );
+
+	return words;
+}
+
+/**
+ * Click a page's words as if to change them: on the start of the line, as
+ * the space round words doesn't count.
+ *
+ * @param {import('@playwright/test').Locator} words
+ */
+async function clickWords( words ) {
+	await words.click( { position: { x: 8, y: 8 } } );
+}
 
 /**
  * Change the site's name on Name & logo, a change only Publish saves.
@@ -105,5 +141,36 @@ test.describe( 'Onboarding hints', () => {
 
 		await page.waitForTimeout( 4000 );
 		await expect( page.getByRole( 'dialog', { name: TIP } ) ).toBeHidden();
+	} );
+
+	test( 'points at Edit the first time the page’s words are clicked in Browse, then only pulses it', async ( {
+		page,
+		rest,
+	} ) => {
+		const words = await browsePage( page, rest );
+		const tip = page.getByRole( 'dialog', { name: EDIT_TIP } );
+		const edit = page.locator( '.cnl-site-canvas__edit' );
+
+		await clickWords( words );
+		await expect( tip ).toBeVisible();
+		await tip.getByRole( 'button', { name: 'Got it' } ).click();
+		await expect( tip ).toBeHidden();
+
+		await clickWords( words );
+		await expect( edit ).toHaveClass( /is-pulsing/ );
+		await expect( tip ).toBeHidden();
+	} );
+
+	test( 'only pulses Edit in Builder', async ( { page, rest } ) => {
+		await rest.setEditorPreferences( { workspace: 'builder' } );
+		const words = await browsePage( page, rest );
+
+		await clickWords( words );
+		await expect( page.locator( '.cnl-site-canvas__edit' ) ).toHaveClass(
+			/is-pulsing/
+		);
+		await expect(
+			page.getByRole( 'dialog', { name: EDIT_TIP } )
+		).toBeHidden();
 	} );
 } );

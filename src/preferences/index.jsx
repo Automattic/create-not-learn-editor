@@ -123,9 +123,10 @@ function CreateNotLearnSection() {
 			<PreferenceToggleControl
 				featureName={ SHOW_HINTS_PREFERENCE }
 				help={ __(
-					'The first time you use some parts of the editor, a short hint shows what they’re for.'
+					'The first time you use some parts of the editor, a short hint shows what they’re for.',
+					'create-not-learn-editor'
 				) }
-				label={ __( 'Show hints' ) }
+				label={ __( 'Show hints', 'create-not-learn-editor' ) }
 				scope={ ONBOARDING_PREFERENCES_SCOPE }
 			/>
 		</PreferencesModalSection>

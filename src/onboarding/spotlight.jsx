@@ -158,7 +158,10 @@ export function Spotlight( { tip, target, onClose } ) {
 						<CheckboxControl
 							__nextHasNoMarginBottom
 							className="cnl-onboarding__opt-out"
-							label={ __( 'Don’t show hints like these' ) }
+							label={ __(
+								'Don’t show hints like these',
+								'create-not-learn-editor'
+							) }
 							checked={ isOptedOut }
 							onChange={ ( isChecked ) => {
 								// Saved straight away, so it holds even if the
@@ -173,7 +176,7 @@ export function Spotlight( { tip, target, onClose } ) {
 							variant="primary"
 							onClick={ onClose }
 						>
-							{ __( 'Got it' ) }
+							{ __( 'Got it', 'create-not-learn-editor' ) }
 						</Button>
 					</div>
 				</div>
