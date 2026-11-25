@@ -327,10 +327,14 @@ function usePreferencesCommand() {
 			},
 			{
 				name: 'create-not-learn-editor/customize-sidebar',
-				label: __( 'Customize sidebar' ),
+				label: __( 'Customize sidebar', 'create-not-learn-editor' ),
 				icon: cogIcon,
 				category: 'view',
-				keywords: [ __( 'reorder' ), __( 'menu' ), __( 'navigation' ) ],
+				keywords: [
+					__( 'reorder', 'create-not-learn-editor' ),
+					__( 'menu', 'create-not-learn-editor' ),
+					__( 'navigation', 'create-not-learn-editor' ),
+				],
 				callback: ( { close } ) => {
 					close();
 					customizeSidebar();

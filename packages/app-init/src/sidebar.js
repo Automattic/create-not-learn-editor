@@ -371,7 +371,7 @@ function WorkspaceSwitcher() {
 							openCustomizer();
 						},
 					},
-					__( 'Customize sidebar' )
+					__( 'Customize sidebar', 'create-not-learn-editor' )
 				),
 				el(
 					MenuItem,

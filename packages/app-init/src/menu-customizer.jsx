@@ -365,7 +365,10 @@ function MenuCustomizer( { onDone } ) {
 		setMessage(
 			sprintf(
 				/* translators: 1: Menu item, 2: Section title, 3: Position. */
-				__( '%1$s moved to %2$s, position %3$d.' ),
+				__(
+					'%1$s moved to %2$s, position %3$d.',
+					'create-not-learn-editor'
+				),
 				itemById.get( id )?.label ?? id,
 				getMenuSectionLabel( next.sections[ place.sectionIndex ].id ),
 				place.index + 1
@@ -384,7 +387,7 @@ function MenuCustomizer( { onDone } ) {
 		setMessage(
 			sprintf(
 				/* translators: 1: Section title, 2: Position. */
-				__( '%1$s moved to position %2$d.' ),
+				__( '%1$s moved to position %2$d.', 'create-not-learn-editor' ),
 				getMenuSectionLabel( id ),
 				next.sections.findIndex( ( section ) => section.id === id ) + 1
 			)
@@ -395,7 +398,9 @@ function MenuCustomizer( { onDone } ) {
 		saveMenuLayout( null );
 		// The sidebar as the workspace has it, which the reset has brought back.
 		setLayout( getEditableMenuLayout() );
-		setMessage( __( 'Sidebar reset to default.' ) );
+		setMessage(
+			__( 'Sidebar reset to default.', 'create-not-learn-editor' )
+		);
 	};
 
 	return (
@@ -413,7 +418,7 @@ function MenuCustomizer( { onDone } ) {
 		>
 			<div className={ `${ ROOT_CLASS }__header` }>
 				<h2 className={ `${ ROOT_CLASS }__title` }>
-					{ __( 'Customize sidebar' ) }
+					{ __( 'Customize sidebar', 'create-not-learn-editor' ) }
 				</h2>
 				<p
 					className={ `${ ROOT_CLASS }__description` }
@@ -422,7 +427,8 @@ function MenuCustomizer( { onDone } ) {
 					{ sprintf(
 						/* translators: %s: Workspace name. */
 						__(
-							'Drag to reorder. Switch off what you rarely use and it waits under "…". Saved for the %s workspace.'
+							'Drag to reorder. Switch off what you rarely use and it waits under "…". Saved for the %s workspace.',
+							'create-not-learn-editor'
 						),
 						workspaceLabel
 					) }
@@ -436,7 +442,10 @@ function MenuCustomizer( { onDone } ) {
 							<div
 								key={ item.id }
 								className={ `${ ROOT_CLASS }__row is-fixed` }
-								title={ __( 'Always first.' ) }
+								title={ __(
+									'Always first.',
+									'create-not-learn-editor'
+								) }
 							>
 								<ItemIcon icon={ item.icon } />
 								<span className={ `${ ROOT_CLASS }__label` }>
@@ -474,7 +483,10 @@ function MenuCustomizer( { onDone } ) {
 								<Handle
 									label={ sprintf(
 										/* translators: %s: Section title. */
-										__( 'Move %s section' ),
+										__(
+											'Move %s section',
+											'create-not-learn-editor'
+										),
 										label
 									) }
 									handleId={ `section-${ section.id }` }
@@ -497,7 +509,10 @@ function MenuCustomizer( { onDone } ) {
 
 							{ section.items.length === 0 && (
 								<p className={ `${ ROOT_CLASS }__empty` }>
-									{ __( 'Drag items here' ) }
+									{ __(
+										'Drag items here',
+										'create-not-learn-editor'
+									) }
 								</p>
 							) }
 
@@ -527,7 +542,10 @@ function MenuCustomizer( { onDone } ) {
 										<Handle
 											label={ sprintf(
 												/* translators: %s: Menu item. */
-												__( 'Move %s' ),
+												__(
+													'Move %s',
+													'create-not-learn-editor'
+												),
 												item.label
 											) }
 											handleId={ `item-${ entry.id }` }
@@ -551,7 +569,10 @@ function MenuCustomizer( { onDone } ) {
 											className={ `${ ROOT_CLASS }__toggle` }
 											aria-label={ sprintf(
 												/* translators: %s: Menu item. */
-												__( 'Show %s' ),
+												__(
+													'Show %s',
+													'create-not-learn-editor'
+												),
 												item.label
 											) }
 											checked={ entry.shown }
@@ -581,14 +602,14 @@ function MenuCustomizer( { onDone } ) {
 					accessibleWhenDisabled
 					onClick={ reset }
 				>
-					{ __( 'Reset to default' ) }
+					{ __( 'Reset to default', 'create-not-learn-editor' ) }
 				</Button>
 				<Button
 					__next40pxDefaultSize
 					variant="primary"
 					onClick={ onDone }
 				>
-					{ __( 'Done' ) }
+					{ __( 'Done', 'create-not-learn-editor' ) }
 				</Button>
 			</div>
 
