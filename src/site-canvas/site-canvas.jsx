@@ -31,6 +31,7 @@ import {
 import { hasSections as hasSectionsFor } from '../sections';
 import { useComposeZoom } from './compose/use-compose-zoom';
 import { EDITOR_DEVICES } from './constants';
+import { EditHint } from './edit-hint';
 import { useEditSectionControls } from './edit-section-controls';
 import { MODE_COMPOSE, MODE_EDIT } from './mode';
 import { expandCanvas, useCanvasExpansion } from './expansion';
@@ -89,6 +90,7 @@ export function SiteCanvas( {
 } ) {
 	const ownEditorRef = useRef();
 	const bodyRef = useRef();
+	const editButtonRef = useRef();
 	const editorRef = givenEditorRef || ownEditorRef;
 	const { device, editorDevice, editorEntity, frame, mode } = canvas;
 	// Only what the site says is built from sections, like a page, has
@@ -132,6 +134,11 @@ export function SiteCanvas( {
 			? GlobalScope
 			: Fragment;
 	const isComposing = canCompose && canvas.isComposing;
+	// Edit, and a double click on the page's words or pictures in Browse.
+	const startEditing = () => {
+		canvas.requestMode( MODE_EDIT );
+		expandCanvas( true );
+	};
 
 	// A canvas without Compose, reached while composing, edits instead.
 	useEffect( () => {
@@ -245,10 +252,8 @@ export function SiteCanvas( {
 					{ ! isExpanded && canvas.canEdit && (
 						<EditScope>
 							<EditButton
-								onEdit={ () => {
-									canvas.requestMode( MODE_EDIT );
-									expandCanvas( true );
-								} }
+								buttonRef={ editButtonRef }
+								onEdit={ startEditing }
 							/>
 						</EditScope>
 					) }
@@ -329,6 +334,12 @@ export function SiteCanvas( {
 					) }
 				</div>
 			</div>
+			<EditHint
+				anchorRef={ editButtonRef }
+				onEdit={ startEditing }
+				frameDocument={ frame.frameDocument }
+				isActive={ isPreviewing && canvas.canEdit && ! frame.isLoading }
+			/>
 			{ canvas.dialog.isOpen && (
 				<UnsavedChangesDialog { ...canvas.dialog } />
 			) }

@@ -28,6 +28,7 @@ A change made from the sidebar while browsing still brings the editor up to show
 | `page-switcher.jsx` | The page's name in the middle of the toolbar, which turns into the page finder, and the page's status at its end. Layouts and template parts use the same bar, with their name in purple and a purple filled symbol in place of the status, and a template part's bar doesn't open the finder. |
 | `page-settings.jsx` | A page's status as a button that opens its settings in a popover, every detail the Pages screen has for it, where core's editor has them in its sidebar's Page tab. Changes are unsaved edits to the page, saved with Save. Only Layout leads on, to the layouts in the sidebar. |
 | `toolbar.jsx` | Edit while viewing and Exit while editing, undo and redo, Document Overview, the preview's history, the View menu (the device, the live page in a new tab and the full-screen editor), and Zoom out (Compose). |
+| `edit-hint.jsx` | Points at Edit when someone browsing clicks the page as if to change it. See "Pointing at Edit" below. |
 | `zoom-controls.jsx` | Compose from the canvas itself: a zoom in and zoom out pair in its corner, as on a map, and a pinch on a trackpad, or Ctrl or ⌘ with the scroll wheel. One gesture moves one step. |
 | `edit-section-controls.js` | Core's unlock button said as "Edit" and "Done", and core's "Shuffle styles" hidden, in Edit. |
 | `part-spotlight.js` | `useEditorSpotlight()`: a template part, like the header or footer, brought forward on the canvas, the rest of the page faded and dimmed. Shared by Edit's section layer and the Header and Footer screens. |
@@ -35,6 +36,17 @@ A change made from the sidebar while browsing still brings the editor up to show
 | `icons.js` | An icon for a page built from stacked sections, for the empty page in Compose. |
 | `section-modes/` | Edit's section layer. See below. |
 | `compose/` | Compose. See below. |
+
+## Pointing at Edit
+
+Browse and Edit show the same page, so people click words or pictures in Browse expecting to change them. `EditHint` listens to the preview for those clicks and points at Edit.
+
+- The first time, the rest of the editor goes dark round Edit, the admin bar included, and a popover beside it says that's where changes are made. Edit can still be clicked through the gap; Got it, Escape or a click on the dark closes it. Whether it has been shown is a user preference (`create-not-learn-editor` / `editHintShown`), so it is shown once per person, not per visit.
+- After that, the same click only pulses Edit. With reduced motion it is a still ring for a moment instead.
+- A double click on words or a picture goes straight into Edit, as Edit does. A single click waits a moment before pointing at Edit, so the spotlight doesn't come up between the two clicks of a double click.
+- It keeps out of the way while a menu, popover, dialog or the page finder is open, judged as the press starts, since clicking the preview closes a popover before the click arrives.
+- For screen readers, the popover is a dialog named and described by its words, and takes focus. The pulse can't be seen, so the first one on each page also says "To change this page, use the Edit button." politely.
+- Only a click on a line of words (`caretPositionFromPoint`, so the space round words doesn't count) or a picture counts. A click in a link, button, form, menu, toggle or anything else that works on the site never does, so the site can be used as visitors use it.
 
 ## Document Overview
 
