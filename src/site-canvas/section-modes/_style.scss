@@ -662,6 +662,152 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 }
 
 /*
+ * Colours under the toolbar's Colour button: a list of choices, each its
+ * colours and name, ticked when in use, as a menu's choices are. The
+ * circles are core's, sized and overlapped as its block Color panel has them.
+ */
+.cnl-section-modes__color-list {
+	display: flex;
+	flex-direction: column;
+}
+
+.cnl-section-modes .components-button.cnl-section-modes__color-row {
+	width: 100%;
+	min-height: 36px;
+	padding-inline: var(--wpds-dimension-padding-sm);
+	border-radius: var(--wpds-border-radius-sm);
+	color: $ink;
+	font-weight: 400;
+
+	.components-menu-item__item {
+		display: flex;
+		flex: 1;
+		align-items: center;
+		gap: var(--wpds-dimension-gap-sm);
+	}
+
+	&:hover:not(:disabled) {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+		color: $ink;
+	}
+
+	// The ring for keyboard focus only, so the colour in use, focused as
+	// the menu opens, isn't ringed when it was opened with a click.
+	&:focus:not(:focus-visible) {
+		box-shadow: none;
+		outline: none;
+	}
+
+	&:focus-visible {
+		box-shadow: none;
+		outline: var(--wpds-border-width-focus) solid var(--wpds-color-stroke-focus);
+		outline-offset: -2px;
+	}
+
+	svg {
+		flex-shrink: 0;
+		fill: currentcolor;
+	}
+}
+
+// The menu and Custom colours' screen, one at a time, as Global Styles'.
+.cnl-section-modes__color-navigator {
+	min-width: 220px;
+}
+
+.cnl-section-modes__color-header {
+	display: flex;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-sm);
+	margin-bottom: var(--wpds-dimension-gap-sm);
+
+	.components-button:focus:not(:focus-visible) {
+		box-shadow: none;
+	}
+}
+
+.cnl-section-modes__color-title {
+	margin: 0;
+	color: $ink;
+	font-size: var(--wpds-typography-font-size-md);
+	font-weight: 500;
+}
+
+/*
+ * The custom colours as core's block Color panel lists colours: bordered
+ * rows of the colour and its use, each opening the palette beside them.
+ */
+.cnl-section-modes__custom-rows {
+	border: $edge;
+	border-radius: var(--wpds-border-radius-sm);
+
+	.cnl-color-well {
+		display: block;
+	}
+
+	.cnl-color-well + .cnl-color-well {
+		border-top: $edge;
+	}
+}
+
+.cnl-section-modes .components-button.cnl-section-modes__custom-row {
+	gap: var(--wpds-dimension-gap-sm);
+	width: 100%;
+	height: auto;
+	min-height: 40px;
+	padding-inline: var(--wpds-dimension-padding-sm);
+	border-radius: 0;
+	color: $ink;
+	font-weight: 400;
+
+	.cnl-color-well__label {
+		flex: 1;
+		text-align: start;
+	}
+
+	&:hover:not(:disabled),
+	&[aria-expanded="true"] {
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+		color: $ink;
+	}
+
+	&:focus:not(:focus-visible) {
+		box-shadow: none;
+	}
+
+	// Inset, so the rows' border doesn't cut it off.
+	&:focus-visible {
+		outline: none;
+		box-shadow: inset 0 0 0 var(--wpds-border-width-focus) var(--wpds-color-stroke-focus);
+	}
+}
+
+.cnl-section-modes__color-stack {
+	display: flex;
+	flex-shrink: 0;
+
+	.component-color-indicator + .component-color-indicator {
+		margin-inline-start: -8px;
+	}
+}
+
+.cnl-section-modes__color-wheel {
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+	border-radius: 50%;
+	background: conic-gradient(#f44, #fb3, #4c4, #3be, #46f, #c4e, #f44);
+	// Edged as core's ColorIndicator is.
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.cnl-section-modes__color-divider {
+	margin: var(--wpds-dimension-gap-xs) calc(-1 * var(--wpds-dimension-padding-sm));
+	border: 0;
+	border-top: $edge;
+}
+
+/*
  * Manage posts' menu: its labelled dropdowns one above the other, then the
  * way to every post, across the menu's width.
  */

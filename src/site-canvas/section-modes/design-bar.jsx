@@ -60,6 +60,7 @@ import {
 	useSelect,
 } from '../../wordpress-packages';
 import ColorWell from '../../pickers/color-well';
+import ColorList from './color-list';
 import {
 	usePartColors,
 	usePartDesigns,
@@ -444,11 +445,15 @@ function hasContrast( a, b, min ) {
  * whichever of the other two reads on them. Each opens core's palette,
  * and each change shows at once.
  *
- * @param {Object} props
- * @param {Object} props.colors `{ palette, values, onChange }`.
+ * In the toolbar's Colour menu they are rows, as core's block Color panel
+ * lists colours, each opening the palette beside it.
+ *
+ * @param {Object}  props
+ * @param {Object}  props.colors `{ palette, values, onChange }`.
+ * @param {boolean} props.isList Whether to show them as rows.
  * @return {Element} The colours.
  */
-function CustomColors( { colors } ) {
+function CustomColors( { colors, isList = false } ) {
 	const { onChange, palette, values } = colors;
 	const resolved = Object.fromEntries(
 		Object.entries( values ).map( ( [ key, value ] ) => [
@@ -507,15 +512,24 @@ function CustomColors( { colors } ) {
 	return (
 		<div
 			aria-label={ __( 'Custom colours', 'create-not-learn-editor' ) }
-			className="cnl-section-modes__swatches"
+			className={
+				isList
+					? 'cnl-section-modes__custom-rows'
+					: 'cnl-section-modes__swatches'
+			}
 			role="group"
 		>
 			{ wells.map( ( { key, label, note } ) => (
 				<ColorWell
-					className="cnl-section-modes__swatch cnl-section-modes__well"
+					className={
+						isList
+							? 'cnl-section-modes__custom-row'
+							: 'cnl-section-modes__swatch cnl-section-modes__well'
+					}
 					key={ key }
 					label={ label }
 					note={ note }
+					placement={ isList ? 'right-start' : undefined }
 					onChange={ ( value ) =>
 						onChange( { ...values, [ key ]: value } )
 					}
@@ -895,7 +909,6 @@ const SectionDesignBar = forwardRef( function UnforwardedSectionDesignBar(
  */
 export function SectionDesignOptions( { clientId, view, onReplace } ) {
 	const { colors, layouts, width } = useSectionChoices( clientId, onReplace );
-	const [ isCustomOpen, setIsCustomOpen ] = useState( false );
 
 	if ( view === VIEW_LAYOUT && layouts ) {
 		return <LayoutOptions { ...layouts } />;
@@ -903,28 +916,14 @@ export function SectionDesignOptions( { clientId, view, onReplace } ) {
 
 	if ( view === VIEW_COLOR && colors ) {
 		return (
-			<>
-				<ColorOptions
-					colors={ {
-						...colors,
-						// Picking a colour closes the custom ones.
-						onSelect: ( name ) => {
-							colors.onSelect( name );
-							setIsCustomOpen( false );
-						},
-					} }
-					isCustomOpen={ isCustomOpen }
-					onCustom={
-						colors.custom &&
-						( () => setIsCustomOpen( ( isOpen ) => ! isOpen ) )
-					}
-				/>
-				{ isCustomOpen && colors.custom && (
-					<div className="cnl-section-modes__design-tray">
-						<CustomColors colors={ colors.custom } />
-					</div>
-				) }
-			</>
+			<ColorList
+				colors={ colors }
+				custom={
+					colors.custom && (
+						<CustomColors colors={ colors.custom } isList />
+					)
+				}
+			/>
 		);
 	}
 
