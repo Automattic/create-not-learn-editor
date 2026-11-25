@@ -35,6 +35,9 @@ import { EditHint } from './edit-hint';
 import { useEditSectionControls } from './edit-section-controls';
 import { MODE_COMPOSE, MODE_EDIT } from './mode';
 import { expandCanvas, useCanvasExpansion } from './expansion';
+import { DocumentPanel } from './document-panel/document-panel';
+import { DocumentRail } from './document-panel/rail';
+import { getToggleVariant } from './document-panel/state';
 import { SectionModesLayer } from './section-modes/section-modes-layer';
 import {
 	closeDocumentOverview,
@@ -112,6 +115,10 @@ export function SiteCanvas( {
 	const isPreviewing = canvas.isPreviewing;
 	const isEditing = mode === MODE_EDIT;
 	const isExpanded = useCanvasExpansion();
+	const hasDocumentRail =
+		! isPreviewing &&
+		Boolean( editorEntity ) &&
+		getToggleVariant() === 'rail';
 	// Editing fills the editor, and viewing puts the sidebar back, however
 	// the mode changed: Edit and Exit, a hint, or a screen opening a page.
 	// Not when the canvas only switched to show a change made beside it, as
@@ -200,10 +207,11 @@ export function SiteCanvas( {
 		>
 			<header className="cnl-editor-canvas__toolbar cnl-editor-homepage-toolbar">
 				<div className="cnl-editor-homepage-toolbar__left">
-					{ ! isPreviewing && <EditHistory /> }
+					{ /* First, above the panel it opens at the canvas's left. */ }
 					{ ! isPreviewing && editorEntity && (
 						<DocumentOverviewToggle />
 					) }
+					{ ! isPreviewing && <EditHistory /> }
 					{ isPreviewing && (
 						<PreviewHistory
 							history={ frame.history }
@@ -260,7 +268,13 @@ export function SiteCanvas( {
 					{ isExpanded && <ExitButton onExit={ canvas.exit } /> }
 				</div>
 			</header>
-			<div className="cnl-site-canvas__body" ref={ bodyRef }>
+			<div
+				className={ `cnl-site-canvas__body${
+					hasDocumentRail ? ' has-document-rail' : ''
+				}` }
+				ref={ bodyRef }
+			>
+				{ hasDocumentRail && <DocumentRail /> }
 				<div
 					className="cnl-site-canvas__editor cnl-inline-editor"
 					data-selected-block={ selectedBlockName || undefined }
@@ -277,6 +291,9 @@ export function SiteCanvas( {
 					) }
 					{ isEditing && editorChildren }
 				</div>
+				{ ! isPreviewing && editorEntity && (
+					<DocumentPanel editorRef={ editorRef } />
+				) }
 				{ /* One layer for Edit and Compose, kept as the canvas moves
 				between them, so what is picked carries over. Without
 				sections, it only opens the template parts, and every other
