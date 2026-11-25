@@ -2,7 +2,7 @@
  * Points at Edit when someone browsing clicks the page as if to change it:
  * on its words or a picture. The first time, the rest of the editor goes dark
  * round Edit, with a popover saying that's where changes are made. After that
- * Edit only pulses. Links, menus, buttons and other controls are left to work
+ * Edit only pulses. A double click on them goes straight into Edit. Links, menus, buttons and other controls are left to work
  * as they do on the site, and nothing shows while a menu, popover, dialog or
  * the page finder is open. See "Pointing at Edit" in this folder's README.
  */
@@ -34,6 +34,10 @@ const PREFERENCE_NAME = 'editHintShown';
 // Room between Edit and the edge of the light round it.
 const SPOTLIGHT_PADDING = 6;
 const PULSE_CLASS = 'is-pulsing';
+// How long a click waits to see if it's the first of a double click, which
+// goes into Edit instead of pointing at it. Without the wait, the spotlight
+// would come up between the two clicks and take the second.
+const DOUBLE_CLICK_WAIT_MS = 300;
 
 // Anything open over the editor, while which the hint keeps out of the way.
 const OPEN_SELECTOR = [
@@ -295,9 +299,10 @@ function Spotlight( { anchor, onClose } ) {
  * @param {Object}    props.anchorRef     Ref to the Edit button.
  * @param {?Document} props.frameDocument The page on view, once loaded.
  * @param {boolean}   props.isActive      Whether the page is only on view.
+ * @param {Function}  props.onEdit        Starts editing, as Edit does.
  * @return {?Element} The spotlight, while it shows.
  */
-export function EditHint( { anchorRef, frameDocument, isActive } ) {
+export function EditHint( { anchorRef, frameDocument, isActive, onEdit } ) {
 	const hasShown = useSelect(
 		( select ) =>
 			Boolean(
@@ -313,7 +318,7 @@ export function EditHint( { anchorRef, frameDocument, isActive } ) {
 	// Read in the listener, so it isn't added again when these change.
 	const stateRef = useRef();
 	const hasSpokenRef = useRef( false );
-	stateRef.current = { hasShown, isOpen };
+	stateRef.current = { hasShown, isOpen, onEdit };
 
 	useEffect( () => {
 		if ( ! isActive || ! frameDocument ) {
@@ -323,14 +328,11 @@ export function EditHint( { anchorRef, frameDocument, isActive } ) {
 		// Read as the press starts: clicking the preview moves focus out of
 		// an open popover, which closes it before the click arrives.
 		let wasSomethingOpen = false;
+		let clickTimer;
 		const onPointerDown = () => {
 			wasSomethingOpen = isSomethingOpen( document );
 		};
-		const onClick = ( event ) => {
-			if ( ! isEditIntent( event ) || wasSomethingOpen ) {
-				return;
-			}
-
+		const pointAtEdit = () => {
 			if ( ! stateRef.current.hasShown ) {
 				// Said once: a reload or another visit only pulses.
 				set( PREFERENCES_SCOPE, PREFERENCE_NAME, true );
@@ -345,6 +347,22 @@ export function EditHint( { anchorRef, frameDocument, isActive } ) {
 				}
 			}
 		};
+		const onClick = ( event ) => {
+			if ( ! isEditIntent( event ) || wasSomethingOpen ) {
+				return;
+			}
+
+			window.clearTimeout( clickTimer );
+
+			if ( event.detail === 2 ) {
+				stateRef.current.onEdit();
+			} else if ( event.detail < 2 ) {
+				clickTimer = window.setTimeout(
+					pointAtEdit,
+					DOUBLE_CLICK_WAIT_MS
+				);
+			}
+		};
 
 		frameDocument.addEventListener( 'pointerdown', onPointerDown, true );
 		frameDocument.addEventListener( 'click', onClick );
@@ -356,6 +374,7 @@ export function EditHint( { anchorRef, frameDocument, isActive } ) {
 				true
 			);
 			frameDocument.removeEventListener( 'click', onClick );
+			window.clearTimeout( clickTimer );
 			hasSpokenRef.current = false;
 		};
 	}, [ anchorRef, frameDocument, isActive, set ] );

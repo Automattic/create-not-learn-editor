@@ -132,6 +132,11 @@ export function SiteCanvas( {
 			? GlobalScope
 			: Fragment;
 	const isComposing = canCompose && canvas.isComposing;
+	// Edit, and a double click on the page's words or pictures in Browse.
+	const startEditing = () => {
+		canvas.requestMode( MODE_EDIT );
+		expandCanvas( true );
+	};
 
 	// A canvas without Compose, reached while composing, edits instead.
 	useEffect( () => {
@@ -233,10 +238,7 @@ export function SiteCanvas( {
 						<EditScope>
 							<EditButton
 								buttonRef={ editButtonRef }
-								onEdit={ () => {
-									canvas.requestMode( MODE_EDIT );
-									expandCanvas( true );
-								} }
+								onEdit={ startEditing }
 							/>
 						</EditScope>
 					) }
@@ -316,6 +318,7 @@ export function SiteCanvas( {
 			</div>
 			<EditHint
 				anchorRef={ editButtonRef }
+				onEdit={ startEditing }
 				frameDocument={ frame.frameDocument }
 				isActive={ isPreviewing && canvas.canEdit && ! frame.isLoading }
 			/>
