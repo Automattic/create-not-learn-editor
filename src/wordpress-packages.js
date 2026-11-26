@@ -21,6 +21,7 @@ import {
 	LinkControl,
 	store as blockEditorStore,
 	useBlockBindingsUtils,
+	useBlockDisplayInformation,
 	useBlockEditingMode,
 	useStyleOverride,
 } from '@wordpress/block-editor';
@@ -389,6 +390,7 @@ export {
 	upload as uploadIcon,
 	uploadMedia,
 	useBlockBindingsUtils,
+	useBlockDisplayInformation,
 	useBlockEditingMode,
 	useStyleOverride,
 	useCallback,
