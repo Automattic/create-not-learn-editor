@@ -7,16 +7,8 @@
  */
 
 /**
- * WordPress dependencies
- */
-import { store as keyboardShortcutsStore } from '@wordpress/keyboard-shortcuts';
-
-/**
  * Internal dependencies
  */
-import { unlock } from '../lock-unlock';
-import { documentInfoIcon } from './icons';
-import { getToggleVariant, toggleDocumentPanel } from './document-panel/state';
 import { openRoute } from '../open-route';
 import {
 	__,
@@ -27,14 +19,12 @@ import {
 	desktopIcon,
 	dispatch,
 	displayShortcut,
-	drawerLeftIcon,
 	isRTL,
 	Menu,
 	mobileIcon,
 	pencilIcon,
 	redoIcon,
 	select as selectFromStore,
-	sprintf,
 	squareIcon,
 	tabletIcon,
 	undoIcon,
@@ -173,80 +163,6 @@ export function closeDocumentOverview() {
 	if ( selectFromStore( EDITOR_STORE )?.isListViewOpened?.() ) {
 		dispatch( EDITOR_STORE ).setIsListViewOpened( false );
 	}
-}
-
-/**
- * Document Overview's toggle, after undo and redo as in core's editor. It
- * opens Details and Layers (`./document-panel`) in the editor's own sidebar,
- * at the canvas's left, so it says so in words as well as an icon: a list
- * icon alone read as "list of pages", not "about this page".
- *
- * The open state is core's, so the full-screen editor and the canvas share it,
- * as core's editors do. The canvas only offers it while expanded, and closes
- * it with `closeDocumentOverview` when it goes back.
- *
- * @return {Element} The button.
- */
-export function DocumentOverviewToggle() {
-	const variant = getToggleVariant();
-
-	const { isOpen, shortcut, toggleRef, typeName } = useSelect( ( select ) => {
-		const editor = select( EDITOR_STORE );
-		const postType = editor?.getCurrentPostType?.();
-
-		return {
-			isOpen: Boolean( editor?.isListViewOpened?.() ),
-			shortcut: select(
-				keyboardShortcutsStore
-			).getShortcutRepresentation( 'core/editor/toggle-list-view' ),
-			// Core hands focus back here when the list is closed from inside.
-			toggleRef: editor && unlock( editor ).getListViewToggleRef?.(),
-			typeName: postType
-				? select( coreDataStore ).getPostType( postType )?.labels
-						?.singular_name
-				: null,
-		};
-	}, [] );
-	const label = typeName
-		? sprintf(
-				/* translators: %s: The kind of document, like Page. */
-				__( '%s details and layers', 'create-not-learn-editor' ),
-				typeName
-			)
-		: __( 'Details and layers', 'create-not-learn-editor' );
-
-	// The status chip and the rail open the panel from elsewhere, but core
-	// still needs a toggle to hand focus back to.
-	if ( variant === 'status' || variant === 'rail' ) {
-		return null;
-	}
-
-	const isAbout = variant === 'about';
-
-	return (
-		<Button
-			__next40pxDefaultSize
-			aria-expanded={ isOpen }
-			className={ `cnl-site-canvas__document-overview-toggle is-${ variant }` }
-			icon={ isAbout ? drawerLeftIcon : documentInfoIcon }
-			isPressed={ isOpen }
-			// The name read out has to match the words on the button.
-			label={
-				isAbout
-					? label
-					: __( 'Document info', 'create-not-learn-editor' )
-			}
-			onClick={ () => toggleDocumentPanel() }
-			ref={ toggleRef }
-			shortcut={ shortcut }
-			showTooltip
-			variant={ isAbout ? 'secondary' : undefined }
-		>
-			{ isAbout
-				? __( 'About this page', 'create-not-learn-editor' )
-				: __( 'Document info', 'create-not-learn-editor' ) }
-		</Button>
-	);
 }
 
 /**

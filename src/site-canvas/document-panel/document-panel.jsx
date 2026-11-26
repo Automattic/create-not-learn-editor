@@ -1,8 +1,8 @@
 /**
- * Document Overview as Details and Layers: what this page is, and what is on
- * it. It takes over core's Document Overview sidebar, whose List View becomes
- * Layers, and whose Outline goes. See "Document Overview" in
- * `../README.md`.
+ * The panel the document rail opens: Details, what this document is, Layers,
+ * what is on it, and Outline, its headings. It takes over core's Document
+ * Overview sidebar, whose List View becomes Layers. See "Document Overview"
+ * in `../README.md`.
  */
 
 /**
@@ -10,8 +10,7 @@
  */
 import { store as coreDataStore } from '@wordpress/core-data';
 import { useSelect } from '@wordpress/data';
-import { TimeToRead, WordCount } from '@wordpress/editor';
-import { Icon } from '@wordpress/ui';
+import { DocumentOutline, TimeToRead, WordCount } from '@wordpress/editor';
 
 /**
  * Internal dependencies
@@ -26,12 +25,11 @@ import {
 } from '../../routes/content/pages/page-layout-picker';
 import { groupSections } from '../../routes/content/pages/page-sections';
 import { useHomepageState } from '../../routes/content/pages/homepage';
-import { closeDocumentOverview } from '../toolbar';
-import { layersIcon } from '../icons';
+import { RAIL_ITEMS } from './rail';
 import {
+	closeDocumentPanel,
 	DETAILS_TAB,
-	LAYERS_TAB,
-	setDocumentTab,
+	OUTLINE_TAB,
 	useDocumentTab,
 } from './state';
 import {
@@ -42,8 +40,6 @@ import {
 	closeSmallIcon,
 	createPortal,
 	isRTL,
-	pageIcon,
-	Tabs,
 	Text,
 	useEffect,
 	useMemo,
@@ -203,66 +199,65 @@ function DocumentDetails() {
 }
 
 /**
- * The tabs, with core's close button beside them, and Details' panel. Layers'
- * panel is core's List View, just below, shown while Layers is picked.
+ * Escape closes the panel. Core closes its sidebar on Escape, but the panel
+ * is outside it in React's tree, so the key doesn't reach it.
  *
- * @param {Object}   props
- * @param {string}   props.tab         The tab picked.
- * @param {Function} props.onChangeTab Picks a tab.
+ * @param {KeyboardEvent} event The key press.
+ */
+function closeOnEscape( event ) {
+	if ( event.key === 'Escape' && ! event.defaultPrevented ) {
+		event.preventDefault();
+		closeDocumentPanel();
+	}
+}
+
+/**
+ * The panel the rail opened, named, with a close button. The rail switches
+ * between panels, so there are no tabs. Layers' panel is core's List View,
+ * just below, shown while Layers is picked.
+ *
+ * @param {Object} props
+ * @param {string} props.tab The panel picked.
  * @return {Element} The panel.
  */
-function DocumentPanelContent( { tab, onChangeTab } ) {
+function DocumentPanelContent( { tab } ) {
+	const item = RAIL_ITEMS.find( ( { tab: name } ) => name === tab );
+
 	return (
-		<Tabs.Root
+		// Escape is handled for the keys pressed inside the panel.
+		// eslint-disable-next-line jsx-a11y/no-static-element-interactions
+		<div
 			className={ `cnl-document-panel is-${ tab }` }
-			// Core closes its sidebar on Escape, but this is outside it in
-			// React's tree, so the key doesn't reach it.
-			onKeyDown={ ( event ) => {
-				if ( event.key === 'Escape' && ! event.defaultPrevented ) {
-					event.preventDefault();
-					closeDocumentOverview();
-				}
-			} }
-			onValueChange={ onChangeTab }
-			value={ tab }
+			onKeyDown={ closeOnEscape }
 		>
 			<div className="cnl-document-panel__header">
-				<Tabs.List className="cnl-document-panel__tablist">
-					<Tabs.Tab
-						className="cnl-document-panel__tab"
-						value={ DETAILS_TAB }
-					>
-						<Icon icon={ pageIcon } size={ 20 } />
-						{ __( 'Details', 'create-not-learn-editor' ) }
-					</Tabs.Tab>
-					<Tabs.Tab
-						className="cnl-document-panel__tab"
-						value={ LAYERS_TAB }
-					>
-						<Icon icon={ layersIcon } size={ 20 } />
-						{ __( 'Layers', 'create-not-learn-editor' ) }
-					</Tabs.Tab>
-				</Tabs.List>
+				<Text render={ <h2 /> } variant="heading-md">
+					{ item?.label }
+				</Text>
 				<Button
 					icon={ closeSmallIcon }
 					label={ __( 'Close', 'create-not-learn-editor' ) }
-					onClick={ closeDocumentOverview }
+					onClick={ closeDocumentPanel }
 					size="compact"
 				/>
 			</div>
-			<Tabs.Panel
-				className="cnl-document-panel__panel"
-				value={ DETAILS_TAB }
-			>
-				<DocumentDetails />
-			</Tabs.Panel>
-		</Tabs.Root>
+			{ tab === DETAILS_TAB && (
+				<div className="cnl-document-panel__panel">
+					<DocumentDetails />
+				</div>
+			) }
+			{ tab === OUTLINE_TAB && (
+				<div className="cnl-document-panel__panel cnl-document-panel__outline">
+					<DocumentOutline />
+				</div>
+			) }
+		</div>
 	);
 }
 
 /**
- * Details and Layers, while Document Overview is open. The tab picked is kept
- * while it is closed, so it opens again where it was left.
+ * The panel the rail picked, while Document Overview is open. The panel
+ * picked is kept while it is closed, so the next open finds it where it was.
  *
  * @param {Object} props
  * @param {Object} props.editorRef Ref to the editor's container.
@@ -290,13 +285,9 @@ export function DocumentPanel( { editorRef } ) {
 		host?.parentElement?.setAttribute( 'data-cnl-tab', tab );
 	}, [ host, tab ] );
 
-	return host
-		? createPortal(
-				<DocumentPanelContent
-					onChangeTab={ setDocumentTab }
-					tab={ tab }
-				/>,
-				host
-			)
-		: null;
+	if ( ! host ) {
+		return null;
+	}
+
+	return createPortal( <DocumentPanelContent tab={ tab } />, host );
 }

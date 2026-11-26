@@ -33,24 +33,6 @@ const STROKE_PROPS = {
 	strokeWidth: 1.5,
 };
 
-// A page with an "i" on it: what this page is, rather than what is on it.
-export const documentInfoIcon = (
-	<svg { ...STROKE_PROPS }>
-		<path
-			d="M18.25 18V6C18.25 5.30964 17.6904 4.75 17 4.75H7C6.30964 4.75 5.75 5.30964 5.75 6V18C5.75 18.6904 6.30964 19.25 7 19.25H17C17.6904 19.25 18.25 18.6904 18.25 18Z"
-			fill="none"
-			strokeLinejoin="round"
-			vectorEffect="non-scaling-stroke"
-		/>
-		<path
-			d="M12 16V11M12 9.5V8"
-			fill="none"
-			strokeLinejoin="round"
-			vectorEffect="non-scaling-stroke"
-		/>
-	</svg>
-);
-
 // Sheets stacked one on another, as design tools draw layers.
 export const layersIcon = (
 	<svg { ...STROKE_PROPS }>
