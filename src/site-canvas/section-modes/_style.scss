@@ -380,6 +380,7 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
  * the brand colour when in use.
  */
 .cnl-section-modes__option {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -419,8 +420,25 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	}
 }
 
+// The layout the section had when the layouts opened, the way back to it.
+.cnl-section-modes__option-tag {
+	position: absolute;
+	inset-block-start: var(--wpds-dimension-padding-sm);
+	inset-inline-start: var(--wpds-dimension-padding-sm);
+	z-index: 1;
+	padding: 0 6px;
+	border-radius: var(--wpds-border-radius-sm);
+	background: $ink;
+	color: $surface;
+	font-size: 11px;
+	line-height: 18px;
+}
+
+// The card, not the preview's frame inside it, takes the pointer, so moving
+// off the card is always seen.
 .cnl-section-modes__preview {
 	position: relative;
+	pointer-events: none;
 	display: block;
 	width: 160px;
 	height: 100px;

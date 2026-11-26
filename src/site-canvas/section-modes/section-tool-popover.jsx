@@ -111,16 +111,24 @@ export function SectionToolPopover( { tool, onReplaced } ) {
 				) : (
 					<SectionDesignOptions
 						clientId={ clientId }
-						onReplace={ ( next ) => {
-							// Core selects the new section and moves focus
-							// to it, which mustn't close its layouts.
+						onReplace={ ( next, { isClosing } = {} ) => {
+							// Core selects the new section, which mustn't
+							// close its layouts.
 							isReplacing.current = true;
 							window.setTimeout( () => {
 								isReplacing.current = false;
 							}, REPLACE_GRACE );
 
 							onReplaced( clientId, next );
-							setSectionTool( { clientId: next.clientId, view } );
+
+							// Putting the section back as they close
+							// mustn't open them again.
+							if ( ! isClosing ) {
+								setSectionTool( {
+									clientId: next.clientId,
+									view,
+								} );
+							}
 						} }
 						view={ view }
 					/>

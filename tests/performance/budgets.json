@@ -17,7 +17,7 @@
     "routes/header/route.dependencies": 27,
     "routes/header/route.js": 10000,
     "routes/home/content.dependencies": 34,
-    "routes/home/content.js": 248000,
+    "routes/home/content.js": 249000,
     "routes/home/route.dependencies": 27,
     "routes/home/route.js": 10000,
     "routes/navigation-edit/content.dependencies": 32,
@@ -63,7 +63,7 @@
     "scripts/app-init/index.dependencies": 0,
     "scripts/app-init/index.js": 1000,
     "styles/app-init/style.css": 40000,
-    "total.js": 2853000,
+    "total.js": 2854000,
     "total.css": 40000
   }
 }
