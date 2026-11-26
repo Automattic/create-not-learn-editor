@@ -75,13 +75,17 @@ function offerAutosave( registry, autosave ) {
 
 	createWarningNotice(
 		__(
-			'There is an autosave of this post that is more recent than the version below.'
+			'There is an autosave of this post that is more recent than the version below.',
+			'create-not-learn-editor'
 		),
 		{
 			id: AUTOSAVE_NOTICE_ID,
 			actions: [
 				{
-					label: __( 'Restore the autosave' ),
+					label: __(
+						'Restore the autosave',
+						'create-not-learn-editor'
+					),
 					onClick() {
 						const { editPost, resetEditorBlocks } =
 							registry.dispatch( editorStore );
