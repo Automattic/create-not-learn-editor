@@ -3,7 +3,8 @@
  * The first click picks it, with core's block toolbar for its tools, a click
  * on a row of cards opens the row, and the next reaches a block, the caret
  * in its text. A double click goes straight to the text. A section's blocks
- * aren't locked, and its toolbar's Layout opens its layouts under it.
+ * aren't locked, its toolbar's Layout opens its layouts under it and its
+ * Colour a menu of its colours.
  */
 const {
 	clickIntoSection,
@@ -468,6 +469,108 @@ test.describe( 'Edit mode', () => {
 		await expect
 			.poll( () => getSelection( page ) )
 			.toBe( 'core/paragraph default' );
+	} );
+
+	test( "the toolbar's Colour lists the section's colours, by keyboard too", async ( {
+		page,
+		rest,
+	} ) => {
+		await openPage( page, rest, { content: EMPTY_PAGE } );
+		await setCanvasMode( page, 'Edit' );
+		await page
+			.locator( '.cnl-section-modes__empty' )
+			.getByRole( 'button', { name: 'Add a section' } )
+			.click( { timeout: 15000 } );
+		await pickSectionTemplate( page, 'Image left, text right' );
+		await pickSection(
+			page,
+			getCanvasEditor( page )
+				.contentFrame()
+				.locator( '.is-root-container .wp-block-post-content > *' )
+				.first()
+		);
+
+		const colourButton = getBlockToolbar( page ).getByRole( 'button', {
+			name: 'Colour',
+			exact: true,
+		} );
+		const popover = page.locator( '.cnl-section-tool-popover' );
+		const menu = popover.getByRole( 'menu', { name: 'Colour' } );
+		const choices = menu.getByRole( 'menuitemradio' );
+		const custom = menu.getByRole( 'menuitemradio', {
+			name: 'Custom colours',
+		} );
+
+		// The menu opens on the colour in use, the theme's own, named.
+		await colourButton.click();
+		await expect( choices.first() ).toHaveAccessibleName( /Default/ );
+		await expect( choices.first() ).toHaveAttribute(
+			'aria-checked',
+			'true'
+		);
+		await expect( choices.first() ).toBeFocused();
+
+		// Arrow keys move through the colours, and Enter picks one, the
+		// menu staying open on it. It is one tab stop, on the one in use.
+		await page.keyboard.press( 'ArrowDown' );
+		await expect( choices.nth( 1 ) ).toBeFocused();
+		await page.keyboard.press( 'Enter' );
+		await expect( choices.nth( 1 ) ).toHaveAttribute(
+			'aria-checked',
+			'true'
+		);
+		await expect( choices.first() ).toHaveAttribute(
+			'aria-checked',
+			'false'
+		);
+		await expect( menu.locator( '[tabindex="0"]' ) ).toHaveCount( 1 );
+		await expect( choices.nth( 1 ) ).toHaveAttribute( 'tabindex', '0' );
+
+		// The arrow pointing forward drills into Custom colours, Back focused.
+		// Up from the second wraps past the first to the last, Custom.
+		await page.keyboard.press( 'ArrowUp' );
+		await page.keyboard.press( 'ArrowUp' );
+		await expect( custom ).toBeFocused();
+		await page.keyboard.press( 'ArrowRight' );
+		await expect(
+			popover.getByRole( 'heading', { name: 'Custom colours' } )
+		).toBeVisible();
+		await expect(
+			popover.getByRole( 'button', { name: 'Back', exact: true } )
+		).toBeFocused();
+		const wells = popover.getByRole( 'group', { name: 'Custom colours' } );
+		await expect( wells.getByRole( 'button' ) ).toHaveText( [
+			'Background',
+			'Text',
+			'Button',
+		] );
+
+		// Escape goes back to the list, on Custom colours, then closes it,
+		// back on the toolbar's Colour.
+		await page.keyboard.press( 'Escape' );
+		await expect( custom ).toBeFocused();
+		await page.keyboard.press( 'Escape' );
+		await expect( popover ).toHaveCount( 0 );
+		await expect( colourButton ).toBeFocused();
+
+		// A colour of its own makes Custom colours the one in use.
+		await colourButton.click();
+		await custom.click();
+		await wells.getByRole( 'button', { name: 'Background' } ).click();
+		await page
+			.locator( '.cnl-color-well__popover' )
+			.getByRole( 'option' )
+			.nth( 2 )
+			.click();
+		await page.keyboard.press( 'Escape' );
+		await popover
+			.getByRole( 'button', { name: 'Back', exact: true } )
+			.click();
+		await expect( custom ).toHaveAttribute( 'aria-checked', 'true' );
+		await expect( choices.nth( 1 ) ).toHaveAttribute(
+			'aria-checked',
+			'false'
+		);
 	} );
 
 	test( 'Edit header unlocks the header, for its content and design', async ( {

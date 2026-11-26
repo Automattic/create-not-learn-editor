@@ -78,6 +78,7 @@ export function withBlackAndWhite( palette ) {
  * @param {?string}  props.value     The colour, as a preset or CSS.
  * @param {boolean}  props.asPreset  Whether palette colours are given as
  *                                   presets.
+ * @param {string}   props.placement Where the palette opens.
  * @param {?Element} props.children  Shown in the toggle after the label.
  * @return {Element} The well.
  */
@@ -89,6 +90,7 @@ export default function ColorWell( {
 	note,
 	onChange,
 	palette,
+	placement = 'bottom',
 	value,
 } ) {
 	const color = resolveColor( value, palette );
@@ -98,7 +100,7 @@ export default function ColorWell( {
 		<Dropdown
 			className="cnl-color-well"
 			contentClassName="cnl-color-well__popover"
-			popoverProps={ { placement: 'bottom', offset: 8 } }
+			popoverProps={ { placement, offset: 8 } }
 			renderToggle={ ( { isOpen, onToggle } ) => (
 				<Button
 					aria-expanded={ isOpen }
