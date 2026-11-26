@@ -22,7 +22,7 @@ import {
 } from '../../wordpress-packages';
 import { scrollCanvasTo } from '../compose/use-block-rects';
 import { createBlankSection } from '../../section-picker';
-import { MODE_CONTENT } from './section-chrome';
+import { MODE_CONTENT, MODE_DESIGN } from './section-chrome';
 
 // Takes the layer's state and actions it needs, by name.
 export function getSectionActions( {
@@ -216,9 +216,16 @@ export function getSectionActions( {
 	const overviewProps = {
 		currentId: active?.id ?? pickedSection,
 		editorRef,
+		getMembers,
 		getTitle,
 		isTextSection,
 		layoutItemsById,
+		// The header or footer opened with Edit header or Edit footer, the
+		// only time its blocks are listed.
+		openPartId:
+			active && partsById[ active.id ] && active.mode !== MODE_DESIGN
+				? active.id
+				: null,
 		partsById,
 		sectionIds,
 		onAddSection: () => {
@@ -240,7 +247,12 @@ export function getSectionActions( {
 			} );
 		},
 		onPick: ( clientId ) => {
-			if ( active && active.id !== clientId ) {
+			// The section a block was picked in steps back out to the section,
+			// as the toolbar's parent selector does. An open header or footer
+			// stays open, with nothing in it selected.
+			if ( active?.id === clientId && partsById[ clientId ] ) {
+				registry.dispatch( blockEditorStore ).clearSelectedBlock();
+			} else if ( active ) {
 				exitMode();
 			}
 
@@ -248,6 +260,43 @@ export function getSectionActions( {
 			setActiveRowId( null );
 			setPickedSection( clientId );
 			scrollCanvasTo( editorRef, clientId );
+		},
+		// A header or footer's edit button in Layers: opened, as Edit header
+		// or Edit footer opens it.
+		onEditPart: ( clientId ) =>
+			leaveCompose( () => {
+				setInlineAdd( null );
+				setActiveRowId( null );
+				enterMode( clientId, MODE_CONTENT );
+				scrollCanvasTo( editorRef, clientId );
+			} ),
+		// A block inside a section, picked in Layers: into the section, as
+		// a double click on the block does, with the block selected and the
+		// focus left in the list, as core's list view leaves it.
+		onPickBlock: ( sectionId, clientId ) => {
+			const select = () => {
+				registry
+					.dispatch( blockEditorStore )
+					.selectBlock( clientId, null );
+				scrollCanvasTo( editorRef, clientId );
+			};
+
+			setInlineAdd( null );
+
+			if ( active?.id === sectionId && active.mode !== MODE_DESIGN ) {
+				select();
+				return;
+			}
+
+			leaveCompose( () => {
+				setActiveRowId( null );
+				enterMode( sectionId, MODE_CONTENT );
+
+				// Once the section takes clicks, and core has opened it.
+				window.requestAnimationFrame( () =>
+					window.requestAnimationFrame( select )
+				);
+			} );
 		},
 	};
 

@@ -71,7 +71,7 @@ test.describe( 'Document Overview', () => {
 		// Core's own list of blocks is still mounted, but not shown.
 		await expect(
 			page.locator(
-				'.editor-list-view-sidebar .block-editor-list-view-tree'
+				'.editor-list-view-sidebar .block-editor-list-view-tree:not(.cnl-canvas-overview__tree)'
 			)
 		).toBeHidden();
 
@@ -82,6 +82,78 @@ test.describe( 'Document Overview', () => {
 		await expect(
 			overview.locator( 'tr', { hasText: 'Second section' } )
 		).toHaveAttribute( 'aria-selected', 'true' );
+
+		// A section opens, as a row in core's list view does, to its blocks,
+		// and a block's row selects it on the canvas.
+		const secondRow = overview.locator( 'tr', {
+			hasText: 'Second section',
+		} );
+
+		await expect( secondRow.first() ).toHaveAttribute(
+			'aria-expanded',
+			'false'
+		);
+		await overview
+			.getByRole( 'button', { name: 'Second section' } )
+			.first()
+			.press( 'ArrowRight' );
+		await expect( secondRow.first() ).toHaveAttribute(
+			'aria-expanded',
+			'true'
+		);
+
+		const paragraphRow = content
+			.locator( 'tr[aria-level="2"]' )
+			.filter( { hasText: 'Paragraph' } );
+
+		await paragraphRow.getByRole( 'button' ).click();
+		await expect( paragraphRow ).toHaveAttribute( 'aria-selected', 'true' );
+		await expect(
+			getCanvasEditor( page )
+				.contentFrame()
+				.locator( '.wp-block-paragraph.is-selected' )
+		).toHaveText( 'Some words.' );
+
+		// The section's row steps back out to the section.
+		await overview
+			.getByRole( 'button', { name: 'Second section' } )
+			.first()
+			.click();
+		await expect( secondRow.first() ).toHaveAttribute(
+			'aria-selected',
+			'true'
+		);
+		await expect( paragraphRow ).toHaveAttribute(
+			'aria-selected',
+			'false'
+		);
+		await expect(
+			getCanvasEditor( page )
+				.contentFrame()
+				.locator( '.wp-block-paragraph.is-selected' )
+		).toHaveCount( 0 );
+
+		// The header doesn't open until Edit header opens it.
+		const headerRow = overview
+			.locator( '.cnl-canvas-overview__group', {
+				has: page.getByRole( 'heading', { name: 'Header' } ),
+			} )
+			.locator( 'tr' )
+			.first();
+
+		await expect( headerRow ).not.toHaveAttribute( 'aria-expanded' );
+		// Its row's edit button opens it, as Edit header on the canvas does,
+		// and goes while it is open.
+		await headerRow.getByRole( 'button', { name: 'Edit header' } ).click();
+		await expect( headerRow ).toHaveAttribute( 'aria-expanded', 'true' );
+		await expect(
+			headerRow.getByRole( 'button', { name: 'Edit header' } )
+		).toHaveCount( 0 );
+		await page.getByRole( 'button', { name: 'Done editing' } ).click();
+		await expect( headerRow ).not.toHaveAttribute( 'aria-expanded' );
+		await expect(
+			headerRow.getByRole( 'button', { name: 'Edit header' } )
+		).toBeVisible();
 
 		// Details hides the list, and Layers brings it back.
 		await panel.getByRole( 'tab', { name: 'Details' } ).click();
