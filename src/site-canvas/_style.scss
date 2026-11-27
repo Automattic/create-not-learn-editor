@@ -113,21 +113,7 @@ body:not(.cnl-canvas-is-expanded) .cnl-site-canvas .cnl-save-controls {
 	color: var(--wpds-color-foreground-content-neutral);
 }
 
-// Labelled as well as drawn, so it reads as "about this page", and pressed
-// in the brand colour while Details and Layers are open.
-.cnl-site-canvas__document-overview-toggle.components-button.has-icon.has-text {
-	gap: var(--wpds-dimension-gap-xs);
-	padding-inline: var(--wpds-dimension-padding-xs) var(--wpds-dimension-padding-sm);
-	color: var(--wpds-color-foreground-content-neutral);
-
-	&.is-pressed {
-		background: var(--wpds-color-background-interactive-brand-weak-active);
-		color: var(--wpds-color-foreground-interactive-brand);
-	}
-}
-
-// Pressed while open or zoomed out, in core's own pressed colours.
-.cnl-site-canvas__document-overview-toggle.components-button.has-icon.is-pressed,
+// Pressed while zoomed out, in core's own pressed colours.
 .cnl-site-canvas__zoom-out-toggle.components-button.has-icon.is-pressed {
 	color: #fff;
 }

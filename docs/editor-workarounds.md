@@ -82,7 +82,7 @@ Both of those rules repeat the base rule's `:not()` chain. Without it the base r
 
 Core's `ListViewSidebar` hard-codes its List View tab, with no slot or filter for another list. The site canvas shows a list of the page's sections there instead (`src/site-canvas/section-modes/canvas-overview.jsx`), portalled into the tab's `.editor-list-view-sidebar__list-view-panel-content` panel, which `src/site-canvas/section-modes/_canvas-overview.scss` uses to hide core's list view beside it. Core's list still mounts, and its focus on opening lands on nothing, so ours moves focus into itself as it opens.
 
-This depends on that class name, on the panel being unmounted while Outline is shown, and on core's `isListViewOpened` selector. Remove it once the editor lets the List View tab's content be replaced.
+This depends on that class name and on core's `isListViewOpened` selector. Core's own tabs are hidden, so its Outline tab is never picked: the rail's Outline panel renders core's `DocumentOutline` itself. Remove it once the editor lets the List View tab's content be replaced.
 
 ## A section's block toolbar, and its unlocked blocks
 
@@ -98,3 +98,9 @@ Remove the first once core has a public way to say patterns aren't locked, move 
 ## Layers' nested rows
 
 Layers for a page built from sections (`src/site-canvas/section-modes/canvas-overview.jsx`) draws its own rows with core's list view class names (`block-editor-list-view-leaf`, `block-editor-list-view-block-contents`, `block-editor-list-view__expander` and the rest), so core's list view styles draw them, and reads the blocks inside each section from the private `getListViewClientIdsTree` selector, so it lists what core's list view would. A change to either in Gutenberg can change how the rows look or what they list. Remove this once core's ListView can be given its own top-level rows.
+
+## The document rail's icon
+
+The rail down the canvas's left edge (`src/site-canvas/document-panel/rail.jsx`) shows Details with the icon of the kind of document being edited. It asks core's private `getPostIcon` selector on `core/editor`, through `unlock`, so it picks the same icon as core's editor: a page's, a post's, a template part's area, or a custom post type's dashicon.
+
+This depends on that private selector and its arguments. Remove it once the editor offers the icon publicly, or copy its few lines if it goes.

@@ -1,9 +1,7 @@
 /**
- * Which tab Details and Layers shows, and which design of its toggle is being
- * tried. Shared, so a toggle outside the panel can open it on a tab.
- *
- * The toggle designs are a spike: pick one with `&docToggle=<name>` in the
- * editor's address, which is remembered.
+ * Which panel the document rail has open: Details, Layers or Outline. Shared,
+ * so the rail and the panel beside it agree. The panel is core's Document
+ * Overview sidebar, so whether it is open is core's.
  */
 
 /**
@@ -12,12 +10,16 @@
 import { dispatch, select } from '@wordpress/data';
 import { useSyncExternalStore } from '@wordpress/element';
 
+/**
+ * Internal dependencies
+ */
+import { unlock } from '../../lock-unlock';
+
 export const DETAILS_TAB = 'details';
 export const LAYERS_TAB = 'layers';
+export const OUTLINE_TAB = 'outline';
 
 const EDITOR_STORE = 'core/editor';
-const VARIANT_KEY = 'cnlDocToggle';
-export const TOGGLE_VARIANTS = [ 'label', 'about', 'status', 'rail' ];
 
 let tab = DETAILS_TAB;
 const listeners = new Set();
@@ -60,19 +62,10 @@ export function toggleDocumentPanel( next = tab ) {
 }
 
 /**
- * @return {string} The toggle design being tried.
+ * Closes the panel from inside it, and hands focus back to the rail's button
+ * for it, as core's own sidebar does.
  */
-export function getToggleVariant() {
-	const fromUrl = new URLSearchParams( window.location.search ).get(
-		'docToggle'
-	);
-
-	if ( TOGGLE_VARIANTS.includes( fromUrl ) ) {
-		window.localStorage.setItem( VARIANT_KEY, fromUrl );
-		return fromUrl;
-	}
-
-	const saved = window.localStorage.getItem( VARIANT_KEY );
-
-	return TOGGLE_VARIANTS.includes( saved ) ? saved : 'label';
+export function closeDocumentPanel() {
+	dispatch( EDITOR_STORE ).setIsListViewOpened( false );
+	unlock( select( EDITOR_STORE ) ).getListViewToggleRef().current?.focus();
 }

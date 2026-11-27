@@ -37,11 +37,9 @@ import { MODE_COMPOSE, MODE_EDIT } from './mode';
 import { expandCanvas, useCanvasExpansion } from './expansion';
 import { DocumentPanel } from './document-panel/document-panel';
 import { DocumentRail } from './document-panel/rail';
-import { getToggleVariant } from './document-panel/state';
 import { SectionModesLayer } from './section-modes/section-modes-layer';
 import {
 	closeDocumentOverview,
-	DocumentOverviewToggle,
 	EditHistory,
 	EditButton,
 	ExitButton,
@@ -115,10 +113,7 @@ export function SiteCanvas( {
 	const isPreviewing = canvas.isPreviewing;
 	const isEditing = mode === MODE_EDIT;
 	const isExpanded = useCanvasExpansion();
-	const hasDocumentRail =
-		! isPreviewing &&
-		Boolean( editorEntity ) &&
-		getToggleVariant() === 'rail';
+	const hasDocumentRail = ! isPreviewing && Boolean( editorEntity );
 	// Editing fills the editor, and viewing puts the sidebar back, however
 	// the mode changed: Edit and Exit, a hint, or a screen opening a page.
 	// Not when the canvas only switched to show a change made beside it, as
@@ -213,10 +208,6 @@ export function SiteCanvas( {
 		>
 			<header className="cnl-editor-canvas__toolbar cnl-editor-homepage-toolbar">
 				<div className="cnl-editor-homepage-toolbar__left">
-					{ /* First, above the panel it opens at the canvas's left. */ }
-					{ ! isPreviewing && editorEntity && (
-						<DocumentOverviewToggle />
-					) }
 					{ ! isPreviewing && <EditHistory /> }
 					{ isPreviewing && (
 						<PreviewHistory
