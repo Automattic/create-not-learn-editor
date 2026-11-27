@@ -376,35 +376,31 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 }
 
 /*
- * Resting on a layout fades the layouts and their popover, all but the one
- * pointed at, so the section it is shown in can be seen under them. Moving
- * from one layout to the next keeps them faded; leaving them brings them
- * back at once.
+ * Resting on a layout slowly fades the whole popover, so the section it is
+ * shown in can be seen under it. Moving to another layout brings it back and
+ * starts again; leaving the layouts brings it back at once. The two names
+ * take turns, as an animation only starts again when its name changes.
  */
-$peek-delay: 1s;
-$peek-duration: 400ms;
+@keyframes cnl-layouts-peek-a {
 
-.cnl-section-tool-popover .components-popover__content,
-.cnl-section-modes__options > .cnl-section-modes__option {
-	transition-property: opacity, background-color, border-color, box-shadow, outline-color;
-	transition-duration: var(--wpds-motion-duration-sm);
-	transition-timing-function: var(--wpds-motion-easing-subtle);
+	to {
+		opacity: 0.1;
+	}
 }
 
-$peeking: ".cnl-section-tool-popover:has(.cnl-section-modes__option:is(:hover, :focus-visible))";
+@keyframes cnl-layouts-peek-b {
 
-#{$peeking} .components-popover__content {
-	border-color: transparent;
-	background-color: transparent;
-	box-shadow: none;
-	transition-duration: $peek-duration;
-	transition-delay: $peek-delay;
+	to {
+		opacity: 0.1;
+	}
 }
 
-#{$peeking} .cnl-section-modes__option:not(:hover, :focus-visible) {
-	opacity: 0.08;
-	transition-duration: $peek-duration;
-	transition-delay: $peek-delay;
+.cnl-section-tool-popover:has([data-peek="a"]) .components-popover__content {
+	animation: cnl-layouts-peek-a 2s ease-in 0.8s both;
+}
+
+.cnl-section-tool-popover:has([data-peek="b"]) .components-popover__content {
+	animation: cnl-layouts-peek-b 2s ease-in 0.8s both;
 }
 
 /*

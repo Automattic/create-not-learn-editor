@@ -29,6 +29,7 @@ import {
 	useContext,
 	useEffect,
 	useRef,
+	useState,
 } from '@wordpress/element';
 import {
 	alignNone as alignNoneIcon,
@@ -162,8 +163,17 @@ function LayoutOptions( { current, onPreview, onSelect, options, original } ) {
 	const maxColumns = useContext( ColumnsContext );
 	const columns = getLayoutGridColumns( options.length, maxColumns );
 	const timer = useRef();
+	// Which turn the fade is on, `a` or `b`; see the stylesheet.
+	const [ peek, setPeek ] = useState( null );
 	const preview = ( option, delay = 0 ) => {
 		window.clearTimeout( timer.current );
+		setPeek( ( turn ) => {
+			if ( ! option ) {
+				return null;
+			}
+
+			return turn === 'a' ? 'b' : 'a';
+		} );
 
 		if ( onPreview ) {
 			timer.current = window.setTimeout(
@@ -179,6 +189,7 @@ function LayoutOptions( { current, onPreview, onSelect, options, original } ) {
 		<div
 			aria-label={ __( 'Layouts', 'create-not-learn-editor' ) }
 			className="cnl-section-modes__options"
+			data-peek={ peek ?? undefined }
 			onBlur={ ( event ) => {
 				if ( ! event.currentTarget.contains( event.relatedTarget ) ) {
 					preview( null );
