@@ -23,41 +23,43 @@
  * WordPress dependencies
  */
 import { BlockPreview } from '@wordpress/block-editor';
-import {
-	createContext,
-	forwardRef,
-	useContext,
-	useRef,
-} from '@wordpress/element';
+import { Toolbar, ToolbarButton, ToolbarGroup } from '@wordpress/components';
+import { forwardRef, useRef, useState } from '@wordpress/element';
 import {
 	alignNone as alignNoneIcon,
 	color as colorIcon,
 	layout as layoutIcon,
-	settings as moreControlIcon,
+	settings as optionsIcon,
 	stretchFullWidth as stretchFullWidthIcon,
 	stretchWide as stretchWideIcon,
 } from '@wordpress/icons';
+import { Menu } from '@wordpress/ui';
 
 /**
  * Internal dependencies
  */
 import {
 	__,
+	BlockIcon,
 	blockEditorStore,
 	Button,
 	cautionIcon,
-	chevronLeftIcon,
-	chevronRightIcon,
+	chevronDownIcon,
+	chevronUpIcon,
 	cloneBlock,
-	ColorIndicator,
+	copyIcon,
 	coreDataStore,
 	Icon,
-	isRTL,
+	pencilIcon,
+	Popover,
 	serialize,
 	sprintf,
+	trashIcon,
+	useBlockDisplayInformation,
 	useDispatch,
 	useSelect,
 } from '../../wordpress-packages';
+import { ToolbarMenu } from '../../block-toolbar/toolbar-menu';
 import ColorWell from '../../pickers/color-well';
 import ColorList from './color-list';
 import { getLayoutGridColumns, MAX_LAYOUT_COLUMNS } from './layout-grid';
@@ -67,7 +69,6 @@ import {
 	useSectionVariations,
 } from './use-variations';
 import {
-	CUSTOM_COLOR,
 	getAttributeUpdate,
 	getButtonTextValue,
 	withCustomColors,
@@ -133,9 +134,6 @@ function Preview( { blocks } ) {
 	);
 }
 
-// The most layouts a row holds, set by the bar from the room it has.
-const ColumnsContext = createContext( MAX_LAYOUT_COLUMNS );
-
 /**
  * Every layout at once, in a grid, so how many there are can be seen at a
  * glance and picking one moves nothing. Each is drawn with the section's own
@@ -148,8 +146,7 @@ const ColumnsContext = createContext( MAX_LAYOUT_COLUMNS );
  * @return {Element} The layouts.
  */
 function LayoutOptions( { current, onSelect, options } ) {
-	const maxColumns = useContext( ColumnsContext );
-	const columns = getLayoutGridColumns( options.length, maxColumns );
+	const columns = getLayoutGridColumns( options.length, MAX_LAYOUT_COLUMNS );
 
 	return (
 		<div
@@ -223,117 +220,6 @@ function WidthOptions( { width } ) {
 					{ getWidthLabel( option ) }
 				</Button>
 			) ) }
-		</div>
-	);
-}
-
-/**
- * A section's colours, in the bar's row, as Design's colour palettes are
- * shown: the theme's default, then the others it can take. The default is
- * a swatch of the page's own colours, named "Default" in its place while
- * pointed at or focused, as it has no name of its own to show in a tooltip.
- *
- * Custom comes last, a swatch like the others: a colour wheel, or the
- * section's own colours once it has them. It picks nothing by itself; it
- * opens and closes the tray of custom colours.
- *
- * @param {Object}    props
- * @param {Object}    props.colors       `{ current, options, onSelect,
- *                                       swatch }`; `swatch` is the custom
- *                                       colours'.
- * @param {boolean}   props.isCustomOpen Whether the custom colours' tray is
- *                                       open.
- * @param {?Function} props.onCustom     Opens or closes the tray, when
- *                                       custom colours are offered.
- * @return {Element} The swatches.
- */
-function ColorOptions( { colors, isCustomOpen, onCustom } ) {
-	const isCustom = colors.current === CUSTOM_COLOR;
-
-	return (
-		<div
-			aria-label={ __( 'Colour', 'create-not-learn-editor' ) }
-			className="cnl-section-modes__swatches"
-			role="group"
-		>
-			{ colors.options.map( ( option ) => {
-				const isDefault = ! option.name;
-
-				return (
-					<Button
-						aria-pressed={ option.name === colors.current }
-						className={ `cnl-section-modes__swatch${
-							isDefault ? ' is-default' : ''
-						}` }
-						key={ option.name ?? 'none' }
-						label={ option.label }
-						onClick={ () =>
-							option.name !== colors.current &&
-							colors.onSelect( option.name )
-						}
-						showTooltip={ ! isDefault }
-						tooltipPosition="bottom"
-					>
-						{ option.swatch?.length > 0 && (
-							<span
-								aria-hidden
-								className="cnl-section-modes__swatch-colors"
-							>
-								{ option.swatch.map( ( color, index ) => (
-									<ColorIndicator
-										colorValue={ color }
-										key={ index }
-									/>
-								) ) }
-							</span>
-						) }
-						{ isDefault && (
-							<span
-								aria-hidden
-								className="cnl-section-modes__swatch-default"
-							>
-								{ option.label }
-							</span>
-						) }
-					</Button>
-				);
-			} ) }
-			{ onCustom && (
-				<Button
-					aria-expanded={ isCustomOpen }
-					aria-pressed={ isCustom }
-					className="cnl-section-modes__swatch cnl-section-modes__custom"
-					label={ __( 'Custom', 'create-not-learn-editor' ) }
-					onClick={ onCustom }
-					// No tooltip to repeat the name while it is on the button.
-					showTooltip={ isCustom }
-					tooltipPosition="bottom"
-				>
-					<span
-						aria-hidden
-						className="cnl-section-modes__swatch-colors"
-					>
-						{ isCustom ? (
-							colors.swatch.map( ( color, index ) => (
-								<ColorIndicator
-									colorValue={ color }
-									key={ index }
-								/>
-							) )
-						) : (
-							<>
-								<span className="cnl-section-modes__swatch-wheel" />
-								<span className="cnl-section-modes__swatch-custom-label">
-									{ __(
-										'Custom',
-										'create-not-learn-editor'
-									) }
-								</span>
-							</>
-						) }
-					</span>
-				</Button>
-			) }
 		</div>
 	);
 }
@@ -574,155 +460,277 @@ function useWidthChoice( clientId ) {
 }
 
 /**
- * The bar itself, once its choices are known.
+ * What one design choice offers, by itself: its layouts, its colours, with
+ * the custom ones under them once Custom is picked, or its widths. For the
+ * popover hung from the choice's button, on core's toolbar in Edit and on
+ * Edit design's toolbar.
+ *
+ * @param {Object} props
+ * @param {Object} props.choices `{ colors, layouts, width }`.
+ * @param {string} props.view    `VIEW_LAYOUT`, `VIEW_COLOR` or `VIEW_WIDTH`.
+ * @return {?Element} The options.
+ */
+function ChoiceOptions( { choices, view } ) {
+	const { colors, layouts, width } = choices;
+
+	if ( view === VIEW_LAYOUT && layouts ) {
+		return <LayoutOptions { ...layouts } />;
+	}
+
+	if ( view === VIEW_COLOR && colors ) {
+		return (
+			<ColorList
+				colors={ colors }
+				custom={
+					colors.custom && (
+						<CustomColors colors={ colors.custom } isList />
+					)
+				}
+			/>
+		);
+	}
+
+	if ( view === VIEW_WIDTH && width ) {
+		return <WidthOptions width={ width } />;
+	}
+
+	return null;
+}
+
+// Other popovers opened from a choice's, like a custom colour's palette,
+// and the toolbar's own buttons, which open, close and swap it.
+const CHOICE_STAYS_OPEN_FOR =
+	'.components-popover, [data-cnl-design-view], .cnl-block-options';
+
+/**
+ * Edit design's toolbar, drawn as core's block toolbar is in Edit, so a
+ * section looks the same to work on zoomed out, and a header or footer
+ * the same as a section: the name, its moves, its choices, each opening
+ * under its button, then Options and Delete, or Done editing for an open
+ * header or footer. See "The section's toolbar" in `../README.md`.
  *
  * @param {Object}    props
- * @param {Object}    props.choices    `{ colors, layouts, width }`, each
- *                                     `{ current, options, onSelect }`, or
- *                                     null when there is nothing to choose.
- * @param {string}    props.title      The section's name.
- * @param {?string}   props.view       The choice drilled into, if any.
- * @param {Function}  props.onView     Called with the choice to drill into,
- *                                     or null to step back out.
- * @param {?Function} props.onClose    Leaves Edit design. Left out for an
- *                                     open header or footer, left with `end`.
- * @param {?Function} props.onFreeform Hands a header or footer to core's own
- *                                     block tools. Left out for a section,
- *                                     whose blocks are open as they are.
- * @param {?Element}  props.end        What goes at the end of the choices,
- *                                     like an open header's Done editing. A
- *                                     choice drilled into has Back only.
- * @param {Object}    props.style      Where the bar sits.
- * @param {Object}    ref              Ref to the bar.
- * @return {Element} The bar.
+ * @param {Object}    props.choices     `{ colors, layouts, width }`, each
+ *                                      `{ current, options, onSelect }`, or
+ *                                      null when there is nothing to choose.
+ * @param {string}    props.clientId    The section, or the part's block.
+ * @param {string}    props.title       Its name.
+ * @param {?string}   props.view        The choice open, if any.
+ * @param {Function}  props.onView      Called with the choice to open, or
+ *                                      null to close it.
+ * @param {?Function} props.onMove      Moves a section, called with -1 or 1.
+ * @param {boolean}   props.canMoveUp   Whether it can move up.
+ * @param {boolean}   props.canMoveDown Whether it can move down.
+ * @param {?Function} props.onZoomIn    Zooms back into Edit, for its words
+ *                                      and pictures.
+ * @param {?Function} props.onDuplicate Duplicates a section.
+ * @param {?Function} props.onDelete    Deletes a section.
+ * @param {?Function} props.onFreeform  Hands a header or footer to core's
+ *                                      own block tools.
+ * @param {?Element}  props.end         What goes at the end, like an open
+ *                                      header's Done editing.
+ * @param {Object}    props.style       Where the toolbar sits.
+ * @param {Object}    ref               Ref to the toolbar.
+ * @return {Element} The toolbar.
  */
 const DesignBarView = forwardRef( function UnforwardedDesignBarView(
-	{ choices, end, onClose, onFreeform, onView, style, title, view },
+	{
+		canMoveDown,
+		canMoveUp,
+		choices,
+		clientId,
+		end,
+		onDelete,
+		onDuplicate,
+		onFreeform,
+		onMove,
+		onView,
+		onZoomIn,
+		style,
+		title,
+		view,
+	},
 	ref
 ) {
 	const labels = getViewLabels();
-	const isColorView = view === VIEW_COLOR || view === VIEW_CUSTOM_COLOR;
+	const [ buttons ] = useState( () => ( {} ) );
+	const info = useBlockDisplayInformation( clientId );
 	const views = [ VIEW_LAYOUT, VIEW_COLOR, VIEW_WIDTH ].filter(
 		( name ) =>
 			( name === VIEW_LAYOUT && choices.layouts ) ||
 			( name === VIEW_COLOR && choices.colors ) ||
 			( name === VIEW_WIDTH && choices.width )
 	);
+	const openView = getParentView( view ) ?? view;
+	const hasOptions = Boolean( onDuplicate || onFreeform );
 
 	return (
-		<div
-			aria-label={ sprintf(
-				/* translators: %s: section name. */
-				__( '%s design', 'create-not-learn-editor' ),
-				title
-			) }
-			className="cnl-section-modes__design"
-			ref={ ref }
-			role="group"
-			style={ style }
-		>
-			<div className="cnl-section-modes__design-row">
-				{ view ? (
-					<Button
-						className="cnl-section-modes__bar-button"
-						icon={ isRTL() ? chevronRightIcon : chevronLeftIcon }
-						label={ __(
-							'Back to Edit design',
-							'create-not-learn-editor'
-						) }
-						onClick={ () => onView( null ) }
-						showTooltip
-						size="compact"
-						tooltipPosition="bottom"
-					>
-						{ __( 'Back', 'create-not-learn-editor' ) }
-					</Button>
-				) : (
-					<>
-						{ onClose && (
-							<Button
-								className="cnl-section-modes__bar-button"
-								icon={
-									isRTL() ? chevronRightIcon : chevronLeftIcon
-								}
+		<div className="cnl-section-modes__design" ref={ ref } style={ style }>
+			<Toolbar
+				className="cnl-section-modes__design-row"
+				label={ sprintf(
+					/* translators: %s: section name. */
+					__( '%s design', 'create-not-learn-editor' ),
+					title
+				) }
+			>
+				<ToolbarGroup>
+					<div className="cnl-section-modes__design-name">
+						<BlockIcon icon={ info?.icon } />
+						<span title={ title }>{ title }</span>
+					</div>
+				</ToolbarGroup>
+				{ onMove && (
+					// Core's classes, so they are drawn as core's movers are.
+					<ToolbarGroup className="block-editor-block-mover">
+						<div className="block-editor-block-mover__move-button-container">
+							<ToolbarButton
+								accessibleWhenDisabled
+								className="block-editor-block-mover-button is-up-button"
+								disabled={ ! canMoveUp }
+								icon={ chevronUpIcon }
 								label={ __(
-									'Back',
+									'Move section up',
 									'create-not-learn-editor'
 								) }
-								onClick={ onClose }
-								showTooltip
-								size="compact"
-								tooltipPosition="bottom"
+								onClick={ () => onMove( -1 ) }
 							/>
+							<ToolbarButton
+								accessibleWhenDisabled
+								className="block-editor-block-mover-button is-down-button"
+								disabled={ ! canMoveDown }
+								icon={ chevronDownIcon }
+								label={ __(
+									'Move section down',
+									'create-not-learn-editor'
+								) }
+								onClick={ () => onMove( 1 ) }
+							/>
+						</div>
+					</ToolbarGroup>
+				) }
+				{ ( onZoomIn || views.length > 0 ) && (
+					<ToolbarGroup>
+						{ onZoomIn && (
+							<ToolbarButton
+								className="cnl-section-modes__design-tool"
+								description={ __(
+									'Zoom in to change its words and pictures',
+									'create-not-learn-editor'
+								) }
+								icon={ pencilIcon }
+								onClick={ onZoomIn }
+							>
+								{ __( 'Edit', 'create-not-learn-editor' ) }
+							</ToolbarButton>
 						) }
 						{ views.map( ( name ) => (
-							<Button
-								className="cnl-section-modes__bar-button"
+							<ToolbarButton
+								aria-expanded={ openView === name }
+								aria-haspopup="true"
+								className="cnl-section-modes__design-tool"
+								data-cnl-design-view={ name }
 								icon={ VIEW_ICONS[ name ] }
+								isPressed={ openView === name }
 								key={ name }
-								onClick={ () => onView( name ) }
-								size="compact"
+								onClick={ () =>
+									onView( openView === name ? null : name )
+								}
+								ref={ ( node ) => {
+									buttons[ name ] = node;
+								} }
 							>
 								{ labels[ name ] }
-							</Button>
+							</ToolbarButton>
 						) ) }
-						{ onFreeform && (
-							<Button
-								className="cnl-section-modes__bar-button"
-								description={ __(
-									'Move, resize and restyle its blocks',
-									'create-not-learn-editor'
-								) }
-								icon={ moreControlIcon }
-								onClick={ onFreeform }
-								size="compact"
+					</ToolbarGroup>
+				) }
+				{ ( hasOptions || onDelete || end ) && (
+					<ToolbarGroup>
+						{ hasOptions && (
+							<ToolbarMenu
+								buttonProps={ {
+									icon: optionsIcon,
+									label: __(
+										'Options',
+										'create-not-learn-editor'
+									),
+								} }
+								popupClassName="cnl-block-options"
 							>
-								{ __(
-									'More control',
+								{ onDuplicate && (
+									<Menu.Item
+										onClick={ onDuplicate }
+										prefix={
+											<Menu.PrefixIcon
+												icon={ copyIcon }
+											/>
+										}
+									>
+										<Menu.ItemLabel>
+											{ __(
+												'Duplicate',
+												'create-not-learn-editor'
+											) }
+										</Menu.ItemLabel>
+									</Menu.Item>
+								) }
+								{ onFreeform && (
+									<Menu.Item onClick={ onFreeform }>
+										<Menu.ItemLabel>
+											{ __(
+												'More control',
+												'create-not-learn-editor'
+											) }
+										</Menu.ItemLabel>
+										<Menu.ItemDescription>
+											{ __(
+												'Move, resize and restyle its blocks',
+												'create-not-learn-editor'
+											) }
+										</Menu.ItemDescription>
+									</Menu.Item>
+								) }
+							</ToolbarMenu>
+						) }
+						{ onDelete && (
+							<ToolbarButton
+								icon={ trashIcon }
+								label={ __(
+									'Delete',
 									'create-not-learn-editor'
 								) }
-							</Button>
+								onClick={ onDelete }
+							/>
 						) }
-					</>
+						{ end }
+					</ToolbarGroup>
 				) }
-				{ isColorView && choices.colors && (
-					<ColorOptions
-						colors={ {
-							...choices.colors,
-							// Picking a colour closes the custom ones.
-							onSelect: ( name ) => {
-								choices.colors.onSelect( name );
-								onView( VIEW_COLOR );
-							},
-						} }
-						isCustomOpen={ view === VIEW_CUSTOM_COLOR }
-						onCustom={
-							choices.colors.custom &&
-							( () =>
-								onView(
-									view === VIEW_CUSTOM_COLOR
-										? VIEW_COLOR
-										: VIEW_CUSTOM_COLOR
-								) )
+			</Toolbar>
+			{ openView && views.includes( openView ) && (
+				<Popover
+					anchor={ buttons[ openView ] }
+					className="cnl-section-tool-popover"
+					offset={ 8 }
+					onClose={ () => onView( null ) }
+					onFocusOutside={ ( event ) => {
+						if (
+							! event.relatedTarget?.closest?.(
+								CHOICE_STAYS_OPEN_FOR
+							)
+						) {
+							onView( null );
 						}
-					/>
-				) }
-				{ view === VIEW_WIDTH && choices.width && (
-					<WidthOptions width={ choices.width } />
-				) }
-				{ end && ! view && (
-					<div className="cnl-section-modes__design-end">{ end }</div>
-				) }
-			</div>
-			{ view === VIEW_LAYOUT && choices.layouts && (
-				<div className="cnl-section-modes__design-tray">
-					<LayoutOptions { ...choices.layouts } />
-				</div>
-			) }
-			{ view === VIEW_CUSTOM_COLOR && choices.colors?.custom && (
-				<div className="cnl-section-modes__design-tray">
-					<CustomColors colors={ choices.colors.custom } />
-				</div>
+					} }
+					placement="bottom-start"
+					resize={ false }
+				>
+					<div
+						className={ `cnl-section-modes cnl-section-tool-panel is-${ openView }` }
+					>
+						<ChoiceOptions choices={ choices } view={ openView } />
+					</div>
+				</Popover>
 			) }
 		</div>
 	);
@@ -863,6 +871,7 @@ const SectionDesignBar = forwardRef( function UnforwardedSectionDesignBar(
 		<DesignBarView
 			{ ...props }
 			choices={ useSectionChoices( clientId, onReplace ) }
+			clientId={ clientId }
 			ref={ ref }
 		/>
 	);
@@ -881,30 +890,12 @@ const SectionDesignBar = forwardRef( function UnforwardedSectionDesignBar(
  * @return {?Element} The options.
  */
 export function SectionDesignOptions( { clientId, view, onReplace } ) {
-	const { colors, layouts, width } = useSectionChoices( clientId, onReplace );
-
-	if ( view === VIEW_LAYOUT && layouts ) {
-		return <LayoutOptions { ...layouts } />;
-	}
-
-	if ( view === VIEW_COLOR && colors ) {
-		return (
-			<ColorList
-				colors={ colors }
-				custom={
-					colors.custom && (
-						<CustomColors colors={ colors.custom } isList />
-					)
-				}
-			/>
-		);
-	}
-
-	if ( view === VIEW_WIDTH && width ) {
-		return <WidthOptions width={ width } />;
-	}
-
-	return null;
+	return (
+		<ChoiceOptions
+			choices={ useSectionChoices( clientId, onReplace ) }
+			view={ view }
+		/>
+	);
 }
 
 /**
@@ -989,28 +980,28 @@ const PartDesignBar = forwardRef( function UnforwardedPartDesignBar(
 
 /**
  * @param {Object}   props
- * @param {?Object}  props.part       The header or footer, if it is one.
- * @param {string}   props.clientId   The section.
- * @param {string}   props.title      Its name.
- * @param {?string}  props.view       The choice drilled into, if any.
- * @param {number}   props.columns    The most layouts a row holds.
- * @param {Object}   props.style      Where the bar sits.
- * @param {Function} props.onView     See `DesignBarView`.
- * @param {Function} props.onClose    Leaves Edit design.
- * @param {Function} props.onFreeform Hands the section to core's own block
- *                                    tools.
- * @param {Function} props.onReplace  See `SectionDesignBar`.
- * @param {Object}   ref              Ref to the bar.
+ * @param {?Object}  props.part      The header or footer, if it is one.
+ * @param {string}   props.clientId  The section.
+ * @param {string}   props.title     Its name.
+ * @param {?string}  props.view      The choice drilled into, if any.
+ * @param {Object}   props.style     Where the bar sits.
+ * @param {Function} props.onView    See `DesignBarView`, as are its
+ *                                   moves, Edit content, Duplicate,
+ *                                   Delete, More control and `end`.
+ * @param {Function} props.onReplace See `SectionDesignBar`.
+ * @param {Object}   ref             Ref to the bar.
  * @return {Element} The bar.
  */
-function DesignBar(
-	{ clientId, columns = MAX_LAYOUT_COLUMNS, onReplace, part, ...props },
-	ref
-) {
+function DesignBar( { clientId, onReplace, part, ...props }, ref ) {
 	return (
-		<ColumnsContext.Provider value={ columns }>
+		<>
 			{ part ? (
-				<PartDesignBar { ...props } part={ part } ref={ ref } />
+				<PartDesignBar
+					{ ...props }
+					clientId={ clientId }
+					part={ part }
+					ref={ ref }
+				/>
 			) : (
 				<SectionDesignBar
 					{ ...props }
@@ -1019,7 +1010,7 @@ function DesignBar(
 					ref={ ref }
 				/>
 			) }
-		</ColumnsContext.Provider>
+		</>
 	);
 }
 

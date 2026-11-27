@@ -9,7 +9,9 @@
  * that control shows again. See "Drift canaries" in the README.
  */
 
+@use "sass:selector";
 @use "../elevation" as *;
+@use "../block-mover" as *;
 
 // Scoped to the block popover's toolbar, as core's own rules are, so these
 // win over them.
@@ -68,12 +70,6 @@ $parent-gap: var(--wpds-dimension-gap-sm);
 
 $chevron-down: icon("M7 11L12 15L17 11");
 $more-vertical: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='6' r='1.25'/%3E%3Ccircle cx='12' cy='12' r='1.25'/%3E%3Ccircle cx='12' cy='18' r='1.25'/%3E%3C/svg%3E");
-$arrows: (
-	"Move up": icon("M12 20L12 5M17 10L12 5L7 10"),
-	"Move down": icon("M12 4V19M7 14L12 19L17 14"),
-	"Move left": icon("M20 12L5 12M10 7L5 12L10 17"),
-	"Move right": icon("M4 12L19 12M14 17L19 12L14 7"),
-);
 
 // The design system's overlay, as its menus are, rather than core's black
 // border: the proposal draws the toolbar as a light box.
@@ -209,7 +205,8 @@ $divider: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neut
 			box-shadow: none;
 
 			// A section of the page, named by `name-menu.js`.
-			html.cnl-block-name-is-section & {
+			// Joined to the toolbar's own `html`, rather than put before it.
+			@at-root #{selector.replace(&, "html.cnl-has-block-toolbar", "html.cnl-has-block-toolbar.cnl-block-name-is-section")} {
 				content: var(--cnl-block-name);
 			}
 		}
@@ -234,76 +231,8 @@ $divider: var(--wpds-border-width-xs) solid var(--wpds-color-stroke-surface-neut
 		}
 	}
 
-	/*
-	 * The movers, as one compact cluster: the drag handle and two arrows,
-	 * side by side and close together, quieter than the tools around them
-	 * until pointed at or focused. Each keeps the toolbar's full height as
-	 * its target, and core's labels, descriptions and shortcuts.
-	 */
-	.block-editor-block-mover {
-		display: flex;
-		gap: 0;
-		padding-inline-end: 0;
-	}
-
-	.block-editor-block-mover__drag-handle.components-button {
-		width: var(--wpds-dimension-size-xs);
-		min-width: var(--wpds-dimension-size-xs);
-		padding: 0;
-		justify-content: center;
-		color: var(--wpds-color-foreground-interactive-neutral-weak);
-
-		svg {
-			width: var(--wpds-dimension-size-xs);
-			height: var(--wpds-dimension-size-xs);
-		}
-	}
-
-	.block-editor-block-mover__move-button-container {
-		display: flex;
-		flex-direction: row;
-		width: auto;
-		height: auto;
-	}
-
-	.block-editor-block-mover .block-editor-block-mover-button.components-button {
-		width: 28px;
-		min-width: 28px;
-		height: 100%;
-		padding: 0;
-		justify-content: center;
-		color: var(--wpds-color-foreground-interactive-neutral-weak);
-
-		&::before {
-			display: none;
-		}
-
-		svg {
-			display: none;
-		}
-
-		@each $label, $image in $arrows {
-			&[aria-label^="#{$label}"]::after {
-
-				@include mask-icon($image, var(--wpds-dimension-size-xs));
-				position: static;
-				border: 0;
-				box-shadow: none;
-				transform: none;
-			}
-		}
-	}
-
-	.block-editor-block-mover :is(
-		.block-editor-block-mover__drag-handle,
-		.block-editor-block-mover-button
-	).components-button:is(:hover, :focus-visible):not([aria-disabled="true"]) {
-		color: var(--wpds-color-foreground-interactive-neutral-weak-active);
-	}
-
-	.block-editor-block-mover .block-editor-block-mover-button.components-button[aria-disabled="true"] {
-		opacity: 0.4;
-	}
+	// The movers, small and stacked as on core's toolbar.
+	@include cnl-block-mover;
 
 	// Options with nothing in them, faded as a mover with nowhere to go is.
 	.cnl-block-options__toggle.components-button[aria-disabled="true"] {

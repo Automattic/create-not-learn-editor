@@ -3,30 +3,8 @@
  * tested without the editor.
  */
 
-// A layout card and the gap after it, and the tray's padding around them.
-const LAYOUT_CARD_WIDTH = 184;
-const TRAY_CHROME_WIDTH = 40;
 // The most layouts a row of the grid holds.
 export const MAX_LAYOUT_COLUMNS = 4;
-
-/**
- * The most layouts a row of Edit design's grid holds on a canvas this wide:
- * as many cards as fit, up to the most it takes.
- *
- * @param {number} canvasWidth The canvas's width.
- * @return {number} Layouts a row.
- */
-export function getLayoutColumns( canvasWidth ) {
-	return Math.max(
-		1,
-		Math.min(
-			MAX_LAYOUT_COLUMNS,
-			Math.floor(
-				( canvasWidth - TRAY_CHROME_WIDTH ) / LAYOUT_CARD_WIDTH
-			)
-		)
-	);
-}
 
 /**
  * How many layouts a row holds: up to three, or four when three would leave

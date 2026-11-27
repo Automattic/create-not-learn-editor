@@ -6,11 +6,7 @@ import { describe, expect, it } from 'vitest';
 /**
  * Internal dependencies
  */
-import {
-	getLayoutColumns,
-	getLayoutGridColumns,
-	MAX_LAYOUT_COLUMNS,
-} from '../layout-grid';
+import { getLayoutGridColumns } from '../layout-grid';
 
 describe( 'getLayoutGridColumns', () => {
 	it( 'puts up to three in one row', () => {
@@ -32,13 +28,5 @@ describe( 'getLayoutGridColumns', () => {
 	it( 'keeps to the room there is', () => {
 		expect( getLayoutGridColumns( 7, 2 ) ).toBe( 2 );
 		expect( getLayoutGridColumns( 3, 1 ) ).toBe( 1 );
-	} );
-} );
-
-describe( 'getLayoutColumns', () => {
-	it( 'fits as many cards as the canvas has room for', () => {
-		expect( getLayoutColumns( 2000 ) ).toBe( MAX_LAYOUT_COLUMNS );
-		expect( getLayoutColumns( 450 ) ).toBe( 2 );
-		expect( getLayoutColumns( 100 ) ).toBe( 1 );
 	} );
 } );

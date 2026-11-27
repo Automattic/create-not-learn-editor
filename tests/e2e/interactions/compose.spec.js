@@ -11,6 +11,7 @@ const {
 	expectCanvasMode,
 	closeViewMenu,
 	openViewMenu,
+	pickSectionMode,
 	pickSectionTemplate,
 	pointAtSection,
 	setCanvasMode,
@@ -124,13 +125,36 @@ test.describe( 'Compose', () => {
 		await expect(
 			bar.getByRole( 'button', { name: 'Edit content' } )
 		).toBeVisible();
+		// Its moves are on Edit design's toolbar, as on core's in Edit.
 		await expect(
 			bar.getByRole( 'button', { name: 'Delete section' } )
-		).toBeVisible();
+		).toHaveCount( 0 );
 		// Adding to a section is done in Edit.
 		await expect(
 			bar.getByRole( 'button', { name: 'Add', exact: true } )
 		).toHaveCount( 0 );
+
+		// Edit design opens a toolbar like core's in Edit, with Edit
+		// content to zoom back in.
+		await bar.getByRole( 'button', { name: 'Edit design' } ).click();
+
+		const toolbar = page.locator( '.cnl-section-modes__design' );
+
+		for ( const name of [
+			'Move section up',
+			'Move section down',
+			'Edit',
+			'Layout',
+			'Options',
+			'Delete',
+		] ) {
+			await expect(
+				toolbar.getByRole( 'button', { name, exact: true } )
+			).toBeVisible();
+		}
+
+		await page.keyboard.press( 'Escape' );
+		await expect( toolbar ).toHaveCount( 0 );
 
 		// Picking a device zooms back in to show it.
 		await (
@@ -230,22 +254,31 @@ test.describe( 'Compose', () => {
 		} );
 		await setCanvasMode( page, 'Compose' );
 
-		const bar = page.locator( '.cnl-section-modes__bar' );
+		const toolbar = page.locator( '.cnl-section-modes__design' );
 
-		await pointAtSection( page, getWords( page, 'Second section' ) );
-		await bar.getByRole( 'button', { name: 'Move section up' } ).click();
+		await pickSectionMode(
+			page,
+			getWords( page, 'Second section' ),
+			'Edit design'
+		);
+		await toolbar
+			.getByRole( 'button', { name: 'Move section up' } )
+			.click();
 		await expect
 			.poll( () => getSectionWords( page ) )
 			.toEqual( [ 'Second section', 'First section' ] );
 
 		// Once the canvas has scrolled to the moved section, so nothing
-		// slides under the pointer, and the bar is the right section's.
+		// slides under the pointer.
 		await getSettledBox( getWords( page, 'First section' ) );
-		await pointAtSection( page, getWords( page, 'First section' ) );
-		await expect(
-			page.locator( '.cnl-section-modes__hover .cnl-section-modes__tab' )
-		).toHaveText( 'First section' );
-		await bar.getByRole( 'button', { name: 'Delete section' } ).click();
+		await pickSectionMode(
+			page,
+			getWords( page, 'First section' ),
+			'Edit design'
+		);
+		await toolbar
+			.getByRole( 'button', { name: 'Delete', exact: true } )
+			.click();
 		await expect
 			.poll( () => getSectionWords( page ) )
 			.toEqual( [ 'Second section' ] );
@@ -284,8 +317,9 @@ test.describe( 'Compose', () => {
 			.getByRole( 'button', { name: 'Layout', exact: true } )
 			.click();
 
-		const option = designBar
-			.locator( '.cnl-section-modes__option' )
+		// The layouts open under the toolbar, as from core's in Edit.
+		const option = page
+			.locator( '.cnl-section-tool-popover .cnl-section-modes__option' )
 			.filter( { hasText: 'Image on the right' } );
 
 		await option.click();
