@@ -377,14 +377,16 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 
 /*
  * Holding Shift fades the whole popover, so the section a layout is shown in
- * can be seen under it. Letting go brings it back.
+ * can be seen under it, and leaves the layouts be until it is let go.
  */
 .cnl-section-tool-popover .components-popover__content {
 	transition: opacity var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
 }
 
+// Looked through, not used: the pointer passes through to the canvas.
 .cnl-section-tool-popover:has([data-peeking]) .components-popover__content {
 	opacity: 0.1;
+	pointer-events: none;
 	transition-duration: 600ms;
 }
 

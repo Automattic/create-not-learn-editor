@@ -212,7 +212,17 @@ function LayoutOptions( { current, onPreview, onSelect, options, original } ) {
 	const columns = getLayoutGridColumns( options.length, maxColumns );
 	const timer = useRef();
 	const isPeeking = useShiftHeld( Boolean( onPreview ) );
+	const isPeekingRef = useRef( false );
+
+	isPeekingRef.current = isPeeking;
+
+	// While Shift is held the layouts are only looked through: what is shown
+	// on the canvas stays as it is, whatever the pointer passes over.
 	const preview = ( option, delay = 0 ) => {
+		if ( isPeekingRef.current ) {
+			return;
+		}
+
 		window.clearTimeout( timer.current );
 
 		if ( onPreview ) {
@@ -222,6 +232,12 @@ function LayoutOptions( { current, onPreview, onSelect, options, original } ) {
 			);
 		}
 	};
+
+	useEffect( () => {
+		if ( isPeeking ) {
+			window.clearTimeout( timer.current );
+		}
+	}, [ isPeeking ] );
 
 	useEffect( () => () => window.clearTimeout( timer.current ), [] );
 
