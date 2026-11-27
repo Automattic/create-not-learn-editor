@@ -7,7 +7,6 @@
  * Internal dependencies
  */
 import { blockEditorStore } from '../../wordpress-packages';
-import { MAX_PER_SLIDE } from './design-bar';
 
 // Sizes on screen, in pixels.
 export const INSET = 12;
@@ -17,10 +16,6 @@ const ADD_SECTION_CLEARANCE = 90;
 export const TAB_HEIGHT = 24;
 // Between a section and what is placed against it, outside.
 const PLACE_GAP = 8;
-// A layout card and the gap after it, and the tray's room around its cards
-// for its padding and the carousel's arrows.
-const LAYOUT_CARD_WIDTH = 144;
-const TRAY_CHROME_WIDTH = 132;
 
 /**
  * Position a box relative to the canvas it is clipped to.
@@ -169,25 +164,6 @@ export function placeOutside( box, height, canvasHeight, isBelow = false ) {
 	}
 
 	return Math.max( INSET, Math.min( below, canvasHeight - height - INSET ) );
-}
-
-/**
- * How many layouts a slide of Edit design's carousel holds on a canvas this
- * wide: as many cards as fit beside its arrows, up to the most it takes.
- *
- * @param {number} canvasWidth The canvas's width.
- * @return {number} Layouts a slide.
- */
-export function getLayoutsPerSlide( canvasWidth ) {
-	return Math.max(
-		1,
-		Math.min(
-			MAX_PER_SLIDE,
-			Math.floor(
-				( canvasWidth - TRAY_CHROME_WIDTH ) / LAYOUT_CARD_WIDTH
-			)
-		)
-	);
 }
 
 /**

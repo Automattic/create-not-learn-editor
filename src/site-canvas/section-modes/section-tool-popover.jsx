@@ -50,26 +50,41 @@ export function SectionToolPopover( { tool, onReplaced } ) {
 	const lastRect = useRef( null );
 	const isReplacing = useRef( false );
 	// The button is drawn again whenever the toolbar is, so it is looked up
-	// each time rather than held.
-	const anchor = useMemo(
-		() => ( {
+	// each time rather than held. A pick swaps the section, and core draws
+	// its toolbar again, perhaps a little to one side, so the options stay
+	// where they opened rather than move under the pointer: across for as
+	// long as they are open, and down until the new section's toolbar has
+	// settled. They still follow the canvas as it scrolls.
+	const anchor = useMemo( () => {
+		let left = null;
+
+		return {
 			getBoundingClientRect() {
-				const button = document.querySelector(
-					view === LAYERS
-						? NAME
-						: `[data-cnl-section-tool="${ view }"]`
-				);
+				const button = isReplacing.current
+					? null
+					: document.querySelector(
+							view === LAYERS
+								? NAME
+								: `[data-cnl-section-tool="${ view }"]`
+						);
 
 				if ( button ) {
-					lastRect.current = button.getBoundingClientRect();
+					const rect = button.getBoundingClientRect();
+
+					left ??= rect.left;
+					lastRect.current = new window.DOMRect(
+						left,
+						rect.top,
+						rect.width,
+						rect.height
+					);
 				}
 
 				return lastRect.current ?? new window.DOMRect();
 			},
 			ownerDocument: document,
-		} ),
-		[ view ]
-	);
+		};
+	}, [ view ] );
 
 	return (
 		<Popover
