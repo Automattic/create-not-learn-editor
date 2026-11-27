@@ -10,6 +10,7 @@ import { __ } from '@wordpress/i18n';
  */
 import {
 	getBlockName,
+	getNavigationBlocksFromEditedRecord,
 	getParsedBlocks,
 	isAutoMenuBlocks,
 	isAutoMenuContent,
@@ -236,14 +237,6 @@ function getNavigationContentFromEditedRecord( record ) {
 	}
 
 	return '';
-}
-
-function getNavigationBlocksFromEditedRecord( record ) {
-	if ( Array.isArray( record?.blocks ) ) {
-		return record.blocks;
-	}
-
-	return getParsedBlocks( getNavigationContentFromEditedRecord( record ) );
 }
 
 function comparePageListPages( a, b ) {

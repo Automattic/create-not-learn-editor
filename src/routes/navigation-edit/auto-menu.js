@@ -47,3 +47,39 @@ export function isAutoMenuBlocks( blocks ) {
 export function isAutoMenuContent( content ) {
 	return isAutoMenuBlocks( getParsedBlocks( content ) );
 }
+
+/**
+ * A menu's blocks as edited: its staged blocks if it has them, or else its
+ * content parsed, whether that's a string, the editor's lazy serializer or
+ * the REST API's `{ raw }`.
+ *
+ * @param {Object} record An edited `wp_navigation` record.
+ * @return {Object[]} Its blocks.
+ */
+export function getNavigationBlocksFromEditedRecord( record ) {
+	if ( Array.isArray( record?.blocks ) ) {
+		return record.blocks;
+	}
+
+	const content = record?.content;
+
+	if ( typeof content === 'string' ) {
+		return getParsedBlocks( content );
+	}
+
+	if ( typeof content === 'function' ) {
+		try {
+			const serializedContent = content( { blocks: EMPTY_ARRAY } );
+
+			if ( typeof serializedContent === 'string' ) {
+				return getParsedBlocks( serializedContent );
+			}
+		} catch {
+			// Fall through to the other persisted shapes.
+		}
+	}
+
+	return getParsedBlocks(
+		typeof content?.raw === 'string' ? content.raw : ''
+	);
+}

@@ -22,7 +22,7 @@ import { useSelect } from '@wordpress/data';
  * Internal dependencies
  */
 import {
-	getParsedBlocks,
+	getNavigationBlocksFromEditedRecord,
 	isAutoMenuBlocks,
 } from './routes/navigation-edit/auto-menu';
 import { settings } from './settings';
@@ -46,16 +46,11 @@ function hasUnsavedHandSetMenu( select ) {
 				return false;
 			}
 
-			const record = store.getEditedEntityRecord( kind, name, key );
-			const blocks = Array.isArray( record?.blocks )
-				? record.blocks
-				: getParsedBlocks(
-						typeof record?.content === 'string'
-							? record.content
-							: record?.content?.raw
-					);
-
-			return ! isAutoMenuBlocks( blocks );
+			return ! isAutoMenuBlocks(
+				getNavigationBlocksFromEditedRecord(
+					store.getEditedEntityRecord( kind, name, key )
+				)
+			);
 		} );
 }
 
@@ -70,6 +65,8 @@ export function areMenusShown( select ) {
 		return true;
 	}
 
+	// Set while selecting, as `useSelect` and the sidebar's subscription
+	// both ask through here. It only ever turns on, so asking twice is safe.
 	if ( ! hasShown && hasUnsavedHandSetMenu( select ) ) {
 		hasShown = true;
 	}
