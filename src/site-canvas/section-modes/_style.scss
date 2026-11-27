@@ -376,6 +376,38 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 }
 
 /*
+ * Resting on a layout fades the layouts and their popover, all but the one
+ * pointed at, so the section it is shown in can be seen under them. Moving
+ * from one layout to the next keeps them faded; leaving them brings them
+ * back at once.
+ */
+$peek-delay: 1s;
+$peek-duration: 400ms;
+
+.cnl-section-tool-popover .components-popover__content,
+.cnl-section-modes__options > .cnl-section-modes__option {
+	transition-property: opacity, background-color, border-color, box-shadow, outline-color;
+	transition-duration: var(--wpds-motion-duration-sm);
+	transition-timing-function: var(--wpds-motion-easing-subtle);
+}
+
+$peeking: ".cnl-section-tool-popover:has(.cnl-section-modes__option:is(:hover, :focus-visible))";
+
+#{$peeking} .components-popover__content {
+	border-color: transparent;
+	background-color: transparent;
+	box-shadow: none;
+	transition-duration: $peek-duration;
+	transition-delay: $peek-delay;
+}
+
+#{$peeking} .cnl-section-modes__option:not(:hover, :focus-visible) {
+	opacity: 0.08;
+	transition-duration: $peek-duration;
+	transition-delay: $peek-delay;
+}
+
+/*
  * A layout, as the layout cards in Header and Footer are: edged, ringed in
  * the brand colour when in use.
  */
