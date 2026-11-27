@@ -52,6 +52,7 @@ import {
 import { openRoute } from '../open-route';
 import { openPage } from '../page-finder/open-page';
 import { openPreferences } from '../preferences';
+import { customizeSidebar } from '../customize-sidebar';
 import { HOMEPAGE } from '../routes/content/pages/homepage-state';
 import { getPostTypes, settings } from '../settings';
 
@@ -322,6 +323,21 @@ function usePreferencesCommand() {
 				callback: ( { close } ) => {
 					close();
 					openPreferences();
+				},
+			},
+			{
+				name: 'create-not-learn-editor/customize-sidebar',
+				label: __( 'Customize sidebar', 'create-not-learn-editor' ),
+				icon: cogIcon,
+				category: 'view',
+				keywords: [
+					__( 'reorder', 'create-not-learn-editor' ),
+					__( 'menu', 'create-not-learn-editor' ),
+					__( 'navigation', 'create-not-learn-editor' ),
+				],
+				callback: ( { close } ) => {
+					close();
+					customizeSidebar();
 				},
 			},
 		],

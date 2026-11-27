@@ -26,6 +26,8 @@ import {
 } from '../../../src/workspaces';
 import { openRoute } from '../../../src/open-route';
 import { OPEN_SIDEBAR_HOME_EVENT } from '../../../src/open-sidebar-home';
+import { CUSTOMIZE_SIDEBAR_EVENT } from '../../../src/customize-sidebar';
+import { createMenuCustomizer, customizing } from './menu-customizer';
 import { openPreferences } from '../../../src/preferences';
 
 /*
@@ -366,6 +368,16 @@ function WorkspaceSwitcher() {
 					{
 						onClick: () => {
 							onClose();
+							openCustomizer();
+						},
+					},
+					__( 'Customize sidebar', 'create-not-learn-editor' )
+				),
+				el(
+					MenuItem,
+					{
+						onClick: () => {
+							onClose();
 							openPreferences();
 						},
 					},
@@ -427,6 +439,16 @@ function openSidebarHomeOnBack() {
 }
 
 /**
+ * Open the sidebar on its customizer (`menu-customizer.jsx`), expanding it
+ * from its strip of icons first. Folding the sidebar, or picking another
+ * screen, which folds it, closes the customizer.
+ */
+function openCustomizer() {
+	expansion.set( true );
+	customizing.set( true );
+}
+
+/**
  * The sidebar's foot: the workspace switcher, and the button that expands
  * the sidebar or folds it to its strip of icons.
  *
@@ -474,6 +496,14 @@ function createSidebarFoot() {
  */
 export function enhanceSidebar() {
 	const workspaceSwitcher = createSidebarFoot();
+	const customizer = createMenuCustomizer();
+
+	window.addEventListener( CUSTOMIZE_SIDEBAR_EVENT, openCustomizer );
+	expansion.subscribe( () => {
+		if ( ! expansion.get() ) {
+			customizing.set( false );
+		}
+	} );
 
 	mountStripTooltip();
 	returnHomeWithSidebar();
@@ -507,8 +537,11 @@ export function enhanceSidebar() {
 			':scope > [class*="__content"]'
 		);
 
-		if ( menu && menu.nextElementSibling !== workspaceSwitcher ) {
-			menu.after( workspaceSwitcher );
+		if ( menu && menu.nextElementSibling !== customizer ) {
+			menu.after( customizer );
+		}
+		if ( menu && customizer.nextElementSibling !== workspaceSwitcher ) {
+			customizer.after( workspaceSwitcher );
 		}
 	};
 
