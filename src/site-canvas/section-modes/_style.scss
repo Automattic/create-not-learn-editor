@@ -388,8 +388,10 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	transition-duration: 600ms;
 }
 
+// A one-line tip, so less padding than a notice's own.
 .cnl-section-modes__layouts-hint {
 	margin-top: var(--wpds-dimension-gap-sm);
+	padding-block: var(--wpds-dimension-padding-xs);
 }
 
 /*
