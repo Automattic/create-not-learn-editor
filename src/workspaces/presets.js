@@ -33,7 +33,8 @@ export const PREFERENCE_NAME = 'workspace';
  * What every workspace starts from.
  *
  * The sidebar lists the same items in every workspace. Only `tuckAdvanced`
- * changes how it shows them.
+ * changes how it shows them, and `menusUntilSetByHand` whether Menus is one
+ * of them yet.
  *
  * - `home.places`: the places to start on "Home", by id (see
  *   `src/start-places.js`), with `home.copy` rewording any of them. A
@@ -65,6 +66,9 @@ export const PREFERENCE_NAME = 'workspace';
  *   pinned to the bottom, folded whenever the editor loads, and one icon in
  *   the strip of icons. Without it, Advanced is listed like the other
  *   sections, and opens whenever the workspace is arrived in.
+ * - `menusUntilSetByHand`: whether menus stay out of sight, with Pages
+ *   standing for them, until the site has a menu set by hand
+ *   (`src/menus-shown.js`).
  * - `publishStep`: whether Publish asks "Are you ready to publish?" first,
  *   with the category, tags and when to publish to hand. Only a default:
  *   the person's own choice, from the checkbox on that step, wins.
@@ -99,6 +103,7 @@ const DEFAULTS = {
 	postKinds: true,
 	tuckAdvanced: true,
 	onboarding: true,
+	menusUntilSetByHand: true,
 };
 
 /**
@@ -210,6 +215,8 @@ const PRESETS = [
 		tuckAdvanced: false,
 		// They know the editor, so it doesn't stop them to explain itself.
 		onboarding: false,
+		// Menus are one of the site editor's pieces, set by hand or not.
+		menusUntilSetByHand: false,
 	},
 	{
 		id: 'agent',

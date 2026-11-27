@@ -327,6 +327,7 @@ function cnl_editor_get_menu_items() {
 				'section' => 'site',
 			),
 			// The main menu is managed on the Pages screen; this is for the rest.
+			// Most workspaces hide it until a menu is set by hand (`src/menus-shown.js`).
 			array(
 				'id'      => 'navigation',
 				'label'   => __( 'Menus', 'create-not-learn-editor' ),

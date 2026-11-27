@@ -3,8 +3,10 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
+		"@wordpress/block-serialization-default-parser": "^5.57.0",
 		"@wordpress/boot": "^0.17.0",
 		"@wordpress/components": "^40.1.0",
+		"@wordpress/core-data": "^8.2.0",
 		"@wordpress/data": "^10.50.0",
 		"@wordpress/element": "^8.7.0",
 		"@wordpress/i18n": "^6.28.0",

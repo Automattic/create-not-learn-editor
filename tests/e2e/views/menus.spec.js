@@ -3,7 +3,6 @@ const {
 	getFrameTexts,
 	getRoute,
 	getStage,
-	openSidebarLink,
 	test,
 	visitEditor,
 } = require( '../utils' );
@@ -12,8 +11,8 @@ test.describe( 'Menus views', () => {
 	test( 'Menus lists every menu, and leaves the main one to Pages', async ( {
 		page,
 	} ) => {
-		await visitEditor( page );
-		await openSidebarLink( page, 'Menus' );
+		// The sidebar leaves Menus out until a menu is set by hand.
+		await visitEditor( page, '/navigation' );
 
 		await expect
 			.poll( () => getRoute( page ), { timeout: 15000 } )

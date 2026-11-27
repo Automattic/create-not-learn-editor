@@ -161,6 +161,16 @@ test.describe( 'Pages interactions', () => {
 		await expect(
 			page.getByRole( 'dialog', { name: 'Add menu items' } )
 		).toBeVisible( { timeout: 15000 } );
+		// Menus show from then on, though the change isn't saved.
+		await page
+			.getByRole( 'dialog', { name: 'Add menu items' } )
+			.getByRole( 'button', { name: 'Close' } )
+			.click();
+		await expect(
+			page
+				.locator( '[class*="__sidebar"]' )
+				.getByRole( 'link', { exact: true, name: 'Menus' } )
+		).toBeVisible();
 	} );
 
 	test( 'a menu set by hand is changed on the Menus screen, not from Pages', async ( {
@@ -218,26 +228,56 @@ test.describe( 'Pages interactions', () => {
 		}
 	} );
 
-	test( 'Manage all menus leads on to the Menus screen', async ( {
+	test( 'menus stay out of sight until a menu is set by hand', async ( {
 		page,
+		rest,
 	} ) => {
-		await visitEditor( page, '/types/page' );
-
-		const allMenus = getStage( page )
+		const stage = getStage( page );
+		const allMenus = stage
 			.getByRole( 'navigation', { name: 'More options' } )
 			.getByRole( 'button', { name: /^Manage all menus/ } );
+		const sidebarMenus = page
+			.locator( '[class*="__sidebar"]' )
+			.getByRole( 'link', { exact: true, name: 'Menus' } );
 
-		await expect( allMenus ).toBeVisible( { timeout: 15000 } );
-		await allMenus.click();
-		await expect
-			.poll( () => getRoute( page ), { timeout: 15000 } )
-			.toBe( '/navigation' );
+		await visitEditor( page, '/types/page' );
 		await expect(
-			getStage( page ).getByRole( 'heading', {
-				exact: true,
-				name: 'Menus',
-			} )
-		).toBeVisible();
+			stage.getByRole( 'button', { name: /^System pages/ } )
+		).toBeVisible( { timeout: 15000 } );
+		await expect( allMenus ).toBeHidden();
+		await expect( sidebarMenus ).toBeHidden();
+
+		const menuId = await rest.getMainMenuId();
+		const menuPath = `/wp/v2/navigation/${ menuId }`;
+		const { content } = await rest.fetch( menuPath, {
+			params: { context: 'edit' },
+		} );
+
+		await rest.fetch( menuPath, {
+			data: {
+				content:
+					'<!-- wp:page-list /--><!-- wp:navigation-link {"label":"Elsewhere","url":"https://example.com","kind":"custom"} /-->',
+			},
+			method: 'POST',
+		} );
+
+		try {
+			await visitEditor( page, '/types/page' );
+			await expect( allMenus ).toBeVisible( { timeout: 15000 } );
+			await expect( sidebarMenus ).toBeVisible();
+			await allMenus.click();
+			await expect
+				.poll( () => getRoute( page ), { timeout: 15000 } )
+				.toBe( '/navigation' );
+			await expect(
+				stage.getByRole( 'heading', { exact: true, name: 'Menus' } )
+			).toBeVisible();
+		} finally {
+			await rest.fetch( menuPath, {
+				data: { content: content.raw },
+				method: 'POST',
+			} );
+		}
 	} );
 
 	test( 'System pages lists the pages the site makes for itself', async ( {

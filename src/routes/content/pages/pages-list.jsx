@@ -26,6 +26,7 @@ import { usePages } from './data';
 import { parseTarget, useHomepageState } from './homepage';
 import { HOMEPAGE } from './homepage-state';
 import { useMenuSwitches } from './menu-switches';
+import { useMenusShown } from '../../../menus-shown';
 import { countPageTree } from './page-tree';
 import { LIST_PATH, usePageTrash } from './page-tree-list';
 import PagesDataView from './pages-data-view';
@@ -117,6 +118,8 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 	const searchParams = useSearch( { strict: false } );
 	const mainMenu = useMainMenu();
 	const { menuId } = mainMenu;
+	// Menus as a thing of their own wait for a menu set by hand.
+	const areMenusVisible = useMenusShown();
 	const { frontPageId, isLoading, pages, postsPageId } = usePages();
 	const homepage = useHomepageState();
 	const pageOrder = usePageOrder( { frontPageId, pages } );
@@ -286,17 +289,18 @@ export default function PagesList( { canCreate, onAddMenuItem, onAddPage } ) {
 						title: __( 'System pages', 'create-not-learn-editor' ),
 						to: LIST_PATH,
 					},
-					menuId && {
-						description: getOtherMenusDescription(
-							mainMenu.otherMenuAreas
-						),
-						icon: compassIcon,
-						title: __(
-							'Manage all menus',
-							'create-not-learn-editor'
-						),
-						to: '/navigation',
-					},
+					menuId &&
+						areMenusVisible && {
+							description: getOtherMenusDescription(
+								mainMenu.otherMenuAreas
+							),
+							icon: compassIcon,
+							title: __(
+								'Manage all menus',
+								'create-not-learn-editor'
+							),
+							to: '/navigation',
+						},
 				].filter( Boolean ) }
 			/>
 			{ trash.modal }

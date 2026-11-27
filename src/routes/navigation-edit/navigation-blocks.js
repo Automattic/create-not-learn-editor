@@ -1,27 +1,25 @@
 /**
  * WordPress dependencies
  */
-import { parse } from '@wordpress/block-serialization-default-parser';
 import { createBlock } from '@wordpress/blocks';
 import { decodeEntities } from '@wordpress/html-entities';
 import { __ } from '@wordpress/i18n';
 
-const EMPTY_ARRAY = [];
+/**
+ * Internal dependencies
+ */
+import {
+	getBlockName,
+	getNavigationBlocksFromEditedRecord,
+	getParsedBlocks,
+	isAutoMenuBlocks,
+	isAutoMenuContent,
+} from './auto-menu';
 
-function getBlockName( block ) {
-	return block?.name || block?.blockName;
-}
+const EMPTY_ARRAY = [];
 
 function getBlockAttributes( block ) {
 	return block?.attributes || block?.attrs || {};
-}
-
-function getParsedBlocks( content ) {
-	try {
-		return parse( content || '' );
-	} catch {
-		return [];
-	}
 }
 
 function getNavigationItemLabel( block ) {
@@ -239,37 +237,6 @@ function getNavigationContentFromEditedRecord( record ) {
 	}
 
 	return '';
-}
-
-function getNavigationBlocksFromEditedRecord( record ) {
-	if ( Array.isArray( record?.blocks ) ) {
-		return record.blocks;
-	}
-
-	return getParsedBlocks( getNavigationContentFromEditedRecord( record ) );
-}
-
-/**
- * Whether a menu is an auto menu: a Page List and nothing else, so it lists
- * every page by itself. A Page List with anything beside it, even a Home link,
- * is a menu set by hand. The Pages and Menus screens both go by this.
- *
- * @param {Object[]} blocks Parsed, editor or plain menu blocks.
- * @return {boolean} Whether it is an auto menu.
- */
-function isAutoMenuBlocks( blocks ) {
-	const meaningfulBlocks = ( blocks || EMPTY_ARRAY ).filter(
-		( block ) => getBlockName( block ) || block.innerHTML?.trim()
-	);
-
-	return (
-		meaningfulBlocks.length === 1 &&
-		getBlockName( meaningfulBlocks[ 0 ] ) === 'core/page-list'
-	);
-}
-
-function isAutoMenuContent( content ) {
-	return isAutoMenuBlocks( getParsedBlocks( content ) );
 }
 
 function comparePageListPages( a, b ) {
