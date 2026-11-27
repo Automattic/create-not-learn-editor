@@ -389,18 +389,7 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 }
 
 .cnl-section-modes__layouts-hint {
-	margin: var(--wpds-dimension-gap-sm) 0 0;
-	color: $ink-weak;
-	font-size: var(--wpds-typography-font-size-sm);
-	text-align: center;
-
-	kbd {
-		padding: 0 4px;
-		border: var(--wpds-border-width-xs) solid $stroke-weak;
-		border-radius: var(--wpds-border-radius-sm);
-		background: $surface;
-		font: inherit;
-	}
+	margin-top: var(--wpds-dimension-gap-sm);
 }
 
 /*

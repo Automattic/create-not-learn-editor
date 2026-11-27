@@ -38,6 +38,7 @@ import {
 	settings as moreControlIcon,
 	stretchFullWidth as stretchFullWidthIcon,
 	stretchWide as stretchWideIcon,
+	tip as tipIcon,
 } from '@wordpress/icons';
 
 /**
@@ -59,6 +60,7 @@ import {
 	serialize,
 	sprintf,
 	useDispatch,
+	UiNotice,
 	useSelect,
 } from '../../wordpress-packages';
 import ColorWell from '../../pickers/color-well';
@@ -279,15 +281,21 @@ function LayoutOptions( { current, onPreview, onSelect, options, original } ) {
 				) ) }
 			</div>
 			{ onPreview && (
-				<p className="cnl-section-modes__layouts-hint">
-					{ createInterpolateElement(
-						__(
-							'Hold <kbd>Shift</kbd> to see the page behind',
-							'create-not-learn-editor'
-						),
-						{ kbd: <kbd /> }
-					) }
-				</p>
+				<UiNotice.Root
+					className="cnl-section-modes__layouts-hint"
+					icon={ tipIcon }
+					intent="info"
+				>
+					<UiNotice.Description>
+						{ createInterpolateElement(
+							__(
+								'Hold <kbd>Shift</kbd> to fade this panel and see the whole section.',
+								'create-not-learn-editor'
+							),
+							{ kbd: <kbd /> }
+						) }
+					</UiNotice.Description>
+				</UiNotice.Root>
 			) }
 		</>
 	);
