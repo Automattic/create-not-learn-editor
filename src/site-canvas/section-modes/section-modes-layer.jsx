@@ -70,9 +70,9 @@ import {
 	useSelect,
 	useState,
 } from '../../wordpress-packages';
-import { scrollCanvasTo, useBlockRects } from '../compose/use-block-rects';
+import { useBlockRects } from '../compose/use-block-rects';
 import { useComposeStructure } from '../compose/use-compose-structure';
-import { afterZoomIn, whenZoomSettles } from '../compose/use-compose-zoom';
+import { afterZoomIn } from '../compose/use-compose-zoom';
 import {
 	PART_CONTENT,
 	setOpenPart,
@@ -317,20 +317,6 @@ export function SectionModesLayer( {
 
 		afterZoomIn( () => then() );
 		onExitCompose();
-	};
-
-	// Compose's Edit content: back into Edit with the section picked, as a
-	// click there picks it, and in view, as the page moves as it zooms in.
-	const zoomInTo = ( clientId ) => {
-		setMenuOpenFor( null );
-		setInlineAdd( null );
-		setActiveRowId( null );
-		setPickedSection( clientId );
-		leaveCompose( () =>
-			whenZoomSettles( editorRef, () =>
-				scrollCanvasTo( editorRef, clientId )
-			)
-		);
 	};
 
 	const { enterFreeform, escapeMode, setDesignView } = useDesignMode( {
@@ -728,18 +714,7 @@ export function SectionModesLayer( {
 			partsById,
 		} );
 
-	const {
-		addItem,
-		startBlank,
-		deleteSection,
-		moveSection,
-		addRowItem,
-		removeRowItem,
-		onLayoutReplace,
-		openInlineAdd,
-		inlineAddActions,
-		overviewProps,
-	} = getSectionActions( {
+	const sectionActions = getSectionActions( {
 		active,
 		activeRowId,
 		editorRef,
@@ -770,6 +745,19 @@ export function SectionModesLayer( {
 		setMenuOpenFor,
 		setPickedSection,
 	} );
+	const {
+		addItem,
+		startBlank,
+		deleteSection,
+		duplicateSection,
+		moveSection,
+		zoomInTo,
+		addRowItem,
+		removeRowItem,
+		openInlineAdd,
+		inlineAddActions,
+		overviewProps,
+	} = sectionActions;
 
 	if ( ! host ) {
 		return null;
@@ -882,10 +870,10 @@ export function SectionModesLayer( {
 						addItem={ addItem }
 						deleteSection={ deleteSection }
 						drag={ drag }
+						duplicateSection={ duplicateSection }
 						editPosts={ editPosts }
 						enterMode={ enterMode }
 						frame={ frame }
-						getMembers={ getMembers }
 						getScope={ getScope }
 						getTitle={ getTitle }
 						hangsTabBelow={ hangsTabBelow }
@@ -903,7 +891,6 @@ export function SectionModesLayer( {
 						partsById={ partsById }
 						pickedId={ pickedId }
 						rects={ rects }
-						registry={ registry }
 						release={ release }
 						sectionIds={ sectionIds }
 						setMenuOpenFor={ setMenuOpenFor }
@@ -921,6 +908,7 @@ export function SectionModesLayer( {
 						setInlineAddNode={ setInlineAddNode }
 					/>
 					<ActiveChrome
+						actions={ sectionActions }
 						active={ active }
 						activePart={ activePart }
 						chromeSize={ chromeSize }
@@ -928,12 +916,13 @@ export function SectionModesLayer( {
 						exitMode={ exitMode }
 						frame={ frame }
 						getTitle={ getTitle }
+						isComposing={ isComposing }
 						isWorkedOn={ isWorkedOn }
 						items={ items }
 						leaveCompose={ leaveCompose }
-						onLayoutReplace={ onLayoutReplace }
 						pageTopId={ pageTopId }
 						rects={ rects }
+						sectionIds={ sectionIds }
 						setChromeNode={ setChromeNode }
 						setDesignView={ setDesignView }
 					/>

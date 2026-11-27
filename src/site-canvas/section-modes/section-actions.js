@@ -21,6 +21,7 @@ import {
 	sprintf,
 } from '../../wordpress-packages';
 import { scrollCanvasTo } from '../compose/use-block-rects';
+import { whenZoomSettles } from '../compose/use-compose-zoom';
 import { createBlankSection } from '../../section-picker';
 import { MODE_CONTENT, MODE_DESIGN } from './section-chrome';
 
@@ -126,6 +127,26 @@ export function getSectionActions( {
 			}
 		);
 	};
+
+	// Compose's Edit content: back into Edit with the section picked, as a
+	// click there picks it, and in view, as the page moves as it zooms in.
+	const zoomInTo = ( clientId ) => {
+		setMenuOpenFor( null );
+		setInlineAdd( null );
+		setActiveRowId( null );
+		setPickedSection( clientId );
+		leaveCompose( () =>
+			whenZoomSettles( editorRef, () =>
+				scrollCanvasTo( editorRef, clientId )
+			)
+		);
+	};
+
+	// A section, or a whole run of text.
+	const duplicateSection = ( clientId ) =>
+		registry
+			.dispatch( blockEditorStore )
+			.duplicateBlocks( getMembers( clientId ), false );
 
 	const moveSection = ( clientId, direction ) => {
 		const actions = registry.dispatch( blockEditorStore );
@@ -304,7 +325,9 @@ export function getSectionActions( {
 		addItem,
 		startBlank,
 		deleteSection,
+		duplicateSection,
 		moveSection,
+		zoomInTo,
 		addRowItem,
 		removeRowItem,
 		onLayoutReplace,

@@ -10,7 +10,7 @@ import { plus as plusIcon } from '@wordpress/icons';
 /**
  * Internal dependencies
  */
-import { __, blockEditorStore, Button } from '../../wordpress-packages';
+import { __, Button } from '../../wordpress-packages';
 import {
 	HoverBar,
 	MODE_CONTENT,
@@ -36,11 +36,11 @@ export function HoverChrome( {
 	active,
 	addItem,
 	deleteSection,
+	duplicateSection,
 	drag,
 	editPosts,
 	enterMode,
 	frame,
-	getMembers,
 	getScope,
 	getTitle,
 	hangsTabBelow,
@@ -58,7 +58,6 @@ export function HoverChrome( {
 	partsById,
 	pickedId,
 	rects,
-	registry,
 	release,
 	sectionIds,
 	setMenuOpenFor,
@@ -199,12 +198,7 @@ export function HoverChrome( {
 							}
 							onDelete={ () => deleteSection( shownHoverId ) }
 							onDuplicate={ () =>
-								registry
-									.dispatch( blockEditorStore )
-									.duplicateBlocks(
-										getMembers( shownHoverId ),
-										false
-									)
+								duplicateSection( shownHoverId )
 							}
 							onMenuToggle={ ( isMenuOpen ) =>
 								setMenuOpenFor(

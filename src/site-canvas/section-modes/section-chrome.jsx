@@ -2,8 +2,9 @@
  * The controls the layer puts over a section: its name, and the bar over it
  * while it is pointed at or picked. In Edit a section has core's block
  * toolbar for its tools, so its bar is Manage posts alone, on a section
- * listing posts. A run of text, and any section in Compose, has Add, Edit
- * design (or Edit content in Compose) and its own moves; a header or footer
+ * listing posts. A run of text has Add and its own moves, and a section in
+ * Compose has Edit design and Edit content, its moves on Edit design's
+ * toolbar (`design-bar.jsx`); a header or footer
  * has Edit header or Edit footer alone, and the small bar while it is in
  * Freeform. A layout item, like the page's title, is named
  * as part of its layout.
@@ -411,6 +412,9 @@ export function HoverBar( {
 		? []
 		: getModes( isPart, title, isComposing, isText, isLayoutItem );
 	const hasOwnTools = ! isPart && ! isLayoutItem && ! hasToolbar;
+	// A section in Compose has its moves on Edit design's toolbar, as on
+	// core's in Edit. A run of text has no design, so keeps them here.
+	const hasMoves = hasOwnTools && ( ! isComposing || isText );
 
 	return (
 		<div
@@ -459,7 +463,7 @@ export function HoverBar( {
 				</div>
 			) }
 			<div className="cnl-section-modes__bar-end">
-				{ hasOwnTools && (
+				{ hasMoves && (
 					<div
 						aria-label={ __(
 							'Section',

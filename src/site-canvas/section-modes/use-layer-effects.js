@@ -320,13 +320,7 @@ export function useLayerEffects( {
 		const onWheel = ( event ) => {
 			const view = getCanvasFrame( editorRef.current )?.contentWindow;
 
-			const bar = event.target.closest( '.cnl-section-modes__design' );
-
-			if (
-				! view ||
-				event.target.closest( '.components-popover' ) ||
-				( bar && bar.scrollHeight > bar.clientHeight )
-			) {
+			if ( ! view || event.target.closest( '.components-popover' ) ) {
 				return;
 			}
 

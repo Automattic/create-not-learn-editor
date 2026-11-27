@@ -1,4 +1,5 @@
 @use "../../elevation" as *;
+@use "../../block-mover" as *;
 
 /*
  * Edit's section layer. See `section-modes-layer.jsx`.
@@ -312,53 +313,110 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 }
 
 /*
- * Edit design's bar, where the bar over the section was: a row of the
- * design choices, or of the one drilled into, with its options, and the
- * tray of layouts under it when Layout is.
+ * Edit design's toolbar, drawn as core's block toolbar is in Edit
+ * (`src/block-toolbar/_style.scss`), so a section looks the same to work on
+ * zoomed out: 32px buttons in a 42px bar, the name first, and groups split
+ * by short dividers.
  */
 .cnl-section-modes__design {
 	position: absolute;
-	display: flex;
-	flex-direction: column;
 	box-sizing: border-box;
 	width: max-content;
-	overflow-y: auto;
 	padding: $bar-padding;
-	transform: translateX(-50%);
 	color: $ink;
 	pointer-events: auto;
 
 	@include cnl-overlay-surface;
 }
 
-.cnl-section-modes__design-row {
+.cnl-section-modes__design-row.components-accessible-toolbar {
 	display: flex;
-	flex-wrap: wrap;
 	align-items: center;
-	// Back always at the far left, whatever follows it.
-	justify-content: flex-start;
-	gap: var(--wpds-dimension-gap-xs);
+	border: 0;
+	border-radius: 0;
 
-	// An open header's Done editing, at the far end.
-	> .cnl-section-modes__design-end {
-		display: flex;
-		margin-inline-start: auto;
-		padding-inline-start: var(--wpds-dimension-gap-sm);
+	.components-toolbar-group {
+		position: relative;
+		gap: var(--wpds-dimension-gap-xs);
+		min-height: var(--wpds-dimension-size-md);
+		padding: 0;
+		border: 0;
+		background: none;
+		line-height: normal;
 	}
 
-	// A choice's options, set apart from the way back.
-	> .cnl-section-modes__swatches {
+	.components-toolbar-group + .components-toolbar-group {
+		margin-inline-start: var(--wpds-dimension-gap-xs);
+		padding-inline-start: var(--wpds-dimension-gap-xs);
+
+		&::before {
+			content: "";
+			position: absolute;
+			top: var(--wpds-dimension-padding-sm);
+			bottom: var(--wpds-dimension-padding-sm);
+			left: 0;
+			border-left: $edge;
+		}
+	}
+
+	.components-button {
+		height: var(--wpds-dimension-size-md);
+		border-radius: $button-radius;
+
+		&::before {
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 100%;
+			border-radius: $button-radius;
+		}
+	}
+
+	.components-toolbar-group:not(.block-editor-block-mover) .components-button.has-icon:not(.has-text) {
+		min-width: var(--wpds-dimension-size-md);
+		padding-inline: $bar-padding;
+	}
+
+	// Its moves, small and stacked as on core's toolbar.
+	@include cnl-block-mover;
+
+	// The choices and Edit, each an icon and its name, as a
+	// section's are on core's toolbar.
+	.components-toolbar-group .cnl-section-modes__design-tool.components-button {
 		gap: var(--wpds-dimension-gap-xs);
-		margin-inline-start: var(--wpds-dimension-gap-sm);
+		padding-inline: var(--wpds-dimension-padding-sm);
+		font-weight: 500;
+	}
+
+	// An open choice's button, pressed in grey rather than core's black.
+	.components-button:is(.is-pressed, [aria-expanded="true"]):not(:disabled) {
+		color: var(--wpds-color-foreground-interactive-neutral-active);
+		background: var(--wpds-color-background-interactive-neutral-weak-active);
+
+		&::before {
+			display: none;
+		}
 	}
 }
 
-.cnl-section-modes__design-tray {
+// The section's name beside its block's icon, as on core's toolbar, but a
+// label: there is nothing to turn it into.
+.cnl-section-modes__design-name {
 	display: flex;
-	justify-content: center;
-	margin-top: $bar-padding;
-	padding: var(--wpds-dimension-padding-md) var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-sm);
-	border-top: $edge;
+	align-items: center;
+	gap: var(--wpds-dimension-gap-xs);
+	height: var(--wpds-dimension-size-md);
+	padding-inline: var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-md);
+	font-weight: 500;
+	white-space: nowrap;
+
+	// A long name is cut short, so it never pushes the toolbar off the
+	// section. The whole name is its tooltip.
+	> span {
+		max-width: 160px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
 }
 
 .cnl-section-modes__swatches {

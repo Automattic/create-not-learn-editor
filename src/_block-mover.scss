@@ -1,0 +1,89 @@
+// The movers as core draws them on its block toolbar: a narrow drag handle,
+// then two small chevrons stacked one above the other, each half the
+// toolbar's height, or side by side for a block in a row. Sized for the
+// editor's 32px buttons rather than core's 48px. Used by the block toolbar
+// (`src/block-toolbar/`) and Edit design's toolbar, which draws its movers
+// with core's classes so both look the same. Include it inside a toolbar.
+@mixin cnl-block-mover {
+
+	.block-editor-block-mover {
+		display: flex;
+		gap: 0;
+		padding-inline-end: 0;
+	}
+
+	.block-editor-block-mover__drag-handle.components-button {
+		width: var(--wpds-dimension-size-sm);
+		min-width: 0;
+		padding: 0;
+		justify-content: center;
+		overflow: hidden;
+	}
+
+	.block-editor-block-mover__move-button-container {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		width: var(--wpds-dimension-size-sm);
+		height: var(--wpds-dimension-size-md);
+		padding: 0;
+		border: 0;
+	}
+
+	.block-editor-block-mover .block-editor-block-mover-button.components-button {
+		position: relative;
+		width: 100%;
+		min-width: 0;
+		height: 50%;
+		padding: 0;
+		justify-content: center;
+		overflow: hidden;
+
+		svg {
+			position: relative;
+			flex-shrink: 0;
+		}
+
+		&::before {
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 100%;
+		}
+	}
+
+	// Each chevron nudged towards the other, as core does, so the pair
+	// reads as one control.
+	.block-editor-block-mover:not(.is-horizontal) .is-up-button svg {
+		top: 3px;
+	}
+
+	.block-editor-block-mover:not(.is-horizontal) .is-down-button svg {
+		bottom: 3px;
+	}
+
+	.block-editor-block-mover.is-horizontal {
+
+		.block-editor-block-mover__move-button-container {
+			flex-direction: row;
+			width: auto;
+		}
+
+		.block-editor-block-mover-button.components-button {
+			width: var(--wpds-dimension-size-sm);
+			height: 100%;
+		}
+
+		.is-up-button svg {
+			left: 3px;
+		}
+
+		.is-down-button svg {
+			right: 3px;
+		}
+	}
+
+	.block-editor-block-mover .block-editor-block-mover-button.components-button[aria-disabled="true"] {
+		opacity: 0.4;
+	}
+}

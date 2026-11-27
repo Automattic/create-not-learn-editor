@@ -31,15 +31,12 @@ import {
 	stickyTop,
 	TAB_HEIGHT,
 } from './placement';
-import { getLayoutColumns } from './layout-grid';
 import {
 	BAR_HEIGHT,
 	MODE_BAR_ROOM_HEIGHT,
 	MODE_BAR_ROOM_WIDTH,
 	SMALL_MODE_BAR_HEIGHT,
 	MODE_BAR_GAP,
-	DESIGN_BAR_MIN_WIDTH,
-	DESIGN_BAR_MIN_HEIGHT,
 } from './layer-constants';
 
 /*
@@ -47,6 +44,7 @@ import {
  * bar naming the mode.
  */
 export function ActiveChrome( {
+	actions,
 	active,
 	activePart,
 	chromeSize,
@@ -54,15 +52,23 @@ export function ActiveChrome( {
 	exitMode,
 	frame,
 	getTitle,
+	isComposing,
 	isWorkedOn,
 	items,
 	leaveCompose,
-	onLayoutReplace,
 	pageTopId,
 	rects,
+	sectionIds,
 	setChromeNode,
 	setDesignView,
 } ) {
+	const {
+		deleteSection,
+		duplicateSection,
+		moveSection,
+		onLayoutReplace,
+		zoomInTo,
+	} = actions;
 	const rect = active && rects[ active.id ];
 
 	// A section whose blocks are reached is drawn as picked, its bar
@@ -91,37 +97,45 @@ export function ActiveChrome( {
 
 	if ( active.mode === MODE_DESIGN || isPartOpen ) {
 		const height = chromeSize?.height || BAR_HEIGHT;
+		const width = chromeSize?.width || 0;
+		const index = sectionIds.indexOf( active.id );
 		/*
-		 * Where the bar over the section was, its modes giving way to
-		 * the design choices in the same place: at the top of the
-		 * section in view, a tray opened under it kept on the canvas,
-		 * moving the bar up if it has to. A section too short to hold
-		 * it, with its tray, has it outside, under it or over it, so
-		 * what is picked can be seen. So does an open header or footer,
-		 * so the bar never covers the words being changed.
+		 * Where core's toolbar sits on a section in Edit, so it looks the
+		 * same zoomed out: over the section's top, in from its left, kept
+		 * on the canvas. A section too short to hold it has it outside,
+		 * under it or over it, so what is picked can be seen. So does an
+		 * open header or footer, so the toolbar never covers the words
+		 * being changed.
 		 */
-		let top;
-
-		if ( ! isPartOpen && box.height >= height + INSET * 2 ) {
-			top = stickyTop( box, height );
-
-			if ( top < frame.height && top + height > frame.height - INSET ) {
-				top = Math.max( INSET, frame.height - height - INSET );
-			}
-		} else {
-			top = placeOutside( outerBox, height, frame.height, isHeader );
-		}
-
-		const maxWidth = Math.min(
-			Math.max( DESIGN_BAR_MIN_WIDTH, box.width - INSET * 2 ),
-			frame.width - INSET * 2
+		const top =
+			! isPartOpen && box.height >= height + INSET * 2
+				? stickyTop( box, height )
+				: placeOutside( outerBox, height, frame.height, isHeader );
+		const left = Math.max(
+			INSET,
+			Math.min( box.left + INSET, frame.width - width - INSET )
 		);
+		// A section's own tools, as on core's toolbar. A header or footer
+		// stays where it is.
+		const sectionTools = ! activePart && {
+			canMoveDown: index > -1 && index < sectionIds.length - 1,
+			canMoveUp: index > 0,
+			onDelete: () => deleteSection( active.id ),
+			onDuplicate: () => duplicateSection( active.id ),
+			onMove: ( direction ) => moveSection( active.id, direction ),
+			onZoomIn: isComposing
+				? () => {
+						exitMode();
+						zoomInTo( active.id );
+					}
+				: undefined,
+		};
 
 		chrome = (
 			<DesignBar
+				{ ...sectionTools }
 				clientId={ active.id }
 				end={ isPartOpen && <DoneButton onDone={ exitMode } /> }
-				onClose={ isPartOpen ? undefined : exitMode }
 				// A section's blocks are open as they are. A header or
 				// footer is still unlocked on purpose.
 				onFreeform={
@@ -139,18 +153,8 @@ export function ActiveChrome( {
 				onReplace={ onLayoutReplace }
 				onView={ setDesignView }
 				part={ activePart }
-				columns={ getLayoutColumns( maxWidth ) }
 				ref={ setChromeNode }
-				style={ {
-					left: box.left + box.width / 2,
-					// Scrolls rather than run off the canvas.
-					maxHeight: Math.max(
-						DESIGN_BAR_MIN_HEIGHT,
-						frame.height - Math.max( top, 0 ) - INSET
-					),
-					maxWidth,
-					top,
-				} }
+				style={ { left, top } }
 				title={ title }
 				view={ active.view }
 			/>
@@ -208,11 +212,15 @@ export function ActiveChrome( {
 	return (
 		<Scope>
 			<div className="cnl-section-modes__outline" style={ box } />
-			<SectionTab
-				{ ...tab }
-				isPart={ Boolean( activePart ) }
-				title={ title }
-			/>
+			{ /* A section's toolbar names it, as core's does in Edit. A
+			     header's or footer's tab also says it is on every page. */ }
+			{ ( activePart || active.mode !== MODE_DESIGN ) && (
+				<SectionTab
+					{ ...tab }
+					isPart={ Boolean( activePart ) }
+					title={ title }
+				/>
+			) }
 			{ chrome }
 		</Scope>
 	);
