@@ -429,6 +429,18 @@ test.describe( 'Edit mode', () => {
 
 		await pickSectionTemplate( page, 'Image left, text right' );
 
+		// Saved, so what is pointed at later can be seen not to need saving.
+		await page.evaluate( () =>
+			window.wp.data.dispatch( 'core/editor' ).savePost()
+		);
+		await expect
+			.poll( () =>
+				page.evaluate( () =>
+					window.wp.data.select( 'core/editor' ).isEditedPostDirty()
+				)
+			)
+			.toBe( false );
+
 		const section = getCanvasEditor( page )
 			.contentFrame()
 			.locator( '.is-root-container .wp-block-post-content > *' )
@@ -457,6 +469,31 @@ test.describe( 'Edit mode', () => {
 			Math.round( ( await popover.boundingBox() ).y );
 		const names = await getNames();
 		const top = await getTop();
+		const getBlocks = () =>
+			page.evaluate( () => {
+				const store = window.wp.data.select( 'core/block-editor' );
+
+				return window.wp.blocks.serialize(
+					store.getBlock( store.getSelectedBlockClientId() )
+				);
+			} );
+		const isDirty = () =>
+			page.evaluate( () =>
+				window.wp.data.select( 'core/editor' ).isEditedPostDirty()
+			);
+		const blocks = await getBlocks();
+
+		// Pointing at a layout shows it on the canvas as a passing change,
+		// nothing to save, and pointing away puts the section back.
+		await other.first().hover();
+		await expect.poll( getBlocks ).not.toBe( blocks );
+		expect( await isDirty() ).toBe( false );
+		await expect(
+			options.filter( { hasText: otherName } )
+		).toHaveAttribute( 'aria-pressed', 'false' );
+		await page.mouse.move( 0, 0 );
+		await expect.poll( getBlocks ).toBe( blocks );
+		await expect( popover ).toBeVisible();
 
 		await other.first().click();
 		await expect(

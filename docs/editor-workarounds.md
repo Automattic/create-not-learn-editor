@@ -98,3 +98,7 @@ Remove the first once core has a public way to say patterns aren't locked, move 
 ## Layers' nested rows
 
 Layers for a page built from sections (`src/site-canvas/section-modes/canvas-overview.jsx`) draws its own rows with core's list view class names (`block-editor-list-view-leaf`, `block-editor-list-view-block-contents`, `block-editor-list-view__expander` and the rest), so core's list view styles draw them, and reads the blocks inside each section from the private `getListViewClientIdsTree` selector, so it lists what core's list view would. A change to either in Gutenberg can change how the rows look or what they list. Remove this once core's ListView can be given its own top-level rows.
+
+## Showing a section's layout while it is pointed at
+
+Pointing at one of a section's layouts puts it in the section's place on the canvas, and pointing away puts the section back (`src/site-canvas/section-modes/use-layout-choice.js`). Both swaps are marked with core's `__unstableMarkNextChangeAsNotPersistent` first, so the block editor hands them to the entity as a passing change: only its `blocks`, which core-data treats as a transient edit, so they make no undo level and don't count as unsaved. This relies on that action, on the post's `blocks` and `selection` staying transient edits, and on core-data's undo manager folding passing changes into the last undo level, which is why the section is always put back before a pick goes in. Replace it if core gets a public way to preview a change to the blocks.

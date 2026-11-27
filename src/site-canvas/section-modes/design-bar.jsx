@@ -27,7 +27,9 @@ import {
 	createContext,
 	forwardRef,
 	useContext,
+	useEffect,
 	useRef,
+	useState,
 } from '@wordpress/element';
 import {
 	alignNone as alignNoneIcon,
@@ -36,6 +38,7 @@ import {
 	settings as moreControlIcon,
 	stretchFullWidth as stretchFullWidthIcon,
 	stretchWide as stretchWideIcon,
+	tip as tipIcon,
 } from '@wordpress/icons';
 
 /**
@@ -50,16 +53,19 @@ import {
 	chevronRightIcon,
 	cloneBlock,
 	ColorIndicator,
+	createInterpolateElement,
 	coreDataStore,
 	Icon,
 	isRTL,
 	serialize,
 	sprintf,
 	useDispatch,
+	UiNotice,
 	useSelect,
 } from '../../wordpress-packages';
 import ColorWell from '../../pickers/color-well';
 import ColorList from './color-list';
+import { useLayoutChoice } from './use-layout-choice';
 import { getLayoutGridColumns, MAX_LAYOUT_COLUMNS } from './layout-grid';
 import {
 	usePartColors,
@@ -136,44 +142,178 @@ function Preview( { blocks } ) {
 // The most layouts a row holds, set by the bar from the room it has.
 const ColumnsContext = createContext( MAX_LAYOUT_COLUMNS );
 
+// How long the pointer rests on a layout before the canvas shows it, so
+// passing over the others on the way doesn't show each in turn.
+const PREVIEW_DELAY = 120;
+
+/**
+ * Whether Shift is held, on the page or in the editor's canvas, while
+ * `isActive`.
+ *
+ * @param {boolean} isActive Whether to listen.
+ * @return {boolean} Whether it is held.
+ */
+function useShiftHeld( isActive ) {
+	const [ isHeld, setIsHeld ] = useState( false );
+
+	useEffect( () => {
+		if ( ! isActive ) {
+			return undefined;
+		}
+
+		const onKey = ( event ) => {
+			if ( event.key === 'Shift' ) {
+				setIsHeld( event.type === 'keydown' );
+			}
+		};
+		const onBlur = () => setIsHeld( false );
+		const canvas = document.querySelector(
+			'iframe[name="editor-canvas"]'
+		)?.contentWindow;
+		const targets = [ window, canvas ].filter( Boolean );
+
+		targets.forEach( ( target ) => {
+			target.addEventListener( 'keydown', onKey );
+			target.addEventListener( 'keyup', onKey );
+			target.addEventListener( 'blur', onBlur );
+		} );
+
+		return () => {
+			setIsHeld( false );
+			targets.forEach( ( target ) => {
+				target.removeEventListener( 'keydown', onKey );
+				target.removeEventListener( 'keyup', onKey );
+				target.removeEventListener( 'blur', onBlur );
+			} );
+		};
+	}, [ isActive ] );
+
+	return isHeld;
+}
+
 /**
  * Every layout at once, in a grid, so how many there are can be seen at a
- * glance and picking one moves nothing. Each is drawn with the section's own
- * content.
+ * glance and picking one moves nothing. The canvas shows each while it is
+ * pointed at or focused, and puts the section back when none is. The one
+ * the section had when they opened is marked, as the way back to it.
  *
- * @param {Object}   props
- * @param {?string}  props.current  The layout in use.
- * @param {Function} props.onSelect Called with the layout picked.
- * @param {Object[]} props.options  `{ blocks, label, name }` for each.
+ * @param {Object}    props
+ * @param {?string}   props.current   The layout in use.
+ * @param {?string}   props.original  The layout the section had to begin
+ *                                    with, if it can be gone back to.
+ * @param {Function}  props.onSelect  Called with the layout picked.
+ * @param {?Function} props.onPreview Called with the layout to show, or null
+ *                                    to show the section as it is.
+ * @param {Object[]}  props.options   `{ blocks, label, name }` for each.
  * @return {Element} The layouts.
  */
-function LayoutOptions( { current, onSelect, options } ) {
+function LayoutOptions( { current, onPreview, onSelect, options, original } ) {
 	const maxColumns = useContext( ColumnsContext );
 	const columns = getLayoutGridColumns( options.length, maxColumns );
+	const timer = useRef();
+	const isPeeking = useShiftHeld( Boolean( onPreview ) );
+	const isPeekingRef = useRef( false );
+
+	isPeekingRef.current = isPeeking;
+
+	// While Shift is held the layouts are only looked through: what is shown
+	// on the canvas stays as it is, whatever the pointer passes over.
+	const preview = ( option, delay = 0 ) => {
+		if ( isPeekingRef.current ) {
+			return;
+		}
+
+		window.clearTimeout( timer.current );
+
+		if ( onPreview ) {
+			timer.current = window.setTimeout(
+				() => onPreview( option ),
+				delay
+			);
+		}
+	};
+
+	useEffect( () => {
+		if ( isPeeking ) {
+			window.clearTimeout( timer.current );
+		}
+	}, [ isPeeking ] );
+
+	useEffect( () => () => window.clearTimeout( timer.current ), [] );
 
 	return (
-		<div
-			aria-label={ __( 'Layouts', 'create-not-learn-editor' ) }
-			className="cnl-section-modes__options"
-			role="group"
-			style={ { '--cnl-layout-columns': columns } }
-		>
-			{ options.map( ( option ) => (
-				<button
-					aria-pressed={ option.name === current }
-					className="cnl-section-modes__option"
-					key={ option.name ?? 'none' }
-					onClick={ () =>
-						option.name !== current && onSelect( option )
+		<>
+			<div
+				aria-label={ __( 'Layouts', 'create-not-learn-editor' ) }
+				className="cnl-section-modes__options"
+				data-peeking={ isPeeking || undefined }
+				onBlur={ ( event ) => {
+					if (
+						! event.currentTarget.contains( event.relatedTarget )
+					) {
+						preview( null );
 					}
-					title={ option.label }
-					type="button"
+				} }
+				onMouseLeave={ () => preview( null ) }
+				role="group"
+				style={ { '--cnl-layout-columns': columns } }
+			>
+				{ options.map( ( option ) => (
+					<button
+						aria-pressed={ option.name === current }
+						className="cnl-section-modes__option"
+						key={ option.name ?? 'none' }
+						onClick={ () => {
+							window.clearTimeout( timer.current );
+
+							if ( option.name !== current ) {
+								onSelect( option );
+							}
+						} }
+						onFocus={ ( event ) => {
+							// Only moving from one layout to another: the
+							// popover focuses the first as it opens, which
+							// isn't a choice.
+							if (
+								event.currentTarget.parentElement.contains(
+									event.relatedTarget
+								)
+							) {
+								preview( option );
+							}
+						} }
+						onMouseEnter={ () => preview( option, PREVIEW_DELAY ) }
+						title={ option.label }
+						type="button"
+					>
+						{ option.name === original && original !== current && (
+							<span className="cnl-section-modes__option-tag">
+								{ __( 'Original', 'create-not-learn-editor' ) }
+							</span>
+						) }
+						<Preview blocks={ option.blocks } />
+						<span>{ option.label }</span>
+					</button>
+				) ) }
+			</div>
+			{ onPreview && (
+				<UiNotice.Root
+					className="cnl-section-modes__layouts-hint"
+					icon={ tipIcon }
+					intent="info"
 				>
-					<Preview blocks={ option.blocks } />
-					<span>{ option.label }</span>
-				</button>
-			) ) }
-		</div>
+					<UiNotice.Description>
+						{ createInterpolateElement(
+							__(
+								'Hold <kbd>Shift</kbd> to fade this panel and see the whole section.',
+								'create-not-learn-editor'
+							),
+							{ kbd: <kbd /> }
+						) }
+					</UiNotice.Description>
+				</UiNotice.Root>
+			) }
+		</>
 	);
 }
 
@@ -759,7 +899,6 @@ export function useSectionDesignViews( clientId ) {
  * @return {Object} `{ colors, layouts, width }`.
  */
 function useSectionChoices( clientId, onReplace ) {
-	const { replaceBlocks } = useDispatch( blockEditorStore );
 	const updateColors = useUpdateColors();
 	const updateCustomColors = useUpdateCustomColors();
 	const { block, choices, colors, layouts } = useSectionVariations(
@@ -769,7 +908,7 @@ function useSectionChoices( clientId, onReplace ) {
 		}
 	);
 	const width = useWidthChoice( clientId );
-	const steady = useSteadyLayouts( block, layouts );
+	const layoutChoice = useLayoutChoice( block, layouts, onReplace );
 
 	return {
 		colors: withCustom(
@@ -778,71 +917,8 @@ function useSectionChoices( clientId, onReplace ) {
 			( name ) => updateColors( [ block ], name, colors.options ),
 			( values ) => updateCustomColors( [ block ], values, choices )
 		),
-		layouts: steady.layouts && {
-			...steady.layouts,
-			onSelect: ( option ) => {
-				const next = cloneBlock( option.block );
-
-				steady.remember( next.clientId, option.name );
-				// Selected but not focused: focus would scroll the canvas
-				// to the new section, taking the toolbar and the layouts
-				// with it.
-				replaceBlocks( clientId, next, 0, null );
-				onReplace( next );
-			},
-		},
+		layouts: layoutChoice,
 		width,
-	};
-}
-
-/**
- * A section's layouts, held as they were when first offered while its
- * layouts are picked between. They are worked out from the section's shape,
- * so the layout picked would otherwise offer a different set, in another
- * order, and the cards would move under the pointer. Any other change to
- * the section, or a section the picks didn't put in, offers them afresh.
- * Undo and redo go back to a section the picks put in, which keeps its own.
- *
- * @param {?Object} block   The section.
- * @param {?Object} layouts `{ current, options }` for it, or null.
- * @return {Object} `{ layouts, remember }`: the layouts to offer, and a
- *                  function taking the client ID of the section a pick put
- *                  in, and the layout's name.
- */
-function useSteadyLayouts( block, layouts ) {
-	const held = useRef( null );
-	const seen = block && held.current?.sections.get( block.clientId );
-
-	if ( seen && ! seen.block ) {
-		// The section a pick put in, as the editor holds it.
-		seen.block = block;
-	}
-
-	if ( layouts && ( ! seen || seen.block !== block ) ) {
-		held.current = {
-			options: layouts.options,
-			sections: new Map( [
-				[ block.clientId, { block, name: layouts.current } ],
-			] ),
-		};
-	}
-
-	// Between a pick and the new section being selected there is no
-	// section, and the layouts stay as they were rather than blink out.
-	const current = block
-		? held.current?.sections.get( block.clientId )
-		: held.current?.last;
-
-	if ( current ) {
-		held.current.last = current;
-	}
-
-	return {
-		layouts: current
-			? { current: current.name, options: held.current.options }
-			: null,
-		remember: ( clientId, name ) =>
-			held.current?.sections.set( clientId, { name } ),
 	};
 }
 
