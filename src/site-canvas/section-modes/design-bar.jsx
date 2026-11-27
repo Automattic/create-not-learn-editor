@@ -52,6 +52,7 @@ import {
 	chevronRightIcon,
 	cloneBlock,
 	ColorIndicator,
+	createInterpolateElement,
 	coreDataStore,
 	Icon,
 	isRTL,
@@ -144,6 +145,51 @@ const ColumnsContext = createContext( MAX_LAYOUT_COLUMNS );
 const PREVIEW_DELAY = 120;
 
 /**
+ * Whether Shift is held, on the page or in the editor's canvas, while
+ * `isActive`.
+ *
+ * @param {boolean} isActive Whether to listen.
+ * @return {boolean} Whether it is held.
+ */
+function useShiftHeld( isActive ) {
+	const [ isHeld, setIsHeld ] = useState( false );
+
+	useEffect( () => {
+		if ( ! isActive ) {
+			return undefined;
+		}
+
+		const onKey = ( event ) => {
+			if ( event.key === 'Shift' ) {
+				setIsHeld( event.type === 'keydown' );
+			}
+		};
+		const onBlur = () => setIsHeld( false );
+		const canvas = document.querySelector(
+			'iframe[name="editor-canvas"]'
+		)?.contentWindow;
+		const targets = [ window, canvas ].filter( Boolean );
+
+		targets.forEach( ( target ) => {
+			target.addEventListener( 'keydown', onKey );
+			target.addEventListener( 'keyup', onKey );
+			target.addEventListener( 'blur', onBlur );
+		} );
+
+		return () => {
+			setIsHeld( false );
+			targets.forEach( ( target ) => {
+				target.removeEventListener( 'keydown', onKey );
+				target.removeEventListener( 'keyup', onKey );
+				target.removeEventListener( 'blur', onBlur );
+			} );
+		};
+	}, [ isActive ] );
+
+	return isHeld;
+}
+
+/**
  * Every layout at once, in a grid, so how many there are can be seen at a
  * glance and picking one moves nothing. The canvas shows each while it is
  * pointed at or focused, and puts the section back when none is. The one
@@ -163,17 +209,9 @@ function LayoutOptions( { current, onPreview, onSelect, options, original } ) {
 	const maxColumns = useContext( ColumnsContext );
 	const columns = getLayoutGridColumns( options.length, maxColumns );
 	const timer = useRef();
-	// Which turn the fade is on, `a` or `b`; see the stylesheet.
-	const [ peek, setPeek ] = useState( null );
+	const isPeeking = useShiftHeld( Boolean( onPreview ) );
 	const preview = ( option, delay = 0 ) => {
 		window.clearTimeout( timer.current );
-		setPeek( ( turn ) => {
-			if ( ! option ) {
-				return null;
-			}
-
-			return turn === 'a' ? 'b' : 'a';
-		} );
 
 		if ( onPreview ) {
 			timer.current = window.setTimeout(
@@ -186,57 +224,72 @@ function LayoutOptions( { current, onPreview, onSelect, options, original } ) {
 	useEffect( () => () => window.clearTimeout( timer.current ), [] );
 
 	return (
-		<div
-			aria-label={ __( 'Layouts', 'create-not-learn-editor' ) }
-			className="cnl-section-modes__options"
-			data-peek={ peek ?? undefined }
-			onBlur={ ( event ) => {
-				if ( ! event.currentTarget.contains( event.relatedTarget ) ) {
-					preview( null );
-				}
-			} }
-			onMouseLeave={ () => preview( null ) }
-			role="group"
-			style={ { '--cnl-layout-columns': columns } }
-		>
-			{ options.map( ( option ) => (
-				<button
-					aria-pressed={ option.name === current }
-					className="cnl-section-modes__option"
-					key={ option.name ?? 'none' }
-					onClick={ () => {
-						window.clearTimeout( timer.current );
+		<>
+			<div
+				aria-label={ __( 'Layouts', 'create-not-learn-editor' ) }
+				className="cnl-section-modes__options"
+				data-peeking={ isPeeking || undefined }
+				onBlur={ ( event ) => {
+					if (
+						! event.currentTarget.contains( event.relatedTarget )
+					) {
+						preview( null );
+					}
+				} }
+				onMouseLeave={ () => preview( null ) }
+				role="group"
+				style={ { '--cnl-layout-columns': columns } }
+			>
+				{ options.map( ( option ) => (
+					<button
+						aria-pressed={ option.name === current }
+						className="cnl-section-modes__option"
+						key={ option.name ?? 'none' }
+						onClick={ () => {
+							window.clearTimeout( timer.current );
 
-						if ( option.name !== current ) {
-							onSelect( option );
-						}
-					} }
-					onFocus={ ( event ) => {
-						// Only moving from one layout to another: the
-						// popover focuses the first as it opens, which
-						// isn't a choice.
-						if (
-							event.currentTarget.parentElement.contains(
-								event.relatedTarget
-							)
-						) {
-							preview( option );
-						}
-					} }
-					onMouseEnter={ () => preview( option, PREVIEW_DELAY ) }
-					title={ option.label }
-					type="button"
-				>
-					{ option.name === original && original !== current && (
-						<span className="cnl-section-modes__option-tag">
-							{ __( 'Original', 'create-not-learn-editor' ) }
-						</span>
+							if ( option.name !== current ) {
+								onSelect( option );
+							}
+						} }
+						onFocus={ ( event ) => {
+							// Only moving from one layout to another: the
+							// popover focuses the first as it opens, which
+							// isn't a choice.
+							if (
+								event.currentTarget.parentElement.contains(
+									event.relatedTarget
+								)
+							) {
+								preview( option );
+							}
+						} }
+						onMouseEnter={ () => preview( option, PREVIEW_DELAY ) }
+						title={ option.label }
+						type="button"
+					>
+						{ option.name === original && original !== current && (
+							<span className="cnl-section-modes__option-tag">
+								{ __( 'Original', 'create-not-learn-editor' ) }
+							</span>
+						) }
+						<Preview blocks={ option.blocks } />
+						<span>{ option.label }</span>
+					</button>
+				) ) }
+			</div>
+			{ onPreview && (
+				<p className="cnl-section-modes__layouts-hint">
+					{ createInterpolateElement(
+						__(
+							'Hold <kbd>Shift</kbd> to see the page behind',
+							'create-not-learn-editor'
+						),
+						{ kbd: <kbd /> }
 					) }
-					<Preview blocks={ option.blocks } />
-					<span>{ option.label }</span>
-				</button>
-			) ) }
-		</div>
+				</p>
+			) }
+		</>
 	);
 }
 

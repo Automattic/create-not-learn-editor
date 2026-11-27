@@ -376,31 +376,31 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 }
 
 /*
- * Resting on a layout slowly fades the whole popover, so the section it is
- * shown in can be seen under it. Moving to another layout brings it back and
- * starts again; leaving the layouts brings it back at once. The two names
- * take turns, as an animation only starts again when its name changes.
+ * Holding Shift fades the whole popover, so the section a layout is shown in
+ * can be seen under it. Letting go brings it back.
  */
-@keyframes cnl-layouts-peek-a {
+.cnl-section-tool-popover .components-popover__content {
+	transition: opacity var(--wpds-motion-duration-sm) var(--wpds-motion-easing-subtle);
+}
 
-	to {
-		opacity: 0.1;
+.cnl-section-tool-popover:has([data-peeking]) .components-popover__content {
+	opacity: 0.1;
+	transition-duration: 600ms;
+}
+
+.cnl-section-modes__layouts-hint {
+	margin: var(--wpds-dimension-gap-sm) 0 0;
+	color: $ink-weak;
+	font-size: var(--wpds-typography-font-size-sm);
+	text-align: center;
+
+	kbd {
+		padding: 0 4px;
+		border: var(--wpds-border-width-xs) solid $stroke-weak;
+		border-radius: var(--wpds-border-radius-sm);
+		background: $surface;
+		font: inherit;
 	}
-}
-
-@keyframes cnl-layouts-peek-b {
-
-	to {
-		opacity: 0.1;
-	}
-}
-
-.cnl-section-tool-popover:has([data-peek="a"]) .components-popover__content {
-	animation: cnl-layouts-peek-a 2s ease-in 0.8s both;
-}
-
-.cnl-section-tool-popover:has([data-peek="b"]) .components-popover__content {
-	animation: cnl-layouts-peek-b 2s ease-in 0.8s both;
 }
 
 /*
