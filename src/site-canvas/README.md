@@ -16,6 +16,8 @@ The preview shows unsaved changes too. Before it loads, the canvas sends the edi
 
 A change made from the sidebar while browsing still brings the editor up to show it, as the editor shows it at once, where the preview would have to load again.
 
+In Edit and Compose, and in Browse while it has unsaved changes, a post or page is autosaved and locked, as in core's post editor. Browse with nothing unsaved lets go of its lock. A post someone else has open shows core's lock dialog, whose Exit editor goes back to Browse. See "Autosaves and post locks" in `docs/architecture.md`.
+
 ## Files
 
 | File | What it does |

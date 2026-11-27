@@ -18,6 +18,7 @@ import { __, sprintf } from '@wordpress/i18n';
  * Internal dependencies
  */
 import { getRecordId, useUnsavedBeforeEditSession } from '../edit-session';
+import { discardPostBackups } from '../editor-layer/post-backups';
 import { unlock } from '../lock-unlock';
 
 /*
@@ -377,6 +378,16 @@ export function useChanges( { inEditSession = false } = {} ) {
 				)
 			);
 		} else {
+			if ( kind === 'postType' ) {
+				discardPostBackups( {
+					postId: key,
+					postType: name,
+					status: registry
+						.select( coreStore )
+						.getEntityRecord( kind, name, key )?.status,
+				} );
+			}
+
 			clearEntityRecordEdits( kind, name, key );
 		}
 	};

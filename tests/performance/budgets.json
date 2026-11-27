@@ -1,13 +1,13 @@
 {
   "budgets": {
-    "modules/app-init-deferred/index.dependencies": 21,
+    "modules/app-init-deferred/index.dependencies": 22,
     "modules/app-init-deferred/index.js": 35000,
     "modules/app-init/index.dependencies": 32,
     "modules/app-init/index.js": 168000,
     "modules/dataviews/index.dependencies": 16,
     "modules/dataviews/index.js": 234000,
-    "modules/lazy-editor-compat/index.dependencies": 3,
-    "modules/lazy-editor-compat/index.js": 2000,
+    "modules/lazy-editor-compat/index.dependencies": 9,
+    "modules/lazy-editor-compat/index.js": 4000,
     "routes/content/content.dependencies": 34,
     "routes/content/content.js": 293000,
     "routes/content/route.dependencies": 27,

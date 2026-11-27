@@ -137,6 +137,50 @@ Changes the layer doesn't cover, like a page's parent or order, still ask to be 
 
 The Site overview's pictures of pages use the same session, so they show the unsaved changes too. Each picture loads the page once, then is swapped for a copy of it without its scripts, kept until the editor sends new changes (`src/routes/site-overview/snapshots.js`). Cards load a few at a time, the homepage first, and only once the map is still: cards far from the screen, or too small on it to make out, show no page at all. This keeps a site with hundreds of pages smooth to pan and zoom.
 
+## Autosaves and post locks
+
+Editing a post or page here is as safe as in core's post editor. Work is autosaved, a closed tab's work can be recovered, and two people can't overwrite each other without knowing.
+
+Core's post editor gets this from edit-post's layout, which mounts `AutosaveMonitor`, `LocalAutosaveMonitor` and `PostLockedModal` from `@wordpress/editor`, and from `wp-admin/edit-form-blocks.php`, which loads the heartbeat, locks the post and prints the lock and any newer autosave in the editor's settings. Boot and its lazy editor do none of it, so the editor does it itself.
+
+### Where it applies
+
+Every lazy editor goes through `packages/lazy-editor-compat`, which mounts `PostSafety` (`src/editor-layer/post-safety.jsx`) beside each editor that is open for editing:
+
+- Boot's full-screen editor, always.
+- The site canvas, in Edit and Compose, and in Browse while the post has unsaved changes, which Browse keeps and shows in the preview. It keeps its editor mounted under Browse, so it says when to watch over the post with the editor's `isEditing` prop. Browse with nothing unsaved lets go of the post's lock.
+
+Only the post open in an editor is watched over. Unsaved changes left on another post, by moving to a screen that shows a different one, aren't autosaved or locked until that post is open again, as core's editor only watches over its current post.
+- Never an editor opened as a preview (`isPreviewMode`), like the Menus screen's site preview.
+
+The server says which posts get it: those core's post editor opens, the post types whose edit link is `post.php`. Templates, template parts and menus don't, as core's site editor doesn't autosave or lock them either. The `create-not-learn-editor_has_post_safety` filter changes the answer per post.
+
+### Opening a post
+
+When the editor has set a post up, `PostSafety` asks `POST /wp-json/create-not-learn-editor/v1/post-lock/<id>` (`includes/post-safety.php`). That does what `edit-form-blocks.php` does on opening a post: it locks the post for the current user, or says who has it, and answers with the lock, the lock's nonces (`postLockUtils`), the autosave interval (`AUTOSAVE_INTERVAL`, which the block editor settings endpoint doesn't have) and the current user's autosave, if it is newer than the post. `PostSafety` puts them in the editor's settings and store, then mounts core's three components.
+
+Moving to another post, in the site canvas or by route, without loading the page, lets go of the last post's lock as core does when its page unloads (`wp-remove-post-lock`), and locks the next one.
+
+### Autosaves
+
+- `AutosaveMonitor` autosaves on the server every `autosaveInterval` seconds while the post has unsaved changes. A published post's autosave is a revision, so nothing changes on the live site. A draft's autosave is the draft itself, which WordPress saves in place, as in core.
+- `LocalAutosaveMonitor` backs the post up in the browser's session storage every `localAutosaveInterval` seconds (15, from the block editor settings), and offers the backup back when the post opens with different content. Each server autosave clears it.
+- A newer autosave on the server, as a closed tab leaves, is offered when the post opens, with core's notice. **Restore the autosave** puts it back as unsaved changes, to be saved or discarded like any other, rather than opening core's revisions. It is offered each time the post opens, until it is saved over or discarded.
+
+Both intervals are read from the editor's settings, so anything that changes them there is respected.
+
+Discarding a post's changes, with Exit, Discard in the unsaved changes dialog, or Review changes, throws its backups away too (`src/editor-layer/post-backups.js`): the browser backup, and the current user's autosave on the server, so neither is offered back next time. A draft's autosaved changes are already the draft, so discarding only takes back what changed since the last autosave.
+
+### Post locks
+
+A heartbeat keeps the lock and checks it every 10 seconds while a post is held, as in core's post editor, or every minute while the tab is hidden, beating at once when it shows again. It stops when the post closes, so the editor's other screens make no requests.
+
+It isn't WordPress's `heartbeat.js`, which depends on jQuery and polls on every page it loads on. `src/editor-layer/post-heartbeat.js` sends the same request with `fetch`, to `admin-ajax.php?action=heartbeat` with a `heartbeat-nonce` nonce from the lock route, so the server's side is core's own (`wp_refresh_post_lock()` on `heartbeat_received`). It fires the same `heartbeat.send` and `heartbeat.tick` hooks from `@wordpress/hooks`, which is all `PostLockedModal` listens to. A nonce that expires, after a day open, is fetched again from the lock route. Plugins that use the heartbeat for anything else, like core's login check, don't run on this page.
+
+- Opening a post someone else has open shows core's "This post is already being edited". **Exit editor** leaves editing rather than going to wp-admin's list: the site canvas goes back to Browse, and the full-screen editor goes to the post type's list. On the site canvas, it also drops this person's unsaved changes to the post. Taken over, core autosaved them first and offers them back next time.
+- **Take over** is core's link to `post.php`, which locks the post and redirects to the post's edit link. Taken over from here, it comes back to the page it was taken over from, which then opens with the post locked for the new person.
+- The person taken over from sees "Someone else has taken over this post" on their next heartbeat, after core autosaves their changes.
+
 ## Requirements and the Gutenberg check
 
 - WordPress 7.0 or newer.
