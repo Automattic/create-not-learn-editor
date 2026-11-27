@@ -153,6 +153,14 @@ WordPress plugin dependencies do not support minimum dependency versions, so the
 
 Pull requests are tested against that minimum. Newer Gutenbergs, the latest release, trunk and the one WordPress.com runs, are tested each week by the Gutenberg compatibility workflow, which opens an issue for each version that fails. See [Trying another Gutenberg](../CONTRIBUTING.md#trying-another-gutenberg).
 
+## Onboarding tips
+
+Inline help points at a control the first time it matters. The first change only Publish can save spotlights Publish with a line of help, and the first click on the page's words or pictures in Browse spotlights Edit.
+
+A tip is registered once in `src/onboarding/tips.js`, with what makes it due and the moments it may show at, such as when the person pauses or moves to another screen. Each person sees each tip once, remembered in a preference. Nobody sees any after ticking "Don’t show hints like these", which Preferences can undo, and nothing shows in a workspace with `onboarding` off, such as Builder.
+
+Any new help that points at a control should be a tip, not a popover of its own. See [`src/onboarding/README.md`](../src/onboarding/README.md).
+
 ## Opening in a workspace
 
 A link can open the editor in a workspace by adding `workspace` to its address:

@@ -71,7 +71,7 @@ const SITE_WIDE_TYPES = [
 	'postType/wp_template_part',
 ];
 
-function isSiteWideChange( { kind, name, property } ) {
+export function isSiteWideChange( { kind, name, property } ) {
 	if ( kind === 'root' && name === 'site' ) {
 		return SITE_WIDE_SETTINGS.includes( property );
 	}

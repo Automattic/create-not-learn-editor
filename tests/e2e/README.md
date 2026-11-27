@@ -45,5 +45,5 @@ The base URL comes from `wp-env status`. Set `WP_BASE_URL` to point somewhere el
 - Each test should check one view or one interaction. If its name needs an "and", it is probably two tests.
 - Set up data over REST with the `rest` fixture rather than through the UI. `rest.createPage()`, `rest.createPattern()` and `rest.createNavigationMenu()` delete what they make when the test ends. Use `rest.deleteLater()` for things a test makes through the UI, and `rest.onCleanup()` to put back anything else it changes.
 - Open screens directly with `visitEditor( page, '/route' )`. Only click through the sidebar when the navigation is what is being tested.
-- The global setup logs in once and shares the session with every test.
+- The global setup logs in once and shares the session with every test. It also turns the editor's hints off (`src/onboarding/`), since a hint dims the editor and catches clicks. A test about a hint turns them on for itself with `rest.setEditorPreferences( { showHints: true, onboardingSeen: [] } )`, as `interactions/onboarding.spec.js` does, which puts them back when it ends.
 - Tests run one at a time, because they share one WordPress site.

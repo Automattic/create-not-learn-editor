@@ -36,6 +36,11 @@ import {
 	SHOW_PAGE_DESIGNS_PREFERENCE,
 } from '../add-page-preferences';
 import { usePortalHost } from '../editor-layer/portal-host';
+import {
+	ONBOARDING_PREFERENCES_SCOPE,
+	registerOnboardingPreferences,
+	SHOW_HINTS_PREFERENCE,
+} from '../onboarding/preferences';
 import { unlock } from '../lock-unlock';
 import {
 	ASK_POST_KIND_PREFERENCE,
@@ -115,6 +120,15 @@ function CreateNotLearnSection() {
 				) }
 				scope={ ADD_PAGE_PREFERENCES_SCOPE }
 			/>
+			<PreferenceToggleControl
+				featureName={ SHOW_HINTS_PREFERENCE }
+				help={ __(
+					'The first time you use some parts of the editor, a short hint shows what they’re for.',
+					'create-not-learn-editor'
+				) }
+				label={ __( 'Show hints', 'create-not-learn-editor' ) }
+				scope={ ONBOARDING_PREFERENCES_SCOPE }
+			/>
 		</PreferencesModalSection>
 	);
 }
@@ -192,6 +206,7 @@ function Preferences() {
 export function mountPreferences() {
 	registerPostKindPreferences();
 	registerAddPagePreferences();
+	registerOnboardingPreferences();
 
 	const container = document.createElement( 'div' );
 	container.className = 'cnl-preferences-root';

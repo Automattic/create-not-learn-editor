@@ -68,6 +68,8 @@ export const PREFERENCE_NAME = 'workspace';
  * - `publishStep`: whether Publish asks "Are you ready to publish?" first,
  *   with the category, tags and when to publish to hand. Only a default:
  *   the person's own choice, from the checkbox on that step, wins.
+ * - `onboarding`: whether the editor's inline help spotlights a control the
+ *   first time it matters (`src/onboarding/`).
  */
 const DEFAULTS = {
 	home: {
@@ -96,6 +98,7 @@ const DEFAULTS = {
 	publishStep: false,
 	postKinds: true,
 	tuckAdvanced: true,
+	onboarding: true,
 };
 
 /**
@@ -205,6 +208,8 @@ const PRESETS = [
 		// Templates, template parts and patterns are what these people
 		// came for, so they're out with the rest.
 		tuckAdvanced: false,
+		// They know the editor, so it doesn't stop them to explain itself.
+		onboarding: false,
 	},
 	{
 		id: 'agent',

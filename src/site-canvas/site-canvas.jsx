@@ -31,7 +31,7 @@ import {
 import { hasSections as hasSectionsFor } from '../sections';
 import { useComposeZoom } from './compose/use-compose-zoom';
 import { EDITOR_DEVICES } from './constants';
-import { EditHint } from './edit-hint';
+import { useEditHint } from './edit-hint';
 import { useEditSectionControls } from './edit-section-controls';
 import { MODE_COMPOSE, MODE_EDIT } from './mode';
 import { expandCanvas, useCanvasExpansion } from './expansion';
@@ -172,6 +172,12 @@ export function SiteCanvas( {
 		onZoomOut: zoomOut,
 	} );
 	useEditSectionControls( isEditing && hasSections );
+	useEditHint( {
+		anchorRef: editButtonRef,
+		onEdit: startEditing,
+		frameDocument: frame.frameDocument,
+		isActive: isPreviewing && canvas.canEdit && ! frame.isLoading,
+	} );
 	/*
 	 * A section's blocks are changed directly, as anywhere in core's editor,
 	 * so core doesn't lock the ones patterns add to their content. A header
@@ -351,12 +357,6 @@ export function SiteCanvas( {
 					) }
 				</div>
 			</div>
-			<EditHint
-				anchorRef={ editButtonRef }
-				onEdit={ startEditing }
-				frameDocument={ frame.frameDocument }
-				isActive={ isPreviewing && canvas.canEdit && ! frame.isLoading }
-			/>
 			{ canvas.dialog.isOpen && (
 				<UnsavedChangesDialog { ...canvas.dialog } />
 			) }
