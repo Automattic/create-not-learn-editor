@@ -27,7 +27,7 @@ import {
 	createContext,
 	forwardRef,
 	useContext,
-	useState,
+	useRef,
 } from '@wordpress/element';
 import {
 	alignNone as alignNoneIcon,
@@ -55,12 +55,12 @@ import {
 	isRTL,
 	serialize,
 	sprintf,
-	UiIconButton,
 	useDispatch,
 	useSelect,
 } from '../../wordpress-packages';
 import ColorWell from '../../pickers/color-well';
 import ColorList from './color-list';
+import { getLayoutGridColumns, MAX_LAYOUT_COLUMNS } from './layout-grid';
 import {
 	usePartColors,
 	usePartDesigns,
@@ -106,9 +106,6 @@ export function getParentView( view ) {
 	return view === VIEW_CUSTOM_COLOR ? VIEW_COLOR : null;
 }
 
-// The most layouts the carousel shows at once.
-export const MAX_PER_SLIDE = 4;
-
 /**
  * @return {Object} The design choices' names, by view.
  */
@@ -136,128 +133,46 @@ function Preview( { blocks } ) {
 	);
 }
 
-// How many layouts the carousel shows at once, set by the bar.
-const PerSlideContext = createContext( MAX_PER_SLIDE );
+// The most layouts a row holds, set by the bar from the room it has.
+const ColumnsContext = createContext( MAX_LAYOUT_COLUMNS );
 
 /**
- * Layouts as a carousel, so the tray stays one row tall however many there
- * are. It shows a full row at a time and moves along one layout at a time,
- * so no layout is ever left on its own. It opens with the one in use in view.
+ * Every layout at once, in a grid, so how many there are can be seen at a
+ * glance and picking one moves nothing. Each is drawn with the section's own
+ * content.
  *
  * @param {Object}   props
  * @param {?string}  props.current  The layout in use.
  * @param {Function} props.onSelect Called with the layout picked.
  * @param {Object[]} props.options  `{ blocks, label, name }` for each.
- * @return {Element} The carousel.
+ * @return {Element} The layouts.
  */
 function LayoutOptions( { current, onSelect, options } ) {
-	const perSlide = useContext( PerSlideContext );
-	const visible = Math.min( perSlide, options.length );
-	const lastStart = options.length - visible;
-	const currentIndex = Math.max(
-		0,
-		options.findIndex( ( option ) => option.name === current )
-	);
-	const [ start, setStart ] = useState( () =>
-		Math.min( currentIndex, lastStart )
-	);
-	const shown = Math.min( start, lastStart );
-	const hasMore = lastStart > 0;
-	const direction = isRTL() ? 1 : -1;
+	const maxColumns = useContext( ColumnsContext );
+	const columns = getLayoutGridColumns( options.length, maxColumns );
 
 	return (
 		<div
-			aria-roledescription={
-				hasMore
-					? __( 'carousel', 'create-not-learn-editor' )
-					: undefined
-			}
-			className="cnl-section-modes__carousel"
+			aria-label={ __( 'Layouts', 'create-not-learn-editor' ) }
+			className="cnl-section-modes__options"
 			role="group"
-			style={ {
-				'--cnl-layouts-per-slide': visible,
-				'--cnl-layouts-offset': direction * shown,
-			} }
+			style={ { '--cnl-layout-columns': columns } }
 		>
-			<div className="cnl-section-modes__carousel-row">
-				{ hasMore && (
-					<UiIconButton
-						className="cnl-section-modes__carousel-arrow"
-						disabled={ shown === 0 }
-						icon={ isRTL() ? chevronRightIcon : chevronLeftIcon }
-						label={ __(
-							'Previous layout',
-							'create-not-learn-editor'
-						) }
-						onClick={ () => setStart( shown - 1 ) }
-						size="compact"
-						tone="neutral"
-						variant="outline"
-					/>
-				) }
-				<div className="cnl-section-modes__carousel-viewport">
-					<div className="cnl-section-modes__options">
-						{ options.map( ( option, index ) => {
-							const isHidden =
-								index < shown || index >= shown + visible;
-
-							return (
-								<button
-									aria-hidden={ isHidden || undefined }
-									aria-pressed={ option.name === current }
-									className="cnl-section-modes__option"
-									inert={ isHidden ? '' : undefined }
-									key={ option.name ?? 'none' }
-									onClick={ () =>
-										option.name !== current &&
-										onSelect( option )
-									}
-									title={ option.label }
-									type="button"
-								>
-									<Preview blocks={ option.blocks } />
-									<span>{ option.label }</span>
-								</button>
-							);
-						} ) }
-					</div>
-				</div>
-				{ hasMore && (
-					<UiIconButton
-						className="cnl-section-modes__carousel-arrow"
-						disabled={ shown === lastStart }
-						icon={ isRTL() ? chevronLeftIcon : chevronRightIcon }
-						label={ __( 'Next layout', 'create-not-learn-editor' ) }
-						onClick={ () => setStart( shown + 1 ) }
-						size="compact"
-						tone="neutral"
-						variant="outline"
-					/>
-				) }
-			</div>
-			{ hasMore && (
-				<div className="cnl-section-modes__carousel-dots">
-					{ Array.from( { length: lastStart + 1 }, ( _, index ) => (
-						<button
-							aria-current={ index === shown }
-							aria-label={ sprintf(
-								/* translators: 1: first layout shown, 2: last layout shown, 3: number of layouts. */
-								__(
-									'Show layouts %1$d to %2$d of %3$d',
-									'create-not-learn-editor'
-								),
-								index + 1,
-								index + visible,
-								options.length
-							) }
-							className="cnl-section-modes__carousel-dot"
-							key={ index }
-							onClick={ () => setStart( index ) }
-							type="button"
-						/>
-					) ) }
-				</div>
-			) }
+			{ options.map( ( option ) => (
+				<button
+					aria-pressed={ option.name === current }
+					className="cnl-section-modes__option"
+					key={ option.name ?? 'none' }
+					onClick={ () =>
+						option.name !== current && onSelect( option )
+					}
+					title={ option.label }
+					type="button"
+				>
+					<Preview blocks={ option.blocks } />
+					<span>{ option.label }</span>
+				</button>
+			) ) }
 		</div>
 	);
 }
@@ -844,14 +759,17 @@ export function useSectionDesignViews( clientId ) {
  * @return {Object} `{ colors, layouts, width }`.
  */
 function useSectionChoices( clientId, onReplace ) {
-	const { replaceBlock } = useDispatch( blockEditorStore );
+	const { replaceBlocks } = useDispatch( blockEditorStore );
 	const updateColors = useUpdateColors();
 	const updateCustomColors = useUpdateCustomColors();
 	const { block, choices, colors, layouts } = useSectionVariations(
 		clientId,
-		{ allowCustom: true }
+		{
+			allowCustom: true,
+		}
 	);
 	const width = useWidthChoice( clientId );
+	const steady = useSteadyLayouts( block, layouts );
 
 	return {
 		colors: withCustom(
@@ -860,16 +778,71 @@ function useSectionChoices( clientId, onReplace ) {
 			( name ) => updateColors( [ block ], name, colors.options ),
 			( values ) => updateCustomColors( [ block ], values, choices )
 		),
-		layouts: layouts && {
-			...layouts,
+		layouts: steady.layouts && {
+			...steady.layouts,
 			onSelect: ( option ) => {
 				const next = cloneBlock( option.block );
 
-				replaceBlock( clientId, next );
+				steady.remember( next.clientId, option.name );
+				// Selected but not focused: focus would scroll the canvas
+				// to the new section, taking the toolbar and the layouts
+				// with it.
+				replaceBlocks( clientId, next, 0, null );
 				onReplace( next );
 			},
 		},
 		width,
+	};
+}
+
+/**
+ * A section's layouts, held as they were when first offered while its
+ * layouts are picked between. They are worked out from the section's shape,
+ * so the layout picked would otherwise offer a different set, in another
+ * order, and the cards would move under the pointer. Any other change to
+ * the section, or a section the picks didn't put in, offers them afresh.
+ * Undo and redo go back to a section the picks put in, which keeps its own.
+ *
+ * @param {?Object} block   The section.
+ * @param {?Object} layouts `{ current, options }` for it, or null.
+ * @return {Object} `{ layouts, remember }`: the layouts to offer, and a
+ *                  function taking the client ID of the section a pick put
+ *                  in, and the layout's name.
+ */
+function useSteadyLayouts( block, layouts ) {
+	const held = useRef( null );
+	const seen = block && held.current?.sections.get( block.clientId );
+
+	if ( seen && ! seen.block ) {
+		// The section a pick put in, as the editor holds it.
+		seen.block = block;
+	}
+
+	if ( layouts && ( ! seen || seen.block !== block ) ) {
+		held.current = {
+			options: layouts.options,
+			sections: new Map( [
+				[ block.clientId, { block, name: layouts.current } ],
+			] ),
+		};
+	}
+
+	// Between a pick and the new section being selected there is no
+	// section, and the layouts stay as they were rather than blink out.
+	const current = block
+		? held.current?.sections.get( block.clientId )
+		: held.current?.last;
+
+	if ( current ) {
+		held.current.last = current;
+	}
+
+	return {
+		layouts: current
+			? { current: current.name, options: held.current.options }
+			: null,
+		remember: ( clientId, name ) =>
+			held.current?.sections.set( clientId, { name } ),
 	};
 }
 
@@ -1020,7 +993,7 @@ const PartDesignBar = forwardRef( function UnforwardedPartDesignBar(
  * @param {string}   props.clientId   The section.
  * @param {string}   props.title      Its name.
  * @param {?string}  props.view       The choice drilled into, if any.
- * @param {number}   props.perSlide   How many layouts a slide holds.
+ * @param {number}   props.columns    The most layouts a row holds.
  * @param {Object}   props.style      Where the bar sits.
  * @param {Function} props.onView     See `DesignBarView`.
  * @param {Function} props.onClose    Leaves Edit design.
@@ -1031,11 +1004,11 @@ const PartDesignBar = forwardRef( function UnforwardedPartDesignBar(
  * @return {Element} The bar.
  */
 function DesignBar(
-	{ clientId, onReplace, part, perSlide = MAX_PER_SLIDE, ...props },
+	{ clientId, columns = MAX_LAYOUT_COLUMNS, onReplace, part, ...props },
 	ref
 ) {
 	return (
-		<PerSlideContext.Provider value={ perSlide }>
+		<ColumnsContext.Provider value={ columns }>
 			{ part ? (
 				<PartDesignBar { ...props } part={ part } ref={ ref } />
 			) : (
@@ -1046,7 +1019,7 @@ function DesignBar(
 					ref={ ref }
 				/>
 			) }
-		</PerSlideContext.Provider>
+		</ColumnsContext.Provider>
 	);
 }
 

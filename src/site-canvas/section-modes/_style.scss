@@ -359,10 +359,6 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	margin-top: $bar-padding;
 	padding: var(--wpds-dimension-padding-md) var(--wpds-dimension-padding-sm) var(--wpds-dimension-padding-sm);
 	border-top: $edge;
-
-	.cnl-section-modes__carousel-arrow {
-		border-radius: $button-radius;
-	}
 }
 
 .cnl-section-modes__swatches {
@@ -372,85 +368,11 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	gap: var(--wpds-dimension-gap-sm);
 }
 
-/*
- * Layouts as a carousel: a full row of cards at a time, moved along a card
- * at a time, with arrows beside and dots below once there are more.
- */
-.cnl-section-modes__carousel {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-sm);
-	max-width: 100%;
-}
-
-.cnl-section-modes__carousel-row {
-	display: flex;
-	align-items: center;
-	gap: var(--wpds-dimension-gap-xs);
-	max-width: 100%;
-}
-
-// Exactly a row's cards wide, so the arrows sit beside them, with room
-// round them for a card's ring, which sits just outside its edge. Less room
-// than the gap between cards, so none of the next card shows. Clipped
-// rather than hidden, so focus can never scroll it off a card's edge.
-.cnl-section-modes__carousel-viewport {
-	width: calc(var(--cnl-layouts-per-slide) * 136px + (var(--cnl-layouts-per-slide) - 1) * 8px + 6px);
-	min-width: 0;
-	max-width: 100%;
-	box-sizing: border-box;
-	margin: -3px;
-	padding: 3px;
-	overflow: clip;
-}
-
-// Every card in one strip, slid a card and its gap at a time.
+// Layouts as a grid, every one at once.
 .cnl-section-modes__options {
-	display: flex;
+	display: grid;
+	grid-template-columns: repeat(var(--cnl-layout-columns, 3), 176px);
 	gap: 8px;
-	transform: translateX(calc(var(--cnl-layouts-offset, 0) * (136px + 8px)));
-	transition: transform $duration-md $easing-balanced;
-
-	> .cnl-section-modes__option {
-		flex: none;
-	}
-}
-
-.cnl-section-modes .cnl-section-modes__carousel-arrow {
-	flex: none;
-}
-
-.cnl-section-modes__carousel-dots {
-	display: flex;
-	gap: var(--wpds-dimension-gap-sm);
-}
-
-.cnl-section-modes__carousel-dot {
-	width: 8px;
-	height: 8px;
-	padding: 0;
-	border: 0;
-	border-radius: 50%;
-	background: $stroke-control;
-
-	// A target larger than the dot.
-	position: relative;
-
-	&::before {
-		content: "";
-		position: absolute;
-		inset: -6px;
-	}
-
-	&[aria-current="true"] {
-		background: $theme;
-	}
-
-	&:focus-visible {
-		outline: $focus-ring;
-		outline-offset: 2px;
-	}
 }
 
 /*
@@ -462,7 +384,7 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 	flex-direction: column;
 	align-items: center;
 	gap: var(--wpds-dimension-gap-sm);
-	width: 136px;
+	width: 176px;
 	padding: var(--wpds-dimension-padding-sm);
 	border: var(--wpds-border-width-xs) solid $stroke-weak;
 	border-radius: var(--wpds-border-radius-lg);
@@ -500,8 +422,8 @@ $easing-balanced: var(--wpds-motion-easing-balanced);
 .cnl-section-modes__preview {
 	position: relative;
 	display: block;
-	width: 120px;
-	height: 76px;
+	width: 160px;
+	height: 100px;
 	overflow: hidden;
 	border-radius: var(--wpds-border-radius-md);
 	background: #fff;

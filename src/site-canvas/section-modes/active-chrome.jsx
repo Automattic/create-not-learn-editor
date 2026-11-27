@@ -23,7 +23,6 @@ import {
 	SectionTab,
 } from './section-chrome';
 import {
-	getLayoutsPerSlide,
 	INSET,
 	local,
 	placeAtEdge,
@@ -32,6 +31,7 @@ import {
 	stickyTop,
 	TAB_HEIGHT,
 } from './placement';
+import { getLayoutColumns } from './layout-grid';
 import {
 	BAR_HEIGHT,
 	MODE_BAR_ROOM_HEIGHT,
@@ -139,7 +139,7 @@ export function ActiveChrome( {
 				onReplace={ onLayoutReplace }
 				onView={ setDesignView }
 				part={ activePart }
-				perSlide={ getLayoutsPerSlide( maxWidth ) }
+				columns={ getLayoutColumns( maxWidth ) }
 				ref={ setChromeNode }
 				style={ {
 					left: box.left + box.width / 2,

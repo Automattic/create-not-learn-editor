@@ -446,15 +446,29 @@ test.describe( 'Edit mode', () => {
 		await expect( options.nth( 1 ) ).toBeVisible();
 
 		const other = popover.locator(
-			'.cnl-section-modes__option[aria-pressed="false"]:not([inert])'
+			'.cnl-section-modes__option[aria-pressed="false"]'
 		);
 		const otherName = await other.first().getAttribute( 'title' );
+		const getNames = () =>
+			options.evaluateAll( ( nodes ) =>
+				nodes.map( ( node ) => node.title )
+			);
+		const getTop = async () =>
+			Math.round( ( await popover.boundingBox() ).y );
+		const names = await getNames();
+		const top = await getTop();
 
 		await other.first().click();
 		await expect(
 			options.filter( { hasText: otherName } )
 		).toHaveAttribute( 'aria-pressed', 'true' );
 		await expect( getBlockToolbar( page ) ).toBeVisible();
+
+		// The pick moves nothing: the same layouts, in the same place.
+		expect( await getNames() ).toEqual( names );
+		await expect
+			.poll( async () => Math.abs( ( await getTop() ) - top ) )
+			.toBeLessThanOrEqual( 2 );
 
 		// Escape closes them.
 		await page.keyboard.press( 'Escape' );
